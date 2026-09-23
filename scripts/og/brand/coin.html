@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            html,
+            body {
+                margin: 0;
+                width: 1000px;
+                height: 1000px;
+                background: #07090c;
+                overflow: hidden;
+            }
+            .c {
+                position: absolute;
+                inset: 60px;
+                border-radius: 50%;
+                background:
+                    linear-gradient(#131a22 2px, transparent 2px) 0 0 / 40px 40px,
+                    linear-gradient(90deg, #131a22 2px, transparent 2px) 0 0 / 40px 40px,
+                    #0e1217;
+                box-shadow:
+                    0 0 0 28px #16e08a,
+                    0 0 0 40px #0a8f55,
+                    0 0 0 56px #07090c;
+                display: grid;
+                place-items: center;
+            }
+            img {
+                width: 560px;
+                height: 560px;
+                image-rendering: pixelated;
+                margin-top: -20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="c"><img src="/hq/assets/patch.svg" alt="" /></div>
+    </body>
+</html>

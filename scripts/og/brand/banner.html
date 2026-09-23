@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2');
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1500px;
+                height: 500px;
+                overflow: hidden;
+                background:
+                    linear-gradient(#131a22 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, #131a22 1px, transparent 1px) 0 0 / 50px 50px,
+                    #07090c;
+                color: #e8edf2;
+                font-family: 'JetBrains Mono', monospace;
+            }
+            /* X crops the left ~20% under the avatar on some layouts; keep the words right of centre-left. */
+            .w {
+                position: absolute;
+                left: 470px;
+                top: 110px;
+            }
+            h1 {
+                font: 400 170px/0.8 'Jersey 10';
+                margin: 0;
+                color: #16e08a;
+                text-shadow: 0 10px 0 #0a8f55;
+            }
+            p {
+                font-size: 30px;
+                margin: 34px 0 0;
+                color: #c9d2dc;
+            }
+            p b {
+                color: #16e08a;
+                font-weight: 400;
+            }
+            canvas {
+                position: absolute;
+                right: 70px;
+                top: 150px;
+                image-rendering: pixelated;
+            }
+            .candles {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                opacity: 0.35;
+            }
+        </style>
+    </head>
+    <body>
+        <svg class="candles" width="1500" height="500" viewBox="0 0 1500 500">
+            <g id="g"></g>
+        </svg>
+        <div class="w">
+            <h1>BULL RUN</h1>
+            <p>
+                An AI builds this game on its own budget.<br /><b
+                    >New build every day at 00:00 UTC.</b
+                >
+            </p>
+        </div>
+        <canvas id="bull"></canvas>
+        <script type="module">
+            import { bakeSprite } from '/game/src/art/sprites.js';
+            const f = bakeSprite('bull', 12)[0];
+            const c = document.getElementById('bull');
+            c.width = f.width;
+            c.height = f.height;
+            c.getContext('2d').drawImage(f, 0, 0);
+            const g = document.getElementById('g');
+            let p = 380;
+            for (let i = 0; i < 30; i++) {
+                const o = p;
+                p += Math.sin(i * 1.7) * 40 - 8 - (i > 18 ? 6 : 0);
+                const up = p < o;
+                const x = 20 + i * 50;
+                const top = Math.min(o, p),
+                    h = Math.max(6, Math.abs(p - o));
+                g.insertAdjacentHTML(
+                    'beforeend',
+                    `<rect x="${x + 10}" y="${top - 18}" width="4" height="${h + 36}" fill="${up ? '#0A8F55' : '#B3173A'}"/><rect x="${x}" y="${top}" width="24" height="${h}" fill="${up ? '#16E08A' : '#FF3B5C'}"/>`
+                );
+            }
+            window.ready = true;
+        </script>
+    </body>
+</html>

@@ -64,6 +64,7 @@ export class Game {
         this.acc = 0;
         this.startedAt = performance.now();
         this.submitted = false;
+        this._bossIntro = null;
         this._runId++;
         this.ui.resetHud();
         this.ui.hideAll();
@@ -179,6 +180,10 @@ export class Game {
                 this.state = 'playing';
                 this.acc = 0;
                 this.ui.hideAll();
+                if (this._bossIntro) {
+                    this.ui.bossIntro(this._bossIntro.name, this._bossIntro.tagline);
+                    this._bossIntro = null;
+                }
             }
         });
     }
@@ -252,7 +257,9 @@ export class Game {
                     if (!this.attract) this.ui.toast(`${e.name.toUpperCase()} IN 5`, 'bear', 1600);
                     break;
                 case 'boss':
-                    if (!this.attract) this.ui.bossIntro(e.name, e.tagline);
+                    // If a level-up card opens on the same tick, hold the intro until it closes.
+                    if (this.sim.choices) this._bossIntro = e;
+                    else if (!this.attract) this.ui.bossIntro(e.name, e.tagline);
                     fx.addShake(1.1);
                     fx.addFlash('255,59,92', 0.45, 1.4);
                     this._sfx('bossSpawn', 0);

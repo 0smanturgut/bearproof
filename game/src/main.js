@@ -140,7 +140,8 @@ async function boot() {
         const top = (lb.data?.rows || lb.data?.entries || [])[0];
         if (top) ui.setTodayTop(`Today's #1: ${top.name} · ${fmtNum(top.score)}`);
     } else {
-        ui.setDailySub('Offline: playing a free run instead');
+        document.querySelector('#btnDaily span').textContent = 'PLAY NOW';
+        ui.setDailySub('The daily board is offline, so this is a free run');
     }
 }
 

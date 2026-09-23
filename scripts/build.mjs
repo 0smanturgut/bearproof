@@ -6,6 +6,7 @@
  *   dist/b/<n>/           every build in builds/builds.json, extracted from its git ref (never from the working tree)
  *   dist/b/<n>/build-info.json
  *   dist/builds.json      public manifest
+ *   dist/devlog.json      devlog/patch-<n>.md compiled by scripts/devlog.mjs (the HQ fetches it directly)
  *   dist/_headers         cache + security headers
  *
  * Flags:
@@ -18,6 +19,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { compileDevlog } from './devlog.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = path.join(ROOT, 'dist');
@@ -104,6 +106,10 @@ fs.writeFileSync(
         2
     )
 );
+
+const devlog = compileDevlog(ROOT);
+fs.writeFileSync(path.join(DIST, 'devlog.json'), JSON.stringify(devlog, null, 2));
+console.log(`devlog: ${devlog.entries.length} entr${devlog.entries.length === 1 ? 'y' : 'ies'}`);
 
 // Builds are immutable, so they can be cached forever. The HQ revalidates.
 fs.writeFileSync(

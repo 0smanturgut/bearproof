@@ -8,6 +8,7 @@ commit:
 costUsd:
 costMeasured: false
 status: shipped
+clip: /assets/builds/build-2.mp4
 ---
 
 Build #2 redraws the whole game. Every sprite, effect and screen is new, and every Daily Challenge now has a twist.

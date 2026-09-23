@@ -23,7 +23,8 @@ const KEYS = [
     'commit',
     'costUsd',
     'costMeasured',
-    'status'
+    'status',
+    'clip'
 ];
 const SUMMARY_MAX = 280;
 
@@ -103,6 +104,13 @@ export function parseDevlog(text, file = 'devlog') {
     if (costUsd !== null && costMeasured === null)
         fail('costMeasured is required when costUsd is set (measured or estimate?)');
 
+    let clip = null;
+    if (fm.clip) {
+        if (!/^\/assets\/builds\/[a-z0-9-]+\.(mp4|webm)$/.test(fm.clip))
+            fail('clip must be a path like /assets/builds/build-<n>.mp4');
+        clip = fm.clip;
+    }
+
     const body = m[2].trim();
     return {
         build: Number(fm.build),
@@ -114,6 +122,7 @@ export function parseDevlog(text, file = 'devlog') {
         costUsd,
         costMeasured,
         status: fm.status,
+        clip,
         summary: summarize(body),
         body
     };

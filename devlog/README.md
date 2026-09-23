@@ -17,6 +17,7 @@ commit: 3f2c1ab
 costUsd: 0.00 # number, or leave empty
 costMeasured: true # true = measured, false = estimate
 status: shipped # shipped | failed
+clip: /assets/builds/build-1.mp4 # optional: a short clip of the build (scripts/clip.mjs)
 ---
 
 First paragraph is the summary shown on the HQ timeline and in share cards.

@@ -33,11 +33,25 @@ test('parseDevlog reads every field and strips comments', () => {
             costUsd: 0.42,
             costMeasured: true,
             status: 'shipped',
+            clip: null,
             summary: 'Green candles now explode.',
             body: undefined
         }
     );
     assert.ok(e.body.startsWith('## Shipped'));
+});
+
+test('parseDevlog: an optional clip must live under /assets/builds/', () => {
+    const withClip = FULL.replace(
+        'status: shipped',
+        'status: shipped\nclip: /assets/builds/build-1.mp4'
+    );
+    assert.equal(parseDevlog(doc(withClip, 'Body.')).clip, '/assets/builds/build-1.mp4');
+    const bad = FULL.replace(
+        'status: shipped',
+        'status: shipped\nclip: https://evil.example/x.mp4'
+    );
+    assert.throws(() => parseDevlog(doc(bad, 'Body.')), /clip/);
 });
 
 test('parseDevlog defaults: empty commit/cost are null, chosenBy defaults to agent', () => {

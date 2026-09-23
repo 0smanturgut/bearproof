@@ -940,6 +940,7 @@ function renderToday(live, d, now) {
                     modeBadge(live.mode)
                 )
             ),
+            d && d.clip ? clipBox(d.clip, live.n) : null,
             h(
                 'div',
                 { class: 'feat-body' },
@@ -956,6 +957,39 @@ function renderToday(live, d, now) {
                 playLink(live.n)
             )
         )
+    );
+}
+
+/** A build's clip: poster first, plays only while on screen (never downloads with the page). */
+function clipBox(src, n) {
+    if (!/^\/assets\/builds\/[a-z0-9-]+\.(mp4|webm)$/.test(src)) return null;
+    const v = h('video', {
+        class: 'feat-clip',
+        src,
+        poster: src.replace(/\.(mp4|webm)$/, '.jpg'),
+        muted: '',
+        loop: '',
+        playsinline: '',
+        preload: 'none',
+        'aria-label': `Autopilot footage of Build #${n}`
+    });
+    v.muted = true;
+    if (
+        !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        'IntersectionObserver' in window
+    ) {
+        new IntersectionObserver((es) => {
+            for (const e of es) {
+                if (e.isIntersecting) v.play().catch(() => {});
+                else v.pause();
+            }
+        }).observe(v);
+    } else v.controls = true;
+    return h(
+        'figure',
+        { class: 'feat-media' },
+        v,
+        h('figcaption', null, `Build #${n}, played by the autopilot`)
     );
 }
 

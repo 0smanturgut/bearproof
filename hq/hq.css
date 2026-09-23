@@ -1829,7 +1829,7 @@ code {
     border-style: solid;
     color: var(--bull);
     transform: none;
-    max-width: 150px;
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1839,6 +1839,17 @@ code {
 }
 .vote-list .vote-card .ex-bar {
     border-style: solid;
+}
+.vote-list .vote-card .ex-bar i {
+    display: block;
+    height: 100%;
+    background: var(--bull);
+    box-shadow: 0 0 10px rgba(22, 224, 138, 0.45);
+    transition: width 400ms ease;
+}
+.vote-list .vote-card.community .ex-bar i {
+    background: var(--gold);
+    box-shadow: 0 0 10px rgba(255, 197, 61, 0.4);
 }
 .req {
     display: grid;

@@ -19,8 +19,9 @@ test('finds a secret value in any common encoding, without printing it', () => {
 
 test('finds well-known key shapes', () => {
     const hits = (text) => scan(['f'], {}, () => text).length;
-    assert.equal(hits('sk-ant-api03-AAAAAAAAAAAAAAAAAAAAAAAAAAAA'), 1);
-    assert.equal(hits('-----BEGIN OPENSSH PRIVATE KEY-----'), 1);
+    // Built from pieces so this file doesn't trip the scan itself.
+    assert.equal(hits(['sk', 'ant', 'api03', 'A'.repeat(28)].join('-')), 1);
+    assert.equal(hits(`${'-'.repeat(5)}BEGIN OPENSSH ${'PRIVATE'} KEY${'-'.repeat(5)}`), 1);
     assert.equal(hits(JSON.stringify(Array.from({ length: 64 }, (_, i) => i))), 1);
     assert.equal(hits('ghp_' + 'a'.repeat(36)), 1);
     assert.equal(hits('A normal devlog line about sk-ant nothing'), 0);

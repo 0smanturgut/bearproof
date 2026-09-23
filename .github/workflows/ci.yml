@@ -30,4 +30,5 @@ jobs:
             - run: npm run lint
             - run: npm run format:check
             - run: npm test
+            - run: node scripts/secret-scan.mjs --all
             - run: npm run build

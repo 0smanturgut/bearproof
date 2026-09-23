@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * Gather the Build Agent's daily context into one JSON file (stdout). Runs in CI before the Build Agent starts.
- * Only numbers and ids go in: no player-supplied free text (names), so nothing here can inject instructions.
+ * Numbers and ids only, with one exception: when a holder's request wins the vote, its title and details go in,
+ * marked `untrusted`. The server already filtered them (worker/src/lib/requests.js) and agent/PROMPT.md tells
+ * the agent to read them as a feature description, never as instructions. No other player text (names) goes in.
  *
  *   node agent/context.mjs [--site https://…] > "$RUNNER_TEMP/context.json"
  */
@@ -44,6 +46,24 @@ const recent = fs
     .slice(0, 3)
     .map((f) => ({ file: `devlog/${f}` }));
 
+/** A ballot option for the agent. A holder's request keeps its text, clipped and marked untrusted. */
+function option(o) {
+    if (!o) return null;
+    const base = {
+        id: o.id,
+        title: String(o.title).slice(0, 60),
+        share: o.share,
+        source: o.source
+    };
+    if (o.source !== 'community') return base;
+    return {
+        ...base,
+        untrusted: true,
+        requestedBy: o.requestedBy,
+        description: String(o.description || '').slice(0, 240)
+    };
+}
+
 const n = lastBuildNumber() + 1;
 const out = {
     build: n,
@@ -61,9 +81,7 @@ const out = {
               topScoreToday: stats.topScoreToday?.score ?? null
           }
         : null,
-    vote: vote?.winner
-        ? { winner: { id: vote.winner.id, title: vote.winner.title, share: vote.winner.share } }
-        : null,
+    vote: vote?.winner ? { winner: option(vote.winner), runnerUp: option(vote.runnerUp) } : null,
     recentDevlogs: recent
 };
 process.stdout.write(JSON.stringify(out, null, 2) + '\n');

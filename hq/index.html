@@ -1248,13 +1248,31 @@
                         aria-hidden="true"
                     ></canvas>
                 </div>
+                <p class="lede">
+                    Every day the AI proposes three features for tomorrow's build, and holders can
+                    put their own idea on the same ballot. The most-voted option is what the AI
+                    builds next, whoever proposed it.
+                </p>
                 <div class="vote">
                     <div class="vote-state panel">
-                        <span class="flag gold">Voting opens when the coin launches</span>
-                        <p>
-                            Holders pick among features the AI proposes. Vote weight is
-                            <b class="sqrt">√(tokens held)</b>, so a whale can't own the roadmap.
-                        </p>
+                        <span class="flag gold" id="voteFlag"
+                            >Voting opens when the coin launches</span
+                        >
+                        <ol class="vote-how">
+                            <li><b>The AI proposes</b> three features it can ship in a day.</li>
+                            <li>
+                                <b>Holders add requests</b>: their own feature, on the same ballot.
+                            </li>
+                            <li>
+                                <b>Holders vote</b> until 13:00 UTC. Weight is
+                                <b class="sqrt">√(tokens held)</b>, so a whale can't own the
+                                roadmap.
+                            </li>
+                            <li>
+                                <b>The winner ships</b> in the next 00:00 UTC build, credited in the
+                                devlog.
+                            </li>
+                        </ol>
                         <table class="wtable">
                             <caption>
                                 How √ weighting scales
@@ -1281,42 +1299,75 @@
                             </tbody>
                         </table>
                         <p class="fine">
-                            10,000× the tokens gets 100× the say, not 10,000×. Signing in is a plain
-                            text signature: no transaction, no approval.
+                            Voting and posting are plain text signatures: no transaction, no
+                            approval, nothing moves. Playing never needs a wallet.
                         </p>
-                        <button class="btn" type="button" disabled>Connect wallet to vote</button>
+                        <button class="btn" type="button" id="voteConnect" disabled>
+                            Connect wallet to vote
+                        </button>
+                        <p class="vote-status" id="voteStatus" aria-live="polite"></p>
                     </div>
-                    <div class="examples">
-                        <p class="ex-note">
-                            <span class="flag dim">Example</span> What a poll will look like. These
-                            are not live polls and have no votes.
-                        </p>
-                        <ul class="ex-list">
+                    <div class="ballot-col">
+                        <div class="ballot-head">
+                            <h3>Tomorrow's ballot</h3>
+                            <span id="ballotMeta"></span>
+                        </div>
+                        <ul class="ex-list vote-list" id="ballot">
                             <li class="ex">
-                                <span class="ex-stamp" aria-hidden="true">Example</span>
-                                <h3><span class="sr-only">Example: </span>Rug Lord boss</h3>
-                                <p>A boss that pulls the floor out from under you. Literally.</p>
-                                <div class="ex-bar" aria-hidden="true"><i></i></div>
-                                <p class="ex-foot">not a live poll</p>
-                            </li>
-                            <li class="ex">
-                                <span class="ex-stamp" aria-hidden="true">Example</span>
-                                <h3><span class="sr-only">Example: </span>Leverage passive</h3>
-                                <p>
-                                    Double damage dealt, double damage taken. High risk, high
-                                    reward.
-                                </p>
-                                <div class="ex-bar" aria-hidden="true"><i></i></div>
-                                <p class="ex-foot">not a live poll</p>
-                            </li>
-                            <li class="ex">
-                                <span class="ex-stamp" aria-hidden="true">Example</span>
-                                <h3><span class="sr-only">Example: </span>Crypto Winter stage</h3>
-                                <p>A frozen map where everything moves slower, including you.</p>
-                                <div class="ex-bar" aria-hidden="true"><i></i></div>
-                                <p class="ex-foot">not a live poll</p>
+                                <span class="ex-stamp" aria-hidden="true">Loading</span>
+                                <h3>Loading the ballot…</h3>
+                                <p>The AI's proposals for tomorrow's build.</p>
                             </li>
                         </ul>
+                        <form class="req panel" id="reqForm" novalidate>
+                            <div class="req-h">
+                                <h3>Request a feature</h3>
+                                <span class="flag dim" id="reqFlag">Opens with the coin</span>
+                            </div>
+                            <ul class="req-rules">
+                                <li>
+                                    Hold at least <b>100,000 $BPROOF</b> in the wallet that signs.
+                                </li>
+                                <li>
+                                    One request per wallet per day, until 12:00 UTC. Up to 12 on a
+                                    ballot.
+                                </li>
+                                <li>
+                                    Describe a change to the game in words. No links, nothing about
+                                    keys, wallets or payouts.
+                                </li>
+                                <li>
+                                    If it wins, the AI builds it next (or its first playable slice).
+                                    If it can't be built safely, the devlog says why and the
+                                    runner-up ships.
+                                </li>
+                            </ul>
+                            <label for="reqTitle">Feature</label>
+                            <input
+                                id="reqTitle"
+                                name="title"
+                                maxlength="60"
+                                placeholder="e.g. A whale that crosses the screen and drops XP"
+                                autocomplete="off"
+                                disabled
+                            />
+                            <label for="reqDesc">Details <span>(optional)</span></label>
+                            <textarea
+                                id="reqDesc"
+                                name="description"
+                                maxlength="240"
+                                rows="3"
+                                placeholder="What it does and why it's fun, in one or two sentences."
+                                disabled
+                            ></textarea>
+                            <div class="req-foot">
+                                <span class="req-count" id="reqCount">0 / 240</span>
+                                <button class="btn btn-go" type="submit" id="reqSubmit" disabled>
+                                    Sign &amp; post request
+                                </button>
+                            </div>
+                            <p class="vote-status" id="reqStatus" aria-live="polite"></p>
+                        </form>
                     </div>
                 </div>
             </section>
@@ -1384,11 +1435,34 @@
                                 <rect x="5" y="6" width="2" height="2" fill="#B07A00" />
                                 <rect x="3" y="8" width="6" height="2" fill="#FFC53D" />
                             </svg>
-                            <p>
-                                Daily #1 wins a prize paid by the AI from its treasury in $ANSEM.
-                                Prizes start after the coin launches. Holding the coin is never
-                                required to win.
-                            </p>
+                            <div class="prize-body">
+                                <p class="prize-h">
+                                    <b>Daily prize in $ANSEM</b>
+                                    <span class="flag dim" id="prizeFlag"
+                                        >Starts with the coin</span
+                                    >
+                                </p>
+                                <p id="prizeText">
+                                    The AI pays each day's verified #1 from its treasury: 10% of
+                                    that day's creator fees, at most 0.5 SOL, bought as $ANSEM.
+                                    Holding the coin is never required.
+                                </p>
+                                <ol class="prize-how">
+                                    <li>
+                                        Play today's challenge. Your run goes on the board when it
+                                        ends.
+                                    </li>
+                                    <li>
+                                        Add a Solana address on the game-over screen. No wallet
+                                        connection, ever.
+                                    </li>
+                                    <li>
+                                        After 00:00 UTC the AI re-simulates the top runs and pays
+                                        the verified #1. Every payout is on the ledger.
+                                    </li>
+                                </ol>
+                                <ul class="winners" id="winners" hidden></ul>
+                            </div>
                         </div>
                     </div>
                     <div class="ch-board panel">
@@ -1891,11 +1965,32 @@
                         </p>
                     </details>
                     <details>
+                        <summary>How do I win the daily prize?</summary>
+                        <p>
+                            Play today's Daily Challenge. Your run goes on the board the moment it
+                            ends. On the game-over screen, add a Solana address (just the public
+                            address, no wallet connection). After 00:00 UTC the AI re-plays the top
+                            runs from their recorded inputs, and the best verified run with an
+                            address is paid. Prizes start when the coin launches.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Can I suggest a feature?</summary>
+                        <p>
+                            Yes. Holders with at least 100,000 $BPROOF can post one request a day
+                            (until 12:00 UTC) and it goes on the same ballot as the AI's three
+                            proposals. If it gets the most votes, the AI builds it next and credits
+                            you in the devlog. Requests describe a change to the game; links and
+                            anything about keys, wallets or payouts are refused.
+                        </p>
+                    </details>
+                    <details>
                         <summary>Is it safe to connect my wallet?</summary>
                         <p>
-                            You only need a wallet to vote. Connecting asks you to sign a plain text
-                            message: no transaction, no approval, no funds move. We read your token
-                            balance to weight your vote. Playing never needs a wallet.
+                            You only need a wallet to vote or post a request. Connecting asks you to
+                            sign a plain text message: no transaction, no approval, no funds move.
+                            We read your token balance to weight your vote. Playing never needs a
+                            wallet, and the prize address is typed in, never connected.
                         </p>
                     </details>
                 </div>

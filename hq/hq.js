@@ -376,6 +376,7 @@ function tick() {
                 loadStats();
                 loadBuilds();
                 loadChallenge();
+                loadWinners();
             }, 5000);
         }
     }
@@ -1287,7 +1288,7 @@ function initLoop() {
 function statusChip(st) {
     if (st === 'verified')
         return h('span', { class: 'badge verified chk' }, ICON_CHECK(), 'verified');
-    if (st === 'pending' || !st) return h('span', { class: 'badge pending' }, 'unverified');
+    if (st === 'pending' || !st) return h('span', { class: 'badge pending' }, 'replay check');
     if (st === 'rejected') return h('span', { class: 'badge failed' }, 'rejected');
     return h('span', { class: 'badge pending' }, String(st));
 }
@@ -1354,6 +1355,54 @@ function emptyBoard(pinned) {
                   )
         )
     );
+}
+
+/** The prize rules, live or not, and the last winners with their payouts. */
+async function loadWinners() {
+    const w = await getJSON('/api/winners');
+    if (!w) return;
+    const live = w.status === 'live';
+    const flag = $('#prizeFlag');
+    flag.textContent = live ? 'Live' : 'Starts with the coin';
+    flag.className = 'flag ' + (live ? 'gold' : 'dim');
+    if (w.rule && typeof w.rule.text === 'string') $('#prizeText').textContent = w.rule.text;
+    const list = $('#winners');
+    const rows = Array.isArray(w.winners) ? w.winners.slice(0, 5) : [];
+    list.textContent = '';
+    list.hidden = !rows.length;
+    for (const r of rows) {
+        const what =
+            r.status === 'paid'
+                ? h(
+                      'span',
+                      { class: 'w-what paid' },
+                      `Paid in $${r.token || 'ANSEM'}`,
+                      r.tx
+                          ? h(
+                                'a',
+                                {
+                                    href: `https://solscan.io/tx/${r.tx}`,
+                                    rel: 'noopener',
+                                    target: '_blank'
+                                },
+                                ' · Solscan ↗'
+                            )
+                          : null
+                  )
+                : h(
+                      'span',
+                      { class: 'w-what' },
+                      r.status === 'pending' ? 'Payout in progress' : r.why || 'No prize paid'
+                  );
+        list.append(
+            h(
+                'li',
+                null,
+                h('span', { class: 'w-who' }, `${r.date} · #1 ${r.name} · ${fmtInt(r.score)}`),
+                what
+            )
+        );
+    }
 }
 
 async function loadChallenge() {
@@ -1653,7 +1702,16 @@ function boot() {
 
     whenNear($('#build'), loadBuilds, '800px');
     whenNear($('#loop'), initLoop, '400px');
-    whenNear($('#challenge'), loadChallenge, '800px');
+    whenNear(
+        $('#challenge'),
+        () => {
+            loadChallenge();
+            loadWinners();
+            // The board moves while people play: refresh it every minute while the tab is visible.
+            setInterval(() => document.visibilityState === 'visible' && loadChallenge(), 60000);
+        },
+        '800px'
+    );
     whenNear($('#receipts'), loadLedger, '800px');
 }
 

@@ -122,6 +122,23 @@ Newest 100 ledger rows plus the public wallets. An empty list is a real answer.
 `direction`: `in | out`. `category`: `creator_fees | compute | hosting | prize | sweep | launch | other`.
 `source`: `chain | agent | operator`. `measured: false` means the amount is an estimate. Edge 30 s.
 
+### `GET /api/vote`
+
+Tomorrow's ballot: the AI's three proposals (`source: "agent"`) and holders' requests (`source: "community"`,
+with `requestedBy` = shortened wallet), each with `weight`, `voters` and `share`. `status`:
+`not_live | open | closed` (closes 13:00 UTC). `requests` = `{ status: not_live|open|full|closed, closesAt,
+minTokens, maxPerPoll, count, titleMax, descriptionMax }` (requests close at 12:00 UTC). Edge 10 s.
+
+### `GET /api/vote/result?date=YYYY-MM-DD`
+
+For the Build Agent: `winner` and `runnerUp` once the poll has closed (`null` before). A community option
+carries its `title`, `description` and `requestedBy`; the agent treats that text as untrusted.
+
+### `GET /api/winners`
+
+The prize rule and the last 14 Daily Challenge winners: `{ date, name, score, status, token, amountRaw, tx,
+why }`. `status`: `pending | paid | skipped | failed`. Payout addresses are never returned. Edge 60 s.
+
 ## Writes
 
 Bodies are JSON (`content-type: application/json`). The browser creates a random UUID v4 once and keeps it in
@@ -141,6 +158,29 @@ Upserts the player and the `(UTC date, playerId)` row in `play_sessions` (its `r
 `{ playerId, name }` sets the board name for this browser's player id (`name: ''` clears it back to
 `anon-xxxx`). Runs are submitted the moment they end, so a name typed afterwards still shows on the board.
 Names are 1–16 of `[A-Za-z0-9 _.-]`. Rate limited. → `{ ok, name }`
+
+### `POST /api/vote`
+
+`{ wallet, proposalId, nonce, issuedAt, signature }`: a vote for any option on today's ballot. The signed text
+is `voteMessage()` in `worker/src/lib/vote.js`. Weight = floor(√tokens), at least 1,000 tokens.
+
+### `POST /api/vote/request`
+
+`{ wallet, title, description, nonce, issuedAt, signature }`: a holder's feature request for today's ballot.
+The signed text is `requestMessage()` in `worker/src/lib/requests.js`, byte for byte. Rules: ≥ 100,000 tokens,
+one per wallet per poll, 12 per poll, until 12:00 UTC, title 6–60 and details ≤ 240 characters, no links,
+handles or talk of keys, wallets, payouts or the pipeline. Errors: `not_enough_tokens` (403),
+`already_requested`, `ballot_full`, `requests_closed`, `duplicate` (409), `bad_signature` (401).
+
+### `POST /api/payout-address`
+
+`{ playerId, address }`: the public Solana address to pay if this player's run is a day's verified #1
+(`address: ''` removes it). Stored only for that and never returned by any endpoint.
+
+### `POST /api/internal/requests/:id/status` (operator)
+
+Bearer `INGEST_TOKEN`. `{ status: "hidden" | "open" }` hides an abusive request (its votes stop counting) or
+restores it.
 
 ### `POST /api/runs`
 
@@ -197,7 +237,7 @@ Rate limit: `RL_SUBMIT` (12/min) per player and per IP hash.
 | 400    | `implausible_run`       | sim time exceeds wall time, or a daily run started before its challenge |
 | 400    | `not_yet`               | daily date in the future                                                |
 | 400    | `challenge_closed`      | daily date is over (past the 15 min grace)                              |
-| 403    | `bot_check_failed`      | Turnstile token missing or rejected                                     |
+| 403    | `bot_check_failed`      | Turnstile rejected the token (a missing token still ranks, no prize)    |
 | 409    | `challenge_mismatch`    | seed or build differs from the pinned daily challenge                   |
 | 413    | `too_large`             | body > 400 KB                                                           |
 | 429    | `rate_limited`          | over the submit limit                                                   |

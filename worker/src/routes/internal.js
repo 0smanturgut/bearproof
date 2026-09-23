@@ -124,3 +124,27 @@ export async function payoutSelftest(request, env) {
         return json({ ok: false, reason: String(err?.message || err) });
     }
 }
+
+/**
+ * POST /api/internal/requests/:id/status { status: 'open'|'hidden' }: the operator hides an abusive holder
+ * request (its votes stop counting) or restores it. Bearer INGEST_TOKEN.
+ */
+export async function requestStatus(request, env, id) {
+    if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
+    const { data, error: bad } = await readJson(request, 512);
+    if (bad) return bad;
+    if (!['open', 'hidden'].includes(data?.status))
+        return error(400, 'invalid_field', "`status` must be 'open' or 'hidden'.", {
+            field: 'status'
+        });
+    try {
+        const r = await env.DB.prepare('UPDATE feature_requests SET status = ?1 WHERE id = ?2')
+            .bind(data.status, id)
+            .run();
+        if (!r.meta?.changes) return error(404, 'not_found', 'No such request.');
+    } catch (err) {
+        console.warn('[internal] request status', err?.message || err);
+        return error(503, 'db_unavailable', 'Storage is unavailable.');
+    }
+    return json({ ok: true, id, status: data.status });
+}

@@ -1,6 +1,6 @@
 name: Build Agent (daily)
 
-# Proof's daily loop: gather context → Claude Code (headless) implements one feature → guard → gates →
+# The Build Agent's daily loop: gather context → Claude Code (headless) implements one feature → guard → secret scan → gates →
 # measured cost into the devlog → PR with auto-merge. Deploy (and the build tag) happen in deploy.yml on merge.
 # A red gate means no PR; the run log and screenshots stay as artifacts and the devlog says what failed.
 
@@ -57,7 +57,7 @@ jobs:
             - name: Gather context
               if: env.PAUSED != '1'
               run: node agent/context.mjs --site "$SITE" > "$AGENT_CONTEXT" && cat "$AGENT_CONTEXT"
-            - name: Proof builds today's feature (Claude Code, headless)
+            - name: The Build Agent builds today's feature (Claude Code, headless)
               if: env.PAUSED != '1'
               env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -69,13 +69,19 @@ jobs:
                     --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
-                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" "Bash(cat:*)" "Bash(ls:*)" \
-                    --disallowedTools "WebFetch" "WebSearch" \
+                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" \
+                    --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
                     > "$RUNNER_TEMP/claude-result.json"
                   node -e "const r=require(process.argv[1]);console.log('turns',r.num_turns,'cost $',r.total_cost_usd,'error',r.is_error)" "$RUNNER_TEMP/claude-result.json"
             - name: Guard (allowed paths only)
               if: env.PAUSED != '1'
               run: node scripts/guard-paths.mjs origin/main
+            - name: Secret scan (nothing the agent wrote may carry a key)
+              if: env.PAUSED != '1'
+              env:
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+                  GITHUB_TOKEN: ${{ github.token }}
+              run: node scripts/secret-scan.mjs origin/main
             - name: Gates
               if: env.PAUSED != '1'
               run: |
@@ -97,7 +103,7 @@ jobs:
               run: |
                   N=$(node -p "require(process.env.AGENT_CONTEXT).build")
                   TITLE=$(sed -n 's/^title: *//p' "devlog/build-$N.md" | head -1 | sed 's/^"\(.*\)"$/\1/')
-                  git config user.name "Proof (Build Agent)"
+                  git config user.name "BEARPROOF (Build Agent)"
                   git config user.email "agent@bearproof.invalid"
                   git checkout -b "agent/build-$N"
                   git add -A

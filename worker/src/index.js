@@ -122,6 +122,13 @@ export default {
         const url = new URL(request.url);
         const { pathname } = url;
 
+        // One canonical host: www.bearproof.app → bearproof.app.
+        if (url.hostname.startsWith('www.')) {
+            return Response.redirect(
+                `https://${url.hostname.slice(4)}${pathname}${url.search}`,
+                301
+            );
+        }
         if (pathname === '/play' || pathname === '/play/') return play(request, env);
 
         if (pathname.startsWith('/api/')) {

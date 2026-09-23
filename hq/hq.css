@@ -1649,3 +1649,110 @@ code {
     grid-column: 1 / -1;
     order: -1;
 }
+
+/* Recent builds: the history folds after the latest few */
+.timeline.collapsed > li:nth-child(n + 5) {
+    display: none;
+}
+.tl-more {
+    margin-top: 14px;
+}
+.bestiary {
+    margin-top: 0;
+}
+
+/* The closing call to action */
+.finale {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+    margin-top: clamp(84px, 12vw, 150px);
+    padding: 36px 0 8px;
+    text-align: center;
+    background: radial-gradient(
+        ellipse 60% 55% at 50% 40%,
+        rgba(22, 224, 138, 0.1),
+        transparent 70%
+    );
+}
+.finale-bull {
+    max-width: 72vw;
+    height: auto;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 36px rgba(22, 224, 138, 0.3));
+}
+.finale h2 {
+    margin: 0;
+    font: 400 clamp(58px, 12.5vw, 128px) / 0.85 var(--display);
+    text-shadow: 0 6px 0 rgba(0, 0, 0, 0.55);
+}
+.finale h2 em {
+    font-style: normal;
+    color: var(--bull);
+    text-shadow:
+        0 6px 0 var(--bull-dark),
+        0 0 44px rgba(22, 224, 138, 0.4);
+}
+.finale p {
+    max-width: 50ch;
+    margin: 0;
+    color: var(--text-2);
+}
+.finale-cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 8px;
+}
+.finale .play {
+    display: inline-flex;
+}
+
+/* Today's build with a clip, on wide screens: the clip left, the number and notes right */
+@media (min-width: 960px) {
+    .feat:has(.feat-media) {
+        grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+    }
+    .feat:has(.feat-media) .feat-media {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        order: 0;
+        display: grid;
+        align-items: center;
+        border-bottom: 0;
+        border-right: 1px solid var(--line-2);
+    }
+    .feat:has(.feat-media) .feat-n {
+        grid-column: 2;
+        grid-row: 1;
+        flex-direction: row;
+        align-items: center;
+        border-right: 0;
+        border-bottom: 1px solid var(--line-2);
+        padding: 16px 20px;
+    }
+    .feat:has(.feat-media) .feat-n .when {
+        text-align: right;
+        justify-items: end;
+    }
+    .feat:has(.feat-media) .feat-body {
+        grid-column: 2;
+        grid-row: 2;
+    }
+}
+
+@media (max-width: 600px) {
+    .sec-h {
+        gap: 12px;
+    }
+    .sec-h .rule {
+        display: none;
+    }
+    .sec-sprite {
+        max-height: 40px;
+        margin-left: auto;
+    }
+}

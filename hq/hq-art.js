@@ -297,3 +297,47 @@ function runParade(canvas, { SPRITES, bakeSprite, bakeGlow }) {
     track.innerHTML = run + run; // doubled for a seamless loop
     el.hidden = false;
 })();
+
+// ---------------------------------------------------------------- recent builds fold
+
+(() => {
+    const list = document.getElementById('timeline');
+    const btn = document.getElementById('tlMore');
+    if (!list || !btn) return;
+    let open = false;
+    const sync = () => {
+        const n = list.children.length;
+        const fold = n > 4 && !open;
+        list.classList.toggle('collapsed', fold);
+        btn.hidden = n <= 4;
+        btn.textContent = open ? 'Show recent builds' : `Show every build (${n})`;
+    };
+    btn.addEventListener('click', () => {
+        open = !open;
+        sync();
+    });
+    new MutationObserver(sync).observe(list, { childList: true });
+    sync();
+})();
+
+// ---------------------------------------------------------------- fund / steer / play status
+
+(async () => {
+    const get = (u) =>
+        fetch(u, { cache: 'no-cache', headers: { accept: 'application/json' } })
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null);
+    const [s, v] = await Promise.all([get('/api/stats'), get('/api/vote')]);
+    const set = (id, text, on) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = text;
+        el.classList.toggle('on', !!on);
+    };
+    if (s && s.token) set('verbFund', 'Live · the coin is out', true);
+    if (v && v.status === 'open')
+        set('verbSteer', `Poll open · closes ${String(v.closesAt).slice(11, 16)} UTC`, true);
+    else if (v && v.status === 'closed')
+        set('verbSteer', 'Poll closed · next one at 00:00 UTC', true);
+    if (s && s.liveBuild) set('verbPlay', `Live now · Build #${s.liveBuild.n}`, true);
+})();

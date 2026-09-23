@@ -213,6 +213,33 @@
         wrap.appendChild(side);
     }
 
+    function preview(p) {
+        const side = $('#vote .examples');
+        if (!side) return;
+        side.innerHTML = '';
+        const note = el('p', 'ex-note');
+        note.appendChild(el('span', 'flag gold', 'Preview'));
+        note.appendChild(
+            document.createTextNode(
+                ` The AI's proposals for Build #${p.forBuild}. Voting opens when the coin launches; until then the AI picks.`
+            )
+        );
+        side.appendChild(note);
+        const list = el('ul', 'ex-list vote-list');
+        for (const x of p.proposals) {
+            const li = el('li', 'ex vote-card preview');
+            li.appendChild(el('span', 'ex-stamp', 'Proposal'));
+            li.appendChild(el('h3', null, x.title));
+            li.appendChild(el('p', null, x.description));
+            const bar = el('div', 'ex-bar');
+            bar.appendChild(el('i'));
+            li.appendChild(bar);
+            li.appendChild(el('p', 'ex-foot', 'Votes open at coin launch'));
+            list.appendChild(li);
+        }
+        side.appendChild(list);
+    }
+
     async function load() {
         try {
             const r = await fetch('/api/vote', {
@@ -221,9 +248,9 @@
             });
             if (!r.ok) return;
             const data = await r.json();
-            // Before the coin launches the designed empty state (in the HTML) stays.
-            if (!data || data.status === 'not_live' || !data.proposals || !data.proposals.length)
-                return;
+            if (!data || !data.proposals || !data.proposals.length) return; // keep the designed empty state
+            // Before the coin launches: show the AI's real proposals for tomorrow, clearly not votable yet.
+            if (data.status === 'not_live') return preview(data);
             poll = data;
             render();
         } catch {

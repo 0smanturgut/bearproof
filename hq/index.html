@@ -396,6 +396,94 @@
                 }
             }
 
+            /* ---- Fund it · steer it · play it ---- */
+            .verbs {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
+                gap: 10px;
+                margin-top: 26px;
+            }
+            .verb {
+                --cc: rgba(22, 224, 138, 0.55);
+                position: relative;
+                display: grid;
+                grid-template-columns: 52px minmax(0, 1fr);
+                column-gap: 14px;
+                row-gap: 5px;
+                align-content: start;
+                padding: 16px 40px 16px 16px;
+                color: var(--text);
+                text-decoration: none;
+                border: 1px solid var(--line-2);
+                background:
+                    linear-gradient(var(--cc), var(--cc)) top left / 12px 2px no-repeat,
+                    linear-gradient(var(--cc), var(--cc)) top left / 2px 12px no-repeat,
+                    linear-gradient(var(--cc), var(--cc)) bottom right / 12px 2px no-repeat,
+                    linear-gradient(var(--cc), var(--cc)) bottom right / 2px 12px no-repeat,
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 50%),
+                    var(--panel);
+                transition:
+                    border-color 140ms ease,
+                    transform 140ms ease,
+                    box-shadow 140ms ease;
+            }
+            .verb:hover,
+            .verb:focus-visible {
+                border-color: var(--bull);
+                transform: translateY(-2px);
+                box-shadow: 0 0 34px rgba(22, 224, 138, 0.16);
+            }
+            .verb::after {
+                content: '→';
+                position: absolute;
+                right: 16px;
+                top: 16px;
+                font: 400 24px/1 var(--display);
+                color: var(--muted);
+            }
+            .verb:hover::after {
+                color: var(--bull);
+            }
+            .verb canvas {
+                grid-row: 1 / span 3;
+                width: 48px;
+                height: 48px;
+                image-rendering: pixelated;
+            }
+            .verb-k {
+                font: 400 34px/0.95 var(--display);
+            }
+            .verb-k b {
+                font-weight: 400;
+                color: var(--bull);
+                text-shadow: 0 0 18px rgba(22, 224, 138, 0.35);
+            }
+            .verb-t {
+                font-size: 12px;
+                line-height: 1.5;
+                color: var(--text-2);
+            }
+            .verb-s {
+                justify-self: start;
+                margin-top: 5px;
+                padding: 4px 7px 3px;
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--gold);
+                box-shadow: inset 0 0 0 1px rgba(255, 197, 61, 0.45);
+            }
+            .verb-s.on {
+                color: var(--bull);
+                box-shadow: inset 0 0 0 1px rgba(22, 224, 138, 0.55);
+            }
+            @media (min-width: 760px) {
+                .verbs {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                }
+            }
+
             /* ---- Hero ---- */
             .hero {
                 display: grid;
@@ -918,6 +1006,9 @@
                 .ticker-track {
                     animation: none;
                 }
+                .verb {
+                    transition: none;
+                }
             }
         </style>
         <link rel="stylesheet" href="/hq.css" media="print" onload="this.media = 'all'" />
@@ -938,11 +1029,12 @@
                 </a>
                 <nav class="nav" aria-label="Sections">
                     <a href="#build">Builds</a>
-                    <a href="#how">How it works</a>
                     <a href="#vote">Vote</a>
                     <a href="#challenge">Challenge</a>
-                    <a href="#receipts">Receipts</a>
+                    <a href="#bears">Bears</a>
+                    <a href="#how">How it works</a>
                     <a href="#coin">Coin</a>
+                    <a href="#receipts">Receipts</a>
                     <a href="#faq">FAQ</a>
                 </nav>
                 <div class="bar-r">
@@ -1079,7 +1171,38 @@
                 </div>
             </section>
 
-            <!-- 01 · Today's build + timeline -->
+            <!-- Fund it · steer it · play it -->
+            <section class="verbs wrap" aria-label="How you take part">
+                <a class="verb" href="#coin">
+                    <canvas data-icon="cold_wallet" data-scale="3" aria-hidden="true"></canvas>
+                    <span class="verb-k">You <b>fund</b> it</span>
+                    <span class="verb-t"
+                        >Trading $BPROOF pays creator fees. Those fees are the AI's budget: compute,
+                        hosting, prizes.</span
+                    >
+                    <span class="verb-s" id="verbFund">Starts at coin launch</span>
+                </a>
+                <a class="verb" href="#vote">
+                    <canvas data-icon="conviction" data-scale="3" aria-hidden="true"></canvas>
+                    <span class="verb-k">You <b>steer</b> it</span>
+                    <span class="verb-t"
+                        >Holders vote on tomorrow's feature. Weight is √tokens, so no whale owns the
+                        roadmap.</span
+                    >
+                    <span class="verb-s" id="verbSteer">Starts at coin launch</span>
+                </a>
+                <a class="verb" href="#challenge">
+                    <canvas data-sprite="emblem" data-scale="3" aria-hidden="true"></canvas>
+                    <span class="verb-k">You <b>play</b> it</span>
+                    <span class="verb-t"
+                        >Free in your browser. One Daily Challenge for everyone, a daily $ANSEM
+                        prize for the verified #1.</span
+                    >
+                    <span class="verb-s on" id="verbPlay">Live now</span>
+                </a>
+            </section>
+
+            <!-- 01 · Today's build + recent builds -->
             <section class="sec wrap" id="build" aria-labelledby="buildH">
                 <div class="sec-h">
                     <span class="idx" aria-hidden="true">01</span>
@@ -1099,16 +1222,208 @@
                     </div>
                 </div>
                 <div class="tl-head">
-                    <h3>Every build so far</h3>
-                    <p>Newest first. This is the proof of work.</p>
+                    <h3>Recent builds</h3>
+                    <p>
+                        Newest first. Every build ever shipped stays playable: this is the proof of
+                        work.
+                    </p>
                 </div>
                 <ol class="timeline" id="timeline" aria-label="Build history"></ol>
+                <button class="btn btn-sm tl-more" id="tlMore" type="button" hidden>
+                    Show every build
+                </button>
+            </section>
 
-                <div class="bestiary">
-                    <div class="tl-head">
-                        <h3>Meet the bear market</h3>
-                        <p>Everything that wants your bull liquidated, drawn by the AI in code.</p>
+            <!-- 02 · Vote on tomorrow -->
+            <section class="sec wrap" id="vote" aria-labelledby="voteH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">02</span>
+                    <h2 id="voteH">Vote on tomorrow</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="ponzi"
+                        data-scale="3"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
+                </div>
+                <div class="vote">
+                    <div class="vote-state panel">
+                        <span class="flag gold">Voting opens when the coin launches</span>
+                        <p>
+                            Holders pick among features the AI proposes. Vote weight is
+                            <b class="sqrt">√(tokens held)</b>, so a whale can't own the roadmap.
+                        </p>
+                        <table class="wtable">
+                            <caption>
+                                How √ weighting scales
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Tokens held</th>
+                                    <th scope="col">Vote weight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>10,000</td>
+                                    <td>100</td>
+                                </tr>
+                                <tr>
+                                    <td>1,000,000</td>
+                                    <td>1,000</td>
+                                </tr>
+                                <tr>
+                                    <td>100,000,000</td>
+                                    <td>10,000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="fine">
+                            10,000× the tokens gets 100× the say, not 10,000×. Signing in is a plain
+                            text signature: no transaction, no approval.
+                        </p>
+                        <button class="btn" type="button" disabled>Connect wallet to vote</button>
                     </div>
+                    <div class="examples">
+                        <p class="ex-note">
+                            <span class="flag dim">Example</span> What a poll will look like. These
+                            are not live polls and have no votes.
+                        </p>
+                        <ul class="ex-list">
+                            <li class="ex">
+                                <span class="ex-stamp" aria-hidden="true">Example</span>
+                                <h3><span class="sr-only">Example: </span>Rug Lord boss</h3>
+                                <p>A boss that pulls the floor out from under you. Literally.</p>
+                                <div class="ex-bar" aria-hidden="true"><i></i></div>
+                                <p class="ex-foot">not a live poll</p>
+                            </li>
+                            <li class="ex">
+                                <span class="ex-stamp" aria-hidden="true">Example</span>
+                                <h3><span class="sr-only">Example: </span>Leverage passive</h3>
+                                <p>
+                                    Double damage dealt, double damage taken. High risk, high
+                                    reward.
+                                </p>
+                                <div class="ex-bar" aria-hidden="true"><i></i></div>
+                                <p class="ex-foot">not a live poll</p>
+                            </li>
+                            <li class="ex">
+                                <span class="ex-stamp" aria-hidden="true">Example</span>
+                                <h3><span class="sr-only">Example: </span>Crypto Winter stage</h3>
+                                <p>A frozen map where everything moves slower, including you.</p>
+                                <div class="ex-bar" aria-hidden="true"><i></i></div>
+                                <p class="ex-foot">not a live poll</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 03 · Daily Challenge -->
+            <section class="sec wrap" id="challenge" aria-labelledby="chH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">03</span>
+                    <h2 id="chH">Daily Challenge</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="xp_candle_big"
+                        data-scale="4"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
+                </div>
+                <div class="ch">
+                    <div class="ch-clock panel">
+                        <p class="k">Next build + new challenge in</p>
+                        <p
+                            class="countdown"
+                            id="countdown"
+                            role="timer"
+                            aria-label="Time until 00:00 UTC"
+                        >
+                            --:--:--
+                        </p>
+                        <p class="k">00:00 UTC · same seed, same build, for everyone</p>
+                        <dl class="ch-meta" id="chMeta">
+                            <div>
+                                <dt>Today</dt>
+                                <dd id="chDate">—</dd>
+                            </div>
+                            <div>
+                                <dt>Build</dt>
+                                <dd id="chBuild">—</dd>
+                            </div>
+                            <div>
+                                <dt>Stage</dt>
+                                <dd id="chStage">—</dd>
+                            </div>
+                            <div id="chTwistRow" hidden>
+                                <dt>Twist</dt>
+                                <dd id="chTwist">—</dd>
+                            </div>
+                        </dl>
+                        <a class="btn btn-go" id="chPlay" href="/play">Play today's challenge</a>
+                        <div class="prize">
+                            <svg
+                                class="px-ico"
+                                viewBox="0 0 12 12"
+                                width="28"
+                                height="28"
+                                aria-hidden="true"
+                                shape-rendering="crispEdges"
+                            >
+                                <rect x="3" y="1" width="6" height="4" fill="#FFC53D" />
+                                <rect x="1" y="1" width="2" height="1" fill="#FFC53D" />
+                                <rect x="9" y="1" width="2" height="1" fill="#FFC53D" />
+                                <rect x="1" y="2" width="1" height="2" fill="#FFC53D" />
+                                <rect x="10" y="2" width="1" height="2" fill="#FFC53D" />
+                                <rect x="4" y="5" width="4" height="1" fill="#FFC53D" />
+                                <rect x="5" y="6" width="2" height="2" fill="#B07A00" />
+                                <rect x="3" y="8" width="6" height="2" fill="#FFC53D" />
+                            </svg>
+                            <p>
+                                Daily #1 wins a prize paid by the AI from its treasury in $ANSEM.
+                                Prizes start after the coin launches. Holding the coin is never
+                                required to win.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="ch-board panel">
+                        <div class="lb-head">
+                            <h3>Today's leaderboard</h3>
+                            <span id="lbMeta"></span>
+                        </div>
+                        <div id="lb" aria-live="polite">
+                            <div class="state">
+                                <p class="state-k">Loading today's board…</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 04 · Meet the bear market -->
+            <section class="sec wrap" id="bears" aria-labelledby="bearsH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">04</span>
+                    <h2 id="bearsH">Meet the bear market</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="grizzly"
+                        data-scale="3"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
+                </div>
+                <p class="lede">
+                    Everything that wants your bull liquidated, drawn by the AI in code. New bears
+                    ship with new builds.
+                </p>
+                <div class="bestiary">
                     <ul class="bosses" aria-label="Bosses">
                         <li class="boss">
                             <canvas
@@ -1261,10 +1576,10 @@
                 </div>
             </section>
 
-            <!-- 02 · How it works -->
+            <!-- 05 · How it works -->
             <section class="sec wrap" id="how" aria-labelledby="howH">
                 <div class="sec-h">
-                    <span class="idx" aria-hidden="true">02</span>
+                    <span class="idx" aria-hidden="true">05</span>
                     <h2 id="howH">How it works</h2>
                     <span class="rule" aria-hidden="true"></span>
                     <canvas
@@ -1346,181 +1661,74 @@
                 </p>
             </section>
 
-            <!-- 03 · Vote -->
-            <section class="sec wrap" id="vote" aria-labelledby="voteH">
+            <!-- 06 · The coin -->
+            <section class="sec wrap" id="coin" aria-labelledby="coinH">
                 <div class="sec-h">
-                    <span class="idx" aria-hidden="true">03</span>
-                    <h2 id="voteH">Vote on tomorrow</h2>
+                    <span class="idx" aria-hidden="true">06</span>
+                    <h2 id="coinH">The coin: $BPROOF</h2>
                     <span class="rule" aria-hidden="true"></span>
                     <canvas
                         class="sec-sprite"
-                        data-sprite="ponzi"
-                        data-scale="3"
+                        data-sprite="emblem_large"
+                        data-scale="2"
                         data-anim
                         aria-hidden="true"
                     ></canvas>
                 </div>
-                <div class="vote">
-                    <div class="vote-state panel">
-                        <span class="flag gold">Voting opens when the coin launches</span>
-                        <p>
-                            Holders pick among features the AI proposes. Vote weight is
-                            <b class="sqrt">√(tokens held)</b>, so a whale can't own the roadmap.
-                        </p>
-                        <table class="wtable">
-                            <caption>
-                                How √ weighting scales
-                            </caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Tokens held</th>
-                                    <th scope="col">Vote weight</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>10,000</td>
-                                    <td>100</td>
-                                </tr>
-                                <tr>
-                                    <td>1,000,000</td>
-                                    <td>1,000</td>
-                                </tr>
-                                <tr>
-                                    <td>100,000,000</td>
-                                    <td>10,000</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="fine">
-                            10,000× the tokens gets 100× the say, not 10,000×. Signing in is a plain
-                            text signature: no transaction, no approval.
-                        </p>
-                        <button class="btn" type="button" disabled>Connect wallet to vote</button>
-                    </div>
-                    <div class="examples">
-                        <p class="ex-note">
-                            <span class="flag dim">Example</span> What a poll will look like. These
-                            are not live polls and have no votes.
-                        </p>
-                        <ul class="ex-list">
-                            <li class="ex">
-                                <span class="ex-stamp" aria-hidden="true">Example</span>
-                                <h3><span class="sr-only">Example: </span>Rug Lord boss</h3>
-                                <p>A boss that pulls the floor out from under you. Literally.</p>
-                                <div class="ex-bar" aria-hidden="true"><i></i></div>
-                                <p class="ex-foot">not a live poll</p>
-                            </li>
-                            <li class="ex">
-                                <span class="ex-stamp" aria-hidden="true">Example</span>
-                                <h3><span class="sr-only">Example: </span>Leverage passive</h3>
-                                <p>
-                                    Double damage dealt, double damage taken. High risk, high
-                                    reward.
-                                </p>
-                                <div class="ex-bar" aria-hidden="true"><i></i></div>
-                                <p class="ex-foot">not a live poll</p>
-                            </li>
-                            <li class="ex">
-                                <span class="ex-stamp" aria-hidden="true">Example</span>
-                                <h3><span class="sr-only">Example: </span>Crypto Winter stage</h3>
-                                <p>A frozen map where everything moves slower, including you.</p>
-                                <div class="ex-bar" aria-hidden="true"><i></i></div>
-                                <p class="ex-foot">not a live poll</p>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 04 · Daily Challenge -->
-            <section class="sec wrap" id="challenge" aria-labelledby="chH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">04</span>
-                    <h2 id="chH">Daily Challenge</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="xp_candle_big"
-                        data-scale="4"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <div class="ch">
-                    <div class="ch-clock panel">
-                        <p class="k">Next build + new challenge in</p>
-                        <p
-                            class="countdown"
-                            id="countdown"
-                            role="timer"
-                            aria-label="Time until 00:00 UTC"
-                        >
-                            --:--:--
-                        </p>
-                        <p class="k">00:00 UTC · same seed, same build, for everyone</p>
-                        <dl class="ch-meta" id="chMeta">
-                            <div>
-                                <dt>Today</dt>
-                                <dd id="chDate">—</dd>
-                            </div>
-                            <div>
-                                <dt>Build</dt>
-                                <dd id="chBuild">—</dd>
-                            </div>
-                            <div>
-                                <dt>Stage</dt>
-                                <dd id="chStage">—</dd>
-                            </div>
-                            <div id="chTwistRow" hidden>
-                                <dt>Twist</dt>
-                                <dd id="chTwist">—</dd>
-                            </div>
-                        </dl>
-                        <a class="btn btn-go" id="chPlay" href="/play">Play today's challenge</a>
-                        <div class="prize">
-                            <svg
-                                class="px-ico"
-                                viewBox="0 0 12 12"
-                                width="28"
-                                height="28"
-                                aria-hidden="true"
-                                shape-rendering="crispEdges"
+                <div class="coin panel">
+                    <div class="ca">
+                        <p class="k" id="caLabel">Contract address</p>
+                        <div class="ca-row">
+                            <code class="ca-val empty" id="caVal">Not launched yet</code>
+                            <button
+                                class="btn btn-sm"
+                                type="button"
+                                id="caCopy"
+                                aria-describedby="caLabel"
+                                disabled
                             >
-                                <rect x="3" y="1" width="6" height="4" fill="#FFC53D" />
-                                <rect x="1" y="1" width="2" height="1" fill="#FFC53D" />
-                                <rect x="9" y="1" width="2" height="1" fill="#FFC53D" />
-                                <rect x="1" y="2" width="1" height="2" fill="#FFC53D" />
-                                <rect x="10" y="2" width="1" height="2" fill="#FFC53D" />
-                                <rect x="4" y="5" width="4" height="1" fill="#FFC53D" />
-                                <rect x="5" y="6" width="2" height="2" fill="#B07A00" />
-                                <rect x="3" y="8" width="6" height="2" fill="#FFC53D" />
-                            </svg>
-                            <p>
-                                Daily #1 wins a prize paid by the AI from its treasury in $ANSEM.
-                                Prizes start after the coin launches. Holding the coin is never
-                                required to win.
-                            </p>
+                                Copy
+                            </button>
                         </div>
+                        <p class="copied" id="caCopied" role="status"></p>
                     </div>
-                    <div class="ch-board panel">
-                        <div class="lb-head">
-                            <h3>Today's leaderboard</h3>
-                            <span id="lbMeta"></span>
+                    <div class="coin-go">
+                        <a class="btn btn-go is-off" id="buyLink" aria-disabled="true"
+                            >Buy on pump.fun</a
+                        >
+                        <p class="fine" id="buyNote">Link turns on when the coin launches.</p>
+                    </div>
+                    <p class="coin-what">
+                        The coin funds the AI's compute and hosting through creator fees, and gives
+                        holders a vote on what gets built, plus cosmetics (a holder skin, a
+                        leaderboard badge). It is not an investment, pays nothing to holders, and is
+                        never required to play or win.
+                    </p>
+                    <div class="does">
+                        <div>
+                            <h3 class="bull">It does</h3>
+                            <ul class="ticks">
+                                <li>Fund compute and hosting through creator fees</li>
+                                <li>Give holders a vote on what gets built</li>
+                                <li>Unlock cosmetics: a holder skin, a leaderboard badge</li>
+                            </ul>
                         </div>
-                        <div id="lb" aria-live="polite">
-                            <div class="state">
-                                <p class="state-k">Loading today's board…</p>
-                            </div>
+                        <div>
+                            <h3 class="bear">It does not</h3>
+                            <ul class="ticks no">
+                                <li>Pay anything to holders</li>
+                                <li>Gate playing the game</li>
+                                <li>Gate winning the daily prize</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- 05 · Receipts -->
+            <!-- 07 · Receipts -->
             <section class="sec wrap" id="receipts" aria-labelledby="rcH">
                 <div class="sec-h">
-                    <span class="idx" aria-hidden="true">05</span>
+                    <span class="idx" aria-hidden="true">07</span>
                     <h2 id="rcH">Receipts</h2>
                     <span class="rule" aria-hidden="true"></span>
                     <canvas
@@ -1625,74 +1833,10 @@
                 </div>
             </section>
 
-            <!-- 06 · Coin -->
-            <section class="sec wrap" id="coin" aria-labelledby="coinH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">06</span>
-                    <h2 id="coinH">The coin: $BPROOF</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="emblem_large"
-                        data-scale="2"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <div class="coin panel">
-                    <div class="ca">
-                        <p class="k" id="caLabel">Contract address</p>
-                        <div class="ca-row">
-                            <code class="ca-val empty" id="caVal">Not launched yet</code>
-                            <button
-                                class="btn btn-sm"
-                                type="button"
-                                id="caCopy"
-                                aria-describedby="caLabel"
-                                disabled
-                            >
-                                Copy
-                            </button>
-                        </div>
-                        <p class="copied" id="caCopied" role="status"></p>
-                    </div>
-                    <div class="coin-go">
-                        <a class="btn btn-go is-off" id="buyLink" aria-disabled="true"
-                            >Buy on pump.fun</a
-                        >
-                        <p class="fine" id="buyNote">Link turns on when the coin launches.</p>
-                    </div>
-                    <p class="coin-what">
-                        The coin funds the AI's compute and hosting through creator fees, and gives
-                        holders a vote on what gets built, plus cosmetics (a holder skin, a
-                        leaderboard badge). It is not an investment, pays nothing to holders, and is
-                        never required to play or win.
-                    </p>
-                    <div class="does">
-                        <div>
-                            <h3 class="bull">It does</h3>
-                            <ul class="ticks">
-                                <li>Fund compute and hosting through creator fees</li>
-                                <li>Give holders a vote on what gets built</li>
-                                <li>Unlock cosmetics: a holder skin, a leaderboard badge</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="bear">It does not</h3>
-                            <ul class="ticks no">
-                                <li>Pay anything to holders</li>
-                                <li>Gate playing the game</li>
-                                <li>Gate winning the daily prize</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 07 · FAQ -->
+            <!-- 08 · FAQ -->
             <section class="sec wrap" id="faq" aria-labelledby="faqH">
                 <div class="sec-h">
-                    <span class="idx" aria-hidden="true">07</span>
+                    <span class="idx" aria-hidden="true">08</span>
                     <h2 id="faqH">FAQ</h2>
                     <span class="rule" aria-hidden="true"></span>
                     <canvas
@@ -1754,6 +1898,32 @@
                             balance to weight your vote. Playing never needs a wallet.
                         </p>
                     </details>
+                </div>
+            </section>
+            <!-- Finale -->
+            <section class="finale wrap" aria-labelledby="finH">
+                <canvas
+                    class="finale-bull"
+                    data-sprite="bull"
+                    data-scale="5"
+                    data-anim
+                    aria-hidden="true"
+                ></canvas>
+                <h2 id="finH">Are you <em>bearproof?</em></h2>
+                <p>
+                    A new build ships every day at 00:00 UTC. Play today's challenge, then come back
+                    tomorrow and see what the AI built overnight.
+                </p>
+                <div class="finale-cta">
+                    <a class="play" href="/play"
+                        >PLAY NOW
+                        <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
+                            <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
+                        </svg>
+                    </a>
+                    <a class="btn" href="https://x.com/bearproofapp" rel="noopener"
+                        >Follow @bearproofapp</a
+                    >
                 </div>
             </section>
         </main>

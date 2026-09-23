@@ -81,6 +81,16 @@ function collectBuilds() {
         const commit = git('rev-parse', `${tag}^{commit}`).toString().trim();
         out.push({ path: 'game', costUsd: null, ...meta, n, ref: tag, commit });
     }
+    // Each build's devlog ends with three proposals for the next build; holders vote on them the day it is live.
+    for (const b of out) {
+        const f = path.join(ROOT, 'agent', 'proposals', `patch-${b.n}.json`);
+        if (!fs.existsSync(f)) continue;
+        const list = JSON.parse(fs.readFileSync(f, 'utf8'));
+        if (!Array.isArray(list) || list.some((p) => !/^[a-z0-9-]{2,48}$/.test(p.id) || !p.title)) {
+            throw new Error(`${f}: expected [{id (kebab-case), title, description}]`);
+        }
+        b.proposals = list.map(({ id, title, description = '' }) => ({ id, title, description }));
+    }
     for (const n of manifest.revoked || []) {
         const b = out.find((x) => x.n === n);
         if (b) b.revoked = true;

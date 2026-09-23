@@ -11,6 +11,7 @@
 
 import { BUILDS } from './manifest.js';
 import { pendingRuns, verdict } from './routes/internal.js';
+import { castVote, getVote, voteResult } from './routes/vote.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
 import { dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
 import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
@@ -147,6 +148,10 @@ export default {
                         return edgeCached(request, ctx, 15, () => leaderboard(request, env));
                     case '/api/ledger':
                         return edgeCached(request, ctx, 30, () => ledger(env));
+                    case '/api/vote':
+                        return getVote(request, env);
+                    case '/api/vote/result':
+                        return voteResult(request, env);
                 }
                 if (pathname.startsWith('/api/run/'))
                     return getRun(pathname.slice('/api/run/'.length), env);
@@ -155,6 +160,7 @@ export default {
             if (request.method === 'POST') {
                 if (pathname === '/api/session') return session(request, env);
                 if (pathname === '/api/runs') return submitRun(request, env);
+                if (pathname === '/api/vote') return castVote(request, env);
                 const m = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/verdict$/);
                 if (m) return verdict(request, env, m[1]);
             }

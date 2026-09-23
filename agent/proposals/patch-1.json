@@ -1,0 +1,17 @@
+[
+    {
+        "id": "run-receipt",
+        "title": "Run receipts",
+        "description": "After every run, a pixel receipt of your run (score, time, build, day) you can save and share."
+    },
+    {
+        "id": "rug-lord-phase-2",
+        "title": "Rug Lord, phase two",
+        "description": "Below half HP the Rug Lord pulls the rug: the floor slides and his rug pullers dash twice as often."
+    },
+    {
+        "id": "whale-event",
+        "title": "Whale sighting",
+        "description": "Once per run a whale crosses the chart and drops a shower of XP candles. Chase it or stay safe."
+    }
+]

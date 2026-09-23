@@ -4,7 +4,7 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Wed 23 Sep 2026, 21:10 UTC. Build #1 is live, Build #2 goes live at 00:00 UTC Thu 24 Sep._
+_Last updated: Wed 23 Sep 2026, 21:20 UTC. Build #1 is live, Build #2 goes live at 00:00 UTC Thu 24 Sep._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
@@ -34,23 +34,10 @@ Then post the **pre-written announcement** the form gives you from @bearproofapp
 judges look for). The pinned intro post is `content/x/000-entry.md`: post it after 00:00 UTC on 24 Sep, pin it, and
 reply to the announcement with its link.
 
-## 3. Cloudflare API token for automatic deploys (3 min)
+## 3. Cloudflare API token ✅ done (23 Sep)
 
-Without it, every daily build needs me at the keyboard to deploy. With it, GitHub Actions deploys on its own.
-The stock template is enough. You don't need to add any permission.
-
-1. dash.cloudflare.com → the person icon (top right) → **Profile** → **API Tokens** (left menu) → **Create Token**.
-2. In the list, find **Edit Cloudflare Workers** → click **Use template** on that row.
-3. Don't touch the **Permissions** list. Scroll down to the two rows below it:
-    - **Account Resources**: first box `Include`, second box: pick your account.
-    - **Zone Resources**: first box `Include`, second box `Specific zone`, third box `bearproof.app`.
-4. Leave everything else as it is. **Continue to summary** → **Create Token**.
-5. The next page shows the token once. Click **Copy**, then run this in the terminal and paste it when it asks
-   (nothing shows while you paste; press Enter):
-    ```bash
-    gh secret set CLOUDFLARE_API_TOKEN -R 0smanturgut/bearproof
-    ```
-    Tell me "token set". I run a test deploy through GitHub and confirm. (`CLOUDFLARE_ACCOUNT_ID` is already set.)
+`CLOUDFLARE_API_TOKEN` is set in GitHub. A test deploy through GitHub Actions uploaded the Worker, kept both custom
+domains and passed the live check. Daily builds now deploy without anyone at the keyboard.
 
 ## 4. Anthropic API key for the Build Agent ✅ done (23 Sep)
 
@@ -58,16 +45,10 @@ The stock template is enough. You don't need to add any permission.
 opens a pull request, and the build ships at the next 00:00 UTC. Keep a monthly spend limit on the key
 (console.anthropic.com → Settings → Limits; suggested **$150**).
 
-## 5. Turnstile bot check (1 min left)
+## 5. Turnstile bot check ✅ done (23 Sep)
 
-The site key is received and live. One step remains: run this and paste the widget's **Secret Key** when asked
-(dash.cloudflare.com → Turnstile → `bearproof` → **Settings** / **Manage** shows it):
-
-```bash
-npx wrangler secret put TURNSTILE_SECRET
-```
-
-Until then the widget runs but the server skips the check (the API reports `turnstile: false` honestly).
+Site key and `TURNSTILE_SECRET` are set; `/api/health` reports `turnstile: true`. Only runs with a passed check can
+win the daily prize.
 
 ## 6. Treasury, prize wallet and the token launch (≈25 min)
 
@@ -132,7 +113,7 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
       `build-2` tagged. Secrets `INGEST_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and `ANTHROPIC_API_KEY` set. Auto-merge on.
 - [x] Build #1 live. Build #2 (new look, daily twists, share cards, fair play) goes live at 00:00 UTC Thu 24 Sep.
       The Build Agent takes the next free slot (Fri 25 Sep).
-- [x] X account @bearproofapp set up. Turnstile site key live.
+- [x] X account @bearproofapp set up. Turnstile live (site key + secret). CI deploys with its own Cloudflare token.
 - [x] HQ live with honest pre-launch states. Holder voting, treasury feed, ledger and prize payouts are built and
       tested, and switch on when the values from step 6 arrive.
 - [x] Run verifier running every 10 minutes (GitHub Actions).

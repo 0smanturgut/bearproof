@@ -19,6 +19,8 @@ import { edgeCached, error, json, redirect } from './lib/http.js';
 import { ledger } from './routes/ledger.js';
 import { getRun, leaderboard, session, submitRun } from './routes/runs.js';
 import { runCard, runPage } from './routes/share.js';
+import { twistFor } from './lib/twists.js';
+import { TWIST_BUILDS } from './generated/twists.js';
 import { setPayoutAddress } from './routes/payout.js';
 import { scheduled } from './cron.js';
 
@@ -51,6 +53,7 @@ async function daily(request, env) {
             seed: row.seed,
             stage: row.stage,
             stageName: STAGE_NAMES[row.stage] || row.stage,
+            twist: twistFor(TWIST_BUILDS, row.build, row.seed),
             startsAt: new Date(Date.parse(`${date}T00:00:00Z`)).toISOString(),
             endsAt: new Date(endsAt).toISOString(),
             playUrl: `/b/${row.build}/?challenge=${row.date}`,

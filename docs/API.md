@@ -30,8 +30,15 @@ data or `null`. Nothing is invented.
 
 Today's challenge by default. The first request for a date pins it to the build live at 00:00 UTC.
 
-`{ date, build, seed, stage, startsAt, endsAt, playUrl, prize: { token, status, note } }`. Cache 30 s.
+`{ date, build, seed, stage, stageName, twist, startsAt, endsAt, playUrl, turnstileSiteKey, prize: { token, status,
+note } }`. `twist` is `{ id, name, description }`, named by the pinned build's own code, or `null` for builds
+before Build #3. Cache 30 s.
 Errors: `403 not_yet` (future date), `503 not_configured` (no seed secret), `503 no_build`.
+
+### `GET /run/<id>` and `GET /og/run/<id>.png`
+
+A shareable page for one run (Open Graph + Twitter card tags) and its 1200×630 PNG card: score, time, build, day
+and the replay status. `?v=<status>` on the image is a cache key; final statuses are cached for a week.
 
 ### `GET /api/stats`
 

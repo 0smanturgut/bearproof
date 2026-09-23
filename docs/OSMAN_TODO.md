@@ -3,7 +3,7 @@
 Only things that need your accounts, money or signature. Everything else is handled. Steps are exact; when a step
 says **"send me"**, paste the value in chat. **Never paste secret keys in chat.** Those go through the commands shown.
 
-_Last updated: Wed 23 Sep 2026, M0._
+_Last updated: Wed 23 Sep 2026, evening. Build #1 is live._
 
 ---
 
@@ -101,9 +101,23 @@ That should be Thursday. A first post that shows the actual game converts far be
   true on-chain). I'll confirm before you do anything.
 - **Workers Paid plan ($5/month).** Go to dash.cloudflare.com → Workers & Pages → Plans. It is needed by Saturday
   for Queues and for the CPU time that server-side replay verification uses.
-- **Treasury wallets + token launch on ClawPump.** ⚠️ **Do not launch the token before I send the wallet plan.**
-  ClawPump's fee payout wallet is fixed forever once the token exists. I'll send the wallet setup, the launch fields
-  (name, ticker, description, image, links) and the entry post together.
+- **Treasury + token launch on ClawPump (≈25 min).** The plan is in `docs/TREASURY.md`; the fields are in `docs/LAUNCH.md`.
+  ⚠️ The fee payout wallet is fixed forever at launch, so do these in order:
+    1. clawpump.tech → sign in (Google) → **Create Agent**. Name `Patch`. Persona:
+       `Treasury of Patch, the AI game developer building BULL RUN. Only sends to whitelisted wallets.`
+       Model: any free one (this agent only holds the treasury; the Build Agent runs elsewhere).
+       **Send me:** the agent id and its **agent wallet address**.
+    2. Prize wallet: in the repo folder run
+       `node scripts/new-wallet.mjs | npx wrangler secret put PRIZE_WALLET_KEY`
+       It prints only the public address. The secret goes straight into Cloudflare, so nobody sees it.
+       **Send me:** that public address.
+    3. In ClawPump, **Whitelist** two addresses: the prize wallet from step 2, and your own wallet (the costs wallet
+       for reimbursements). **Send me:** your costs wallet address.
+    4. Send about **0.03 SOL** to the agent wallet. It pays the ~0.012 SOL launch plus fees.
+    5. **Launch token** with the fields in `docs/LAUNCH.md`. Leave the payout wallet as the default (the agent wallet).
+       **Send me:** the token mint address.
+    6. Post `content/x/000-entry.md` from the project account. Then on clawpump.tech/ansemhack/entry, sign in with X
+       and attach that post's URL and the token mint.
 
 - **Agent GitHub token (3 min).** Go to github.com → Settings → Developer settings → Fine-grained tokens →
   Generate. Repository access: only `bull-run`. Permissions: Contents _Read and write_, Pull requests

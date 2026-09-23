@@ -36,7 +36,7 @@ on. A score that doesn't replay doesn't count.
 
 **The money loop.** Trades create creator fees. Fees fund the treasury. The treasury pays for the AI's compute and
 hosting, and a capped daily prize in $ANSEM for the verified #1, bought on-chain through Jupiter and sent
-automatically. You never need to hold anything to play or to win. Holding gives you a vote and cosmetics, nothing
+automatically. You never need to hold anything to play or to win. Holding gives you a vote (and, planned, cosmetics), nothing
 else.
 
 **Receipts.** Every SOL in and out of the treasury is on the site with a Solscan link. The fork point is tagged
@@ -81,7 +81,7 @@ The daily ritual is the product: a new build, a new challenge, a new devlog, eve
 
 - **Utility of $BPROOF.** It's the AI's budget (creator fees fund compute, hosting and prizes), a vote on the next
   feature (weight = √tokens, so a whale can't own the roadmap), the right to put your own feature on the ballot
-  (100,000 tokens, one request a day: if it wins, the AI builds it and credits you), and cosmetics. It is never
+  (100,000 tokens, one request a day: if it wins, the AI builds it and credits you), and planned cosmetics. It is never
   needed to play or win.
 - **Net-new $ANSEM use case.** A daily prize bought with treasury SOL through Jupiter and paid to the verified
   winner automatically, capped at min(10% of the previous 24 h of fees, 0.5 SOL). Every payout links to Solscan.

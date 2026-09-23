@@ -68,7 +68,7 @@ _Vampire Survivors_ or poncle. The upstream project was an homage; BEARPROOF is 
 ## The coin
 
 $BPROOF launches through ClawPump on Solana. Its creator fees fund the AI's compute, hosting and the daily $ANSEM
-prize, and holders get a vote on what gets built next, plus cosmetics. It is not needed to play or to win anything,
+prize, and holders get a vote on what gets built next (holder cosmetics are planned). It is not needed to play or to win anything,
 and it is not an investment.
 
 ## License

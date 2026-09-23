@@ -37,6 +37,23 @@ function memoOf(tx) {
 }
 
 const short = (a) => (a ? `${a.slice(0, 4)}…${a.slice(-4)}` : 'unknown');
+const fmtTokens = (n) => Math.round(n).toLocaleString('en-US');
+
+/** How the tx moved `mint` tokens: the wallet's change, and who else gained (by owner). */
+function tokenMoves(tx, wallet, mint) {
+    if (!mint) return { mine: 0, gainers: [] };
+    const amt = (b) =>
+        Number(b?.uiTokenAmount?.uiAmount ?? b?.uiTokenAmount?.uiAmountString ?? 0) || 0;
+    const byOwner = new Map();
+    for (const b of tx.meta?.preTokenBalances || [])
+        if (b.mint === mint) byOwner.set(b.owner, (byOwner.get(b.owner) || 0) - amt(b));
+    for (const b of tx.meta?.postTokenBalances || [])
+        if (b.mint === mint) byOwner.set(b.owner, (byOwner.get(b.owner) || 0) + amt(b));
+    const gainers = [...byOwner]
+        .filter(([o, d]) => o !== wallet && d > 0)
+        .sort((a, b) => b[1] - a[1]);
+    return { mine: byOwner.get(wallet) || 0, gainers };
+}
 
 /**
  * Turn one parsed transaction into a ledger row for `wallet`, or null when it moved no SOL for it.
@@ -73,8 +90,17 @@ export function classifyTx(tx, signature, wallet, known = {}) {
             label = `incoming from ${short(peer)}`;
         }
     } else if (known.mint && keys.includes(known.mint)) {
+        // Launch day receipts, said plainly: the creation, any buy at launch, any tokens moved out.
+        const t = tokenMoves(tx, wallet, known.mint);
         category = 'launch';
-        label = 'coin launch';
+        if (t.mine > 0) {
+            label = `coin launch · launch buy of ${fmtTokens(t.mine)} $BPROOF (${((t.mine / 1e9) * 100).toFixed(2)}% of supply)`;
+        } else if (t.mine < 0) {
+            const to = t.gainers[0]?.[0];
+            label = `moved ${fmtTokens(-t.mine)} $BPROOF to ${short(to)}`;
+        } else {
+            label = 'coin launch';
+        }
     } else if (peer && peer === known.prize) {
         category = 'sweep';
         label = 'prize wallet top-up';

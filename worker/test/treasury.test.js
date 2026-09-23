@@ -126,3 +126,26 @@ test('incoming memos are dropped and unknown dust is not listed', () => {
         'creator_fees'
     );
 });
+
+test('launch receipts: a launch buy and a token move are spelled out', () => {
+    const OTHER = 'Other11111111111111111111111111111111111111';
+    const bal = (owner, uiAmount) => ({ mint: MINT, owner, uiTokenAmount: { uiAmount } });
+    const buy = tx({
+        from: T,
+        to: 'Curve111111111111111111111111111111111111111',
+        lamports: 7e8,
+        extraKeys: [MINT]
+    });
+    buy.meta.preTokenBalances = [];
+    buy.meta.postTokenBalances = [bal(T, 24_845_151.9)];
+    const r1 = classifyTx(buy, 's1', T, known);
+    assert.equal(r1.category, 'launch');
+    assert.match(r1.memo, /launch buy of 24,845,152 \$BPROOF \(2\.48% of supply\)/);
+
+    const move = tx({ from: T, to: OTHER, lamports: 2e6, extraKeys: [MINT] });
+    move.meta.preTokenBalances = [bal(T, 24_845_151.9)];
+    move.meta.postTokenBalances = [bal(T, 0), bal(OTHER, 24_845_151.9)];
+    const r2 = classifyTx(move, 's2', T, known);
+    assert.equal(r2.category, 'launch');
+    assert.equal(r2.memo, 'moved 24,845,152 $BPROOF to Othe…1111');
+});

@@ -26,7 +26,8 @@ export async function winners(env) {
     const live = !!(env.TOKEN_MINT && env.PRIZE_WALLET);
     return json(
         {
-            status: live ? 'live' : 'not_live',
+            // 'wallet_pending': the coin is out, the prize wallet isn't funded yet.
+            status: live ? 'live' : env.TOKEN_MINT ? 'wallet_pending' : 'not_live',
             rule: {
                 token: 'ANSEM',
                 share: PRIZE_PCT,

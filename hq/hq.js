@@ -1432,7 +1432,11 @@ async function loadWinners() {
     if (!w) return;
     const live = w.status === 'live';
     const flag = $('#prizeFlag');
-    flag.textContent = live ? 'Live' : 'Starts with the coin';
+    flag.textContent = live
+        ? 'Live'
+        : w.status === 'wallet_pending'
+          ? 'Starts when the prize wallet is funded'
+          : 'Starts with the coin';
     flag.className = 'flag ' + (live ? 'gold' : 'dim');
     const list = $('#winners');
     const rows = Array.isArray(w.winners) ? w.winners.slice(0, 5) : [];

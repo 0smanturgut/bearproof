@@ -65,7 +65,9 @@ async function daily(request, env) {
                 note:
                     env.TOKEN_MINT && env.PRIZE_WALLET
                         ? 'The verified #1 with a payout address is paid in $ANSEM after 00:00 UTC.'
-                        : 'Prizes start after the coin launches.'
+                        : env.TOKEN_MINT
+                          ? 'The coin is live. Daily $ANSEM prizes start when the prize wallet is funded.'
+                          : 'Prizes start after the coin launches.'
             }
         },
         { maxAge: 30 }

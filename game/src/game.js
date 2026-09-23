@@ -456,12 +456,13 @@ export class Game {
     }
 
     _askPayout() {
-        const live = this.daily?.prize?.status === 'live';
+        const prize = this.daily?.prize;
+        // The server words the not-yet-live state (coin not out, or prize wallet not funded yet).
         this.ui.askPayout(
             this.prefs.payoutAddress || '',
-            live
+            prize?.status === 'live'
                 ? 'Today’s verified #1 wins the daily prize in $ANSEM. Add your Solana address:'
-                : 'The daily $ANSEM prize starts when the coin launches. Add your Solana address to be eligible:',
+                : `${prize?.note || 'The daily $ANSEM prize is not live yet.'} Add your Solana address to be eligible:`,
             (addr) => this._savePayout(addr)
         );
     }

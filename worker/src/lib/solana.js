@@ -56,6 +56,25 @@ export async function signerFromSecret(secretB58) {
     };
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Wait until a signature is confirmed by polling (no websocket, which a Worker can't keep open reliably).
+ * Throws if the transaction failed or its blockhash expired.
+ */
+export async function confirmSignature(conn, signature, lastValidBlockHeight) {
+    for (;;) {
+        const { value } = await conn.getSignatureStatuses([signature]);
+        const st = value && value[0];
+        if (st && st.err) throw new Error(`tx ${signature} failed: ${JSON.stringify(st.err)}`);
+        if (st && (st.confirmationStatus === 'confirmed' || st.confirmationStatus === 'finalized'))
+            return signature;
+        if ((await conn.getBlockHeight('confirmed')) > lastValidBlockHeight)
+            throw new Error(`tx ${signature} expired before confirmation`);
+        await sleep(2000);
+    }
+}
+
 async function sendLegacy(conn, signer, instructions) {
     const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash('confirmed');
     const tx = new Transaction({ feePayer: signer.publicKey, blockhash, lastValidBlockHeight }).add(
@@ -63,12 +82,7 @@ async function sendLegacy(conn, signer, instructions) {
     );
     tx.addSignature(signer.publicKey, Buffer.from(await signer.sign(tx.serializeMessage())));
     const signature = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 3 });
-    const res = await conn.confirmTransaction(
-        { signature, blockhash, lastValidBlockHeight },
-        'confirmed'
-    );
-    if (res.value.err) throw new Error(`tx ${signature} failed: ${JSON.stringify(res.value.err)}`);
-    return signature;
+    return confirmSignature(conn, signature, lastValidBlockHeight);
 }
 
 export async function solBalance(conn, pubkey) {
@@ -121,16 +135,7 @@ export async function swapSolTo(conn, signer, outputMint, lamports, slippageBps 
     const vtx = VersionedTransaction.deserialize(Buffer.from(sw.swapTransaction, 'base64'));
     vtx.addSignature(signer.publicKey, await signer.sign(vtx.message.serialize()));
     const signature = await conn.sendRawTransaction(vtx.serialize(), { maxRetries: 3 });
-    const res = await conn.confirmTransaction(
-        {
-            signature,
-            blockhash: vtx.message.recentBlockhash,
-            lastValidBlockHeight: sw.lastValidBlockHeight
-        },
-        'confirmed'
-    );
-    if (res.value.err)
-        throw new Error(`swap ${signature} failed: ${JSON.stringify(res.value.err)}`);
+    await confirmSignature(conn, signature, sw.lastValidBlockHeight);
     return { signature, quotedOut: BigInt(q.outAmount) };
 }
 

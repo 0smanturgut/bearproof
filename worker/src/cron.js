@@ -2,7 +2,8 @@
  * Scheduled work (Cron Trigger, every 15 minutes):
  *   1. snapshot ClawPump's creator-fee earnings once per UTC day (for the prize policy),
  *   2. settle yesterday's Daily Challenge: pick the verified winner and pay the capped $ANSEM prize,
- *   3. resume a payout that stopped half-way (swap done, transfer not yet).
+ *   3. resume a payout that stopped half-way (swap done, transfer not yet),
+ *   4. read the treasury's balance and new transactions from chain into the public ledger (lib/treasury.js).
  *
  * Guards: `payouts_enabled` must be "true" in CONFIG (kill switch), the coin and the prize wallet must exist,
  * and each day is claimed once in `daily_winners` before any money moves, so a prize can never be paid twice.
@@ -13,6 +14,7 @@ import { PublicKey } from '@solana/web3.js';
 import { all, first } from './lib/db.js';
 import { utcDate } from './lib/daily.js';
 import { LAMPORTS, pickWinner, prizeAmount } from './lib/prize.js';
+import { snapshotBalances, syncLedger } from './lib/treasury.js';
 import {
     connection,
     mintInfo,
@@ -239,6 +241,14 @@ export async function scheduled(event, env, ctx) {
         await snapshotFees(env, today);
     } catch (err) {
         console.warn('[cron] fees snapshot', err?.message || err);
+    }
+    if (env.TREASURY_WALLET) {
+        try {
+            await snapshotBalances(env, now);
+            await syncLedger(env);
+        } catch (err) {
+            console.warn('[cron] treasury sync', err?.message || err);
+        }
     }
 
     const live =

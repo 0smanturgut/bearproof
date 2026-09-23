@@ -67,6 +67,23 @@ async function daily(request, env) {
     );
 }
 
+async function treasuryStats(env) {
+    let bal = null;
+    try {
+        bal = JSON.parse((await env.CONFIG.get('treasury:balances')) || 'null');
+    } catch {
+        bal = null;
+    }
+    return {
+        wallet: env.TREASURY_WALLET,
+        balance: bal && typeof bal.treasury === 'number' ? bal.treasury : null,
+        prizeWallet: env.PRIZE_WALLET || null,
+        prizeWalletBalance: bal && typeof bal.prize === 'number' ? bal.prize : null,
+        balanceAt: bal ? bal.at : null,
+        note: 'On-chain SOL balance, read every 15 minutes.'
+    };
+}
+
 async function stats(env) {
     const now = Date.now();
     const today = utcDate(now);
@@ -91,13 +108,7 @@ async function stats(env) {
             buildsShipped: shippedCount(BUILDS, now),
             liveBuild: publicBuild(live),
             nextBuildAt: new Date(nextUtcMidnight(now)).toISOString(),
-            treasury: env.TREASURY_WALLET
-                ? {
-                      wallet: env.TREASURY_WALLET,
-                      balance: null,
-                      note: 'Balance feed not wired yet.'
-                  }
-                : null,
+            treasury: env.TREASURY_WALLET ? await treasuryStats(env) : null,
             token: env.TOKEN_MINT ? { mint: env.TOKEN_MINT } : null,
             computeSpentUsd: spent ? { measured: spent.usd, meteredRuns: spent.runs } : null,
             playersToday: players ? players.n : null,

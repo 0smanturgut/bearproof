@@ -9,13 +9,19 @@
  * the time of the vote; at least MIN_TOKENS_TO_VOTE tokens; the poll closes at 13:00 UTC.
  */
 
+import { PublicKey } from '@solana/web3.js';
+import {
+    TOKEN_2022_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+    getAssociatedTokenAddressSync
+} from '@solana/spl-token';
 import { BUILDS } from '../manifest.js';
 import { liveBuild } from '../lib/builds.js';
 import { all, buildOverride } from '../lib/db.js';
 import { isDateKey, utcDate } from '../lib/daily.js';
 import { clientIp, ipKey, underLimit } from '../lib/guard.js';
 import { error, json, readJson } from '../lib/http.js';
-import { rpcUrl } from '../lib/rpc.js';
+import { rpc } from '../lib/rpc.js';
 import {
     MIN_TOKENS_TO_VOTE,
     isWallet,
@@ -40,27 +46,27 @@ async function poll(env, date) {
     return { date, forBuild: live.n + 1, fromBuild: live.n, proposals, open, close };
 }
 
+/**
+ * Tokens the wallet holds in its associated token accounts (classic and Token-2022), read with plain account
+ * lookups so it works on any RPC. Tokens parked in a non-associated account are not counted.
+ */
 async function tokenBalance(env, wallet) {
-    const res = await fetch(rpcUrl(env), {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'getTokenAccountsByOwner',
-            params: [wallet, { mint: env.TOKEN_MINT }, { encoding: 'jsonParsed' }]
-        })
-    });
-    if (!res.ok) throw new Error(`rpc ${res.status}`);
-    const body = await res.json();
-    if (body.error) throw new Error(body.error.message || 'rpc error');
+    const owner = new PublicKey(wallet);
+    const mint = new PublicKey(env.TOKEN_MINT);
+    const atas = [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID].map((pid) =>
+        getAssociatedTokenAddressSync(mint, owner, false, pid).toBase58()
+    );
+    const result = await rpc(env, 'getMultipleAccounts', [
+        atas,
+        { encoding: 'jsonParsed', commitment: 'confirmed' }
+    ]);
     let ui = 0;
     let raw = 0n;
-    for (const acc of body.result?.value || []) {
-        const amt = acc.account?.data?.parsed?.info?.tokenAmount;
-        if (!amt) continue;
-        ui += Number(amt.uiAmount || 0);
-        raw += BigInt(amt.amount || '0');
+    for (const acc of result?.value || []) {
+        const info = acc?.data?.parsed?.info;
+        if (!info || info.mint !== env.TOKEN_MINT || info.owner !== wallet) continue;
+        ui += Number(info.tokenAmount?.uiAmount || 0);
+        raw += BigInt(info.tokenAmount?.amount || '0');
     }
     return { ui, raw: raw.toString() };
 }

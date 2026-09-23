@@ -48,7 +48,13 @@ before launch. We keep ClawPump's default, the agent wallet, for three reasons:
 | Treasury → prize wallet (daily top-up)  | **Operator**, in the ClawPump dashboard, until an automated `agent_send` path proves reliable | `operator`         |
 | Treasury → costs wallet (reimbursement) | **Operator**, same                                                                            | `operator`         |
 | Winner verification + payout            | Worker cron after 00:00 UTC                                                                   | `agent`            |
-| Ledger rows                             | Worker cron from Helius, one row per transaction with a Solscan link                          | `chain`            |
+| Ledger rows                             | Worker cron from Solana RPC, one row per treasury transaction with a Solscan link             | `chain`            |
+
+Ledger rules (`worker/src/lib/treasury.js`): an inflow counts as creator fees only when it comes from a known ClawPump
+fee address (CONFIG `ledger:fee_sources`); anything else is "other" with the sender shown. Memos on incoming transfers
+are never displayed, because anyone can attach one (spam, scam links), and inflows under 0.001 SOL from unknown wallets
+are not listed. Balances and transactions are read every 15 minutes through Helius when a key is set, otherwise
+through PublicNode's free RPC (`api.mainnet-beta.solana.com` refuses requests from Workers).
 
 We only claim "the AI pays for its own compute" for the amounts that were actually reimbursed on-chain, and each one
 links to its transaction.

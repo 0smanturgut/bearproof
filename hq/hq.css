@@ -912,6 +912,7 @@ code {
 .lg .memo {
     color: var(--text-2);
     max-width: 36ch;
+    overflow-wrap: anywhere;
 }
 .who {
     display: grid;

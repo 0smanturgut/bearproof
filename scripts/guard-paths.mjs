@@ -10,7 +10,12 @@
  */
 import { execFileSync } from 'node:child_process';
 
-const ALLOWED = [/^game\//, /^devlog\/patch-\d+\.md$/, /^agent\/(plan|notes)\.md$/];
+const ALLOWED = [
+    /^game\//,
+    /^devlog\/patch-\d+\.md$/,
+    /^agent\/(plan|notes)\.md$/,
+    /^agent\/proposals\.json$/
+];
 const PROTECTED = [
     /^game\/scripts\//, // smoke + determinism gates
     /^game\/test\/sim\.test\.js$/, // determinism tests

@@ -1,0 +1,86 @@
+name: Build Agent (daily)
+
+# Patch's daily loop: gather context → Claude Code (headless) implements one feature → guard → gates →
+# measured cost into the devlog → PR with auto-merge. Deploy (and the build tag) happen in deploy.yml on merge.
+# A red gate means no PR; the run log and screenshots stay as artifacts and the devlog says what failed.
+
+on:
+    schedule:
+        - cron: '0 13 * * *' # 13:00 UTC, leaving 11 h before the 00:00 UTC release
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: build-agent
+    cancel-in-progress: false
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        env:
+            SITE: https://bullrun.osmankng.workers.dev
+            AGENT_CONTEXT: ${{ runner.temp }}/context.json
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.AGENT_GH_TOKEN }} # fine-grained PAT (contents + pull requests) so the PR runs CI
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+            - run: npm ci
+            - run: npx playwright install --with-deps chromium
+            - name: Gather context
+              run: node agent/context.mjs --site "$SITE" > "$AGENT_CONTEXT" && cat "$AGENT_CONTEXT"
+            - name: Patch builds today's feature (Claude Code, headless)
+              env:
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+              run: |
+                  npx -y @anthropic-ai/claude-code@latest -p "$(cat agent/PROMPT.md)" \
+                    --model claude-opus-5 \
+                    --output-format json \
+                    --max-turns 150 \
+                    --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
+                      "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
+                      "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
+                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" "Bash(cat:*)" "Bash(ls:*)" \
+                    --disallowedTools "WebFetch" "WebSearch" \
+                    > "$RUNNER_TEMP/claude-result.json"
+                  node -e "const r=require(process.argv[1]);console.log('turns',r.num_turns,'cost $',r.total_cost_usd,'error',r.is_error)" "$RUNNER_TEMP/claude-result.json"
+            - name: Guard (allowed paths only)
+              run: node scripts/guard-paths.mjs origin/main
+            - name: Gates
+              run: |
+                  npm run check
+                  node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
+                  node game/scripts/determinism.mjs --engines chromium --seeds 3
+            - name: Record measured cost in the devlog
+              run: |
+                  N=$(node -p "require(process.env.AGENT_CONTEXT).build")
+                  node agent/record-cost.mjs "$RUNNER_TEMP/claude-result.json" "devlog/patch-$N.md"
+            - name: Open PR (auto-merge on green CI)
+              env:
+                  GH_TOKEN: ${{ secrets.AGENT_GH_TOKEN }}
+              run: |
+                  N=$(node -p "require(process.env.AGENT_CONTEXT).build")
+                  TITLE=$(sed -n 's/^title: *//p' "devlog/patch-$N.md" | head -1 | sed 's/^"\(.*\)"$/\1/')
+                  git config user.name "Patch (Build Agent)"
+                  git config user.email "agent@patch.invalid"
+                  git checkout -b "agent/patch-$N"
+                  git add -A
+                  git commit -m "feat(patch-$N): $TITLE" -m "Written by the scheduled Build Agent (Claude Code, headless, GitHub Actions)." -m "Build-Mode: agent"
+                  git push origin "agent/patch-$N"
+                  gh pr create --base main --head "agent/patch-$N" --title "Patch #$N: $TITLE" --body-file "devlog/patch-$N.md"
+                  gh pr merge "agent/patch-$N" --auto --squash
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: agent-run
+                  path: |
+                      ${{ runner.temp }}/claude-result.json
+                      ${{ runner.temp }}/context.json
+                      ${{ runner.temp }}/smoke

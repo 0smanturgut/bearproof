@@ -1342,3 +1342,192 @@ code {
 .vote-card.winner {
     border-color: var(--gold);
 }
+
+/* =====================================================================================================
+   HQ v2 theme: the game's "Terminal Arcade" look carried onto the landing page. HUD corner brackets on
+   panels, soft depth instead of hard offsets, 3D pixel buttons, glowing section markers.
+   ===================================================================================================== */
+
+:is(.feat, .tl-card, .step, .panel, .ex, .wallet, .who-col, .note, .ledger) {
+    --cc: rgba(22, 224, 138, 0.5);
+    border-color: var(--line-2);
+    background:
+        linear-gradient(var(--cc), var(--cc)) top left / 12px 2px no-repeat,
+        linear-gradient(var(--cc), var(--cc)) top left / 2px 12px no-repeat,
+        linear-gradient(var(--cc), var(--cc)) bottom right / 12px 2px no-repeat,
+        linear-gradient(var(--cc), var(--cc)) bottom right / 2px 12px no-repeat,
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 45%),
+        var(--panel);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+}
+.feat {
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.5),
+        0 0 60px rgba(22, 224, 138, 0.08);
+}
+.feat-n {
+    background: linear-gradient(90deg, rgba(22, 224, 138, 0.1), transparent 70%), var(--panel-2);
+}
+.step.hot {
+    --cc: var(--gold);
+    border-color: var(--gold);
+    box-shadow:
+        0 0 0 1px rgba(255, 197, 61, 0.35),
+        0 0 36px rgba(255, 197, 61, 0.22);
+}
+.tl.next .tl-card {
+    --cc: rgba(255, 197, 61, 0.6);
+    background:
+        linear-gradient(var(--cc), var(--cc)) top left / 12px 2px no-repeat,
+        linear-gradient(var(--cc), var(--cc)) top left / 2px 12px no-repeat,
+        repeating-linear-gradient(-45deg, transparent 0 10px, rgba(255, 197, 61, 0.05) 10px 11px);
+    box-shadow: none;
+}
+
+/* Section headers: a lit index chip, a glowing rule, and a piece of the game's art */
+.sec {
+    position: relative;
+}
+.sec-h {
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.sec-h .idx {
+    flex: none;
+    font: 400 24px/1 var(--display);
+    letter-spacing: 0.04em;
+    padding: 6px 9px 4px;
+    color: #04130d;
+    background: var(--bull);
+    border: 0;
+    transform: none;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    box-shadow: inset 0 -3px 0 var(--bull-deep);
+    filter: drop-shadow(0 0 14px rgba(22, 224, 138, 0.45));
+}
+.sec-h h2 {
+    text-shadow:
+        0 4px 0 rgba(0, 0, 0, 0.55),
+        0 0 36px rgba(234, 240, 245, 0.08);
+}
+.sec-h .rule {
+    height: 2px;
+    background: linear-gradient(90deg, var(--line-2), rgba(37, 46, 58, 0));
+}
+.sec-sprite {
+    flex: none;
+    width: auto;
+    max-height: 76px;
+    image-rendering: pixelated;
+    opacity: 0;
+    transition: opacity 400ms ease;
+    filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 16px rgba(22, 224, 138, 0.18));
+}
+.sec-sprite.painted {
+    opacity: 1;
+}
+@media (max-width: 600px) {
+    .sec-sprite {
+        max-height: 54px;
+    }
+}
+
+/* How it works: the game's icons on each step */
+.px-ico {
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.5));
+}
+.step-n {
+    font: 400 26px/1 var(--display);
+    color: var(--dim);
+}
+.loop-token {
+    box-shadow:
+        0 0 12px var(--gold),
+        0 0 30px rgba(255, 197, 61, 0.6);
+}
+
+/* Buttons: the game's chunky 3D pixel buttons */
+.btn {
+    border: 0;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    background: var(--panel-2);
+    box-shadow:
+        inset 0 0 0 1px var(--line-2),
+        inset 0 2px 0 rgba(255, 255, 255, 0.08),
+        inset 0 -5px 0 rgba(0, 0, 0, 0.55);
+    padding-bottom: 5px;
+}
+.btn:hover:not(:disabled):not(.is-off) {
+    transform: none;
+    filter: brightness(1.15);
+    box-shadow:
+        inset 0 0 0 1px var(--line-2),
+        inset 0 2px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -5px 0 rgba(0, 0, 0, 0.55);
+}
+.btn:active:not(:disabled):not(.is-off) {
+    transform: translateY(3px);
+    box-shadow:
+        inset 0 0 0 1px var(--line-2),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.55);
+}
+.btn-go,
+.btn-go:hover:not(.is-off) {
+    background: var(--bull);
+    color: #04130d;
+    box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -5px 0 var(--bull-deep);
+}
+.btn:disabled,
+.btn.is-off {
+    clip-path: none;
+    box-shadow: none;
+}
+
+/* Timeline: lit nodes */
+.tl-node {
+    box-shadow: 0 0 12px rgba(22, 224, 138, 0.5);
+}
+
+/* FAQ */
+.faq summary::after {
+    border: 0;
+    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+    background: var(--panel-2);
+    box-shadow:
+        inset 0 0 0 1px var(--line-2),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.5);
+}
+.faq details[open] summary::after {
+    box-shadow: inset 0 -3px 0 var(--bull-deep);
+}
+.faq summary:hover {
+    text-shadow: 0 0 20px rgba(22, 224, 138, 0.35);
+}
+
+/* Footer */
+.foot {
+    border-top: 0;
+    background: linear-gradient(90deg, transparent, rgba(22, 224, 138, 0.5), transparent) top / 100%
+        1px no-repeat;
+}
+
+/* Flags and code chips pick up the glow */
+.flag.gold {
+    box-shadow: 0 0 16px rgba(255, 197, 61, 0.15);
+}
+code {
+    background: rgba(0, 0, 0, 0.35);
+    border-color: var(--line-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sec-sprite {
+        transition: none;
+    }
+}

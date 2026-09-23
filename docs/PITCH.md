@@ -12,7 +12,7 @@ The one-liner, word for word:
 ## 30-second pitch
 
 BEARPROOF is a game that an AI builds in public. You're a bull surviving an endless bear market, and it plays in any
-phone browser in one tap, no wallet. Every day at 00:00 UTC, the AI, Proof, ships a new build and a new Daily
+phone browser in one tap, no wallet. Every day at 00:00 UTC, the AI ships a new build and a new Daily
 Challenge starts on it. The coin, $BPROOF, is its budget: creator fees pay for its compute, its hosting and a daily
 $ANSEM prize for the best verified player. Holders vote on what it builds next. Every commit, build, cost and payout
 is public. You can watch it get better every day.
@@ -24,7 +24,7 @@ Most AI-agent tokens show you a wallet balance. We show you a product that chang
 **What it is.** BEARPROOF is a fast survivors-like: red candles, rug pullers, Ponzi pyramids that split into their
 downline, and bosses like the Rug Lord and Liquidation. It's free, it's in the browser, and it's built for phones.
 
-**Who builds it.** Proof, an AI developer. Every day it reads the holder vote, picks one feature, writes the code on a
+**Who builds it.** An AI developer. Every day it reads the holder vote, picks one feature, writes the code on a
 branch, and has to pass the tests, a headless smoke test and a determinism check before anything merges. The
 pipeline only lets it touch game code and its own devlog. It can't touch money, secrets or CI. If a day fails, the
 devlog says so. Every commit is labelled `agent`, `bootstrap` or `human`, so nobody has to take our word for it.
@@ -53,7 +53,7 @@ The daily ritual is the product: a new build, a new challenge, a new devlog, eve
   He set up the accounts, funds hosting until the treasury can, launched the coin, posts the daily update, and
   holds the emergency revert and payout kill switches. He does not write the daily features; if he ever does, the
   commit is labelled `human`.
-- **Proof** (the developer): the Build Agent, Claude running headless in GitHub Actions on a schedule, with a
+- **The AI** (the developer): the Build Agent, Claude running headless in GitHub Actions on a schedule, with a
   path guard and test gates around it. Before the schedule was switched on, the setup builds were made by Claude
   Code in sessions Osman started. Those are labelled `bootstrap`.
 
@@ -95,16 +95,16 @@ The daily ritual is the product: a new build, a new challenge, a new devlog, eve
 Have open before going live: bearproof.app on a phone (screen share or camera), bearproof.app on desktop, the
 GitHub repo, and the latest agent pull request.
 
-| Time        | What to show                                                                                                                    | What to say                                                                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0:00–1:00   | The HQ above the fold                                                                                                           | The one-liner. "Today is day N. Proof has shipped N builds."                                                                                 |
-| 1:00–2:00   | —                                                                                                                               | Question 1: Osman, Proof, and what each one does.                                                                                            |
-| 2:00–5:00   | Phone: tap PLAY NOW and play today's Daily Challenge for a minute. End the run and share it.                                    | "No wallet, no signup. Same seed for everyone today. This is Build #N."                                                                      |
-| 5:00–7:30   | HQ: today's build and the timeline, then GitHub: the agent's PR for today (plan, diff, green checks) and the `day-0` diff link. | "This is what Proof shipped overnight. It had to pass these gates. It can only touch these paths. Here's what it cost, measured."            |
-| 7:30–9:00   | HQ: the Daily Challenge board with verified badges.                                                                             | "Every score is a replay. The server re-runs it tick by tick against this exact build. Only verified runs can win."                          |
-| 9:00–11:00  | HQ: How it works, then Receipts (wallets, ledger, a prize payout on Solscan).                                                   | The money loop. The $ANSEM prize, the caps and the kill switch. "Every row links to the chain."                                              |
-| 11:00–12:30 | HQ: Vote on tomorrow.                                                                                                           | "Holders pick tomorrow's feature by signing a message. There's no transaction. The weight is √tokens. Proof builds the winner at 13:00 UTC." |
-| 12:30–15:00 | —                                                                                                                               | Question 4: roadmap and vision. Then take questions.                                                                                         |
+| Time        | What to show                                                                                                                    | What to say                                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0:00–1:00   | The HQ above the fold                                                                                                           | The one-liner. "Today is day N. The AI has shipped N builds."                                                                                 |
+| 1:00–2:00   | —                                                                                                                               | Question 1: Osman, the AI, and what each one does.                                                                                            |
+| 2:00–5:00   | Phone: tap PLAY NOW and play today's Daily Challenge for a minute. End the run and share it.                                    | "No wallet, no signup. Same seed for everyone today. This is Build #N."                                                                       |
+| 5:00–7:30   | HQ: today's build and the timeline, then GitHub: the agent's PR for today (plan, diff, green checks) and the `day-0` diff link. | "This is what the AI shipped overnight. It had to pass these gates. It can only touch these paths. Here's what it cost, measured."            |
+| 7:30–9:00   | HQ: the Daily Challenge board with verified badges.                                                                             | "Every score is a replay. The server re-runs it tick by tick against this exact build. Only verified runs can win."                           |
+| 9:00–11:00  | HQ: How it works, then Receipts (wallets, ledger, a prize payout on Solscan).                                                   | The money loop. The $ANSEM prize, the caps and the kill switch. "Every row links to the chain."                                               |
+| 11:00–12:30 | HQ: Vote on tomorrow.                                                                                                           | "Holders pick tomorrow's feature by signing a message. There's no transaction. The weight is √tokens. The AI builds the winner at 13:00 UTC." |
+| 12:30–15:00 | —                                                                                                                               | Question 4: roadmap and vision. Then take questions.                                                                                          |
 
 **If something breaks live:** say so, and show the devlog of a failed day if there is one. Honest failure is part of
 the story. The revert is one command, with no redeploy:

@@ -833,7 +833,7 @@ function mountGame(n) {
 
 const MODES = new Set(['agent', 'bootstrap', 'human', 'upstream']);
 const BUILD0_SUMMARY =
-    'The untouched open-source game Proof started from. Everything after this is new.';
+    'The untouched open-source game the AI started from. Everything after this is new.';
 
 function modeBadge(mode) {
     const m = MODES.has(mode) ? mode : null;
@@ -853,7 +853,7 @@ function costText(b, d) {
 function chosenText(d) {
     if (!d || !d.chosenBy) return null;
     if (d.chosenBy === 'holders') return 'Chosen by holders';
-    if (d.chosenBy === 'agent') return 'Chosen by Proof';
+    if (d.chosenBy === 'agent') return 'Chosen by the AI';
     return 'Chosen by ' + d.chosenBy;
 }
 
@@ -1580,7 +1580,7 @@ function renderCoin(s) {
     for (const el of document.querySelectorAll('[data-launched]'))
         el.textContent = el.getAttribute('data-launched');
     $('#footCoin').textContent =
-        "The coin funds Proof's compute and gives holders a vote on what gets built. It is not an investment and it is never required to play or win.";
+        "The coin funds the AI's compute and gives holders a vote on what gets built. It is not an investment and it is never required to play or win.";
     const fine = $('#howFine');
     if (fine)
         fine.textContent =

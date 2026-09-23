@@ -157,7 +157,7 @@
             el(
                 'p',
                 null,
-                `Proof proposed three features for tomorrow's build. Holders vote until ${poll.closesAt.slice(11, 16)} UTC; the winner is what Proof builds next. Weight = floor(√tokens), at least ${poll.rule.minTokens.toLocaleString('en-US')} tokens.`
+                `The AI proposed three features for tomorrow's build. Holders vote until ${poll.closesAt.slice(11, 16)} UTC; the winner is what it builds next. Weight = floor(√tokens), at least ${poll.rule.minTokens.toLocaleString('en-US')} tokens.`
             )
         );
         head.appendChild(

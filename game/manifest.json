@@ -8,5 +8,17 @@
     "orientation": "any",
     "background_color": "#07090C",
     "theme_color": "#07090C",
-    "icons": [{ "src": "./assets/proof.svg", "sizes": "any", "type": "image/svg+xml" }]
+    "icons": [
+        {
+            "src": "./assets/bull.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "./assets/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
 }

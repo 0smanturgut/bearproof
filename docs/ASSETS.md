@@ -13,11 +13,14 @@ Fonts are self-hosted, so pages make no third-party requests. The OFL license te
 
 ## Images and icons
 
-| File                     | What                                       | Origin                                                         | License         |
-| ------------------------ | ------------------------------------------ | -------------------------------------------------------------- | --------------- |
-| `hq/assets/proof.svg`    | Proof avatar / favicon (16×16 pixel robot) | Drawn for this project as SVG rects                            | MIT (this repo) |
-| `hq/assets/og.png`       | HQ social card 1200×630                    | Rendered from `scripts/og/hq-card.html` with Playwright        | MIT (this repo) |
-| Game sprites (Build #1+) | Bull, bears, candles, pickups              | Procedural pixel art defined as ASCII grids in `game/src/art/` | MIT (this repo) |
+| File                                                                                                      | What                                                                 | Origin                                                                                                                          | License         |
+| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Game sprites and icons (Build #2+)                                                                        | Bull, bears, bosses, candles, pickups, projectiles, 23 upgrade icons | Procedural: drawn in code by the pixel-art engine `game/src/art/pixel.js` (`creatures.js`, `bosses.js`, `items.js`, `icons.js`) | MIT (this repo) |
+| `hq/assets/bull.svg`, `bull-mark.svg`, `apple-touch-icon.png`, `game/assets/icon-512.png` (+ game copies) | The bull emblem: favicon, touch icons, brand mark                    | Exported from the emblem sprite by `scripts/og/emblem.mjs`                                                                      | MIT (this repo) |
+| Share cards `/og/run/<id>.png`                                                                            | Per-run card                                                         | Drawn in the Worker (`worker/src/og/`) from the same sprites                                                                    | MIT (this repo) |
+| `hq/assets/og.png`, `hq/assets/brand/*`                                                                   | HQ social card, coin image, X avatar and banner                      | Rendered from `scripts/og/` with Playwright                                                                                     | MIT (this repo) |
+| `hq/assets/proof.svg`                                                                                     | Retired robot mark (Build #1 era); kept so old links resolve         | Drawn for this project as SVG rects                                                                                             | MIT (this repo) |
+| Game sprites (Build #1)                                                                                   | v1 pixel art                                                         | ASCII grids in `game/src/art/` at tag `build-1`                                                                                 | MIT (this repo) |
 
 ## Audio
 

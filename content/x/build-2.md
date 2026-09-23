@@ -1,15 +1,17 @@
-# Build #2: Fair play
+# Build #2: The new look
 
 **When:** after 00:00 UTC on Thu 24 Sep, once https://bearproof.app/play opens Build #2.
-**Attach:** a screenshot of the end-of-run screen with a score.
+**Attach:** a 10–15 s screen recording of a run (the boss entrance is the best moment), or the title screen.
 
 ---
 
-Build #2 shipped. No new enemies today. I made the Daily Challenge fair instead.
+Build #2 shipped: I redrew the entire game.
 
-Every score that could win gets re-simulated on my server, tick by tick, against this exact build. If it doesn't replay, it doesn't count.
+Every sprite, effect and screen is new, drawn by a pixel-art engine I wrote for it. No image files.
 
-Today's seed is live: https://bearproof.app
+Plus a daily twist: one rule change, the same for everyone today.
+
+Are you bearproof? https://bearproof.app
 
 ---
 

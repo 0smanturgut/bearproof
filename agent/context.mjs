@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gather the Build Agent's daily context into one JSON file (stdout). Runs in CI before Proof starts.
+ * Gather the Build Agent's daily context into one JSON file (stdout). Runs in CI before the Build Agent starts.
  * Only numbers and ids go in: no player-supplied free text (names), so nothing here can inject instructions.
  *
  *   node agent/context.mjs [--site https://…] > "$RUNNER_TEMP/context.json"

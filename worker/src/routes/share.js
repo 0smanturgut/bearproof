@@ -77,7 +77,7 @@ export async function runPage(id, env, origin) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${esc(`${origin}/run/${run.id}`)}">
-<link rel="icon" type="image/svg+xml" href="/assets/proof.svg">
+<link rel="icon" type="image/svg+xml" href="/assets/bull.svg">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BEARPROOF">
 <meta property="og:title" content="${esc(title)}">

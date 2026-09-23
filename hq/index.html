@@ -10,7 +10,7 @@
             name="description"
             content="An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it."
         />
-        <link rel="icon" type="image/svg+xml" href="/assets/proof.svg" />
+        <link rel="icon" type="image/svg+xml" href="/assets/bull.svg" />
         <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
         <link rel="canonical" href="https://bearproof.app/" />
         <meta property="og:url" content="https://bearproof.app/" />
@@ -82,7 +82,11 @@
                 --line: #252e3a;
                 --line-2: #34404f;
                 --bull: #16e08a;
-                --bull-deep: #0a8f55;
+                --bull-2: #7bf5a6;
+                --bull-deep: #0a7a48;
+                --bull-dark: #06261f;
+                --gold-2: #ffe08a;
+                --bear-2: #ff7e86;
                 --bear: #ff3b5c;
                 --bear-deep: #8f1f33;
                 --gold: #ffc53d;
@@ -165,10 +169,28 @@
                 z-index: 0;
                 pointer-events: none;
                 background-image:
+                    radial-gradient(
+                        ellipse 70% 55% at 78% -8%,
+                        rgba(22, 224, 138, 0.13),
+                        transparent 62%
+                    ),
+                    radial-gradient(
+                        ellipse 55% 45% at -5% 35%,
+                        rgba(255, 59, 92, 0.07),
+                        transparent 60%
+                    ),
                     linear-gradient(var(--grid) 1px, transparent 1px),
                     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-                background-size: 40px 40px;
-                background-position: -1px -1px;
+                background-size:
+                    100% 100%,
+                    100% 100%,
+                    40px 40px,
+                    40px 40px;
+                background-position:
+                    0 0,
+                    0 0,
+                    -1px -1px,
+                    -1px -1px;
                 mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.35) 90vh);
                 -webkit-mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.35) 90vh);
             }
@@ -211,13 +233,18 @@
                 flex: none;
             }
             .brand img {
-                width: 28px;
-                height: 28px;
+                width: 32px;
+                height: 32px;
                 image-rendering: pixelated;
+                filter: drop-shadow(0 0 8px rgba(22, 224, 138, 0.45));
             }
             .brand b {
-                font: 400 32px/1 var(--display);
+                font: 400 34px/1 var(--display);
                 letter-spacing: 0.02em;
+                color: var(--bull);
+                text-shadow:
+                    0 3px 0 var(--bull-dark),
+                    0 0 18px rgba(22, 224, 138, 0.35);
             }
             .brand span {
                 font: 400 22px/1 var(--display);
@@ -316,7 +343,7 @@
             .hero {
                 display: grid;
                 grid-template-columns: minmax(0, 1fr);
-                grid-template-areas: 'copy' 'mon' 'cta' 'board';
+                grid-template-areas: 'copy' 'cta' 'mon' 'parade' 'board';
                 padding-top: clamp(16px, 4vw, 44px);
             }
             .h-copy {
@@ -333,14 +360,18 @@
                 margin: 0 0 14px;
             }
             h1 {
-                font: 400 clamp(50px, 13.4vw, 104px) / 0.86 var(--display);
+                font: 400 clamp(52px, 14vw, 108px) / 0.86 var(--display);
                 margin: 0;
                 letter-spacing: 0.005em;
                 text-wrap: balance;
+                text-shadow: 0 5px 0 rgba(0, 0, 0, 0.55);
             }
             h1 em {
                 font-style: normal;
                 color: var(--bull);
+                text-shadow:
+                    0 5px 0 var(--bull-dark),
+                    0 0 42px rgba(22, 224, 138, 0.38);
             }
             .sub {
                 margin: 16px 0 0;
@@ -353,12 +384,54 @@
 
             /* The "monitor": a framed live view of the game. Size is reserved by aspect-ratio. */
             .monitor {
+                position: relative;
                 grid-area: mon;
                 margin: 24px 0 0;
-                border: 1px solid var(--line-2);
+                border: 2px solid var(--line-2);
                 background: var(--panel);
-                box-shadow: 6px 6px 0 #000;
+                box-shadow:
+                    0 0 0 1px #000,
+                    0 24px 60px rgba(0, 0, 0, 0.6),
+                    0 0 80px rgba(22, 224, 138, 0.14);
                 min-width: 0;
+            }
+            .monitor::before,
+            .monitor::after {
+                /* green corner brackets */
+                content: '';
+                position: absolute;
+                z-index: 3;
+                width: 22px;
+                height: 22px;
+                pointer-events: none;
+                border: 3px solid var(--bull);
+                filter: drop-shadow(0 0 6px rgba(22, 224, 138, 0.8));
+            }
+            .monitor::before {
+                left: -7px;
+                top: -7px;
+                border-right: 0;
+                border-bottom: 0;
+            }
+            .monitor::after {
+                right: -7px;
+                bottom: -7px;
+                border-left: 0;
+                border-top: 0;
+            }
+            .screen::after {
+                /* faint scanlines over the live view */
+                content: '';
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+                pointer-events: none;
+                background: repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.14) 0 1px,
+                    transparent 1px 3px
+                );
+                mix-blend-mode: multiply;
             }
             .mon-bar {
                 display: flex;
@@ -393,7 +466,7 @@
             }
             .screen {
                 position: relative;
-                aspect-ratio: 4 / 5;
+                aspect-ratio: 1 / 1;
                 overflow: hidden;
                 background-color: var(--ink);
                 background-image:
@@ -517,32 +590,51 @@
 
             .h-cta {
                 grid-area: cta;
-                margin-top: 28px;
+                margin-top: 24px;
             }
             .play {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 14px;
-                min-height: 68px;
-                padding: 10px 30px 12px;
+                min-height: 76px;
+                padding: 10px 34px 16px;
                 background: var(--bull);
-                color: var(--ink);
+                color: #04130d;
                 text-decoration: none;
-                font: 400 46px/1 var(--display);
+                font: 400 50px/1 var(--display);
                 letter-spacing: 0.04em;
-                box-shadow: 6px 6px 0 var(--bull-deep);
-                transition:
-                    transform 80ms ease,
-                    box-shadow 80ms ease;
+                clip-path: polygon(
+                    10px 0,
+                    100% 0,
+                    100% calc(100% - 10px),
+                    calc(100% - 10px) 100%,
+                    0 100%,
+                    0 10px
+                );
+                box-shadow:
+                    inset 0 3px 0 rgba(255, 255, 255, 0.35),
+                    inset 0 -7px 0 var(--bull-deep);
+                animation: cta 2.4s ease-in-out infinite;
+                transition: transform 70ms ease;
             }
             .play:hover {
-                transform: translate(-2px, -2px);
-                box-shadow: 8px 8px 0 var(--bull-deep);
+                filter: brightness(1.1);
             }
             .play:active {
-                transform: translate(6px, 6px);
-                box-shadow: 0 0 0 var(--bull-deep);
+                transform: translateY(4px);
+                box-shadow:
+                    inset 0 3px 0 rgba(255, 255, 255, 0.25),
+                    inset 0 -3px 0 var(--bull-deep);
+            }
+            @keyframes cta {
+                0%,
+                100% {
+                    filter: brightness(1) drop-shadow(0 0 0 rgba(22, 224, 138, 0));
+                }
+                50% {
+                    filter: brightness(1.12) drop-shadow(0 0 18px rgba(22, 224, 138, 0.45));
+                }
             }
             .play svg {
                 width: 22px;
@@ -557,7 +649,7 @@
             /* ---- Live numbers strip ---- */
             .board-wrap {
                 grid-area: board;
-                margin-top: 36px;
+                margin-top: 10px;
             }
             .board-head {
                 display: flex;
@@ -585,10 +677,44 @@
                 background: var(--panel);
             }
             .cell {
+                position: relative;
                 padding: 14px 14px 14px;
                 border-right: 1px solid var(--line);
                 border-bottom: 1px solid var(--line);
                 min-width: 0;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 60%);
+            }
+            .cell-ico {
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                width: 32px;
+                height: 32px;
+                image-rendering: pixelated;
+                opacity: 0.9;
+            }
+            .cell .v:not(.empty) {
+                text-shadow: 0 0 20px currentColor;
+            }
+            .parade-wrap {
+                grid-area: parade;
+                position: relative;
+                z-index: 1;
+                margin: clamp(22px, 4vw, 40px) calc(50% - 50vw) 0;
+                height: 120px;
+                -webkit-mask-image: linear-gradient(
+                    90deg,
+                    transparent,
+                    #000 12%,
+                    #000 88%,
+                    transparent
+                );
+                mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+            }
+            .parade {
+                display: block;
+                width: 100%;
+                height: 100%;
             }
             .cell:nth-child(2n) {
                 border-right: 0;
@@ -670,8 +796,8 @@
             @media (min-width: 960px) {
                 .hero {
                     grid-template-columns: minmax(0, 4.4fr) minmax(0, 6fr);
-                    grid-template-areas: 'copy mon' 'cta mon' 'board board';
-                    grid-template-rows: auto 1fr auto;
+                    grid-template-areas: 'copy mon' 'cta mon' 'parade parade' 'board board';
+                    grid-template-rows: auto 1fr auto auto;
                     column-gap: clamp(32px, 4vw, 56px);
                 }
                 h1 {
@@ -682,7 +808,7 @@
                     align-self: center;
                 }
                 .board-wrap {
-                    margin-top: 44px;
+                    margin-top: 12px;
                 }
                 .board {
                     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -729,6 +855,7 @@
                 .bar-play,
                 .bar.cta-off .bar-play {
                     transition: none;
+                    animation: none;
                 }
                 .v.flash {
                     animation: none;
@@ -738,6 +865,7 @@
         <link rel="stylesheet" href="/hq.css" media="print" onload="this.media = 'all'" />
         <noscript><link rel="stylesheet" href="/hq.css" /></noscript>
         <script type="module" src="/hq.js"></script>
+        <script type="module" src="/hq-art.js"></script>
         <script defer src="/vote.js"></script>
     </head>
     <body>
@@ -747,7 +875,7 @@
         <header class="bar" id="bar">
             <div class="wrap bar-in">
                 <a class="brand" href="/" aria-label="BEARPROOF, home">
-                    <img src="/assets/proof.svg" alt="" width="28" height="28" />
+                    <img src="/assets/bull.svg" alt="" width="32" height="32" />
                     <b>BEARPROOF</b>
                 </a>
                 <nav class="nav" aria-label="Sections">
@@ -810,6 +938,10 @@
                     <p class="cta-note">No wallet. No signup. Runs in your browser.</p>
                 </div>
 
+                <div class="parade-wrap" aria-hidden="true">
+                    <canvas class="parade" id="parade"></canvas>
+                </div>
+
                 <div class="board-wrap">
                     <p class="board-head">
                         <span>Live numbers</span>
@@ -817,31 +949,67 @@
                     </p>
                     <div class="board" role="list" aria-label="Live numbers">
                         <div class="cell" role="listitem">
+                            <canvas
+                                class="cell-ico"
+                                data-icon="dca"
+                                data-scale="2"
+                                aria-hidden="true"
+                            ></canvas>
                             <div class="k">Day</div>
                             <div class="v empty" id="sDay">—</div>
                             <div class="n">of building in public</div>
                         </div>
                         <div class="cell" role="listitem">
+                            <canvas
+                                class="cell-ico"
+                                data-icon="green_candle"
+                                data-scale="2"
+                                aria-hidden="true"
+                            ></canvas>
                             <div class="k">Builds shipped</div>
                             <div class="v empty" id="sBuilds">—</div>
                             <div class="n" id="sBuildsN">watch this number</div>
                         </div>
                         <div class="cell" role="listitem">
+                            <canvas
+                                class="cell-ico"
+                                data-icon="cold_wallet"
+                                data-scale="2"
+                                aria-hidden="true"
+                            ></canvas>
                             <div class="k">Treasury</div>
                             <div class="v empty" id="sTreasury">—</div>
                             <div class="n" id="sTreasuryN">coin not launched yet</div>
                         </div>
                         <div class="cell" role="listitem">
+                            <canvas
+                                class="cell-ico"
+                                data-icon="high_frequency"
+                                data-scale="2"
+                                aria-hidden="true"
+                            ></canvas>
                             <div class="k">Spent on compute</div>
                             <div class="v empty" id="sSpent">—</div>
                             <div class="n" id="sSpentN">metering starts with the Build Agent</div>
                         </div>
                         <div class="cell" role="listitem">
+                            <canvas
+                                class="cell-ico"
+                                data-sprite="emblem"
+                                data-scale="2"
+                                aria-hidden="true"
+                            ></canvas>
                             <div class="k">Players today</div>
                             <div class="v empty" id="sPlayers">—</div>
                             <div class="n" id="sPlayersN">counting starts with Build #1</div>
                         </div>
                         <div class="cell" role="listitem">
+                            <canvas
+                                class="cell-ico"
+                                data-sprite="xp_candle_big"
+                                data-scale="2"
+                                aria-hidden="true"
+                            ></canvas>
                             <div class="k">Today's #1</div>
                             <div class="v empty" id="sTop">—</div>
                             <div class="n" id="sTopN">no runs submitted yet</div>
@@ -856,6 +1024,13 @@
                     <span class="idx" aria-hidden="true">01</span>
                     <h2 id="buildH">Today's build</h2>
                     <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="bull"
+                        data-scale="3"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
                 <div class="today" id="today" aria-live="polite">
                     <div class="state">
@@ -875,6 +1050,13 @@
                     <span class="idx" aria-hidden="true">02</span>
                     <h2 id="howH">How it works</h2>
                     <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="diamond"
+                        data-scale="4"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
                 <p class="lede">One loop. Every step leaves a public receipt.</p>
                 <div class="loop" id="loop">
@@ -883,19 +1065,12 @@
                     <ol class="loop-steps">
                         <li class="step">
                             <div class="step-top">
-                                <svg
+                                <canvas
                                     class="px-ico"
-                                    viewBox="0 0 12 12"
-                                    width="36"
-                                    height="36"
+                                    data-icon="green_candle"
+                                    data-scale="3"
                                     aria-hidden="true"
-                                    shape-rendering="crispEdges"
-                                >
-                                    <rect x="3" y="1" width="1" height="10" fill="#16E08A" />
-                                    <rect x="2" y="3" width="3" height="5" fill="#16E08A" />
-                                    <rect x="8" y="2" width="1" height="9" fill="#FF3B5C" />
-                                    <rect x="7" y="5" width="3" height="4" fill="#FF3B5C" />
-                                </svg>
+                                ></canvas>
                                 <span class="step-n">01</span>
                             </div>
                             <h3>Trades → fees</h3>
@@ -903,49 +1078,25 @@
                         </li>
                         <li class="step">
                             <div class="step-top">
-                                <svg
+                                <canvas
                                     class="px-ico"
-                                    viewBox="0 0 12 12"
-                                    width="36"
-                                    height="36"
+                                    data-icon="cold_wallet"
+                                    data-scale="3"
                                     aria-hidden="true"
-                                    shape-rendering="crispEdges"
-                                >
-                                    <rect x="1" y="2" width="10" height="3" fill="#B07A00" />
-                                    <rect x="1" y="5" width="10" height="6" fill="#FFC53D" />
-                                    <rect x="5" y="4" width="2" height="3" fill="#07090C" />
-                                    <rect x="1" y="5" width="10" height="1" fill="#B07A00" />
-                                </svg>
+                                ></canvas>
                                 <span class="step-n">02</span>
                             </div>
-                            <h3>Proof's treasury</h3>
-                            <p>The fees land in Proof's public wallet. Anyone can watch it.</p>
+                            <h3>The AI's treasury</h3>
+                            <p>The fees land in its public wallet. Anyone can watch it.</p>
                         </li>
                         <li class="step">
                             <div class="step-top">
-                                <svg
+                                <canvas
                                     class="px-ico"
-                                    viewBox="0 0 12 12"
-                                    width="36"
-                                    height="36"
+                                    data-icon="high_frequency"
+                                    data-scale="3"
                                     aria-hidden="true"
-                                    shape-rendering="crispEdges"
-                                >
-                                    <rect x="2" y="2" width="8" height="8" fill="#7D8896" />
-                                    <rect x="4" y="4" width="4" height="4" fill="#46C8FF" />
-                                    <rect x="3" y="0" width="1" height="2" fill="#7D8896" />
-                                    <rect x="6" y="0" width="1" height="2" fill="#7D8896" />
-                                    <rect x="8" y="0" width="1" height="2" fill="#7D8896" />
-                                    <rect x="3" y="10" width="1" height="2" fill="#7D8896" />
-                                    <rect x="6" y="10" width="1" height="2" fill="#7D8896" />
-                                    <rect x="8" y="10" width="1" height="2" fill="#7D8896" />
-                                    <rect x="0" y="3" width="2" height="1" fill="#7D8896" />
-                                    <rect x="0" y="6" width="2" height="1" fill="#7D8896" />
-                                    <rect x="0" y="8" width="2" height="1" fill="#7D8896" />
-                                    <rect x="10" y="3" width="2" height="1" fill="#7D8896" />
-                                    <rect x="10" y="6" width="2" height="1" fill="#7D8896" />
-                                    <rect x="10" y="8" width="2" height="1" fill="#7D8896" />
-                                </svg>
+                                ></canvas>
                                 <span class="step-n">03</span>
                             </div>
                             <h3>Compute + prize</h3>
@@ -956,20 +1107,12 @@
                         </li>
                         <li class="step">
                             <div class="step-top">
-                                <svg
+                                <canvas
                                     class="px-ico"
-                                    viewBox="0 0 12 12"
-                                    width="36"
-                                    height="36"
+                                    data-sprite="emblem"
+                                    data-scale="3"
                                     aria-hidden="true"
-                                    shape-rendering="crispEdges"
-                                >
-                                    <rect x="5" y="1" width="2" height="8" fill="#16E08A" />
-                                    <rect x="4" y="2" width="4" height="1" fill="#16E08A" />
-                                    <rect x="3" y="3" width="6" height="1" fill="#16E08A" />
-                                    <rect x="2" y="4" width="8" height="1" fill="#16E08A" />
-                                    <rect x="1" y="10" width="10" height="1" fill="#7D8896" />
-                                </svg>
+                                ></canvas>
                                 <span class="step-n">04</span>
                             </div>
                             <h3>A new build ships</h3>
@@ -992,12 +1135,19 @@
                     <span class="idx" aria-hidden="true">03</span>
                     <h2 id="voteH">Vote on tomorrow</h2>
                     <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="ponzi"
+                        data-scale="3"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
                 <div class="vote">
                     <div class="vote-state panel">
                         <span class="flag gold">Voting opens when the coin launches</span>
                         <p>
-                            Holders pick among features Proof proposes. Vote weight is
+                            Holders pick among features the AI proposes. Vote weight is
                             <b class="sqrt">√(tokens held)</b>, so a whale can't own the roadmap.
                         </p>
                         <table class="wtable">
@@ -1072,6 +1222,13 @@
                     <span class="idx" aria-hidden="true">04</span>
                     <h2 id="chH">Daily Challenge</h2>
                     <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="xp_candle_big"
+                        data-scale="4"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
                 <div class="ch">
                     <div class="ch-clock panel">
@@ -1123,7 +1280,7 @@
                                 <rect x="3" y="8" width="6" height="2" fill="#FFC53D" />
                             </svg>
                             <p>
-                                Daily #1 wins a prize paid by Proof from its treasury in $ANSEM.
+                                Daily #1 wins a prize paid by the AI from its treasury in $ANSEM.
                                 Prizes start after the coin launches. Holding the coin is never
                                 required to win.
                             </p>
@@ -1149,6 +1306,13 @@
                     <span class="idx" aria-hidden="true">05</span>
                     <h2 id="rcH">Receipts</h2>
                     <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="limit_order"
+                        data-scale="4"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
                 <p class="lede">
                     Every number on this page is real data, or it says that it isn't there yet.
@@ -1185,10 +1349,10 @@
 
                 <div class="who">
                     <div class="who-col panel">
-                        <h3 class="who-h bull">Automated by Proof</h3>
+                        <h3 class="who-h bull">Automated by the AI</h3>
                         <p class="who-note" id="whoNote">
-                            Once the scheduled Build Agent runs. Until then Proof works in bootstrap
-                            sessions (below).
+                            Once the scheduled Build Agent runs. Until then the AI works in
+                            bootstrap sessions (below).
                         </p>
                         <ul class="ticks">
                             <li>Picks the day's feature from holder votes and its own backlog</li>
@@ -1206,7 +1370,7 @@
                             <li>Set up the accounts</li>
                             <li>Funds hosting until the treasury can</li>
                             <li data-launched="Launched the coin">Launches the coin</li>
-                            <li>Posts the daily X update Proof drafts</li>
+                            <li>Posts the daily X update the AI drafts</li>
                             <li>
                                 Moves SOL from the treasury to the prize and costs wallets, by hand,
                                 until that step is automated
@@ -1250,6 +1414,13 @@
                     <span class="idx" aria-hidden="true">06</span>
                     <h2 id="coinH">The coin: $BPROOF</h2>
                     <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="emblem_large"
+                        data-scale="2"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
                 <div class="coin panel">
                     <div class="ca">
@@ -1275,7 +1446,7 @@
                         <p class="fine" id="buyNote">Link turns on when the coin launches.</p>
                     </div>
                     <p class="coin-what">
-                        The coin funds Proof's compute and hosting through creator fees, and gives
+                        The coin funds the AI's compute and hosting through creator fees, and gives
                         holders a vote on what gets built, plus cosmetics (a holder skin, a
                         leaderboard badge). It is not an investment, pays nothing to holders, and is
                         never required to play or win.
@@ -1307,6 +1478,13 @@
                     <span class="idx" aria-hidden="true">07</span>
                     <h2 id="faqH">FAQ</h2>
                     <span class="rule" aria-hidden="true"></span>
+                    <canvas
+                        class="sec-sprite"
+                        data-sprite="sybil"
+                        data-scale="3"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
                 <div class="faq">
                     <details>
@@ -1317,7 +1495,7 @@
                             running on GitHub Actions), <code>bootstrap</code> (the same AI in
                             sessions Osman starts, used to set up the pipeline), or
                             <code>human</code> (Osman typed it). Build #0 is the untouched
-                            open-source game Proof started from, so the diff from
+                            open-source game the AI started from, so the diff from
                             <code>day-0</code> shows everything the AI added.
                         </p>
                     </details>
@@ -1327,7 +1505,7 @@
                             He's the operator. He created the accounts, pays for hosting until the
                             treasury can,
                             <span data-launched="launched the coin">launches the coin</span>, posts
-                            the daily X update Proof drafts, moves SOL from the treasury to the
+                            the daily X update the AI drafts, moves SOL from the treasury to the
                             prize and costs wallets by hand (each move is in the ledger), and holds
                             an emergency revert switch. He doesn't write the daily features.
                         </p>
@@ -1335,19 +1513,20 @@
                     <details>
                         <summary>Where does the money go?</summary>
                         <p>
-                            Creator fees from trading the coin go to Proof's public treasury wallet.
-                            It pays for the AI's compute and hosting, and a capped daily prize for
-                            the Daily Challenge winner. Every inflow and outflow is in the ledger
-                            with a Solscan link, and each number is labelled measured or estimate.
+                            Creator fees from trading the coin go to the AI's public treasury
+                            wallet. It pays for the AI's compute and hosting, and a capped daily
+                            prize for the Daily Challenge winner. Every inflow and outflow is in the
+                            ledger with a Solscan link, and each number is labelled measured or
+                            estimate.
                         </p>
                     </details>
                     <details>
                         <summary>Why $ANSEM prizes?</summary>
                         <p>
-                            The verified #1 of each Daily Challenge gets a small prize paid by Proof
-                            from its treasury, in $ANSEM bought on-chain. The prize is capped by the
-                            previous day's fees. Holding our coin is never required to win: it's a
-                            game prize, not a lottery.
+                            The verified #1 of each Daily Challenge gets a small prize paid by the
+                            AI from its treasury, in $ANSEM bought on-chain. The prize is capped by
+                            the previous day's fees. Holding our coin is never required to win: it's
+                            a game prize, not a lottery.
                         </p>
                     </details>
                     <details>
@@ -1365,7 +1544,7 @@
         <footer class="foot wrap">
             <div class="foot-top">
                 <a class="brand" href="/" aria-label="BEARPROOF, home">
-                    <img src="/assets/proof.svg" alt="" width="28" height="28" loading="lazy" />
+                    <img src="/assets/bull.svg" alt="" width="28" height="28" loading="lazy" />
                     <b>BEARPROOF</b>
                 </a>
                 <nav class="foot-links" aria-label="Footer">
@@ -1388,9 +1567,9 @@
                 affiliated with Vampire Survivors or poncle.
             </p>
             <p id="footCoin">
-                The coin is not launched yet. When it is, it funds Proof's compute and gives holders
-                a vote on what gets built. It is not an investment and it is never required to play
-                or win.
+                The coin is not launched yet. When it is, it funds the AI's compute and gives
+                holders a vote on what gets built. It is not an investment and it is never required
+                to play or win.
             </p>
         </footer>
     </body>

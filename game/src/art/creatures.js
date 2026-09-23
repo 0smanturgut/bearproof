@@ -294,35 +294,51 @@ export function paperHands(f) {
     return s.render();
 }
 
-/** 26×18 rug puller: a hooded thief sprinting right, dragging a rug behind him. */
+/** 26×20 rug puller: a hooded thief sprinting right, yanking a rug that flaps out behind him. */
 export function rugPuller(f) {
-    const s = new PixelSprite(26, 18);
+    const s = new PixelSprite(26, 20);
     const run = (f / 4) * TAU;
-    s.auto('rug', { R: 1.4, grad: 0.1 });
-    s.auto('body', { R: 2.2, grad: 0.28 });
-    // the rug: a wavy runner in crimson with gold stripes, trailing to the left
-    for (let x = 0; x < 13; x++) {
-        const wy = Math.round(Math.sin(x * 0.7 - run) * 1.2);
-        for (let y = 9; y < 14; y++) {
-            const stripe = x % 4 === 1 ? M.gold : M.bearDark;
-            s.box(x, y + wy, 1, 1, stripe, { g: 'rug', shade: 'flat', lum: y === 9 ? 0.75 : 0.5 });
-        }
-        if (x % 2 === 0) s.px(x, 14 + wy, '#FFC53D'); // fringe
+    const b = [0, -1, 0, -1][f % 4];
+    s.auto('body', { R: 2.2, grad: 0.3 });
+    s.auto('head', { R: 1.8, grad: 0.3 });
+    // the rug: one flapping band from his hand back to the left edge, gold border and a diamond row
+    const wave = (x) => Math.sin(x * 0.55 - run) * (1.6 * (1 - x / 16)) + (16 - x) * 0.12;
+    for (let x = 0; x <= 14; x++) {
+        const top = Math.round(9 + wave(x) + b * (x / 14));
+        s.px(x, top, '#FFC53D');
+        for (let k = 1; k <= 3; k++)
+            s.px(x, top + k, k === 2 && x % 4 === 1 ? '#FFC53D' : k === 1 ? '#B81E40' : '#6E0F2A');
+        s.px(x, top + 4, '#FFC53D');
+        if (x === 0) for (let k = 0; k <= 4; k += 2) s.px(0, top + k, '#FFE08A');
     }
     // legs mid-stride
-    s.capsule(16, 12, 16 + Math.sin(run) * 3, 16.5, 1.2, 1, M.cloth, { g: 'legs' });
-    s.capsule(18, 12, 18 - Math.sin(run) * 3, 16.5, 1.2, 1, M.cloth, { g: 'legs', bias: -0.1 });
-    // body leaning forward, hood
-    s.ellipse(17.5, 9.5, 4.2, 3.8, M.hood, { g: 'body' });
-    s.ellipse(20.5, 5.8, 3.6, 3.4, M.hood, { g: 'body' });
-    s.ellipse(21.8, 6.4, 1.9, 1.6, M.cloth, { shade: 'flat', lum: 0.05 }); // face in shadow
-    // arm reaching back to the rug
-    s.capsule(15.5, 9, 12.5, 10.5 + Math.round(Math.sin(12 * 0.7 - run) * 1.2), 1, 0.9, M.hood, {
-        g: 'arm'
+    s.capsule(17, 12.5 + b, 17 + Math.sin(run) * 3.4, 18.4, 1.3, 1.1, M.cloth, {
+        g: 'legs',
+        bias: -0.06
     });
-    // eyes glowing from inside the hood, and a grin
-    s.px(21, 6, C.red, { glow: C.red }).px(23, 6, C.red, { glow: C.red });
-    s.px(22, 8, '#FFC53D').px(23, 7, '#FFC53D');
+    s.capsule(18.5, 12.5 + b, 18.5 - Math.sin(run) * 3.4, 18.4, 1.3, 1.1, M.cloth, { g: 'legsF' });
+    s.auto('legs', { R: 1, grad: 0.1 });
+    s.auto('legsF', { R: 1, grad: 0.1 });
+    // body leaning into the sprint
+    s.ellipse(18.4, 9.6 + b, 3.6, 4, M.hood, { g: 'body' });
+    // head in a hood, face in shadow, eyes glowing
+    s.circle(20.6, 4.8 + b, 3.4, M.hood, { g: 'head' });
+    s.poly(
+        [
+            [17.5, 3.5 + b],
+            [18.5, 1 + b],
+            [21, 1.6 + b]
+        ],
+        M.hood,
+        { g: 'head' }
+    );
+    s.ellipse(22, 5.4 + b, 1.8, 1.7, M.cloth, { shade: 'flat', lum: 0.04 });
+    s.px(21.5, 5 + b, C.red, { glow: C.red }).px(23, 5 + b, C.red, { glow: C.red });
+    s.px(22.5, 6.6 + b, '#FFC53D');
+    // arm reaching back, fist on the rug's edge
+    s.capsule(17, 8.4 + b, 14.5, Math.round(9 + wave(14) + b) + 1.5, 1.1, 1, M.hood, { g: 'arm' });
+    s.auto('arm', { R: 0.9, grad: 0.2 });
+    s.circle(14.4, Math.round(9 + wave(14) + b) + 1.8, 1.3, M.skin, { g: 'fist' });
     return s.render();
 }
 
@@ -575,3 +591,84 @@ export function sybil(f) {
     s.px(8, fy - 2, '#7C8390').px(10, fy - 2, '#7C8390');
     return s.render();
 }
+
+// ---------------------------------------------------------------- brand
+
+/**
+ * The emblem: the bull's head, front on. `n` = inner size in art px (14 → a 16×16 favicon, 30 → a 32×32
+ * mark for the coin and avatar). Shapes scale; details are re-placed at each size.
+ */
+export function emblem(n = 14) {
+    const k = n / 14;
+    const s = new PixelSprite(n, n, { dither: n > 20 ? 0.3 : 0 });
+    const P = (v) => v * k;
+    s.auto('head', { R: 2.2 * k, grad: 0.36 });
+    s.auto('muzzle', { R: 1.4 * k, grad: 0.3 });
+    s.auto('horns', { R: 0.9 * k, grad: 0.3 });
+    s.auto('ears', { R: 0.8 * k, grad: 0.2 });
+    // horns sweep out and up
+    for (const sx of [1, -1]) {
+        const X = (v) => (sx > 0 ? P(v) : n - P(v));
+        s.capsule(X(3.4), P(5.6), X(1.2), P(3.4), P(1.15), P(0.95), M.horn, { g: 'horns' });
+        s.capsule(X(1.2), P(3.4), X(1.7), P(0.6), P(0.95), P(0.5), M.horn, { g: 'horns' });
+        s.ellipse(X(2.1), P(7.1), P(1.7), P(1.05), M.bullDeep, { g: 'ears' });
+    }
+    // head, darker toward the jaw, and a lighter muzzle
+    s.ellipse(P(7), P(7.2), P(4.5), P(4.7), M.bull, { g: 'head', bias: -0.12 });
+    s.ellipse(P(7), P(10.7), P(3.2), P(2.3), M.snout, { g: 'muzzle', bias: -0.1 });
+    const px = (x, y, c) => {
+        // a detail pixel, doubled up on the big emblem
+        const r = Math.max(1, Math.round(k));
+        for (let dy = 0; dy < r; dy++)
+            for (let dx = 0; dx < r; dx++) s.px(Math.floor(P(x)) + dx, Math.floor(P(y)) + dy, c);
+    };
+    // angry slanted brows, eyes (white with the pupil toward the nose), nostrils, gold nose ring
+    if (n > 20) {
+        for (const [x, y] of [
+            [7, 12],
+            [8, 12],
+            [9, 13],
+            [10, 13],
+            [11, 14]
+        ])
+            s.px(x, y, '#03140F').px(n - 1 - x, y, '#03140F');
+        for (const [x, y] of [
+            [9, 14],
+            [10, 14],
+            [9, 15],
+            [10, 15]
+        ])
+            s.px(x, y, C.eyeWhite).px(n - 1 - x, y, C.eyeWhite);
+        s.px(10, 15, C.pupil)
+            .px(n - 11, 15, C.pupil)
+            .px(10, 14, C.pupil)
+            .px(n - 11, 14, C.pupil);
+    } else {
+        px(3.9, 6.1, '#03140F');
+        px(5, 7, '#03140F');
+        px(10, 6.1, '#03140F');
+        px(8.9, 7, '#03140F');
+        px(4.9, 8, C.eyeWhite);
+        px(3.9, 8, C.pupil);
+        px(8.9, 8, C.eyeWhite);
+        px(9.9, 8, C.pupil);
+    }
+    px(5.9, 10.6, '#07322A');
+    px(7.9, 10.6, '#07322A');
+    px(6.9, 12.2, C.gold);
+    px(5.9, 13, '#B07A00');
+    px(7.9, 13, '#B07A00');
+    px(6.9, 13, '#FFE9A8');
+    if (n > 20) {
+        // extra detail on the big mark: a highlight on each horn tip and the brow ridge
+        s.px(Math.round(P(1.5)), Math.round(P(1)), '#FFFBEA').px(
+            Math.round(n - P(1.5)),
+            Math.round(P(1)),
+            '#FFFBEA'
+        );
+    }
+    return s.render();
+}
+
+export const emblemSmall = () => emblem(14);
+export const emblemLarge = () => emblem(30);

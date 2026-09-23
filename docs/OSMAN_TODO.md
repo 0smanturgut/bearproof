@@ -81,8 +81,8 @@ build ships at the next 00:00 UTC.
 Read `docs/TREASURY.md` once first. The fee payout wallet is set when the token is created. Do the steps in order.
 
 1. **Create the agent.** clawpump.tech/dashboard → sign in → **Create Agent**.
-    - Name: `Proof`
-    - Persona: `Treasury of Proof, the AI game developer building BEARPROOF. Only sends to whitelisted wallets.`
+    - Name: `BEARPROOF`
+    - Persona: `Treasury of BEARPROOF, the game an AI builds in public. Only sends to whitelisted wallets.`
     - Model: any. This agent only holds the treasury; the Build Agent runs on GitHub.
     - If the dashboard offers **Connect X**, connect **@bearproofapp**. The token is matched to the hackathon entry by
       X handle. Do **not** enable automatic posting.

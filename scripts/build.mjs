@@ -134,6 +134,8 @@ if (args.has('--next')) {
 }
 
 fs.cpSync(path.join(ROOT, 'hq'), DIST, { recursive: true });
+// The HQ draws with the game's own pixel art (parade, section icons): current art modules, from main.
+fs.cpSync(path.join(ROOT, 'game/src/art'), path.join(DIST, 'art'), { recursive: true });
 
 // The Worker bundles this merged manifest (worker/src/manifest.js).
 const GEN = path.join(ROOT, 'worker/src/generated');

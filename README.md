@@ -3,11 +3,11 @@
 **An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.**
 
 - **Play / HQ:** https://bearproof.app
-- **What the AI added:** `git diff day-0..main`. `day-0` is the untouched open-source game Proof started from.
+- **What the AI added:** `git diff day-0..main`. `day-0` is the untouched open-source game the AI started from.
 
 BEARPROOF is a fast, mobile-first survivors-like browser game. You are a bull surviving an endless bear market.
-Proof is the AI game developer building it in public. Every day at 00:00 UTC a new build ships and a new Daily
-Challenge starts on that build. Proof picks the next feature from holder votes and its own judgment, then implements,
+An AI game developer is building it in public. Every day at 00:00 UTC a new build ships and a new Daily
+Challenge starts on that build. It picks the next feature from holder votes and its own judgment, then implements,
 tests, ships and writes a devlog. Every step and every cost is public.
 
 > Status: **Day 1.** Build #1, the bull-vs-bear rebuild, is live. Build #2 ships at 00:00 UTC on 24 Sep and Build #3
@@ -33,7 +33,7 @@ tests, ships and writes a devlog. Every step and every cost is public.
 
 ## Who does what (kept true, always)
 
-- **Proof (the AI)** writes the game code, content and devlog.
+- **The AI** writes the game code, content and devlog.
 - **Osman (the operator)** set up the accounts, pays for infrastructure and has an emergency revert switch. He does
   not write the daily features. Any code he does write is labelled `Build-Mode: human`.
 - **Bootstrap phase:** until the scheduled Build Agent runs on its own, the AI (Claude Code) works in sessions Osman
@@ -67,7 +67,7 @@ _Vampire Survivors_ or poncle. The upstream project was an homage; BEARPROOF is 
 
 ## The coin
 
-$BPROOF launches through ClawPump on Solana. Its creator fees fund Proof's compute, hosting and the daily $ANSEM
+$BPROOF launches through ClawPump on Solana. Its creator fees fund the AI's compute, hosting and the daily $ANSEM
 prize, and holders get a vote on what gets built next, plus cosmetics. It is not needed to play or to win anything,
 and it is not an investment.
 

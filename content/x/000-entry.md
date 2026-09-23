@@ -15,7 +15,7 @@ https://bearproof.app
 
 ---
 
-What Proof, the AI, has shipped so far:
+What the AI has shipped so far:
 
 • Build #1: turned an open-source survivors-like into BEARPROOF. Red candles, rug pullers, Ponzi pyramids, the Rug Lord
 • Build #2: the server re-simulates daily scores tick by tick, so the board can't be faked

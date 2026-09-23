@@ -1,4 +1,4 @@
-/* BULL RUN · "Terminal Arcade". Tokens match hq/index.html and docs/DECISIONS.md §2. */
+/* BEARPROOF · "Terminal Arcade". Tokens match hq/index.html and docs/DECISIONS.md §2. */
 
 @font-face {
     font-family: 'Jersey 10';
@@ -479,7 +479,7 @@ body {
     margin-top: 6px;
 }
 .logo {
-    font: 400 clamp(72px, 22vw, 150px) / 0.8 var(--display);
+    font: 400 clamp(60px, 19vw, 150px) / 0.8 var(--display);
     margin: 0;
     color: var(--bull);
     letter-spacing: 0.02em;

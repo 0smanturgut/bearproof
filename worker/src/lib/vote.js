@@ -1,7 +1,7 @@
 /**
  * Holder voting helpers (pure, unit-tested).
  *
- * The daily poll: Patch proposes three features in each devlog (`agent/proposals.json` at the build's tag).
+ * The daily poll: Proof proposes three features in each devlog (`agent/proposals.json` at the build's tag).
  * Holders vote from 00:00 UTC until the Build Agent starts at 13:00 UTC; the winner is tomorrow's build.
  * Voting = signing a plain-text message with a Solana wallet. No transaction, no approval, nothing moves.
  * Weight = floor(sqrt(whole tokens held)), read from chain when the vote is cast.
@@ -47,7 +47,7 @@ export function voteMessage({ domain, wallet, proposalId, forBuild, pollDate, no
         `${domain} wants you to vote with your Solana account:`,
         wallet,
         '',
-        `Vote: ${proposalId} for Patch #${forBuild} (poll ${pollDate})`,
+        `Vote: ${proposalId} for Build #${forBuild} (poll ${pollDate})`,
         'This signature is free. It sends no transaction and moves no funds.',
         '',
         `Nonce: ${nonce}`,

@@ -6,7 +6,7 @@
  *   dist/b/<n>/           every build in builds/builds.json, extracted from its git ref (never from the working tree)
  *   dist/b/<n>/build-info.json
  *   dist/builds.json      public manifest
- *   dist/devlog.json      devlog/patch-<n>.md compiled by scripts/devlog.mjs (the HQ fetches it directly)
+ *   dist/devlog.json      devlog/build-<n>.md compiled by scripts/devlog.mjs (the HQ fetches it directly)
  *   dist/_headers         cache + security headers
  *
  * Flags:
@@ -40,7 +40,7 @@ function git(...a) {
 }
 
 function extract(ref, srcPath, files, outDir) {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bullrun-build-'));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bearproof-build-'));
     try {
         const specs = files
             ? files.map((f) => (srcPath === '.' ? f : `${srcPath}/${f}`))
@@ -83,7 +83,7 @@ function collectBuilds() {
     }
     // Each build's devlog ends with three proposals for the next build; holders vote on them the day it is live.
     for (const b of out) {
-        const f = path.join(ROOT, 'agent', 'proposals', `patch-${b.n}.json`);
+        const f = path.join(ROOT, 'agent', 'proposals', `build-${b.n}.json`);
         if (!fs.existsSync(f)) continue;
         const list = JSON.parse(fs.readFileSync(f, 'utf8'));
         if (!Array.isArray(list) || list.some((p) => !/^[a-z0-9-]{2,48}$/.test(p.id) || !p.title)) {

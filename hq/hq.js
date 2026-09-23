@@ -1,5 +1,5 @@
 // Public repo URL, e.g. 'https://github.com/<owner>/<repo>'. Empty = repo links stay hidden.
-const REPO_URL = '';
+const REPO_URL = 'https://github.com/0smanturgut/bearproof';
 
 /**
  * HQ v1. Every value on the page is real API data or a designed empty state. Nothing is invented.
@@ -805,7 +805,7 @@ function mountGame(n) {
             () => {
                 const f = h('iframe', {
                     src: '/play?attract=1',
-                    title: 'BULL RUN live build',
+                    title: 'BEARPROOF live build',
                     loading: 'lazy',
                     tabindex: '-1',
                     inert: true
@@ -832,7 +832,7 @@ function mountGame(n) {
 
 const MODES = new Set(['agent', 'bootstrap', 'human', 'upstream']);
 const BUILD0_SUMMARY =
-    'The untouched open-source game Patch started from. Everything after this is new.';
+    'The untouched open-source game Proof started from. Everything after this is new.';
 
 function modeBadge(mode) {
     const m = MODES.has(mode) ? mode : null;
@@ -852,7 +852,7 @@ function costText(b, d) {
 function chosenText(d) {
     if (!d || !d.chosenBy) return null;
     if (d.chosenBy === 'holders') return 'Chosen by holders';
-    if (d.chosenBy === 'agent') return 'Chosen by Patch';
+    if (d.chosenBy === 'agent') return 'Chosen by Proof';
     return 'Chosen by ' + d.chosenBy;
 }
 
@@ -1573,7 +1573,7 @@ function renderCoin(s) {
     for (const el of document.querySelectorAll('[data-launched]'))
         el.textContent = el.getAttribute('data-launched');
     $('#footCoin').textContent =
-        "The coin funds Patch's compute and gives holders a vote on what gets built. It is not an investment and it is never required to play or win.";
+        "The coin funds Proof's compute and gives holders a vote on what gets built. It is not an investment and it is never required to play or win.";
     const fine = $('#howFine');
     if (fine)
         fine.textContent =

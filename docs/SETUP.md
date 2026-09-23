@@ -41,14 +41,14 @@ run `node scripts/build.mjs --next` and open `/b/next/`.
 
 ## Cloudflare resources
 
-| Resource    | Name                           | Binding                | Created with                                      |
-| ----------- | ------------------------------ | ---------------------- | ------------------------------------------------- |
-| Worker      | `bullrun`                      |                        | `npx wrangler deploy`                             |
-| D1          | `bullrun-db` (`d1a7b959-…`)    | `DB`                   | `npx wrangler d1 create bullrun-db`               |
-| KV          | `bullrun-config` (`f84d41c6…`) | `CONFIG`               | `npx wrangler kv namespace create bullrun-config` |
-| Rate limits | namespaces 7301 / 7302         | `RL_SUBMIT`, `RL_READ` | declared in `wrangler.jsonc`                      |
+| Resource    | Name                             | Binding                | Created with                                        |
+| ----------- | -------------------------------- | ---------------------- | --------------------------------------------------- |
+| Worker      | `bearproof`                      |                        | `npx wrangler deploy`                               |
+| D1          | `bearproof-db` (`ae037dee-…`)    | `DB`                   | `npx wrangler d1 create bearproof-db`               |
+| KV          | `bearproof-config` (`4f4fa4b9…`) | `CONFIG`               | `npx wrangler kv namespace create bearproof-config` |
+| Rate limits | namespaces 7301 / 7302           | `RL_SUBMIT`, `RL_READ` | declared in `wrangler.jsonc`                        |
 
-Live URL: **https://bullrun.osmankng.workers.dev**
+Live URL: **https://bearproof.app**
 
 ### Secrets (never in git, never in logs)
 

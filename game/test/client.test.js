@@ -38,10 +38,10 @@ test('share text is short, specific and links the challenge', () => {
         build: 3,
         origin: 'https://x.test'
     });
-    assert.match(text, /BULL RUN · Daily 2026-09-24/);
+    assert.match(text, /BEARPROOF · Daily 2026-09-24/);
     assert.match(text, /survived 04:12 of the bear market/);
     assert.match(text, /Score 12,480 · 812 bears · Lv 14/);
-    assert.match(text, /Patch #3/);
+    assert.match(text, /Build #3/);
     assert.equal(url, 'https://x.test/play?challenge=2026-09-24');
     const win = shareText({
         summary: { ...summary, won: true },

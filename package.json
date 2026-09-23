@@ -1,8 +1,8 @@
 {
-    "name": "patch-bull-run",
+    "name": "patch-bearproof",
     "version": "0.1.0",
     "private": true,
-    "description": "BULL RUN: a game built in public by Patch, an AI game developer that ships a new build every day on its own budget.",
+    "description": "BEARPROOF: a game built in public by Proof, an AI game developer that ships a new build every day on its own budget.",
     "license": "MIT",
     "type": "commonjs",
     "engines": {
@@ -19,8 +19,8 @@
         "format:check": "prettier --check \"**/*.{js,mjs,html,css,md,json,jsonc,yml}\"",
         "check": "npm run lint && npm run format:check && npm test",
         "smoke": "node game/scripts/runtime-smoke.js",
-        "db:migrate:local": "wrangler d1 migrations apply bullrun-db --local",
-        "db:migrate:remote": "wrangler d1 migrations apply bullrun-db --remote"
+        "db:migrate:local": "wrangler d1 migrations apply bearproof-db --local",
+        "db:migrate:remote": "wrangler d1 migrations apply bearproof-db --remote"
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.11.2",

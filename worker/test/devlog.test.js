@@ -43,10 +43,10 @@ test('parseDevlog reads every field and strips comments', () => {
 test('parseDevlog defaults: empty commit/cost are null, chosenBy defaults to agent', () => {
     const e = parseDevlog(
         doc(
-            'build: 2\ndate: 2026-09-25\ntitle: Patch #2 is live\nmode: agent\ncommit:\ncostUsd:\nstatus: failed'
+            'build: 2\ndate: 2026-09-25\ntitle: Build #2 is live\nmode: agent\ncommit:\ncostUsd:\nstatus: failed'
         )
     );
-    assert.equal(e.title, 'Patch #2 is live', 'a # inside a word is not a comment');
+    assert.equal(e.title, 'Build #2 is live', 'a # inside a word is not a comment');
     assert.equal(e.commit, null);
     assert.equal(e.costUsd, null);
     assert.equal(e.costMeasured, null);
@@ -93,9 +93,9 @@ const BAD = [
 for (const [name, text, re] of BAD) {
     test(`parseDevlog rejects: ${name}`, () => {
         assert.throws(
-            () => parseDevlog(text, 'devlog/patch-1.md'),
+            () => parseDevlog(text, 'devlog/build-1.md'),
             (err) => {
-                assert.match(err.message, /^devlog\/patch-1\.md: /);
+                assert.match(err.message, /^devlog\/build-1\.md: /);
                 assert.match(err.message, re);
                 return true;
             }
@@ -122,21 +122,21 @@ test('compileDevlog sorts newest first, ignores other files, validates file name
         const dir = path.join(root, 'devlog');
         fs.mkdirSync(dir);
         const entry = (n, date) =>
-            doc(`build: ${n}\ndate: ${date}\ntitle: Patch ${n}\nmode: agent\nstatus: shipped`);
+            doc(`build: ${n}\ndate: ${date}\ntitle: Proof ${n}\nmode: agent\nstatus: shipped`);
         fs.writeFileSync(path.join(dir, 'README.md'), '# not an entry');
-        fs.writeFileSync(path.join(dir, 'patch-1.md'), entry(1, '2026-09-24'));
-        fs.writeFileSync(path.join(dir, 'patch-3.md'), entry(3, '2026-09-26'));
-        fs.writeFileSync(path.join(dir, 'patch-2.md'), entry(2, '2026-09-25'));
+        fs.writeFileSync(path.join(dir, 'build-1.md'), entry(1, '2026-09-24'));
+        fs.writeFileSync(path.join(dir, 'build-3.md'), entry(3, '2026-09-26'));
+        fs.writeFileSync(path.join(dir, 'build-2.md'), entry(2, '2026-09-25'));
         assert.deepEqual(
             compileDevlog(root).entries.map((e) => e.build),
             [3, 2, 1]
         );
 
-        fs.writeFileSync(path.join(dir, 'patch-4.md'), entry(5, '2026-09-27'));
+        fs.writeFileSync(path.join(dir, 'build-4.md'), entry(5, '2026-09-27'));
         assert.throws(() => compileDevlog(root), /does not match the file name/);
-        fs.rmSync(path.join(dir, 'patch-4.md'));
+        fs.rmSync(path.join(dir, 'build-4.md'));
 
-        fs.writeFileSync(path.join(dir, 'patch-01.md'), entry(1, '2026-09-24'));
+        fs.writeFileSync(path.join(dir, 'build-01.md'), entry(1, '2026-09-24'));
         assert.throws(() => compileDevlog(root), /duplicate build 1/);
     } finally {
         fs.rmSync(root, { recursive: true, force: true });

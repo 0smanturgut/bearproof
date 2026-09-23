@@ -340,7 +340,7 @@ export class Game {
         const sub = summary.won
             ? `You ended the bear market in ${fmtTime(summary.timeMs)}.`
             : `Your bull run lasted ${fmtTime(summary.timeMs)}.`;
-        const buildLine = `${this.mode === 'daily' ? `Daily Challenge ${this.daily.date}` : 'Free run'} · Patch #${this.build.n}`;
+        const buildLine = `${this.mode === 'daily' ? `Daily Challenge ${this.daily.date}` : 'Free run'} · Build #${this.build.n}`;
         setTimeout(() => this.ui.showOver({ summary, title, sub, buildLine }), 700);
         setTimeout(() => this._maybeSubmit(), 750);
     }

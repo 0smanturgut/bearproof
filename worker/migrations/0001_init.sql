@@ -1,4 +1,4 @@
--- BULL RUN / Patch: initial schema.
+-- BEARPROOF / Proof: initial schema.
 -- Builds and devlog entries live in git (builds/builds.json, devlog/*.md) so they are auditable.
 -- D1 holds the dynamic, user-generated and on-chain-derived data.
 

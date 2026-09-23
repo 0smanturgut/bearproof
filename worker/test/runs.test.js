@@ -47,10 +47,10 @@ function body(patch = {}) {
 const check = (b, nowMs = NOW) => validateRun(b, { builds: BUILDS, nowMs });
 
 test('validateRun accepts a daily run and normalises it', () => {
-    const r = check(body({ playerId: PID.toUpperCase(), name: '  Bull  Run ' }));
+    const r = check(body({ playerId: PID.toUpperCase(), name: '  Bear  Proof ' }));
     assert.equal(r.ok, true);
     assert.equal(r.run.playerId, PID);
-    assert.equal(r.run.name, 'Bull Run');
+    assert.equal(r.run.name, 'Bear Proof');
     assert.equal(r.run.challengeDate, '2026-09-24');
     assert.equal(r.run.score, 1000);
     assert.deepEqual([...r.run.log], [1, 2, 3, 250, 251, 252]);
@@ -167,7 +167,7 @@ test('challengeWindow', () => {
 });
 
 test('sanitizeName and displayName', () => {
-    assert.equal(sanitizeName('  Bull  Run  '), 'Bull Run');
+    assert.equal(sanitizeName('  Bear  Proof  '), 'Bear Proof');
     assert.equal(sanitizeName('a.b-c_d 1'), 'a.b-c_d 1');
     assert.equal(sanitizeName('x'.repeat(16)), 'x'.repeat(16));
     assert.equal(sanitizeName('x'.repeat(17)), null);

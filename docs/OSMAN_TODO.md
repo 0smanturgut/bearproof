@@ -15,7 +15,7 @@ Check availability on x.com in this order and take the first free one:
 `@PatchShips` → `@PatchBuilds` → `@patch_ai_dev`.
 If none is free, try the backups: `@NightlyBuilds` (brand NIGHTLY) or `@BuildoorAI` (brand BUILDOOR).
 
-- Create the account. Display name: **Patch**. Bio:
+- Create the account. Display name: **Proof**. Bio:
   `An AI building a game on its own budget. New build every day at 00:00 UTC. You fund it, you steer it, you play it.`
 - Leave avatar and banner empty for now. I will render both tomorrow.
 - From that account, **follow @clawpumptech**. This is a hackathon requirement.
@@ -27,7 +27,7 @@ In Terminal:
 
 ```bash
 cd ~/Documents/Vampire-Survivors
-gh repo create bull-run --public --source=. --remote=origin --description "BULL RUN: a game an AI builds in public, one build a day, on its own budget."
+gh repo create bearproof --public --source=. --remote=origin --description "BEARPROOF: a game an AI builds in public, one build a day, on its own budget."
 git push -u origin main
 git push origin day-0
 ```
@@ -60,7 +60,7 @@ Then protect `main`. Go to github.com → the repo → **Settings → Rules → 
 ### 4. Turnstile widget (3 min) — blocks: score submission
 
 1. dash.cloudflare.com → **Turnstile → Add widget**.
-2. Name `bullrun`. Hostnames: `bullrun.osmankng.workers.dev` and `localhost`. Mode: **Managed**. Click **Create**.
+2. Name `bearproof`. Hostnames: `bearproof.app` and `localhost`. Mode: **Managed**. Click **Create**.
 3. **Send me:** the **Site Key** (it is public).
 4. For the **Secret Key**, run this in the repo folder and paste the key when prompted:
     ```bash
@@ -81,12 +81,12 @@ Go to clawpump.tech/ansemhack and register:
 
 | Field              | Value                                                                                                                   |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Project name       | `PATCH`                                                                                                                 |
+| Project name       | `BPROOF`                                                                                                                |
 | Project X handle   | the handle from step 1                                                                                                  |
 | One line           | `An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.` |
 | Email              | yours                                                                                                                   |
-| Ticker (optional)  | `PATCH`                                                                                                                 |
-| Website (optional) | `https://bullrun.osmankng.workers.dev`                                                                                  |
+| Ticker (optional)  | `BPROOF`                                                                                                                |
+| Website (optional) | `https://bearproof.app`                                                                                                 |
 
 Don't post the entry tweet yet. I'll send the final text when Build #1 (the bull-vs-bear rebuild) is live.
 That should be Thursday. A first post that shows the actual game converts far better.
@@ -103,8 +103,8 @@ That should be Thursday. A first post that shows the actual game converts far be
   for Queues and for the CPU time that server-side replay verification uses.
 - **Treasury + token launch on ClawPump (≈25 min).** The plan is in `docs/TREASURY.md`; the fields are in `docs/LAUNCH.md`.
   ⚠️ The fee payout wallet is fixed forever at launch, so do these in order:
-    1. clawpump.tech → sign in (Google) → **Create Agent**. Name `Patch`. Persona:
-       `Treasury of Patch, the AI game developer building BULL RUN. Only sends to whitelisted wallets.`
+    1. clawpump.tech → sign in (Google) → **Create Agent**. Name `Proof`. Persona:
+       `Treasury of Proof, the AI game developer building BEARPROOF. Only sends to whitelisted wallets.`
        Model: any free one (this agent only holds the treasury; the Build Agent runs elsewhere).
        **Send me:** the agent id and its **agent wallet address**.
     2. Prize wallet: in the repo folder run
@@ -120,23 +120,23 @@ That should be Thursday. A first post that shows the actual game converts far be
        and attach that post's URL and the token mint.
 
 - **Agent GitHub token (3 min).** Go to github.com → Settings → Developer settings → Fine-grained tokens →
-  Generate. Repository access: only `bull-run`. Permissions: Contents _Read and write_, Pull requests
+  Generate. Repository access: only `bearproof`. Permissions: Contents _Read and write_, Pull requests
   _Read and write_. Expiry: 30 days. Add it as the repo secret `AGENT_GH_TOKEN`. Then repo **Settings → General →
   Pull Requests**: tick **Allow auto-merge**.
 
 ## Optional
 
-- **Custom domain** (~$10/yr, looks more serious to judges): buy something like `patch.fun` or `bullrun.gg`, add it
+- **Custom domain** (~$10/yr, looks more serious to judges): buy something like `patch.fun` or `bearproof.gg`, add it
   to Cloudflare, and send me the name. I'll wire it up.
 
 ---
 
 ## Done
 
-- [x] Cloudflare: Worker `bullrun`, D1 `bullrun-db`, KV `bullrun-config` created under your account via your
+- [x] Cloudflare: Worker `bearproof`, D1 `bearproof-db`, KV `bearproof-config` created under your account via your
       existing wrangler login. Nothing else in the account was touched.
 - [x] Secrets `DAILY_SEED_SALT` and `INGEST_TOKEN` generated and set (random, never displayed). A copy of
       `INGEST_TOKEN` is in `.secrets/ingest-token` (git-ignored, owner-only). Once the repo exists, add it to GitHub
       with `gh secret set INGEST_TOKEN < .secrets/ingest-token`. The run verifier needs it.
-- [x] Build #1 (the bull-vs-bear rebuild) deployed and live at https://bullrun.osmankng.workers.dev/play.
-- [x] HQ v1 live at https://bullrun.osmankng.workers.dev (Lighthouse 100/100/100/100 locally).
+- [x] Build #1 (the bull-vs-bear rebuild) deployed and live at https://bearproof.app/play.
+- [x] HQ v1 live at https://bearproof.app (Lighthouse 100/100/100/100 locally).

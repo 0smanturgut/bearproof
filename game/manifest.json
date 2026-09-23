@@ -1,6 +1,6 @@
 {
-    "name": "BULL RUN",
-    "short_name": "BULL RUN",
+    "name": "BEARPROOF",
+    "short_name": "BEARPROOF",
     "description": "Survive the bear market. A game an AI builds in public, one build a day.",
     "start_url": "./",
     "scope": "./",
@@ -8,5 +8,5 @@
     "orientation": "any",
     "background_color": "#07090C",
     "theme_color": "#07090C",
-    "icons": [{ "src": "./assets/patch.svg", "sizes": "any", "type": "image/svg+xml" }]
+    "icons": [{ "src": "./assets/proof.svg", "sizes": "any", "type": "image/svg+xml" }]
 }

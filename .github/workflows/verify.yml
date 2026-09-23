@@ -28,5 +28,5 @@ jobs:
                   node-version: '22'
             - run: node scripts/verify-runs.mjs --limit 100
               env:
-                  SITE: https://bullrun.osmankng.workers.dev
+                  SITE: https://bearproof.app
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}

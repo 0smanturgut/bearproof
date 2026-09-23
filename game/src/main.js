@@ -41,7 +41,7 @@ async function boot() {
     const haptics = new HapticEngine(prefs);
     const build = await api.buildInfo();
     ui.setBuildLabel(`#${build.n}`);
-    document.title = `BULL RUN · Patch #${build.n}`;
+    document.title = `BEARPROOF · Build #${build.n}`;
     try {
         await Promise.race([
             document.fonts?.load('20px "Jersey 10"'),
@@ -97,7 +97,7 @@ async function boot() {
         ui.showBoard({
             title: "TODAY'S BOARD",
             sub: r.ok
-                ? `Daily ${r.data.date} · Patch #${r.data.build ?? build.n} · ${fmtNum(r.data.total || rows.length)} players`
+                ? `Daily ${r.data.date} · Build #${r.data.build ?? build.n} · ${fmtNum(r.data.total || rows.length)} players`
                 : 'The board is offline right now.',
             entries: rows,
             me: game.lastRun?.id
@@ -127,7 +127,7 @@ async function boot() {
         // Today's board is pinned to the build that was live at 00:00 UTC. Say so instead of pretending.
         document.querySelector('#btnDaily span').textContent = 'PLAY NOW';
         ui.setDailySub(
-            `Today's board runs on Patch #${d.data.build}. This build's first board opens at 00:00 UTC.`
+            `Today's board runs on Build #${d.data.build}. This build's first board opens at 00:00 UTC.`
         );
     } else if (d.ok && d.data?.seed) {
         game.daily = d.data;
@@ -179,7 +179,7 @@ function animateTitleBull(canvas) {
  * They only feed recorded input, so a run driven by them still replays exactly.
  */
 function installDebugHooks(game) {
-    window.__bullrun = {
+    window.__bearproof = {
         game,
         state: () => game.state,
         summary: () => game.sim.summary(),

@@ -10,7 +10,7 @@ export function clientIp(request) {
 export async function ipKey(ip) {
     const digest = await crypto.subtle.digest(
         'SHA-256',
-        new TextEncoder().encode(`bullrun-rl-v1:${ip}`)
+        new TextEncoder().encode(`bearproof-rl-v1:${ip}`)
     );
     return [...new Uint8Array(digest).slice(0, 16)]
         .map((b) => b.toString(16).padStart(2, '0'))

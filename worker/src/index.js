@@ -1,5 +1,5 @@
 /**
- * BULL RUN / Patch Worker.
+ * BEARPROOF / Proof Worker.
  *
  *   /            HQ landing page (static asset)
  *   /b/<n>/      immutable game build n (static asset)

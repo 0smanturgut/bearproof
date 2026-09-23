@@ -4,7 +4,9 @@
 # The agent's own guard (scripts/guard-paths.mjs) fails the pipeline before a PR even exists.
 /.github/           @0smanturgut
 /worker/            @0smanturgut
-/agent/             @0smanturgut
+/agent/PROMPT.md    @0smanturgut
+/agent/BACKLOG.md   @0smanturgut
+/agent/*.mjs        @0smanturgut
 /scripts/           @0smanturgut
 /builds/            @0smanturgut
 /hq/                @0smanturgut

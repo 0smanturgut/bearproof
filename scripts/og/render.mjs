@@ -2,7 +2,7 @@
 // Render static images from the HTML templates / SVGs in this repo.
 // Usage: node scripts/og/render.mjs
 //   → hq/assets/og.png               1200×630 social card (from hq-card.html)
-//   → hq/assets/apple-touch-icon.png 180×180 home-screen icon (Patch icon, pixel-scaled on ink)
+//   → hq/assets/apple-touch-icon.png 180×180 home-screen icon (Proof icon, pixel-scaled on ink)
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -26,10 +26,10 @@ for (const job of cards) {
     console.log('wrote', job.out);
 }
 
-// Apple touch icon: the 16×16 Patch SVG scaled ×10 with nearest-neighbour onto the ink background.
+// Apple touch icon: the 16×16 Proof SVG scaled ×10 with nearest-neighbour onto the ink background.
 // iOS rounds the corners itself, so the art keeps a 10 px safe margin on every side.
 {
-    const svg = fs.readFileSync(path.join(root, 'hq/assets/patch.svg'), 'utf8');
+    const svg = fs.readFileSync(path.join(root, 'hq/assets/proof.svg'), 'utf8');
     const page = await browser.newPage({
         viewport: { width: 180, height: 180 },
         deviceScaleFactor: 1

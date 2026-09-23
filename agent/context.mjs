@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gather the Build Agent's daily context into one JSON file (stdout). Runs in CI before Patch starts.
+ * Gather the Build Agent's daily context into one JSON file (stdout). Runs in CI before Proof starts.
  * Only numbers and ids go in: no player-supplied free text (names), so nothing here can inject instructions.
  *
  *   node agent/context.mjs [--site https://…] > "$RUNNER_TEMP/context.json"
@@ -39,7 +39,7 @@ const vote = await get('/api/vote/result');
 const devlogDir = path.join(ROOT, 'devlog');
 const recent = fs
     .readdirSync(devlogDir)
-    .filter((f) => /^patch-\d+\.md$/.test(f))
+    .filter((f) => /^build-\d+\.md$/.test(f))
     .sort((a, b) => Number(b.match(/\d+/)[0]) - Number(a.match(/\d+/)[0]))
     .slice(0, 3)
     .map((f) => ({ file: `devlog/${f}` }));
@@ -47,7 +47,7 @@ const recent = fs
 const n = lastBuildNumber() + 1;
 const out = {
     build: n,
-    devlogFile: `devlog/patch-${n}.md`,
+    devlogFile: `devlog/build-${n}.md`,
     date: new Date(
         Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 1)
     )

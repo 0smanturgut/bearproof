@@ -6,7 +6,7 @@
  *   node scripts/release.mjs [--now | --at <ISO>] [--title "…"] [--mode agent|bootstrap|human] [--push] [--force]
  *
  * Default activation is the next 00:00 UTC, the daily release ritual. `--now` activates immediately (bootstrap
- * builds before the ritual starts). Title, mode and cost default to the build's devlog (devlog/patch-<n>.md).
+ * builds before the ritual starts). Title, mode and cost default to the build's devlog (devlog/build-<n>.md).
  */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -35,7 +35,7 @@ if (!changed.length && !flag('--force')) {
 }
 
 const n = (prev ? prev.n : 0) + 1;
-const devlogPath = path.join(ROOT, 'devlog', `patch-${n}.md`);
+const devlogPath = path.join(ROOT, 'devlog', `build-${n}.md`);
 const front = {};
 if (fs.existsSync(devlogPath)) {
     const m = fs.readFileSync(devlogPath, 'utf8').match(/^---\n([\s\S]*?)\n---/);

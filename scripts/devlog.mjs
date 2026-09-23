@@ -1,5 +1,5 @@
 /**
- * Devlog compiler: devlog/patch-<n>.md → { entries } for dist/devlog.json (newest first).
+ * Devlog compiler: devlog/build-<n>.md → { entries } for dist/devlog.json (newest first).
  *
  * Each file starts with a frontmatter block of `key: value` lines between `---` fences (format in
  * devlog/README.md). The parser is strict on purpose: an unknown key, a bad enum or a cost without its
@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const FILE = /^patch-(\d+)\.md$/;
+const FILE = /^build-(\d+)\.md$/;
 const ENUMS = {
     mode: ['agent', 'bootstrap', 'human'],
     chosenBy: ['agent', 'holders'],
@@ -119,7 +119,7 @@ export function parseDevlog(text, file = 'devlog') {
     };
 }
 
-/** Compile every devlog/patch-<n>.md under `rootDir`. A missing devlog/ directory is an empty devlog. */
+/** Compile every devlog/build-<n>.md under `rootDir`. A missing devlog/ directory is an empty devlog. */
 export function compileDevlog(rootDir) {
     const dir = path.join(rootDir, 'devlog');
     if (!fs.existsSync(dir)) return { entries: [] };

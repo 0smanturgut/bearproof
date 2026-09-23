@@ -15,7 +15,7 @@ Fonts are self-hosted, so pages make no third-party requests. The OFL license te
 
 | File                     | What                                       | Origin                                                         | License         |
 | ------------------------ | ------------------------------------------ | -------------------------------------------------------------- | --------------- |
-| `hq/assets/patch.svg`    | Patch avatar / favicon (16×16 pixel robot) | Drawn for this project as SVG rects                            | MIT (this repo) |
+| `hq/assets/proof.svg`    | Proof avatar / favicon (16×16 pixel robot) | Drawn for this project as SVG rects                            | MIT (this repo) |
 | `hq/assets/og.png`       | HQ social card 1200×630                    | Rendered from `scripts/og/hq-card.html` with Playwright        | MIT (this repo) |
 | Game sprites (Build #1+) | Bull, bears, candles, pickups              | Procedural pixel art defined as ASCII grids in `game/src/art/` | MIT (this repo) |
 

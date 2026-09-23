@@ -23,7 +23,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const opt = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const DIR = path.resolve(opt('--dir', path.join(here, '..')));
-const OUT = path.resolve(opt('--out', fs.mkdtempSync(path.join(os.tmpdir(), 'bullrun-smoke-'))));
+const OUT = path.resolve(opt('--out', fs.mkdtempSync(path.join(os.tmpdir(), 'bearproof-smoke-'))));
 fs.mkdirSync(OUT, { recursive: true });
 
 const MIME = {
@@ -108,7 +108,7 @@ for (const vp of [
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.goto(`${base}/`, { waitUntil: 'load' });
     await page.waitForFunction(
-        () => window.__bullrun && !document.getElementById('screenTitle').hidden,
+        () => window.__bearproof && !document.getElementById('screenTitle').hidden,
         null,
         { timeout: 8000 }
     );
@@ -121,18 +121,21 @@ for (const vp of [
 
     await page.click('#btnDaily');
     await page.waitForTimeout(300);
-    check((await page.evaluate(() => window.__bullrun.state())) === 'playing', 'PLAY starts a run');
-    await page.evaluate(() => window.__bullrun.advance(45, { style: 'survive' }));
+    check(
+        (await page.evaluate(() => window.__bearproof.state())) === 'playing',
+        'PLAY starts a run'
+    );
+    await page.evaluate(() => window.__bearproof.advance(45, { style: 'survive' }));
     await page.waitForTimeout(600);
-    const s1 = await page.evaluate(() => window.__bullrun.summary());
+    const s1 = await page.evaluate(() => window.__bearproof.summary());
     check(s1.ticks >= 45 * 60, `sim advanced (${s1.ticks} ticks)`);
     await page.screenshot({ path: path.join(OUT, `${vp.name}-2-play.png`) });
 
     const why = await page.evaluate(() =>
-        window.__bullrun.advance(240, { style: 'survive', stopAtLevelUp: true })
+        window.__bearproof.advance(240, { style: 'survive', stopAtLevelUp: true })
     );
     check(why === 'levelup', `a level-up happens naturally (${why})`);
-    await page.waitForFunction(() => window.__bullrun.state() === 'levelup', null, {
+    await page.waitForFunction(() => window.__bearproof.state() === 'levelup', null, {
         timeout: 3000
     });
     await page.waitForTimeout(450);
@@ -142,23 +145,23 @@ for (const vp of [
     await page.locator('#cards .card').first().click();
     await page.waitForTimeout(200);
     check(
-        (await page.evaluate(() => window.__bullrun.state())) === 'playing',
+        (await page.evaluate(() => window.__bearproof.state())) === 'playing',
         'picking a card resumes play'
     );
 
-    await page.evaluate(() => window.__bullrun.advance(60 * 20, { style: 'reckless' }));
+    await page.evaluate(() => window.__bearproof.advance(60 * 20, { style: 'reckless' }));
     await page.waitForFunction(() => !document.getElementById('screenOver').hidden, null, {
         timeout: 5000
     });
     await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(OUT, `${vp.name}-4-over.png`) });
-    const over = await page.evaluate(() => window.__bullrun.summary());
+    const over = await page.evaluate(() => window.__bearproof.summary());
     check(over.reason === 'liquidated', `run ended (${over.reason}, score ${over.score})`);
 
     // The recorded log must re-simulate to the exact same result.
     const replayed = await page.evaluate(async () => {
         const { replay } = await import('./src/sim/runlog.js');
-        const r = replay(window.__bullrun.game.lastRun.bytes);
+        const r = replay(window.__bearproof.game.lastRun.bytes);
         return { ok: r.ok, error: r.error, score: r.summary?.score, ticks: r.summary?.ticks };
     });
     check(
@@ -190,7 +193,7 @@ for (const vp of [
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.goto(`${base}/?attract=1`);
     await page.waitForTimeout(2500);
-    const s = await page.evaluate(() => window.__bullrun.summary());
+    const s = await page.evaluate(() => window.__bearproof.summary());
     await page.screenshot({ path: path.join(OUT, 'attract.png') });
     console.log('[attract]');
     check(s.ticks > 60, `attract mode plays by itself (${s.ticks} ticks)`);

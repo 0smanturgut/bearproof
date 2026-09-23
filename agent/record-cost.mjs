@@ -3,7 +3,7 @@
  * Write the Build Agent's measured cost into its devlog. Reads Claude Code's `--output-format json` result
  * (`total_cost_usd` is computed by Claude Code from real token usage) and fills `costUsd` / `costMeasured`.
  *
- *   node agent/record-cost.mjs <claude-result.json> <devlog/patch-n.md>
+ *   node agent/record-cost.mjs <claude-result.json> <devlog/build-n.md>
  */
 import fs from 'node:fs';
 

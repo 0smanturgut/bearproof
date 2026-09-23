@@ -1,4 +1,4 @@
-// BULL RUN palette ("Terminal Arcade"). Every sprite colour comes from here.
+// BEARPROOF palette ("Terminal Arcade"). Every sprite colour comes from here.
 // Core tokens match the HQ CSS variables (docs/DECISIONS.md §2). Shades are
 // added per family so each sprite stays at 3-5 colours plus the ink outline.
 // Light source is top-left: *Light = lit edge, base = body, *Dark = shadow side.

@@ -21,7 +21,7 @@ const opt = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const SITE = process.env.SITE || opt('--site', '');
 const TOKEN = process.env.INGEST_TOKEN || '';
 const DRY = args.includes('--dry-run');
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'bullrun-verify-'));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'bearproof-verify-'));
 
 const sims = new Map();
 

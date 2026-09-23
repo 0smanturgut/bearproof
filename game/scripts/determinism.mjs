@@ -27,7 +27,7 @@ const JSC = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/Curren
 
 /** Replay inside the system JavaScriptCore shell (the Safari engine) without a browser. */
 function replayInJsc(runs) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bullrun-jsc-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bearproof-jsc-'));
     const driver = path.join(dir, 'driver.mjs');
     fs.writeFileSync(
         driver,

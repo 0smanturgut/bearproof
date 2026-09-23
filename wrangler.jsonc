@@ -3,10 +3,15 @@
 // See docs/SETUP.md.
 {
     "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "bullrun",
+    "name": "bearproof",
     "main": "worker/src/index.js",
     "compatibility_date": "2026-09-01",
     "workers_dev": true,
+    // The game and HQ live at https://bearproof.app (zone on this Cloudflare account). www redirects to the apex.
+    "routes": [
+        { "pattern": "bearproof.app", "custom_domain": true },
+        { "pattern": "www.bearproof.app", "custom_domain": true }
+    ],
     "preview_urls": false,
     "observability": { "enabled": true },
 
@@ -22,14 +27,14 @@
     "d1_databases": [
         {
             "binding": "DB",
-            "database_name": "bullrun-db",
-            "database_id": "d1a7b959-a4b1-4368-a2ad-ea28d9ac68ba",
+            "database_name": "bearproof-db",
+            "database_id": "ae037dee-5017-4ffb-b905-25d5926a83f7",
             "migrations_dir": "worker/migrations"
         }
     ],
 
     // CONFIG holds operator switches: build_override (one-key revert), payouts_enabled (kill switch).
-    "kv_namespaces": [{ "binding": "CONFIG", "id": "f84d41c6e0b641faa24150bb9483be3f" }],
+    "kv_namespaces": [{ "binding": "CONFIG", "id": "4f4fa4b95f1c4ddda0780c1f1ae1e53b" }],
 
     "ratelimits": [
         { "name": "RL_SUBMIT", "namespace_id": "7301", "simple": { "limit": 12, "period": 60 } },
@@ -45,6 +50,6 @@
         "PRIZE_WALLET": "",
         "COSTS_WALLET": "",
         "TURNSTILE_SITE_KEY": "",
-        "REPO_URL": ""
+        "REPO_URL": "https://github.com/0smanturgut/bearproof"
     }
 }

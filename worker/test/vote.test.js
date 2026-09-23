@@ -32,7 +32,7 @@ test('a real ed25519 signature over the exact message verifies; anything else fa
     const { privateKey, publicKey } = generateKeyPairSync('ed25519');
     const wallet = base58(publicKey.export({ format: 'der', type: 'spki' }).subarray(-32));
     const fields = {
-        domain: 'bullrun.example',
+        domain: 'bearproof.example',
         wallet,
         proposalId: 'rug-lord-phase-2',
         forBuild: 2,

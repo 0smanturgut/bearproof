@@ -4,8 +4,8 @@
  * (private mode, sandboxed iframes). Nothing here affects the simulation.
  */
 
-const KEY = 'bullrun_prefs_v1';
-const ID_KEY = 'bullrun_player_id';
+const KEY = 'bearproof_prefs_v1';
+const ID_KEY = 'bearproof_player_id';
 
 const reducedMotion =
     typeof window !== 'undefined' &&

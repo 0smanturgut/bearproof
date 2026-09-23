@@ -7,12 +7,12 @@
 import { fmtNum, fmtTime } from './format.js';
 
 export function shareText({ summary, mode, date, build, origin }) {
-    const head = mode === 'daily' ? `BULL RUN · Daily ${date}` : 'BULL RUN · Free run';
+    const head = mode === 'daily' ? `BEARPROOF · Daily ${date}` : 'BEARPROOF · Free run';
     const line = summary.won
         ? `🐂 I ended the bear market in ${fmtTime(summary.timeMs)}`
         : `🐂 I survived ${fmtTime(summary.timeMs)} of the bear market`;
     const stats = `Score ${fmtNum(summary.score)} · ${fmtNum(summary.kills)} bears · Lv ${summary.level}`;
-    const who = `Patch #${build} · a game an AI builds every day`;
+    const who = `Build #${build} · a game an AI builds every day`;
     const url = `${origin}/play${mode === 'daily' ? `?challenge=${date}` : ''}`;
     return { text: [head, line, stats, who].join('\n'), url };
 }

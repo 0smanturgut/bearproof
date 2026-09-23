@@ -1,6 +1,6 @@
 name: Build Agent (daily)
 
-# Patch's daily loop: gather context → Claude Code (headless) implements one feature → guard → gates →
+# Proof's daily loop: gather context → Claude Code (headless) implements one feature → guard → gates →
 # measured cost into the devlog → PR with auto-merge. Deploy (and the build tag) happen in deploy.yml on merge.
 # A red gate means no PR; the run log and screenshots stay as artifacts and the devlog says what failed.
 
@@ -10,7 +10,9 @@ on:
     workflow_dispatch:
 
 permissions:
-    contents: read
+    contents: write # push the agent branch
+    pull-requests: write # open the PR, enable auto-merge
+    actions: write # dispatch CI on the branch and the deploy after merge
 
 concurrency:
     group: build-agent
@@ -21,13 +23,12 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 120
         env:
-            SITE: https://bullrun.osmankng.workers.dev
+            SITE: https://bearproof.app
             AGENT_CONTEXT: ${{ runner.temp }}/context.json
         steps:
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.AGENT_GH_TOKEN }} # fine-grained PAT (contents + pull requests) so the PR runs CI
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
@@ -36,7 +37,7 @@ jobs:
             - run: npx playwright install --with-deps chromium
             - name: Gather context
               run: node agent/context.mjs --site "$SITE" > "$AGENT_CONTEXT" && cat "$AGENT_CONTEXT"
-            - name: Patch builds today's feature (Claude Code, headless)
+            - name: Proof builds today's feature (Claude Code, headless)
               env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
               run: |
@@ -61,21 +62,35 @@ jobs:
             - name: Record measured cost in the devlog
               run: |
                   N=$(node -p "require(process.env.AGENT_CONTEXT).build")
-                  node agent/record-cost.mjs "$RUNNER_TEMP/claude-result.json" "devlog/patch-$N.md"
-            - name: Open PR (auto-merge on green CI)
+                  node agent/record-cost.mjs "$RUNNER_TEMP/claude-result.json" "devlog/build-$N.md"
+            - name: Open PR, run CI on it, merge on green, deploy
+              # GITHUB_TOKEN can't trigger workflows through push or PR events, but it can dispatch them.
+              # So: dispatch CI on the agent branch (its checks count for the PR), enable auto-merge, wait for
+              # the merge, then dispatch the deploy. No long-lived token exists for this.
               env:
-                  GH_TOKEN: ${{ secrets.AGENT_GH_TOKEN }}
+                  GH_TOKEN: ${{ github.token }}
               run: |
                   N=$(node -p "require(process.env.AGENT_CONTEXT).build")
-                  TITLE=$(sed -n 's/^title: *//p' "devlog/patch-$N.md" | head -1 | sed 's/^"\(.*\)"$/\1/')
-                  git config user.name "Patch (Build Agent)"
-                  git config user.email "agent@patch.invalid"
-                  git checkout -b "agent/patch-$N"
+                  TITLE=$(sed -n 's/^title: *//p' "devlog/build-$N.md" | head -1 | sed 's/^"\(.*\)"$/\1/')
+                  git config user.name "Proof (Build Agent)"
+                  git config user.email "agent@bearproof.invalid"
+                  git checkout -b "agent/build-$N"
                   git add -A
-                  git commit -m "feat(patch-$N): $TITLE" -m "Written by the scheduled Build Agent (Claude Code, headless, GitHub Actions)." -m "Build-Mode: agent"
-                  git push origin "agent/patch-$N"
-                  gh pr create --base main --head "agent/patch-$N" --title "Patch #$N: $TITLE" --body-file "devlog/patch-$N.md"
-                  gh pr merge "agent/patch-$N" --auto --squash
+                  git commit -m "feat(build-$N): $TITLE" -m "Written by the scheduled Build Agent (Claude Code, headless, GitHub Actions)." -m "Build-Mode: agent"
+                  git push origin "agent/build-$N"
+                  gh pr create --base main --head "agent/build-$N" --title "Build #$N: $TITLE" --body-file "devlog/build-$N.md"
+                  gh workflow run ci.yml --ref "agent/build-$N"
+                  gh pr merge "agent/build-$N" --auto --squash
+                  STATE=OPEN
+                  for i in $(seq 1 90); do
+                    STATE=$(gh pr view "agent/build-$N" --json state -q .state)
+                    [ "$STATE" = "MERGED" ] && break
+                    [ "$STATE" = "CLOSED" ] && break
+                    sleep 20
+                  done
+                  echo "PR state: $STATE"
+                  [ "$STATE" = "MERGED" ] || exit 1
+                  gh workflow run deploy.yml --ref main
             - uses: actions/upload-artifact@v4
               if: always()
               with:

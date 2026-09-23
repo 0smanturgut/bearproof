@@ -9,7 +9,7 @@ test('guard: game code, content and devlog are allowed', () => {
         checkPaths([
             ok('game/src/sim/content.js'),
             ok('game/src/render.js'),
-            ok('devlog/patch-4.md', 'A'),
+            ok('devlog/build-4.md', 'A'),
             ok('game/test/new.test.js', 'A')
         ]),
         []

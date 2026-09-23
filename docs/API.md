@@ -14,7 +14,7 @@ data or `null`. Nothing is invented.
 | Path           | What                                                                                                           |
 | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | `/builds.json` | Public build manifest.                                                                                         |
-| `/devlog.json` | `{ entries: [...] }`, newest first, compiled from `devlog/patch-<n>.md` at build time. See `devlog/README.md`. |
+| `/devlog.json` | `{ entries: [...] }`, newest first, compiled from `devlog/build-<n>.md` at build time. See `devlog/README.md`. |
 
 ## Reads
 

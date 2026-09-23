@@ -1,4 +1,4 @@
-// BULL RUN procedural pixel art. 100% original, drawn as ASCII grids in code.
+// BEARPROOF procedural pixel art. 100% original, drawn as ASCII grids in code.
 //
 // Format: SPRITES[id] = { w, h, frames: string[][], colors: { char: paletteKeyOrHex } }
 // Each frame is `h` strings of length `w`, one char per pixel, '.' = transparent.

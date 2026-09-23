@@ -1,6 +1,6 @@
 /**
  * @module sim/sim
- * @description The deterministic BULL RUN simulation. No DOM, no audio, no clocks, no Math.random.
+ * @description The deterministic BEARPROOF simulation. No DOM, no audio, no clocks, no Math.random.
  *
  *   const sim = new Simulation({ seed });
  *   while (!sim.over) {

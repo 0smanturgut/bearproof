@@ -3,7 +3,7 @@
 # It writes fake players and runs, so it refuses non-local targets unless ALLOW_REMOTE=1.
 #
 #   cp .dev.vars.example .dev.vars && npm run build
-#   npx wrangler d1 migrations apply bullrun-db --local
+#   npx wrangler d1 migrations apply bearproof-db --local
 #   npx wrangler dev --port 8799 --local
 #   bash worker/test/smoke-api.sh http://localhost:8799
 #

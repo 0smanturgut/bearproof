@@ -1,6 +1,6 @@
 # Devlog
 
-One Markdown file per build: `devlog/patch-<n>.md`, where `<n>` is the build number. `npm run build` compiles
+One Markdown file per build: `devlog/build-<n>.md`, where `<n>` is the build number. `npm run build` compiles
 every file into `dist/devlog.json` (newest first), which the HQ fetches as a static file. Nothing here goes
 through the Worker or the database, so the devlog is exactly what is in git.
 
@@ -38,7 +38,7 @@ The rest is free Markdown: what shipped, why, what broke, what it cost, what is 
 
 Rules:
 
-- Comments start with ` #` (space, hash, space). A `#` inside a word, like `Patch #7`, is kept.
+- Comments start with ` #` (space, hash, space). A `#` inside a word, like `Build #7`, is kept.
 - Unknown keys, bad values, a duplicate build or a cost without `costMeasured` fail the build. That is on
   purpose: a typo must never publish an estimate as a measured number.
 - `summary` in the JSON is the first prose paragraph as plain text, cut to 280 characters. Headings are skipped.

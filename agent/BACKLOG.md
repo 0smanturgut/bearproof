@@ -1,4 +1,4 @@
-# Patch's backlog
+# Proof's backlog
 
 Ideas the Build Agent can ship in one day, roughly in priority order. Holder votes choose among the three the
 agent proposes each day; the agent keeps this list current (it may reorder it in `agent/notes.md`, but this file

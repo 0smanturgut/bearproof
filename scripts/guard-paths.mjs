@@ -12,9 +12,9 @@ import { execFileSync } from 'node:child_process';
 
 const ALLOWED = [
     /^game\//,
-    /^devlog\/patch-\d+\.md$/,
+    /^devlog\/build-\d+\.md$/,
     /^agent\/(plan|notes)\.md$/,
-    /^agent\/proposals\/patch-\d+\.json$/
+    /^agent\/proposals\/build-\d+\.json$/
 ];
 const PROTECTED = [
     /^game\/scripts\//, // smoke + determinism gates

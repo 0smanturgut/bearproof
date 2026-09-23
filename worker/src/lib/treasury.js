@@ -147,11 +147,26 @@ export async function snapshotBalances(env, nowMs) {
         creatorVault: env.CREATOR_VAULT
     };
     const out = { at: new Date(nowMs).toISOString() };
+    // One unreadable wallet keeps its last known balance instead of wiping the others.
+    let prev = {};
+    try {
+        prev = JSON.parse((await env.CONFIG.get('treasury:balances')) || '{}') || {};
+    } catch {
+        prev = {};
+    }
+    let read = 0;
     for (const [k, addr] of Object.entries(wallets)) {
         if (!addr) continue;
-        const r = await rpc(env, 'getBalance', [addr, { commitment: 'confirmed' }]);
-        out[k] = r.value / 1e9;
+        try {
+            const r = await rpc(env, 'getBalance', [addr, { commitment: 'confirmed' }]);
+            out[k] = r.value / 1e9;
+            read++;
+        } catch (err) {
+            console.warn('[treasury] balance', k, err?.message || err);
+            if (typeof prev[k] === 'number') out[k] = prev[k];
+        }
     }
+    if (!read) throw new Error('no balance could be read');
     await env.CONFIG.put('treasury:balances', JSON.stringify(out));
     return out;
 }

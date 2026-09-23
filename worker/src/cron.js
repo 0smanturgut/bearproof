@@ -243,11 +243,16 @@ export async function scheduled(event, env, ctx) {
         console.warn('[cron] fees snapshot', err?.message || err);
     }
     if (env.TREASURY_WALLET) {
+        // Independent: a rate-limited balance read must not stop the ledger sync, or the other way round.
         try {
             await snapshotBalances(env, now);
+        } catch (err) {
+            console.warn('[cron] balances', err?.message || err);
+        }
+        try {
             await syncLedger(env);
         } catch (err) {
-            console.warn('[cron] treasury sync', err?.message || err);
+            console.warn('[cron] ledger sync', err?.message || err);
         }
     }
 

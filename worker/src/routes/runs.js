@@ -199,8 +199,9 @@ export async function leaderboard(request, env) {
 }
 
 /** GET /api/run/:id: public view of one run. No input log, no player id. */
-export async function getRun(id, env) {
-    if (!RUN_ID.test(id)) return error(404, 'not_found', 'No such run.');
+/** Public view of one run: undefined = no such run, null = storage down. */
+export async function loadRun(id, env) {
+    if (!RUN_ID.test(id)) return undefined;
     const rows = await all(
         env,
         `SELECT runs.id, runs.player_id, runs.mode, runs.challenge_date, runs.build, runs.stage,
@@ -209,24 +210,28 @@ export async function getRun(id, env) {
         FROM runs LEFT JOIN players ON players.id = runs.player_id WHERE runs.id = ?`,
         id
     );
-    if (!rows) return dbDown();
+    if (!rows) return null;
     const r = rows[0];
-    if (!r) return error(404, 'not_found', 'No such run.');
-    return json(
-        {
-            id: r.id,
-            name: displayName(r.name, r.player_id),
-            mode: r.mode,
-            challengeDate: r.challenge_date,
-            build: r.build,
-            stage: r.stage,
-            score: r.claimed_score,
-            timeMs: r.claimed_time_ms,
-            level: r.claimed_level,
-            kills: r.claimed_kills,
-            status: r.status,
-            createdAt: new Date(r.created_at).toISOString()
-        },
-        { maxAge: 30 }
-    );
+    if (!r) return undefined;
+    return {
+        id: r.id,
+        name: displayName(r.name, r.player_id),
+        mode: r.mode,
+        challengeDate: r.challenge_date,
+        build: r.build,
+        stage: r.stage,
+        score: r.claimed_score,
+        timeMs: r.claimed_time_ms,
+        level: r.claimed_level,
+        kills: r.claimed_kills,
+        status: r.status,
+        createdAt: new Date(r.created_at).toISOString()
+    };
+}
+
+export async function getRun(id, env) {
+    const run = await loadRun(id, env);
+    if (run === null) return dbDown();
+    if (!run) return error(404, 'not_found', 'No such run.');
+    return json(run, { maxAge: 30 });
 }

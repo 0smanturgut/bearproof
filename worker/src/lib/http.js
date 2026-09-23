@@ -60,10 +60,13 @@ export async function readJson(request, maxBytes) {
     }
 }
 
-/** Wrap a read handler with the edge cache (per-colo) for `seconds`. */
-export async function edgeCached(request, ctx, seconds, produce) {
+/**
+ * Wrap a read handler with the edge cache (per-colo) for `seconds`. `keyUrl` overrides the cache key, so
+ * junk query strings can't be used to skip the cache.
+ */
+export async function edgeCached(request, ctx, seconds, produce, keyUrl = null) {
     const cache = caches.default;
-    const key = new Request(new URL(request.url).toString(), { method: 'GET' });
+    const key = new Request(keyUrl || new URL(request.url).toString(), { method: 'GET' });
     const hit = await cache.match(key);
     if (hit) return hit;
     const res = await produce();

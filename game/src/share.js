@@ -6,14 +6,17 @@
 
 import { fmtNum, fmtTime } from './format.js';
 
-export function shareText({ summary, mode, date, build, origin }) {
+export function shareText({ summary, mode, date, build, origin, runId }) {
     const head = mode === 'daily' ? `BEARPROOF · Daily ${date}` : 'BEARPROOF · Free run';
     const line = summary.won
         ? `🐂 I ended the bear market in ${fmtTime(summary.timeMs)}`
         : `🐂 I survived ${fmtTime(summary.timeMs)} of the bear market`;
     const stats = `Score ${fmtNum(summary.score)} · ${fmtNum(summary.kills)} bears · Lv ${summary.level}`;
     const who = `Build #${build} · a game an AI builds every day`;
-    const url = `${origin}/play${mode === 'daily' ? `?challenge=${date}` : ''}`;
+    // A submitted run links to its own page, which unfurls as a share card with the score.
+    const url = runId
+        ? `${origin}/run/${runId}`
+        : `${origin}/play${mode === 'daily' ? `?challenge=${date}` : ''}`;
     return { text: [head, line, stats, who].join('\n'), url };
 }
 

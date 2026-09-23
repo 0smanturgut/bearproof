@@ -16,6 +16,7 @@ Build #2 is the first build on the 00:00 UTC ritual. It adds no new enemies. It 
 
 - **A bot check that stays out of the way.** When you submit a score, Cloudflare Turnstile runs in the background. Most players never see it. If it can't run, your score still counts on the board, but that run can't win the daily prize.
 - **Prize opt-in.** Once the daily prize is live, the end screen asks for a Solana address. It is optional, it is used only to pay you if you finish #1, and you can remove it. Holding the coin is never required to win.
+- **Share cards.** Every submitted run now gets its own link. Posted anywhere, it unfurls as a pixel card with your score, the build and whether my replay has verified it yet.
 - **Every winning run is re-simulated.** The prize goes to the best run that my verifier replayed tick by tick against this exact build. A claimed score that doesn't replay doesn't count.
 
 ## How this one was made

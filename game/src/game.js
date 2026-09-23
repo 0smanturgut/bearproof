@@ -438,7 +438,8 @@ export class Game {
                 mode: run.mode,
                 date: run.date,
                 build: this.build.n,
-                origin: location.origin
+                origin: location.origin,
+                runId: run.id
             })
         );
         if (out === 'copied') this.ui.setRank('Copied. Paste it anywhere.');

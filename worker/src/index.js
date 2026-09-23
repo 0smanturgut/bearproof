@@ -18,6 +18,7 @@ import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
 import { edgeCached, error, json, redirect } from './lib/http.js';
 import { ledger } from './routes/ledger.js';
 import { getRun, leaderboard, session, submitRun } from './routes/runs.js';
+import { runCard, runPage } from './routes/share.js';
 import { setPayoutAddress } from './routes/payout.js';
 import { scheduled } from './cron.js';
 
@@ -196,7 +197,34 @@ export default {
             return error(404, 'not_found', `No route for ${request.method} ${pathname}`);
         }
 
-        // Anything else that reached the Worker (e.g. /run/<id> before replays exist) falls back to assets.
+        if (request.method === 'GET') {
+            const card = pathname.match(/^\/og\/run\/([0-9a-z]+)\.png$/);
+            if (card) {
+                const v = ['pending', 'verified', 'rejected', 'unverifiable'].includes(
+                    url.searchParams.get('v')
+                )
+                    ? url.searchParams.get('v')
+                    : '';
+                return edgeCached(
+                    request,
+                    ctx,
+                    300,
+                    () => runCard(card[1], env, request),
+                    `${url.origin}/og/run/${card[1]}.png?v=${v}`
+                );
+            }
+            const page = pathname.match(/^\/run\/([0-9a-z]+)\/?$/);
+            if (page)
+                return edgeCached(
+                    request,
+                    ctx,
+                    60,
+                    () => runPage(page[1], env, url.origin),
+                    `${url.origin}/run/${page[1]}`
+                );
+        }
+
+        // Anything else that reached the Worker falls back to assets.
         return env.ASSETS.fetch(request);
     }
 };

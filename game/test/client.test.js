@@ -51,6 +51,19 @@ test('share text is short, specific and links the challenge', () => {
     });
     assert.match(win.text, /ended the bear market in 04:12/);
     assert.equal(win.url, 'https://x.test/play');
+    const linked = shareText({
+        summary,
+        mode: 'daily',
+        date: '2026-09-24',
+        build: 3,
+        origin: 'https://x.test',
+        runId: 'abc123def456ghi78'
+    });
+    assert.equal(
+        linked.url,
+        'https://x.test/run/abc123def456ghi78',
+        'a submitted run links to its card'
+    );
     assert.equal(fmtTime(61999), '01:01');
     assert.equal(fmtNum(1234567), '1,234,567');
 });

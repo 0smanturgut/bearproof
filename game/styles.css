@@ -911,3 +911,18 @@ body.attract .hint-move {
         transition: none;
     }
 }
+
+.turnstile-box:empty {
+    display: none;
+}
+.name-form small {
+    display: block;
+    max-width: 36ch;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+}
+#payoutInput {
+    font: 400 13px/1.2 var(--mono);
+    width: 230px;
+}

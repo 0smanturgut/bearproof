@@ -283,6 +283,7 @@ export class UI {
         $('overLevel').textContent = summary.level;
         $('overBuild').textContent = buildLine;
         $('overRank').textContent = '';
+        $('payoutForm').hidden = true;
         this.show('screenOver');
         this.announce(`${title}. Score ${fmtNum(summary.score)}.`);
     }
@@ -301,6 +302,21 @@ export class UI {
             form.hidden = true;
             onSubmit(input.value);
         };
+    }
+
+    askPayout(current, onSubmit) {
+        const form = $('payoutForm');
+        const input = $('payoutInput');
+        input.value = current || '';
+        form.hidden = false;
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            onSubmit(input.value.trim());
+        };
+    }
+
+    payoutNote(text) {
+        $('payoutNote').textContent = text;
     }
 
     hideNameForm() {

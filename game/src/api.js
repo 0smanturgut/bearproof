@@ -49,3 +49,7 @@ export function startSession(playerId, build, mode) {
 export function submitRun(payload) {
     return call('/api/runs', { method: 'POST', body: payload, timeout: 12000 });
 }
+
+export function setPayoutAddress(playerId, address) {
+    return call('/api/payout-address', { method: 'POST', body: { playerId, address } });
+}

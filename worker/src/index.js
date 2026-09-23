@@ -18,6 +18,7 @@ import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
 import { edgeCached, error, json, redirect } from './lib/http.js';
 import { ledger } from './routes/ledger.js';
 import { getRun, leaderboard, session, submitRun } from './routes/runs.js';
+import { setPayoutAddress } from './routes/payout.js';
 
 // --- Routes ----------------------------------------------------------------
 
@@ -51,10 +52,14 @@ async function daily(request, env) {
             startsAt: new Date(Date.parse(`${date}T00:00:00Z`)).toISOString(),
             endsAt: new Date(endsAt).toISOString(),
             playUrl: `/b/${row.build}/?challenge=${row.date}`,
+            turnstileSiteKey: env.TURNSTILE_SITE_KEY || null,
             prize: {
                 token: 'ANSEM',
-                status: 'not_live',
-                note: 'Prizes start after the coin launches.'
+                status: env.TOKEN_MINT && env.PRIZE_WALLET ? 'live' : 'not_live',
+                note:
+                    env.TOKEN_MINT && env.PRIZE_WALLET
+                        ? 'The verified #1 with a payout address is paid in $ANSEM after 00:00 UTC.'
+                        : 'Prizes start after the coin launches.'
             }
         },
         { maxAge: 30 }
@@ -169,6 +174,7 @@ export default {
                 if (pathname === '/api/session') return session(request, env);
                 if (pathname === '/api/runs') return submitRun(request, env);
                 if (pathname === '/api/vote') return castVote(request, env);
+                if (pathname === '/api/payout-address') return setPayoutAddress(request, env);
                 const m = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/verdict$/);
                 if (m) return verdict(request, env, m[1]);
             }

@@ -16,6 +16,7 @@ import { fmtNum, fmtTime } from './format.js';
 import { share, shareText } from './share.js';
 import * as api from './api.js';
 import { cleanName, playerId, savePrefs } from './prefs.js';
+import { turnstileToken } from './turnstile.js';
 
 const STEP = SIM.DT;
 const MAX_STEPS_PER_FRAME = 5;
@@ -378,6 +379,10 @@ export class Game {
         if (this.submitted) return;
         this.submitted = true;
         this.ui.setRank('Submitting to the board…');
+        const token = await turnstileToken(
+            this.daily?.turnstileSiteKey,
+            document.getElementById('turnstile')
+        );
         const s = run.summary;
         const res = await api.submitRun({
             v: 1,
@@ -390,7 +395,8 @@ export class Game {
             stage: s.stage,
             claimed: { score: s.score, timeMs: s.timeMs, kills: s.kills, level: s.level },
             durationMs: run.durationMs,
-            log: toBase64Url(run.bytes)
+            log: toBase64Url(run.bytes),
+            turnstileToken: token || undefined
         });
         if (run.runId !== this._runId) return;
         if (res.ok && res.data?.ok) {
@@ -401,10 +407,25 @@ export class Game {
                     ? `#${rank} on today’s board · verification pending`
                     : 'Submitted · verification pending'
             );
+            if (this.daily?.prize?.status === 'live')
+                this.ui.askPayout(this.prefs.payoutAddress || '', (addr) => this._savePayout(addr));
         } else if (res.status === 0) {
             this.ui.setRank('Offline: could not reach the board.');
         } else {
             this.ui.setRank(`Not ranked: ${res.data?.error?.message || `error ${res.status}`}`);
+        }
+    }
+
+    async _savePayout(address) {
+        const res = await api.setPayoutAddress(playerId(), address);
+        if (res.ok) {
+            this.prefs.payoutAddress = address;
+            savePrefs(this.prefs);
+            this.ui.payoutNote(
+                address ? 'Saved. If your run is the verified #1, the prize goes here.' : 'Removed.'
+            );
+        } else {
+            this.ui.payoutNote(res.data?.error?.message || 'Could not save. Try again.');
         }
     }
 

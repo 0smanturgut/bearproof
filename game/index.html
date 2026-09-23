@@ -140,6 +140,26 @@
                     <div><small>LEVEL</small><b id="overLevel">1</b></div>
                 </div>
                 <div class="over-rank" id="overRank"></div>
+                <div id="turnstile" class="turnstile-box"></div>
+                <form id="payoutForm" class="name-form" hidden>
+                    <label for="payoutInput"
+                        >Win today's prize: your Solana address (optional)</label
+                    >
+                    <div class="name-row">
+                        <input
+                            id="payoutInput"
+                            placeholder="Solana address"
+                            autocomplete="off"
+                            spellcheck="false"
+                            enterkeyhint="done"
+                        />
+                        <button type="submit" class="btn btn-primary">SAVE</button>
+                    </div>
+                    <small id="payoutNote"
+                        >Used only to pay you if your run is the verified #1. No wallet
+                        connection.</small
+                    >
+                </form>
                 <form id="nameForm" class="name-form" hidden>
                     <label for="nameInput">Your name on the board</label>
                     <div class="name-row">

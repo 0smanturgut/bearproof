@@ -277,12 +277,19 @@ function renderStats(s) {
             : t.balance && isNum(t.balance.sol)
               ? t.balance.sol
               : null;
+        const fees = isNum(t.feesUnclaimed) ? t.feesUnclaimed : 0;
         if (bal === null) {
             setV('sTreasury', '—', 'empty');
             setN('sTreasuryN', 'wallet live · balance feed pending');
         } else {
-            setV('sTreasury', bal.toFixed(2) + ' SOL', '');
-            setN('sTreasuryN', 'on-chain balance');
+            // Wallet + creator fees earned on pump.fun but not claimed yet: both are the AI's budget.
+            setV('sTreasury', (bal + fees).toFixed(fees + bal < 10 ? 3 : 2) + ' SOL', 'bull');
+            setN(
+                'sTreasuryN',
+                fees > 0
+                    ? `incl. ${fees.toFixed(3)} SOL creator fees, unclaimed`
+                    : 'on-chain balance'
+            );
         }
     }
 

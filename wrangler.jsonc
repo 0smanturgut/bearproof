@@ -51,6 +51,8 @@
         "ANSEM_MINT": "9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump",
         "TOKEN_MINT": "6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX",
         "TREASURY_WALLET": "DvJVRbuB7yf6yswfZgZK2TRyQEjwjzap5Sb3TwJ918c",
+        // pump.fun creator vault of the coin (PDA "creator-vault" + creator): creator fees accrue here until claimed.
+        "CREATOR_VAULT": "CGy3DDwzLERGkeeJRQ7perGaMbGtRNuRy8YZ755NuBpp",
         "PRIZE_WALLET": "",
         "CLAWPUMP_AGENT_ID": "",
         "COSTS_WALLET": "",

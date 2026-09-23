@@ -83,7 +83,7 @@ export function classifyTx(tx, signature, wallet, known = {}) {
     if (direction === 'in') {
         if (fromFeeSource) {
             category = 'creator_fees';
-            label = 'creator fees from ClawPump';
+            label = 'creator fees claimed from pump.fun';
         } else if (fromOperator) {
             label = 'operator top-up';
         } else {
@@ -140,7 +140,12 @@ async function knownAddresses(env) {
 
 /** Cache SOL balances for /api/stats. */
 export async function snapshotBalances(env, nowMs) {
-    const wallets = { treasury: env.TREASURY_WALLET, prize: env.PRIZE_WALLET };
+    // creatorVault: pump.fun's per-creator fee account. Its balance is creator fees earned but not claimed yet.
+    const wallets = {
+        treasury: env.TREASURY_WALLET,
+        prize: env.PRIZE_WALLET,
+        creatorVault: env.CREATOR_VAULT
+    };
     const out = { at: new Date(nowMs).toISOString() };
     for (const [k, addr] of Object.entries(wallets)) {
         if (!addr) continue;

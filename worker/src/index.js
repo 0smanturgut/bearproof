@@ -87,7 +87,10 @@ async function treasuryStats(env) {
         prizeWallet: env.PRIZE_WALLET || null,
         prizeWalletBalance: bal && typeof bal.prize === 'number' ? bal.prize : null,
         balanceAt: bal ? bal.at : null,
-        note: 'On-chain SOL balance, read every 15 minutes.'
+        // Creator fees earned on pump.fun and not yet claimed into the wallet (they are the treasury's too).
+        creatorVault: env.CREATOR_VAULT || null,
+        feesUnclaimed: bal && typeof bal.creatorVault === 'number' ? bal.creatorVault : null,
+        note: 'On-chain SOL balances, read every 15 minutes.'
     };
 }
 

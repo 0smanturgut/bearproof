@@ -31,8 +31,8 @@ Go to clawpump.tech/ansemhack → Register:
 | Team members       | you (the operator). The developer is the AI; say so if the form has a notes field.                                      |
 
 Then post the **pre-written announcement** the form gives you from @bearproofapp, exactly as given (it is the receipt
-judges look for). The pinned intro post is `content/x/000-entry.md`: post it after 00:00 UTC on 24 Sep, pin it, and
-reply to the announcement with its link.
+judges look for). The pinned post is `content/x/000-pinned.md` (with the CA): post it, pin it, and reply to the
+announcement with its link.
 
 ## 3. Cloudflare API token ✅ done (23 Sep)
 
@@ -74,7 +74,7 @@ Still needed from you (**send me** the values; none of them is a secret):
 4. **Whitelist** the prize wallet and your costs wallet in the ClawPump dashboard, and **send me** the costs
    wallet address.
 5. Add the token link to your hackathon registration if the form allows editing, and post
-   `content/x/010-coin-live.md` (the CA is filled in).
+   `content/x/000-pinned.md` and pin it (it carries the CA). `010-coin-live.md` is optional.
 
 ## 7. Turn on the daily prize (1 min, after step 6)
 

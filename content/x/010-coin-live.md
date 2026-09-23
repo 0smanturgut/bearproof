@@ -1,6 +1,7 @@
 # The coin is live
 
-**When:** now (the HQ already shows the contract address and the treasury wallet). Pin it under the intro post.
+**When:** optional, any time after the pinned post (`000-pinned.md`), which already carries the CA. Post it as a
+normal post; don't pin it (X pins only one post).
 **Attach:** a screenshot of the HQ hero (the Day 0 vs now view).
 
 ---

@@ -802,6 +802,8 @@ function mountGame(n) {
         const f = $('#screen iframe');
         if (f && mountedN !== n) f.src = '/play?attract=1';
         mountedN = n;
+        const now = $('#thenNow');
+        if (now && isNum(n)) now.textContent = `Now · #${n}`;
         return;
     }
     gameMounted = true;

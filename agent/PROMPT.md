@@ -42,8 +42,13 @@ Write `agent/plan.md` before you code: the feature, why it wins today, the files
 - Theme: the player is a bull surviving an endless bear market. Enemies are market jokes (red candles, rug
   pullers, FUD, paper hands). Crypto Twitter should get every joke instantly. Market jokes are fine in the game.
   Never talk about the price of the coin.
-- Look: "Terminal Arcade". Palette in `game/src/art/palette.js`, fonts Jersey 10 + JetBrains Mono. New art is
-  pixel sprites drawn as ASCII grids in `game/src/art/sprites.js`, with a 1-px ink outline and eyes on creatures.
+- Look: "Terminal Arcade". Colours come from the material ramps in `game/src/art/materials.js`; fonts Jersey 10 +
+  JetBrains Mono. All art is drawn in code with the pixel-art engine `game/src/art/pixel.js`: build a sprite from
+  shapes (`ellipse`, `capsule`, `box`, `poly`, hand-drawn `spans`), light a body as one volume with `s.auto(group)`,
+  add details with `px`/`patch` (glowing eyes: `{ glow: colour }`), then `render()`. Follow the existing generators
+  in `creatures.js`, `bosses.js`, `items.js` and `icons.js` (icons are 14×14 inside, 16×16 rendered), and register
+  new ones in `SPRITE_GENS`/`SPRITE_GROUPS` (or `ICON_GENS`/`ICON_GROUPS`) in `sprites.js`. Animate by moving shapes
+  per frame (4 frames is the norm). Check your art with `node --test game/test/art.test.js`.
 - Juice matters: hit flashes, numbers, bursts, sound (synthesised in `game/src/audio.js`). Respect reduced motion.
 - Mobile first: it has to feel good with one thumb on a phone.
 - Content is data first: most enemies, weapons, passives and bosses are entries in `game/src/sim/content.js`.

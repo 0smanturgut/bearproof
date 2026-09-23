@@ -105,6 +105,11 @@ That should be Thursday. A first post that shows the actual game converts far be
   ClawPump's fee payout wallet is fixed forever once the token exists. I'll send the wallet setup, the launch fields
   (name, ticker, description, image, links) and the entry post together.
 
+- **Agent GitHub token (3 min).** Go to github.com → Settings → Developer settings → Fine-grained tokens →
+  Generate. Repository access: only `bull-run`. Permissions: Contents _Read and write_, Pull requests
+  _Read and write_. Expiry: 30 days. Add it as the repo secret `AGENT_GH_TOKEN`. Then repo **Settings → General →
+  Pull Requests**: tick **Allow auto-merge**.
+
 ## Optional
 
 - **Custom domain** (~$10/yr, looks more serious to judges): buy something like `patch.fun` or `bullrun.gg`, add it

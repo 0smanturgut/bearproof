@@ -6,13 +6,18 @@
  */
 
 import { Simulation } from './sim/sim.js';
-import { SIM } from './sim/content.js';
+import { BOSSES, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
 import { TWISTS, dailyTwistForSeed } from './sim/content.js';
 import { createBot } from './sim/bot.js';
 import { Fx } from './fx.js';
 import { KILL_COLORS, Renderer } from './render.js';
+
+// enemy id -> sprite id, for the shatter effect on death
+const ENEMY_SPRITE = Object.fromEntries(
+    [...Object.values(ENEMIES), ...Object.values(BOSSES)].map((d) => [d.id, d.sprite || d.id])
+);
 import { fmtNum, fmtTime } from './format.js';
 import { share, shareText } from './share.js';
 import * as api from './api.js';
@@ -31,6 +36,8 @@ export class Game {
         this.prefs = prefs;
         this.build = build;
         this.attract = attract;
+        this.baseAttract = attract;
+        this.backdrop = false;
         this.renderer = new Renderer(canvas);
         this.fx = new Fx(prefs);
         this.state = 'title';
@@ -45,6 +52,7 @@ export class Game {
         this.bot = null;
         this._sfxAt = {};
         this._runId = 0;
+        this._attractGen = 0;
         window.addEventListener('resize', () => this.renderer.resize());
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && this.state === 'playing') this.pause();
@@ -54,7 +62,15 @@ export class Game {
 
     // --- Run lifecycle ----------------------------------------------------------
 
-    startRun(mode) {
+    /** Title screen: the autopilot plays a free run behind the menu (no sound, no submit). */
+    startBackdrop() {
+        this.startRun('free', { backdrop: true });
+        this.ui.show('screenTitle');
+    }
+
+    startRun(mode, { backdrop = false } = {}) {
+        this.backdrop = backdrop;
+        this.attract = this.baseAttract || backdrop;
         this.mode = mode === 'daily' && this.daily ? 'daily' : 'free';
         const seed = this.mode === 'daily' ? this.daily.seed : randomSeed();
         // The Daily Challenge has one twist, the same for everyone; free runs have none.
@@ -110,10 +126,9 @@ export class Game {
     }
 
     quitToTitle() {
-        this.state = 'title';
         this.audio.stopMusic();
         this.ui.moveHint(false);
-        this.ui.show('screenTitle');
+        this.startBackdrop();
     }
 
     // --- Loop -----------------------------------------------------------------
@@ -149,9 +164,20 @@ export class Game {
         if (this.state !== 'paused') this.fx.update(dt);
 
         const p = this.sim.player;
+        // Look a little ahead of the bull, in the direction it is running.
+        const lead = this._lead || (this._lead = { x: 0, y: 0, px: p.x, py: p.y });
+        if (dt > 0) {
+            const vx = (p.x - lead.px) / dt;
+            const vy = (p.y - lead.py) / dt;
+            const kk = Math.min(1, dt * 2.5);
+            lead.x += (Math.max(-60, Math.min(60, vx * 0.22)) - lead.x) * kk;
+            lead.y += (Math.max(-45, Math.min(45, vy * 0.18)) - lead.y) * kk;
+        }
+        lead.px = p.x;
+        lead.py = p.y;
         const follow = Math.min(1, dt * 9);
-        this.cam.x += (p.x - this.cam.x) * follow;
-        this.cam.y += (p.y - this.cam.y) * follow;
+        this.cam.x += (p.x + lead.x - this.cam.x) * follow;
+        this.cam.y += (p.y + lead.y - this.cam.y) * follow;
         this.renderer.draw(this.sim, this.fx, this.cam, this.clock);
         if (this.state !== 'title') this.ui.updateHud(this.sim);
         requestAnimationFrame((t) => this._frame(t));
@@ -186,7 +212,11 @@ export class Game {
                 this.acc = 0;
                 this.ui.hideAll();
                 if (this._bossIntro) {
-                    this.ui.bossIntro(this._bossIntro.name, this._bossIntro.tagline);
+                    this.ui.bossIntro(
+                        this._bossIntro.name,
+                        this._bossIntro.tagline,
+                        this._bossIntro.id
+                    );
                     this._bossIntro = null;
                 }
             }
@@ -216,28 +246,45 @@ export class Game {
             switch (e.t) {
                 case 'dmg':
                     fx.number(e.x, e.y, e.v, e.crit ? 'crit' : 'dmg');
-                    if (e.crit) fx.burst(e.x, e.y, '#FFC53D', 4, 140, 3);
+                    fx.sparks(e.x, e.y + 8, e.crit ? '#FFC53D' : '#FFFFFF', e.crit ? 5 : 2);
+                    if (e.crit) fx.addKick(0.15);
                     this._sfx('hit', 0.045);
                     break;
-                case 'kill':
+                case 'kill': {
+                    const def = ENEMY_SPRITE[e.id] || e.id;
+                    fx.shatter(e.x, e.y, def, { big: e.boss, flip: Math.random() < 0.5 });
                     fx.burst(
                         e.x,
                         e.y,
                         KILL_COLORS[e.id] || '#FF3B5C',
-                        e.boss ? 46 : 9,
+                        e.boss ? 40 : 7,
                         e.boss ? 320 : 170,
-                        e.boss ? 7 : 4
+                        e.boss ? 6 : 3.5
+                    );
+                    fx.burst(
+                        e.x,
+                        e.y + 10,
+                        'rgba(120,130,150,',
+                        e.boss ? 14 : 3,
+                        70,
+                        e.boss ? 14 : 7,
+                        'smoke'
                     );
                     if (e.boss) {
+                        fx.ring(e.x, e.y, 20, 260, 0.6, '255,197,61', 8, true);
+                        fx.burst(e.x, e.y, '#FFC53D', 30, 420, 3, 'spark');
                         fx.addShake(1);
-                        fx.addFlash('255,197,61', 0.35, 1.5);
+                        fx.addFlash('255,197,61', 0.4, 1.4);
                         this._sfx('explosion', 0);
                     }
                     break;
+                }
                 case 'hurt':
                     fx.number(p.x, p.y - 34, e.v, 'hurt');
                     fx.vignette = 1;
                     fx.addShake(0.35);
+                    fx.addKick(0.5);
+                    fx.sparks(p.x, p.y, '#FF7E86', 6);
                     this._sfx('damage', 0.1);
                     if (!this.attract) this.haptics.hurt();
                     break;
@@ -245,10 +292,12 @@ export class Game {
                     fx.number(e.x, e.y - 36, 'SLIPPED', 'info');
                     break;
                 case 'pickup':
+                    fx.ping(p.x, p.y + 4, e.v >= 50 ? '255,197,61' : '22,224,138');
                     this._sfx('pickup', 0.06);
                     break;
                 case 'levelup':
-                    fx.ring(p.x, p.y, 10, 140, 0.45, '255,197,61', 4);
+                    fx.ring(p.x, p.y, 10, 170, 0.5, '255,197,61', 6, true);
+                    fx.burst(p.x, p.y, '#FFE08A', 18, 300, 3, 'spark');
                     fx.addFlash('255,197,61', 0.22, 2.5);
                     this._sfx('levelUp', 0);
                     if (!this.attract) this.haptics.levelUp();
@@ -264,7 +313,7 @@ export class Game {
                 case 'boss':
                     // If a level-up card opens on the same tick, hold the intro until it closes.
                     if (this.sim.choices) this._bossIntro = e;
-                    else if (!this.attract) this.ui.bossIntro(e.name, e.tagline);
+                    else if (!this.attract) this.ui.bossIntro(e.name, e.tagline, e.id);
                     fx.addShake(1.1);
                     fx.addFlash('255,59,92', 0.45, 1.4);
                     this._sfx('bossSpawn', 0);
@@ -275,8 +324,10 @@ export class Game {
                     break;
                 case 'fire':
                     if (e.w === 'horns') fx.swipe(e.x, e.y, e.r, e.evolved);
-                    else if (e.w === 'circuit_breaker')
-                        fx.ring(e.x, e.y, 20, e.r, 0.32, '70,200,255', 5);
+                    else if (e.w === 'circuit_breaker') {
+                        fx.ring(e.x, e.y, 20, e.r, 0.36, '70,184,240', 7, true);
+                        fx.burst(e.x, e.y, '#BDEEFF', 14, e.r * 2, 3, 'spark');
+                    }
                     this._sfx('shoot', 0.09);
                     break;
                 case 'strike':
@@ -289,16 +340,20 @@ export class Game {
                     fx.line(e.x1, e.y1, e.x2, e.y2, 0.12, '22,224,138', 2.5, true);
                     break;
                 case 'explode':
-                    fx.ring(e.x, e.y, 10, e.r, 0.3, '255,140,60', 5);
-                    fx.burst(e.x, e.y, '#FF8C3C', 12, 220, 5);
+                    fx.ring(e.x, e.y, 10, e.r, 0.32, '255,140,60', 7, true);
+                    fx.burst(e.x, e.y, '#FFB35C', 14, 260, 3, 'spark');
+                    fx.burst(e.x, e.y, '#FF8C3C', 8, 160, 5, 'ember');
+                    fx.burst(e.x, e.y, 'rgba(90,80,80,', 6, 80, 12, 'smoke');
                     fx.addShake(0.25);
                     this._sfx('explosion', 0.08);
                     break;
                 case 'clone':
-                    fx.burst(e.x, e.y, '#B8C0CC', 10, 160, 4);
+                    fx.burst(e.x, e.y, '#B8C0CC', 8, 160, 3);
+                    fx.burst(e.x, e.y, 'rgba(180,190,205,', 5, 60, 10, 'smoke');
                     break;
                 case 'summon':
-                    fx.ring(e.x, e.y, 10, 90, 0.35, '255,59,92', 4);
+                    fx.ring(e.x, e.y, 10, 110, 0.4, '255,59,92', 6, true);
+                    fx.burst(e.x, e.y, '#FF3B5C', 16, 240, 3, 'spark');
                     break;
                 case 'charge':
                     fx.addShake(0.3);
@@ -320,7 +375,16 @@ export class Game {
         const summary = this.sim.summary();
         if (this.attract) {
             this.state = 'attract-over';
-            setTimeout(() => this.startRun('free'), 2500);
+            const backdrop = this.backdrop;
+            const id = ++this._attractGen;
+            setTimeout(
+                () => {
+                    if (id !== this._attractGen || this.state !== 'attract-over') return;
+                    if (backdrop) this.startBackdrop();
+                    else this.startRun('free');
+                },
+                backdrop ? 1500 : 2500
+            );
             return;
         }
         this.state = 'over';

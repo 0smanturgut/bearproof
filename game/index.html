@@ -42,11 +42,23 @@
             <div id="touch" class="touch-surface" aria-hidden="true"></div>
             <div id="joy" class="joy" aria-hidden="true"><div class="joy-knob"></div></div>
 
+            <div id="vignette" class="title-veil" aria-hidden="true"></div>
+
             <header id="hud" class="hud" hidden>
                 <div class="hud-left">
-                    <div class="hud-lvl">LV <b id="hLevel">1</b></div>
-                    <div class="bar bar-xp" aria-label="Experience"><i id="hXp"></i></div>
-                    <div class="bar bar-hp" aria-label="Health"><i id="hHp"></i></div>
+                    <div class="lvl-badge" aria-label="Level">
+                        <small>LV</small><b id="hLevel">1</b>
+                    </div>
+                    <div class="hud-bars">
+                        <div class="bar-row">
+                            <span class="bar-lab">PORTFOLIO</span
+                            ><span class="bar-val" id="hHpVal">100</span>
+                        </div>
+                        <div class="bar bar-hp" aria-label="Health">
+                            <em id="hHpGhost"></em><i id="hHp"></i>
+                        </div>
+                        <div class="bar bar-xp" aria-label="Experience"><i id="hXp"></i></div>
+                    </div>
                 </div>
                 <div class="hud-mid">
                     <div id="hTime" class="hud-time">00:00</div>
@@ -63,59 +75,95 @@
             </header>
             <div id="loadout" class="loadout" hidden></div>
             <div id="bossbar" class="bossbar" hidden>
-                <div class="bossbar-name" id="bossName"></div>
-                <div class="bar bar-boss"><i id="bossHp"></i></div>
+                <div class="bossbar-top">
+                    <span class="bossbar-skull" aria-hidden="true"></span>
+                    <span class="bossbar-name" id="bossName"></span>
+                </div>
+                <div class="bar bar-boss"><em id="bossGhost"></em><i id="bossHp"></i></div>
             </div>
             <div id="toast" class="toast" aria-live="polite"></div>
             <div id="hint" class="hint-move" hidden>
-                DRAG ANYWHERE TO MOVE<span> · WASD / ARROWS</span>
+                <span class="hint-hand" aria-hidden="true"></span>DRAG ANYWHERE TO MOVE<span
+                    class="hint-keys"
+                >
+                    · WASD / ARROWS</span
+                >
             </div>
 
             <div id="bossCard" class="boss-card" hidden>
-                <div class="boss-ticker"><span id="bossTicker"></span></div>
-                <div class="boss-warn">⚠ BOSS INCOMING</div>
-                <div class="boss-title" id="bossTitle"></div>
-                <div class="boss-tag" id="bossTag"></div>
+                <div class="bars-top"></div>
+                <div class="bars-bot"></div>
+                <div class="boss-band">
+                    <div class="boss-ticker"><span id="bossTicker"></span></div>
+                </div>
+                <div class="boss-center">
+                    <canvas id="bossPortrait" class="boss-portrait" aria-hidden="true"></canvas>
+                    <div class="boss-text">
+                        <div class="boss-warn">⚠ BOSS HAS ENTERED THE CHAT</div>
+                        <div class="boss-title" id="bossTitle"></div>
+                        <div class="boss-tag" id="bossTag"></div>
+                    </div>
+                </div>
             </div>
 
             <section id="screenTitle" class="screen screen-title" aria-labelledby="logo">
                 <a class="chip" href="/" target="_top"
                     ><i class="dot"></i>BUILD <span class="buildLabel">#1</span> · BUILT BY AN AI</a
                 >
-                <canvas
-                    id="titleBull"
-                    class="title-bull"
-                    width="180"
-                    height="140"
-                    aria-hidden="true"
-                ></canvas>
-                <h1 id="logo" class="logo">BEARPROOF</h1>
-                <p class="tagline">You are a bull. The bear market is endless.</p>
-                <button id="btnDaily" class="btn btn-primary btn-big">
-                    <span>PLAY TODAY'S CHALLENGE</span>
-                    <small id="dailySub">Same market for everyone</small>
-                </button>
-                <p id="dailyTwist" class="daily-twist" hidden></p>
-                <button id="btnFree" class="btn btn-ghost">FREE RUN</button>
-                <div class="title-row">
-                    <button id="btnBoard" class="btn btn-text">LEADERBOARD</button>
-                    <button id="btnSettings" class="btn btn-text">SETTINGS</button>
-                    <button id="btnSound" class="btn btn-text">SOUND ON</button>
+                <div class="title-hero">
+                    <canvas
+                        id="titleBull"
+                        class="title-bull"
+                        width="228"
+                        height="168"
+                        aria-hidden="true"
+                    ></canvas>
+                    <h1 id="logo" class="logo" data-text="BEARPROOF">BEARPROOF</h1>
+                    <p class="tagline">You are a bull. The bear market is endless.</p>
                 </div>
-                <p id="todayTop" class="today-top"></p>
+                <div class="daily-card">
+                    <div class="daily-head">
+                        <span class="daily-lab"><i class="dot"></i>TODAY'S CHALLENGE</span>
+                        <span id="todayTop" class="today-top"></span>
+                    </div>
+                    <p id="dailyTwist" class="daily-twist" hidden></p>
+                    <button id="btnDaily" class="btn btn-primary btn-big">
+                        <span>PLAY NOW ▸</span>
+                        <small id="dailySub">Same market for everyone</small>
+                    </button>
+                </div>
+                <div class="title-row">
+                    <button id="btnFree" class="btn btn-ghost">FREE RUN</button>
+                    <button id="btnBoard" class="btn btn-ghost">BOARD</button>
+                    <button id="btnSettings" class="btn btn-ghost btn-sq" aria-label="Settings">
+                        <svg viewBox="0 0 8 8" aria-hidden="true">
+                            <path d="M3 0h2v1h1v1h1v2H6v1H5v1H3V5H2V4H1V2h1V1h1zM3 2v2h2V2z" />
+                        </svg>
+                    </button>
+                    <button id="btnSound" class="btn btn-ghost btn-sq" aria-label="Sound on">
+                        <svg viewBox="0 0 8 8" aria-hidden="true">
+                            <path class="spk" d="M0 3h2l2-2v6L2 5H0z" />
+                            <path class="wave" d="M5 2h1v1H5zM6 3h1v2H6zM5 5h1v1H5z" />
+                            <path
+                                class="mute"
+                                d="M5 2h1v1H5zM7 2h1v1H7zM6 3h1v2H6zM5 5h1v1H5zM7 5h1v1H7z"
+                            />
+                        </svg>
+                    </button>
+                </div>
                 <p class="title-foot">
-                    Proof, an AI game developer, ships a new build every day.
-                    <a href="/" target="_top">See what it built today →</a>
+                    An AI builds this game in public, one build a day.
+                    <a href="/" target="_top">See what it shipped →</a>
                 </p>
             </section>
 
             <section id="screenLevel" class="screen screen-level" hidden aria-labelledby="lvTitle">
                 <div class="level-head">
-                    <div class="ath" id="lvTitle">NEW ATH</div>
+                    <div class="ath" id="lvTitle" data-text="NEW ATH">NEW ATH</div>
                     <div class="lv">LEVEL <b id="lvN">2</b></div>
                 </div>
                 <div id="cards" class="cards" role="menu"></div>
-                <p class="level-hint">Tap a card · keys 1 2 3</p>
+                <p class="level-hint">Pick one · tap a card · keys 1 2 3</p>
             </section>
 
             <section
@@ -124,23 +172,50 @@
                 hidden
                 aria-labelledby="pauseTitle"
             >
-                <h2 id="pauseTitle" class="screen-h">PAUSED</h2>
-                <p class="pause-sub" id="pauseSub"></p>
-                <button id="btnResume" class="btn btn-primary">RESUME</button>
-                <button id="btnRestart" class="btn">RESTART</button>
-                <button id="btnQuit" class="btn btn-ghost">QUIT TO TITLE</button>
+                <div class="panel pause-panel">
+                    <h2 id="pauseTitle" class="screen-h">TRADING HALTED</h2>
+                    <p class="pause-sub" id="pauseSub"></p>
+                    <button id="btnResume" class="btn btn-primary">RESUME</button>
+                    <button id="btnRestart" class="btn">RESTART</button>
+                    <button id="btnQuit" class="btn btn-ghost">QUIT TO TITLE</button>
+                </div>
             </section>
 
             <section id="screenOver" class="screen screen-over" hidden aria-labelledby="overTitle">
-                <div class="over-title" id="overTitle">LIQUIDATED</div>
-                <div class="over-sub" id="overSub"></div>
-                <div class="over-score"><small>SCORE</small><b id="overScore">0</b></div>
-                <div class="over-stats">
-                    <div><small>SURVIVED</small><b id="overTime">00:00</b></div>
-                    <div><small>BEARS</small><b id="overKills">0</b></div>
-                    <div><small>LEVEL</small><b id="overLevel">1</b></div>
+                <div class="over-head">
+                    <svg
+                        class="crash"
+                        viewBox="0 0 200 60"
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                    >
+                        <polyline
+                            points="0,8 18,6 30,14 44,10 58,22 70,18 86,34 98,28 112,44 128,40 142,54 160,50 200,60"
+                        />
+                    </svg>
+                    <div class="over-title" id="overTitle">LIQUIDATED</div>
+                    <div class="over-sub" id="overSub"></div>
                 </div>
-                <div class="over-rank" id="overRank"></div>
+                <div class="panel receipt">
+                    <div class="receipt-score">
+                        <small>FINAL SCORE</small><b id="overScore">0</b>
+                    </div>
+                    <dl class="receipt-rows">
+                        <div>
+                            <dt>SURVIVED</dt>
+                            <dd id="overTime">00:00</dd>
+                        </div>
+                        <div>
+                            <dt>BEARS REKT</dt>
+                            <dd id="overKills">0</dd>
+                        </div>
+                        <div>
+                            <dt>LEVEL</dt>
+                            <dd id="overLevel">1</dd>
+                        </div>
+                    </dl>
+                    <div class="over-rank" id="overRank"></div>
+                </div>
                 <div id="turnstile" class="turnstile-box"></div>
                 <form id="payoutForm" class="name-form" hidden>
                     <label for="payoutInput"
@@ -180,6 +255,7 @@
                     <button id="btnAgain" class="btn">RUN IT BACK</button>
                     <button id="btnOverBoard" class="btn btn-ghost">BOARD</button>
                 </div>
+                <p class="over-q">ARE YOU BEARPROOF?</p>
                 <p class="over-build" id="overBuild"></p>
             </section>
 
@@ -189,10 +265,12 @@
                 hidden
                 aria-labelledby="boardTitle"
             >
-                <h2 id="boardTitle" class="screen-h">TODAY'S BOARD</h2>
-                <p class="board-sub" id="boardSub"></p>
-                <ol id="boardList" class="board-list"></ol>
-                <button id="btnBoardBack" class="btn">BACK</button>
+                <div class="panel board-panel">
+                    <h2 id="boardTitle" class="screen-h">TODAY'S BOARD</h2>
+                    <p class="board-sub" id="boardSub"></p>
+                    <ol id="boardList" class="board-list"></ol>
+                    <button id="btnBoardBack" class="btn">BACK</button>
+                </div>
             </section>
 
             <section
@@ -201,9 +279,11 @@
                 hidden
                 aria-labelledby="setTitle"
             >
-                <h2 id="setTitle" class="screen-h">SETTINGS</h2>
-                <div id="settingsList" class="settings-list"></div>
-                <button id="btnSettingsBack" class="btn">DONE</button>
+                <div class="panel settings-panel">
+                    <h2 id="setTitle" class="screen-h">SETTINGS</h2>
+                    <div id="settingsList" class="settings-list"></div>
+                    <button id="btnSettingsBack" class="btn">DONE</button>
+                </div>
             </section>
 
             <div id="attractBadge" class="attract-badge" hidden>

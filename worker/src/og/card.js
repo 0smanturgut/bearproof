@@ -93,7 +93,7 @@ export function drawCard(run) {
     text(r, 'SCORE', X, 218, 3, PAL.muted);
     const score = fmtNum(run.score);
     let scale = 13;
-    while (scale > 6 && measure(score, scale) > 760) scale--;
+    while (scale > 6 && measure(score, scale) > 700) scale--;
     text(r, score, X, 248, scale, PAL.text);
 
     text(r, headline(run), X, 372, 4, PAL.bull);
@@ -103,15 +103,14 @@ export function drawCard(run) {
 
     // the bull, big, on the right
     const bull = SPRITES.bull;
-    const bs = 14;
-    sprite(r, bull, CARD_W - 64 - bull.w * bs, 150, bs);
+    const bs = 8;
+    sprite(r, bull, CARD_W - 40 - bull.w * bs, 130, bs);
 
     // footer watermark
     r.rect(0, CARD_H - 72, CARD_W, 72, PAL.panel);
     r.rect(0, CARD_H - 72, CARD_W, 2, PAL.grid);
-    const foot = `BUILD #${run.build} BY THE AI · A NEW BUILD EVERY DAY`;
-    text(r, foot, X, CARD_H - 47, 3, PAL.text);
-    const url = 'BEARPROOF.APP';
-    text(r, url, CARD_W - 64 - measure(url, 3), CARD_H - 47, 3, PAL.bull);
+    text(r, 'ARE YOU BEARPROOF?', X, CARD_H - 47, 3, PAL.bull);
+    const right = `BUILD #${run.build} BY THE AI · BEARPROOF.APP`;
+    text(r, right, CARD_W - 64 - measure(right, 3), CARD_H - 47, 3, PAL.text);
     return r;
 }

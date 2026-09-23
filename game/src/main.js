@@ -76,7 +76,7 @@ async function boot() {
     input.onMute = () => setSound(prefs.muted);
     input.onKey = (key) => {
         if (game.state === 'levelup') ui.levelKey(key);
-        else if (game.state === 'title' && key === 'enter') startDaily();
+        else if ((game.state === 'title' || game.backdrop) && key === 'enter') startDaily();
     };
 
     const startDaily = () => game.startRun(game.daily ? 'daily' : 'free');
@@ -118,7 +118,7 @@ async function boot() {
     });
     $('btnSettingsBack').addEventListener('click', () => ui.show(back));
 
-    ui.show('screenTitle');
+    game.startBackdrop(); // the title screen floats over the live build, played by the autopilot
     animateTitleBull($('titleBull'));
 
     // Today's challenge (or the one in the URL). The game is fully playable without it.
@@ -126,7 +126,7 @@ async function boot() {
     const onThisBuild = d.ok && String(d.data?.build) === String(build.n);
     if (d.ok && d.data?.seed && !onThisBuild) {
         // Today's board is pinned to the build that was live at 00:00 UTC. Say so instead of pretending.
-        document.querySelector('#btnDaily span').textContent = 'PLAY NOW';
+        document.querySelector('#btnDaily span').textContent = 'PLAY NOW ▸';
         ui.setDailySub(
             `Today's board runs on Build #${d.data.build}. This build's first board opens at 00:00 UTC.`
         );
@@ -150,27 +150,40 @@ async function boot() {
         const top = (lb.data?.rows || lb.data?.entries || [])[0];
         if (top) ui.setTodayTop(`Today's #1: ${top.name} · ${fmtNum(top.score)}`);
     } else {
-        document.querySelector('#btnDaily span').textContent = 'PLAY NOW';
+        document.querySelector('#btnDaily span').textContent = 'PLAY NOW ▸';
         ui.setDailySub('The daily board is offline, so this is a free run');
     }
 }
 
 function animateTitleBull(canvas) {
     const ctx = canvas.getContext('2d');
-    const frames = bakeSprite('bull', 8);
+    const frames = bakeSprite('bull', 5);
     if (!frames || !frames.length) return;
-    let t = 0;
-    const draw = () => {
+    const t0 = performance.now();
+    const draw = (now) => {
         if (canvas.offsetParent === null) return requestAnimationFrame(draw);
-        t++;
-        const img = frames[Math.floor(t / 10) % frames.length];
+        const t = Math.max(0, now - t0) / 1000;
+        const img = frames[Math.floor(t * 10) % frames.length];
         ctx.imageSmoothingEnabled = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const bob = Math.round(Math.sin(t / 12) * 3);
+        // contact shadow
+        const g = ctx.createRadialGradient(
+            canvas.width / 2,
+            canvas.height - 16,
+            2,
+            canvas.width / 2,
+            canvas.height - 16,
+            90
+        );
+        g.addColorStop(0, 'rgba(0,0,0,0.55)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, canvas.height - 34, canvas.width, 34);
+        const bob = Math.round(Math.sin(t * 7) * 2);
         ctx.drawImage(
             img,
             Math.round((canvas.width - img.width) / 2),
-            Math.round((canvas.height - img.height) / 2) + bob
+            canvas.height - img.height - 10 + bob
         );
         requestAnimationFrame(draw);
     };

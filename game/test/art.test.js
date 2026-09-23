@@ -98,11 +98,11 @@ test('art: every sprite frame is h rows of w chars with a colour per char', () =
     checkShape(SPRITES, 'sprite');
 });
 
-test('art: every icon is 12x12 with a colour per char', () => {
+test('art: every icon is 16x16 with a colour per char', () => {
     checkShape(ICONS, 'icon');
     for (const [id, def] of Object.entries(ICONS)) {
-        assert.equal(def.w, 12, `icon ${id}: w`);
-        assert.equal(def.h, 12, `icon ${id}: h`);
+        assert.equal(def.w, 16, `icon ${id}: w`);
+        assert.equal(def.h, 16, `icon ${id}: h`);
     }
 });
 
@@ -115,15 +115,36 @@ test('art: every listed sprite and icon exists', () => {
     assert.deepEqual([...icons].sort(), Object.keys(ICONS).sort(), 'ICON_GROUPS covers all');
 });
 
-test('art: every sprite has a 1-px ink outline (no filled pixel on the border)', () => {
+// Outlines are selective (the darkest hue of the material they wrap), so "ink" means very dark.
+const lum = (hex) => {
+    const v = parseInt(hex.slice(1), 16);
+    return (0.2126 * (v >> 16) + 0.7152 * ((v >> 8) & 255) + 0.0722 * (v & 255)) / 255;
+};
+
+test('art: every sprite is outlined (only transparent or dark outline pixels on the border)', () => {
     for (const [id, def] of Object.entries(SPRITES)) {
         if (id === 'laser') continue; // tiling beam, authored without an outline
         for (const frame of def.frames) {
             const edge = [frame[0], frame[def.h - 1], ...frame.map((r) => r[0] + r[def.w - 1])];
             for (const line of edge)
-                assert.match(line, /^[.o]*$/, `${id}: filled pixel on the sprite border`);
+                for (const ch of line) {
+                    if (ch === '.' || ch === 'o') continue;
+                    assert.ok(
+                        lum(def.colors[ch]) < 0.16,
+                        `${id}: bright pixel ${def.colors[ch]} on the border`
+                    );
+                }
         }
     }
+});
+
+test('art: sprites carry an animation and glow where it matters', () => {
+    for (const id of ['bull', 'red_candle', 'grizzly', 'bear_market']) {
+        assert.ok(SPRITES[id].frames.length >= 4, `${id}: animated`);
+        assert.ok(SPRITES[id].fps > 0, `${id}: fps`);
+    }
+    for (const id of ['red_candle', 'xp_candle', 'bear_market', 'long_winter'])
+        assert.ok(SPRITES[id].glowFrames, `${id}: glows`);
 });
 
 test('art: bakeSprite and bakeIcon return null under Node', () => {

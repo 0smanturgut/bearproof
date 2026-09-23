@@ -58,7 +58,11 @@ export class UI {
             level: $('hLevel'),
             xp: $('hXp'),
             hp: $('hHp'),
+            hpGhost: $('hHpGhost'),
+            hpVal: $('hHpVal'),
+            badge: $('hLevel').parentElement,
             hpBar: $('hHp').parentElement,
+            bossGhost: $('bossGhost'),
             time: $('hTime'),
             wave: $('hWave'),
             score: $('hScore'),
@@ -75,11 +79,14 @@ export class UI {
 
     show(id) {
         for (const s of this.screens) $(s).hidden = s !== id;
+        document.body.classList.toggle('on-title', id === 'screenTitle');
+        if (id === 'screenLevel') $('toast').classList.remove('show');
         const inGame = id === null || id === 'screenLevel';
         $('hud').hidden = !(inGame || id === 'screenPause');
         this.hud.loadout.hidden = $('hud').hidden;
         if (id) {
-            const first = $(id).querySelector('button, [href], input');
+            const first =
+                $(id).querySelector('.btn-primary') || $(id).querySelector('button, [href], input');
             if (first && !matchMedia('(pointer: coarse)').matches)
                 first.focus({ preventScroll: true });
         }
@@ -109,7 +116,13 @@ export class UI {
                 fn(val);
             }
         };
-        set('lvl', p.level, (v) => (this.hud.level.textContent = v));
+        set('lvl', p.level, (v) => {
+            this.hud.level.textContent = v;
+            const b = this.hud.badge;
+            b.classList.remove('pop');
+            void b.offsetWidth;
+            b.classList.add('pop');
+        });
         set(
             'xp',
             Math.floor((p.exp / p.expToNext) * 100),
@@ -118,8 +131,14 @@ export class UI {
         const hpPct = Math.max(0, Math.round((p.hp / p.maxHp) * 100));
         set('hp', hpPct, (v) => {
             this.hud.hp.style.width = `${v}%`;
+            this.hud.hpGhost.style.width = `${v}%`; // trails behind: the damage you just took
             this.hud.hpBar.classList.toggle('low', v < 30);
         });
+        set(
+            'hpv',
+            Math.ceil(p.hp),
+            (v) => (this.hud.hpVal.textContent = `${v}/${Math.round(p.maxHp)}`)
+        );
         set('time', Math.floor(sim.time), () => (this.hud.time.textContent = fmtTime(sim.timeMs)));
         set('score', sim.stats.score, (v) => (this.hud.score.textContent = fmtNum(v)));
         set('wave', sim.wave.label, (v) => (this.hud.wave.textContent = v));
@@ -129,7 +148,11 @@ export class UI {
             this.hud.bossbar.hidden = !boss;
             if (boss) this.hud.bossName.textContent = boss.def.name.toUpperCase();
         });
-        if (boss) this.hud.bossHp.style.width = `${Math.max(0, (boss.hp / boss.maxHp) * 100)}%`;
+        if (boss) {
+            const w = `${Math.max(0, (boss.hp / boss.maxHp) * 100)}%`;
+            this.hud.bossHp.style.width = w;
+            this.hud.bossGhost.style.width = w;
+        }
 
         const key =
             p.weapons.map((w) => w.id + w.level).join() +
@@ -138,15 +161,26 @@ export class UI {
         if (key !== this._loadoutKey) {
             this._loadoutKey = key;
             this.hud.loadout.innerHTML = '';
-            for (const w of p.weapons) this._slot(w.def.icon, w.level >= 5 ? '★' : w.level, false);
+            for (const w of p.weapons)
+                this._slot(w.def.icon, w.level >= 5 ? '★' : w.level, false, w.level >= 5);
+            if (p.passiveOrder.length) {
+                const br = document.createElement('div');
+                br.className = 'slot-break';
+                this.hud.loadout.appendChild(br);
+            }
             for (const id of p.passiveOrder)
-                this._slot(PASSIVE_BY_ID[id].icon, p.passives[id].count, true);
+                this._slot(
+                    PASSIVE_BY_ID[id].icon,
+                    p.passives[id].count,
+                    true,
+                    p.passives[id].count >= 5
+                );
         }
     }
 
-    _slot(icon, badge, passive) {
+    _slot(icon, badge, passive, maxed) {
         const el = document.createElement('div');
-        el.className = passive ? 'slot passive' : 'slot';
+        el.className = (passive ? 'slot passive' : 'slot') + (maxed ? ' maxed' : '');
         const c = document.createElement('canvas');
         paintIcon(c, icon, 2);
         el.appendChild(c);
@@ -171,18 +205,21 @@ export class UI {
         this.announce(text);
     }
 
-    bossIntro(name, tagline) {
+    bossIntro(name, tagline, id) {
         const card = $('bossCard');
+        const portrait = $('bossPortrait');
+        portrait.hidden = !id;
+        if (id) paintIcon(portrait, id, 4);
         $('bossTitle').textContent = name;
         $('bossTag').textContent = tagline || '';
-        const item = `BREAKING: ${name.toUpperCase()} SPOTTED ON THE CHART`;
-        $('bossTicker').textContent = `${item}  ·  ${item}  ·  ${item}`;
+        const item = `BREAKING: ${name.toUpperCase()} SPOTTED ON THE CHART  ▼  VOLATILITY EXTREME  ▼  HOLD YOUR HORNS`;
+        $('bossTicker').textContent = `${item}  ·  ${item}`;
         card.hidden = false;
         card.style.animation = 'none';
         void card.offsetWidth;
         card.style.animation = '';
         clearTimeout(this._bossTimer);
-        this._bossTimer = setTimeout(() => (card.hidden = true), 2300);
+        this._bossTimer = setTimeout(() => (card.hidden = true), 2400);
         this.announce(`Boss incoming: ${name}`);
     }
 
@@ -213,7 +250,11 @@ export class UI {
                       ? PASSIVE_BY_ID[c.id]
                       : null;
             const btn = document.createElement('button');
-            btn.className = 'card' + (c.evolves ? ' evo' : '') + (c.kind === 'heal' ? ' heal' : '');
+            btn.className =
+                'card' +
+                (c.kind === 'passive' ? ' kind-passive' : ' kind-weapon') +
+                (c.evolves ? ' evo' : '') +
+                (c.kind === 'heal' ? ' heal' : '');
             btn.setAttribute('role', 'menuitem');
             const name = def ? def.name : 'Take Profit';
             const tag =
@@ -223,7 +264,7 @@ export class UI {
                       ? 'EVOLVES'
                       : c.isNew
                         ? 'NEW'
-                        : `LV ${c.level}`;
+                        : `LV ${c.level - 1} → ${c.level}`;
             const tagCls = c.evolves ? 'evo' : c.isNew ? 'new' : '';
             const desc = def
                 ? def.description
@@ -232,12 +273,20 @@ export class UI {
                 c.evolves && def?.evolveName
                     ? `→ ${def.evolveName}: ${def.evolveDescription || ''}`
                     : '';
+            const kind =
+                c.kind === 'heal' ? 'CASH OUT' : c.kind === 'passive' ? 'PASSIVE' : 'WEAPON';
+            const pips =
+                c.kind === 'heal'
+                    ? ''
+                    : `<div class="pips">${Array.from({ length: 5 }, (_, k) => `<i class="${k < (c.level || 1) - 1 ? 'on' : k === (c.level || 1) - 1 ? 'next' : ''}"></i>`).join('')}</div>`;
             btn.innerHTML = `
-                <canvas class="card-icon"></canvas>
+                <div class="card-icon-wrap"><canvas class="card-icon"></canvas></div>
                 <div class="card-body">
-                    <div class="card-top"><b class="card-name">${esc(name)}</b><span class="card-tag ${tagCls}">${tag}</span></div>
+                    <div class="card-top"><span class="card-kind">${kind}</span><span class="card-tag ${tagCls}">${tag}</span></div>
+                    <b class="card-name">${esc(name)}</b>
                     <p class="card-desc">${esc(desc)}</p>
                     ${evo ? `<p class="card-evo">${esc(evo)}</p>` : ''}
+                    ${pips}
                 </div>
                 <kbd>${i + 1}</kbd>`;
             paintIcon(btn.querySelector('canvas'), def?.icon || 'dca', 4);
@@ -341,7 +390,7 @@ export class UI {
                     (e) => `<li class="${e.playerIsMe || e.runId === me ? 'me' : ''}">
                         <span class="r">${e.rank}</span>
                         <span class="n">${esc(e.name)}</span>
-                        <span class="v">${e.status === 'verified' ? '✓ verified' : 'unverified'}</span>
+                        <span class="v ${e.status === 'verified' ? 'ok' : ''}">${e.status === 'verified' ? '✓ verified' : 'pending'}</span>
                         <span class="s">${fmtNum(e.score)}</span></li>`
                 )
                 .join('');
@@ -372,6 +421,9 @@ export class UI {
     }
 
     setSoundLabel(on) {
-        $('btnSound').textContent = on ? 'SOUND ON' : 'SOUND OFF';
+        const b = $('btnSound');
+        b.classList.toggle('muted', !on);
+        b.setAttribute('aria-label', on ? 'Sound on' : 'Sound off');
+        b.title = on ? 'Sound on' : 'Sound off';
     }
 }

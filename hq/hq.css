@@ -1304,3 +1304,9 @@ code {
         display: none;
     }
 }
+
+.who-note {
+    margin: -4px 0 10px;
+    font-size: 12px;
+    color: var(--muted);
+}

@@ -1327,7 +1327,7 @@ async function loadChallenge() {
     const pinned = daily && isNum(daily.build) ? daily.build : null;
     $('#chDate').textContent = date;
     $('#chBuild').textContent = pinned === null ? '—' : '#' + pinned;
-    $('#chStage').textContent = (daily && daily.stage) || '—';
+    $('#chStage').textContent = (daily && (daily.stageName || daily.stage)) || '—';
     const chPlay = $('#chPlay');
     if (pinned === 0) {
         // Build #0 is the untouched upstream game: it has no scored challenge, so send players to the live build.

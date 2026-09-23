@@ -13,7 +13,7 @@ import { BUILDS } from './manifest.js';
 import { pendingRuns, verdict } from './routes/internal.js';
 import { castVote, getVote, voteResult } from './routes/vote.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
-import { dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
+import { STAGE_NAMES, dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
 import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
 import { edgeCached, error, json, redirect } from './lib/http.js';
 import { ledger } from './routes/ledger.js';
@@ -47,6 +47,7 @@ async function daily(request, env) {
             build: row.build,
             seed: row.seed,
             stage: row.stage,
+            stageName: STAGE_NAMES[row.stage] || row.stage,
             startsAt: new Date(Date.parse(`${date}T00:00:00Z`)).toISOString(),
             endsAt: new Date(endsAt).toISOString(),
             playUrl: `/b/${row.build}/?challenge=${row.date}`,

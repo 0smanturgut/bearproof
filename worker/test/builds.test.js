@@ -53,7 +53,7 @@ test('dailySeed is deterministic, salt-dependent and non-zero', async () => {
     assert.notEqual(a, await dailySeed('2026-09-24', 'salt-b'));
     assert.notEqual(a, await dailySeed('2026-09-25', 'salt-a'));
     assert.ok(Number.isInteger(a) && a > 0 && a <= 0xffffffff);
-    assert.ok(['forest', 'crypt', 'tundra'].includes(stageForSeed(a)));
+    assert.ok(['chop', 'bear_trap', 'winter'].includes(stageForSeed(a)));
 });
 
 test('date helpers', () => {

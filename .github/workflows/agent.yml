@@ -24,20 +24,34 @@ jobs:
         timeout-minutes: 120
         env:
             SITE: https://bearproof.app
-            AGENT_CONTEXT: ${{ runner.temp }}/context.json
         steps:
+            - name: Check credentials
+              env:
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+              run: |
+                  echo "AGENT_CONTEXT=$RUNNER_TEMP/context.json" >> "$GITHUB_ENV"
+                  if [ -z "$ANTHROPIC_API_KEY" ]; then
+                    echo "::notice::ANTHROPIC_API_KEY is not set, so the Build Agent is paused. Nothing ran."
+                    echo "PAUSED=1" >> "$GITHUB_ENV"
+                  fi
             - uses: actions/checkout@v4
+              if: env.PAUSED != '1'
               with:
                   fetch-depth: 0
             - uses: actions/setup-node@v4
+              if: env.PAUSED != '1'
               with:
                   node-version: '22'
                   cache: 'npm'
             - run: npm ci
+              if: env.PAUSED != '1'
             - run: npx playwright install --with-deps chromium
+              if: env.PAUSED != '1'
             - name: Gather context
+              if: env.PAUSED != '1'
               run: node agent/context.mjs --site "$SITE" > "$AGENT_CONTEXT" && cat "$AGENT_CONTEXT"
             - name: Proof builds today's feature (Claude Code, headless)
+              if: env.PAUSED != '1'
               env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
               run: |
@@ -53,17 +67,21 @@ jobs:
                     > "$RUNNER_TEMP/claude-result.json"
                   node -e "const r=require(process.argv[1]);console.log('turns',r.num_turns,'cost $',r.total_cost_usd,'error',r.is_error)" "$RUNNER_TEMP/claude-result.json"
             - name: Guard (allowed paths only)
+              if: env.PAUSED != '1'
               run: node scripts/guard-paths.mjs origin/main
             - name: Gates
+              if: env.PAUSED != '1'
               run: |
                   npm run check
                   node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
                   node game/scripts/determinism.mjs --engines chromium --seeds 3
             - name: Record measured cost in the devlog
+              if: env.PAUSED != '1'
               run: |
                   N=$(node -p "require(process.env.AGENT_CONTEXT).build")
                   node agent/record-cost.mjs "$RUNNER_TEMP/claude-result.json" "devlog/build-$N.md"
             - name: Open PR, run CI on it, merge on green, deploy
+              if: env.PAUSED != '1'
               # GITHUB_TOKEN can't trigger workflows through push or PR events, but it can dispatch them.
               # So: dispatch CI on the agent branch (its checks count for the PR), enable auto-merge, wait for
               # the merge, then dispatch the deploy. No long-lived token exists for this.

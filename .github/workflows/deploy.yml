@@ -29,6 +29,12 @@ jobs:
             CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
             SITE: https://bearproof.app
         steps:
+            - name: Check credentials
+              run: |
+                  if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+                    echo "::notice::CLOUDFLARE_API_TOKEN is not set: deploys run from the operator's machine until it is."
+                    echo "PAUSED=1" >> "$GITHUB_ENV"
+                  fi
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
@@ -44,6 +50,7 @@ jobs:
                   node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
                   node game/scripts/determinism.mjs --engines chromium --seeds 3
             - name: Cut a build if game/ changed
+              if: env.PAUSED != '1'
               run: |
                   git config user.name "release-bot"
                   git config user.email "release@bearproof.invalid"
@@ -52,9 +59,13 @@ jobs:
                   if [ "${{ inputs.activate_now }}" = "true" ] || [ "$MODE" = "bootstrap" ]; then FLAGS="$FLAGS --now"; fi
                   node scripts/release.mjs $FLAGS ${MODE:+--mode $MODE}
             - run: npm run build
+              if: env.PAUSED != '1'
             - run: npx wrangler d1 migrations apply bearproof-db --remote
+              if: env.PAUSED != '1'
             - run: npx wrangler deploy
+              if: env.PAUSED != '1'
             - name: Live check
+              if: env.PAUSED != '1'
               run: |
                   curl -fsS "$SITE/api/health"
                   curl -fsS -o /dev/null -w "%{http_code} /play -> %{redirect_url}\n" "$SITE/play"

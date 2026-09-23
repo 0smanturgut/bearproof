@@ -117,3 +117,7 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
 - [x] HQ live with honest pre-launch states. Holder voting, treasury feed, ledger and prize payouts are built and
       tested, and switch on when the values from step 6 arrive.
 - [x] Run verifier running every 10 minutes (GitHub Actions).
+- [x] Runs go on the board the moment they end; the prize address is asked on the game-over screen (no wallet
+      connection); desktop SHARE opens a share screen (card, Post on X, Copy, Save image).
+- [x] Ballot: the AI's three proposals plus holders' own requests (≥ 100,000 $BPROOF, one a day). Switches on with
+      the coin, like voting. Abusive requests can be hidden with one command (docs/API.md, operator endpoint).

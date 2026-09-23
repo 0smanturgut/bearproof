@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1500px;
+                height: 600px;
+                overflow: hidden;
+                background: #06080b;
+                color: #eaf0f5;
+                font-family: 'JetBrains Mono', monospace;
+            }
+            /* X Article cover, 5:2. Day 0 (the upstream game) against today's build, split on a diagonal. */
+            .panel {
+                position: absolute;
+                top: 0;
+                height: 600px;
+                overflow: hidden;
+            }
+            .panel img {
+                position: absolute;
+                display: block;
+            }
+            .before {
+                left: 0;
+                width: 820px;
+            }
+            /* Zoomed so the upstream HP bar and kill counter fall outside the frame. */
+            .before img {
+                width: 1104px;
+                height: 690px;
+                left: -60px;
+                top: -20px;
+                filter: grayscale(0.35) brightness(0.72);
+            }
+            .after {
+                left: 700px;
+                width: 800px;
+                clip-path: polygon(120px 0, 100% 0, 100% 100%, 0 100%);
+            }
+            /* build-2.jpg is letterboxed (content from y 80 to 635 of 720): scale that band to 600 px. */
+            .after img {
+                width: 1384px;
+                height: 778px;
+                top: -87px;
+                left: -300px;
+            }
+            .shade {
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(180deg, rgba(6, 8, 11, 0.9) 0, rgba(6, 8, 11, 0) 170px),
+                    linear-gradient(0deg, rgba(6, 8, 11, 0.94) 0, rgba(6, 8, 11, 0) 210px);
+            }
+            svg.cut {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .top {
+                position: absolute;
+                left: 50%;
+                top: 30px;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 14px 26px 12px 20px;
+                background: rgba(6, 8, 11, 0.92);
+                box-shadow:
+                    inset 0 0 0 2px #1d3b30,
+                    0 0 40px rgba(0, 0, 0, 0.6);
+            }
+            .top canvas {
+                image-rendering: pixelated;
+                filter: drop-shadow(0 0 14px rgba(22, 224, 138, 0.5));
+            }
+            .top b {
+                font: 400 64px/1 'Jersey 10';
+                color: #16e08a;
+                text-shadow:
+                    0 5px 0 #06261f,
+                    0 0 30px rgba(22, 224, 138, 0.4);
+            }
+            .label {
+                position: absolute;
+                bottom: 40px;
+            }
+            .label.l {
+                left: 56px;
+            }
+            .label.r {
+                right: 56px;
+                text-align: right;
+            }
+            .label h2 {
+                margin: 0;
+                font: 400 92px/0.8 'Jersey 10';
+                text-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
+            }
+            .label.l h2 {
+                color: #9aa6b2;
+            }
+            .label.r h2 {
+                color: #16e08a;
+                text-shadow:
+                    0 6px 0 #06261f,
+                    0 0 40px rgba(22, 224, 138, 0.45);
+            }
+            .label p {
+                margin: 14px 0 0;
+                font-size: 22px;
+                color: #c9d2dc;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="panel before"><img src="/hq/assets/compare/build-0.jpg" alt="" /></div>
+        <div class="panel after"><img src="/hq/assets/builds/build-2.jpg" alt="" /></div>
+        <div class="shade"></div>
+        <svg class="cut" width="1500" height="600" viewBox="0 0 1500 600">
+            <defs>
+                <filter id="g" x="-50%" y="-10%" width="200%" height="120%">
+                    <feGaussianBlur stdDeviation="7" />
+                </filter>
+            </defs>
+            <line
+                x1="820"
+                y1="0"
+                x2="700"
+                y2="600"
+                stroke="#16e08a"
+                stroke-width="10"
+                filter="url(#g)"
+                opacity="0.7"
+            />
+            <line x1="820" y1="0" x2="700" y2="600" stroke="#16e08a" stroke-width="4" />
+        </svg>
+        <div class="top">
+            <canvas id="mark"></canvas>
+            <b>BEARPROOF</b>
+        </div>
+        <div class="label l">
+            <h2>DAY 0</h2>
+            <p>The open-source game I started from</p>
+        </div>
+        <div class="label r">
+            <h2>DAY 2</h2>
+            <p>Build #2. Every sprite drawn by code</p>
+        </div>
+        <script type="module">
+            import { bakeSprite } from '/scripts/og/lib/scene.js';
+            const m = bakeSprite('emblem_large', 2)[0];
+            const mc = document.getElementById('mark');
+            mc.width = m.width;
+            mc.height = m.height;
+            mc.getContext('2d').drawImage(m, 0, 0);
+            await Promise.all([...document.images].map((i) => i.decode()));
+            window.ready = true;
+        </script>
+    </body>
+</html>

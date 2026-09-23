@@ -3,6 +3,8 @@
 // Usage: node scripts/og/render.mjs
 //   → hq/assets/og.png                       1200×630 social card (hq-card.html)
 //   → hq/assets/brand/{coin,avatar,banner}.png  launch package (brand/*.html)
+//   → hq/assets/brand/article-cover.png      1500×600 X Article cover (brand/article.html)
+// Pass names to render only some: node scripts/og/render.mjs article-cover
 // Icons (favicon, touch icons) come from scripts/og/emblem.mjs.
 import fs from 'node:fs';
 import http from 'node:http';
@@ -16,6 +18,7 @@ const MIME = {
     '.html': 'text/html',
     '.js': 'text/javascript',
     '.svg': 'image/svg+xml',
+    '.jpg': 'image/jpeg',
     '.woff2': 'font/woff2'
 };
 const server = http.createServer((req, res) => {
@@ -33,8 +36,11 @@ const jobs = [
     ['scripts/og/hq-card.html', 'hq/assets/og.png', 1200, 630],
     ['scripts/og/brand/coin.html', 'hq/assets/brand/coin.png', 1000, 1000],
     ['scripts/og/brand/avatar.html', 'hq/assets/brand/avatar.png', 400, 400],
-    ['scripts/og/brand/banner.html', 'hq/assets/brand/banner.png', 1500, 500]
-];
+    ['scripts/og/brand/banner.html', 'hq/assets/brand/banner.png', 1500, 500],
+    ['scripts/og/brand/article.html', 'hq/assets/brand/article-cover.png', 1500, 600]
+].filter(
+    ([, out]) => !process.argv[2] || process.argv.slice(2).includes(path.basename(out, '.png'))
+);
 const browser = await launch('chromium');
 for (const [src, out, w, h] of jobs) {
     const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });

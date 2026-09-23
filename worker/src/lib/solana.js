@@ -18,15 +18,13 @@ import {
     createTransferCheckedInstruction,
     getAssociatedTokenAddressSync
 } from '@solana/spl-token';
+import { rpcUrl } from './rpc.js';
 import { base58Decode } from './vote.js';
 
 export const WSOL = 'So11111111111111111111111111111111111111112';
 const JUP = 'https://lite-api.jup.ag/swap/v1';
 
-export function rpcUrl(env) {
-    if (env.HELIUS_API_KEY) return `https://mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`;
-    return env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
-}
+export { rpcUrl };
 
 export function connection(env) {
     return new Connection(rpcUrl(env), { commitment: 'confirmed', disableRetryOnRateLimit: false });

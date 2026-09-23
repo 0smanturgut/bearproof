@@ -10,11 +10,12 @@
  */
 
 import { BUILDS } from '../manifest.js';
-import { buildForDate } from '../lib/builds.js';
+import { liveBuild } from '../lib/builds.js';
 import { all, buildOverride } from '../lib/db.js';
 import { isDateKey, utcDate } from '../lib/daily.js';
 import { clientIp, ipKey, underLimit } from '../lib/guard.js';
 import { error, json, readJson } from '../lib/http.js';
+import { rpcUrl } from '../lib/rpc.js';
 import {
     MIN_TOKENS_TO_VOTE,
     isWallet,
@@ -26,19 +27,21 @@ import {
 } from '../lib/vote.js';
 
 async function poll(env, date) {
-    const live = buildForDate(BUILDS, date, await buildOverride(env));
+    const { open, close } = pollWindow(date);
+    // The poll belongs to the build that is live while it runs (at close for past polls), so a build that
+    // shipped mid-day still gets its own vote.
+    const live = liveBuild(BUILDS, Math.min(Date.now(), close - 1), await buildOverride(env));
     if (!live) return null;
     const proposals = (live.proposals || []).map((p) => ({
         id: p.id,
         title: p.title,
         description: p.description
     }));
-    const { open, close } = pollWindow(date);
     return { date, forBuild: live.n + 1, fromBuild: live.n, proposals, open, close };
 }
 
 async function tokenBalance(env, wallet) {
-    const res = await fetch(`https://mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`, {
+    const res = await fetch(rpcUrl(env), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -115,8 +118,7 @@ export async function voteResult(request, env) {
 }
 
 export async function castVote(request, env) {
-    if (!env.TOKEN_MINT || !env.HELIUS_API_KEY)
-        return error(503, 'not_live', 'Voting opens when the coin launches.');
+    if (!env.TOKEN_MINT) return error(503, 'not_live', 'Voting opens when the coin launches.');
     const { data, error: bad } = await readJson(request, 4096);
     if (bad) return bad;
     const { wallet, proposalId, nonce, issuedAt, signature } = data || {};

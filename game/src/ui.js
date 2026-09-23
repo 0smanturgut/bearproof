@@ -83,6 +83,7 @@ export class UI {
         if (id === 'screenLevel') $('toast').classList.remove('show');
         const inGame = id === null || id === 'screenLevel';
         $('hud').hidden = !(inGame || id === 'screenPause');
+        document.body.classList.toggle('no-hud', $('hud').hidden);
         this.hud.loadout.hidden = $('hud').hidden;
         if (id) {
             const first =
@@ -207,6 +208,7 @@ export class UI {
 
     bossIntro(name, tagline, id) {
         const card = $('bossCard');
+        $('toast').classList.remove('show');
         const portrait = $('bossPortrait');
         portrait.hidden = !id;
         if (id) paintIcon(portrait, id, 4);

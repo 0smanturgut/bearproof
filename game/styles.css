@@ -798,6 +798,7 @@ body {
     animation: blink 0.5s steps(2) 4;
 }
 .boss-title {
+    text-transform: uppercase;
     font: 400 clamp(52px, 13vw, 104px) / 0.85 var(--display);
     color: var(--bear);
     text-shadow:
@@ -1688,4 +1689,9 @@ body.attract .hint-move {
 #btnSound.muted .mute {
     display: inline;
     fill: var(--bear);
+}
+body.no-hud .bossbar,
+body.no-hud .loadout,
+body.no-hud .hint-move {
+    display: none;
 }

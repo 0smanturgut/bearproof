@@ -1076,6 +1076,34 @@
                     </div>
                     <div class="screen" id="screen">
                         <canvas id="poster" aria-hidden="true"></canvas>
+                        <!-- Day 0 vs now: the untouched original, clipped left of a sweeping divider. -->
+                        <div class="then" id="then" hidden>
+                            <video
+                                muted
+                                playsinline
+                                loop
+                                preload="none"
+                                poster="/assets/compare/build-0.jpg"
+                                aria-hidden="true"
+                                tabindex="-1"
+                            >
+                                <source src="/assets/compare/build-0.mp4" type="video/mp4" />
+                            </video>
+                        </div>
+                        <div
+                            class="then-handle"
+                            id="thenHandle"
+                            role="slider"
+                            tabindex="0"
+                            aria-label="Compare the original game (left) with today's build (right)"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-valuenow="50"
+                            hidden
+                        >
+                            <span class="then-tag l">Day 0</span><i aria-hidden="true"></i
+                            ><span class="then-tag r" id="thenNow">Now</span>
+                        </div>
                         <div class="poster-ui" id="posterUi">
                             <div class="poster-top">
                                 <span class="chip" id="posterChip"
@@ -1225,48 +1253,6 @@
                         <p class="state-k">Reading the build manifest…</p>
                     </div>
                 </div>
-                <figure class="compare" id="compare">
-                    <figcaption class="cmp-head">
-                        <h3>What the AI changed</h3>
-                        <span
-                            >Build #0, the open-source original, next to Build #2. Drag to
-                            compare.</span
-                        >
-                    </figcaption>
-                    <div class="cmp-stage">
-                        <img
-                            class="cmp-img"
-                            src="/assets/compare/build-2.jpg"
-                            alt="Build #2: a pixel-art bull fighting bears on a candlestick chart, damage numbers flying"
-                            width="1200"
-                            height="675"
-                            loading="lazy"
-                            decoding="async"
-                        />
-                        <div class="cmp-before">
-                            <img
-                                class="cmp-img"
-                                src="/assets/compare/build-0.jpg"
-                                alt="Build #0: the original game, coloured circles on a plain grid"
-                                width="1200"
-                                height="675"
-                                loading="lazy"
-                                decoding="async"
-                            />
-                        </div>
-                        <span class="cmp-tag l">#0 <span class="cmp-long">· original</span></span>
-                        <span class="cmp-tag r">#2 <span class="cmp-long">· by the AI</span></span>
-                        <span class="cmp-handle" aria-hidden="true"><i></i></span>
-                        <input
-                            class="cmp-range"
-                            type="range"
-                            min="0"
-                            max="100"
-                            value="50"
-                            aria-label="Slide between Build #0 and Build #2"
-                        />
-                    </div>
-                </figure>
                 <div class="tl-head">
                     <h3>Build history</h3>
                     <p>Every build stays playable. That's the proof of work.</p>

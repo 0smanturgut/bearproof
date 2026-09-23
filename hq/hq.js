@@ -822,6 +822,7 @@ function mountGame(n) {
                     () => {
                         if (poster) poster.stop();
                         $('#posterUi').hidden = true;
+                        startThen();
                     },
                     { once: true }
                 );
@@ -831,6 +832,83 @@ function mountGame(n) {
         );
     if (document.readyState === 'complete') go();
     else addEventListener('load', go, { once: true });
+}
+
+/**
+ * Day 0 vs now, over the live view: Build #0's gameplay (a short loop) on the left of a divider that sweeps
+ * back and forth on its own. Drag it (or use the arrow keys) to take over; it resumes after a few seconds.
+ * Only runs with the live game, so reduced-motion and Save-Data visitors never get it.
+ */
+function startThen() {
+    const then = $('#then');
+    const handle = $('#thenHandle');
+    if (!then || !handle || then.dataset.on) return;
+    then.dataset.on = '1';
+    const screen = $('#screen');
+    const video = $('video', then);
+    const n = mountedN;
+    $('#thenNow').textContent = isNum(n) ? `Now · #${n}` : 'Now';
+    then.hidden = false;
+    handle.hidden = false;
+    let x = 50;
+    let phase = 0;
+    let dragging = false;
+    let idleUntil = 0;
+    let visible = true;
+    let last = performance.now();
+    const AMP = 34;
+    const set = (v) => {
+        x = Math.max(2, Math.min(98, v));
+        screen.style.setProperty('--x', `${x}%`);
+        handle.setAttribute('aria-valuenow', String(Math.round(x)));
+    };
+    const resume = () => {
+        idleUntil = performance.now() + 4000;
+        phase = Math.asin(Math.max(-1, Math.min(1, (x - 50) / AMP)));
+    };
+    const frame = (t) => {
+        const dt = Math.min(100, t - last);
+        last = t;
+        if (visible && !dragging && t > idleUntil) {
+            phase += (dt / 10000) * Math.PI * 2;
+            set(50 + AMP * Math.sin(phase));
+        }
+        requestAnimationFrame(frame);
+    };
+    const fromEvent = (e) => {
+        const r = screen.getBoundingClientRect();
+        set(((e.clientX - r.left) / r.width) * 100);
+    };
+    handle.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        dragging = true;
+        handle.setPointerCapture(e.pointerId);
+        fromEvent(e);
+    });
+    handle.addEventListener('pointermove', (e) => dragging && fromEvent(e));
+    const up = () => {
+        if (!dragging) return;
+        dragging = false;
+        resume();
+    };
+    handle.addEventListener('pointerup', up);
+    handle.addEventListener('pointercancel', up);
+    handle.addEventListener('keydown', (e) => {
+        const step = e.key === 'ArrowLeft' ? -6 : e.key === 'ArrowRight' ? 6 : 0;
+        if (!step) return;
+        e.preventDefault();
+        set(x + step);
+        resume();
+    });
+    if ('IntersectionObserver' in window)
+        new IntersectionObserver((es) => {
+            visible = es[es.length - 1].isIntersecting;
+            if (visible) video.play().catch(() => {});
+            else video.pause();
+        }).observe(screen);
+    video.play().catch(() => {});
+    set(50);
+    requestAnimationFrame(frame);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -946,7 +1024,6 @@ function renderToday(live, d, now) {
                     modeBadge(live.mode)
                 )
             ),
-            d && d.clip ? clipBox(d.clip, live.n) : null,
             h(
                 'div',
                 { class: 'feat-body' },
@@ -979,39 +1056,6 @@ function renderToday(live, d, now) {
                 )
             )
         )
-    );
-}
-
-/** A build's clip: poster first, plays only while on screen (never downloads with the page). */
-function clipBox(src, n) {
-    if (!/^\/assets\/builds\/[a-z0-9-]+\.(mp4|webm)$/.test(src)) return null;
-    const v = h('video', {
-        class: 'feat-clip',
-        src,
-        poster: src.replace(/\.(mp4|webm)$/, '.jpg'),
-        muted: '',
-        loop: '',
-        playsinline: '',
-        preload: 'none',
-        'aria-label': `Autopilot footage of Build #${n}`
-    });
-    v.muted = true;
-    if (
-        !matchMedia('(prefers-reduced-motion: reduce)').matches &&
-        'IntersectionObserver' in window
-    ) {
-        new IntersectionObserver((es) => {
-            for (const e of es) {
-                if (e.isIntersecting) v.play().catch(() => {});
-                else v.pause();
-            }
-        }).observe(v);
-    } else v.controls = true;
-    return h(
-        'figure',
-        { class: 'feat-media' },
-        v,
-        h('figcaption', null, `Build #${n}, played by the autopilot`)
     );
 }
 

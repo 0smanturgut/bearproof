@@ -2119,153 +2119,6 @@ details.more .wtable {
     }
 }
 
-/* ---- Day 0 vs today: before/after slider ---- */
-.compare {
-    margin: 28px 0 36px;
-}
-.cmp-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 4px 16px;
-    margin-bottom: 12px;
-}
-.cmp-head h3 {
-    margin: 0;
-    font: 400 32px/1 var(--display);
-}
-.cmp-head span {
-    font-size: 12px;
-    color: var(--muted);
-}
-.cmp-stage {
-    --x: 50%;
-    position: relative;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-    border: 1px solid var(--line-2);
-    background: #06080b;
-    box-shadow: 0 30px 80px -30px rgba(22, 224, 138, 0.25);
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: pan-y;
-}
-.cmp-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    pointer-events: none;
-}
-.cmp-before {
-    position: absolute;
-    inset: 0;
-    clip-path: inset(0 calc(100% - var(--x)) 0 0);
-    filter: saturate(0.9);
-}
-.cmp-handle {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--x);
-    width: 2px;
-    margin-left: -1px;
-    background: var(--bull);
-    box-shadow: 0 0 18px var(--bull);
-    pointer-events: none;
-}
-.cmp-handle i {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 38px;
-    height: 38px;
-    transform: translate(-50%, -50%);
-    background: var(--bull);
-    box-shadow:
-        0 0 0 3px #06080b,
-        0 0 24px rgba(22, 224, 138, 0.6);
-    clip-path: polygon(
-        0 50%,
-        22% 20%,
-        22% 38%,
-        78% 38%,
-        78% 20%,
-        100% 50%,
-        78% 80%,
-        78% 62%,
-        22% 62%,
-        22% 80%
-    );
-}
-.cmp-tag {
-    position: absolute;
-    top: 12px;
-    padding: 4px 8px 5px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    background: rgba(6, 8, 11, 0.78);
-    border: 1px solid var(--line-2);
-    pointer-events: none;
-}
-.cmp-tag.l {
-    left: 12px;
-    color: var(--muted);
-}
-.cmp-tag::before {
-    content: 'Build ';
-}
-.cmp-tag.r {
-    right: 12px;
-    color: var(--bull);
-    border-color: rgba(22, 224, 138, 0.5);
-}
-.cmp-range {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    opacity: 0;
-    cursor: ew-resize;
-    -webkit-appearance: none;
-    appearance: none;
-}
-.cmp-range:focus-visible + .cmp-handle,
-.cmp-stage:focus-within .cmp-handle i {
-    box-shadow:
-        0 0 0 3px #06080b,
-        0 0 0 5px var(--gold);
-}
-@media (max-width: 520px) {
-    .cmp-stage {
-        aspect-ratio: 4 / 3;
-    }
-    .cmp-head h3 {
-        font-size: 26px;
-    }
-    .cmp-tag {
-        font-size: 9.5px;
-        top: 8px;
-    }
-    .cmp-tag.l {
-        left: 8px;
-    }
-    .cmp-tag.r {
-        right: 8px;
-    }
-}
-
-@media (max-width: 420px) {
-    .cmp-tag::before {
-        content: '';
-    }
-}
-
 /* Wallets before they exist: one compact row */
 .wallets.none {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2315,4 +2168,93 @@ details.more .wtable {
     .ll-short {
         display: inline;
     }
+}
+
+/* ---- Hero: Day 0 vs now. Build #0 gameplay (video) clipped left of a divider that sweeps over the live build. */
+.then {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    clip-path: inset(0 calc(100% - var(--x, 50%)) 0 0);
+    pointer-events: none;
+    background: #10121a;
+}
+.then video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.then-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--x, 50%);
+    z-index: 4;
+    width: 44px;
+    margin-left: -22px;
+    cursor: ew-resize;
+    touch-action: none;
+    outline: none;
+}
+.then-handle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--bull);
+    box-shadow: 0 0 14px var(--bull);
+}
+.then-handle i {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    width: 34px;
+    height: 34px;
+    transform: translate(-50%, -50%);
+    background: var(--bull);
+    box-shadow:
+        0 0 0 3px #06080b,
+        0 0 22px rgba(22, 224, 138, 0.7);
+    clip-path: polygon(
+        0 50%,
+        24% 18%,
+        24% 38%,
+        76% 38%,
+        76% 18%,
+        100% 50%,
+        76% 82%,
+        76% 62%,
+        24% 62%,
+        24% 82%
+    );
+}
+.then-handle:focus-visible i {
+    background: var(--gold);
+}
+.then-tag {
+    position: absolute;
+    top: 70%;
+    transform: translateY(-50%);
+    padding: 4px 7px 5px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background: rgba(6, 8, 11, 0.82);
+    border: 1px solid var(--line-2);
+    pointer-events: none;
+}
+.then-tag.l {
+    right: 44px;
+    color: var(--muted);
+}
+.then-tag.r {
+    left: 44px;
+    color: var(--bull);
+    border-color: rgba(22, 224, 138, 0.5);
 }

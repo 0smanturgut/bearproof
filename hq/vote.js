@@ -215,7 +215,10 @@
 
     async function load() {
         try {
-            const r = await fetch('/api/vote', { headers: { accept: 'application/json' } });
+            const r = await fetch('/api/vote', {
+                headers: { accept: 'application/json' },
+                cache: 'no-cache'
+            });
             if (!r.ok) return;
             const data = await r.json();
             // Before the coin launches the designed empty state (in the HTML) stays.

@@ -63,13 +63,32 @@ export async function readJson(request, maxBytes) {
 /**
  * Wrap a read handler with the edge cache (per-colo) for `seconds`. `keyUrl` overrides the cache key, so
  * junk query strings can't be used to skip the cache.
+ *
+ * A Cache API hit comes back with the zone's Browser Cache TTL (4 h) in place of our Cache-Control, which
+ * would freeze live numbers in browsers for hours. So the original header travels with the cached copy
+ * (x-origin-cache-control) and is put back on every hit.
  */
 export async function edgeCached(request, ctx, seconds, produce, keyUrl = null) {
     const cache = caches.default;
     const key = new Request(keyUrl || new URL(request.url).toString(), { method: 'GET' });
     const hit = await cache.match(key);
-    if (hit) return hit;
+    if (hit) {
+        const out = new Response(hit.body, hit);
+        out.headers.set(
+            'cache-control',
+            hit.headers.get('x-origin-cache-control') || `public, max-age=${seconds}`
+        );
+        out.headers.delete('x-origin-cache-control');
+        return out;
+    }
     const res = await produce();
-    if (res.status === 200) ctx.waitUntil(cache.put(key, res.clone()));
+    if (res.status === 200) {
+        const stored = new Response(res.clone().body, res);
+        stored.headers.set(
+            'x-origin-cache-control',
+            res.headers.get('cache-control') || `public, max-age=${seconds}`
+        );
+        ctx.waitUntil(cache.put(key, stored));
+    }
     return res;
 }

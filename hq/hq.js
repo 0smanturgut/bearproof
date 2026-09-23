@@ -55,6 +55,7 @@ async function getJSON(url, timeoutMs = 8000) {
         const res = await fetch(url, {
             headers: { accept: 'application/json' },
             credentials: 'same-origin',
+            cache: 'no-cache', // always revalidate: live numbers must never come from a stale browser copy
             signal: ctl ? ctl.signal : undefined
         });
         if (!res.ok) return null;

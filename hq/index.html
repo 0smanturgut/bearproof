@@ -11,6 +11,7 @@
             content="An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it."
         />
         <link rel="icon" type="image/svg+xml" href="/assets/patch.svg" />
+        <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="PATCH" />
         <meta property="og:title" content="PATCH · An AI is building a game on its own budget" />
@@ -21,6 +22,10 @@
         <meta property="og:image" content="/assets/og.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta
+            property="og:image:alt"
+            content="PATCH / BULL RUN. An AI is building a game on its own budget."
+        />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="PATCH · An AI is building a game on its own budget" />
         <meta
@@ -35,6 +40,14 @@
             type="font/woff2"
             crossorigin
         />
+        <link
+            rel="preload"
+            href="/assets/fonts/jetbrains-mono-400.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <!-- Critical (above-the-fold) CSS is inline. Everything below the fold lives in /hq.css. -->
         <style>
             @font-face {
                 font-family: 'Jersey 10';
@@ -59,16 +72,22 @@
                 --panel-2: #131922;
                 --grid: #1b222b;
                 --line: #252e3a;
+                --line-2: #34404f;
                 --bull: #16e08a;
                 --bull-deep: #0a8f55;
                 --bear: #ff3b5c;
+                --bear-deep: #8f1f33;
                 --gold: #ffc53d;
+                --gold-deep: #b07a00;
                 --info: #46c8ff;
                 --text: #e8edf2;
+                --text-2: #c9d2dc;
                 --muted: #7d8896;
+                --dim: #5f6b7a;
                 --display: 'Jersey 10', 'Courier New', monospace;
                 --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
                 --gutter: clamp(16px, 4vw, 40px);
+                --bar-h: 56px;
             }
             * {
                 box-sizing: border-box;
@@ -76,6 +95,8 @@
             html {
                 background: var(--ink);
                 -webkit-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+                scroll-padding-top: calc(var(--bar-h) + 12px);
             }
             body {
                 margin: 0;
@@ -84,9 +105,51 @@
                 font: 400 15px/1.55 var(--mono);
                 min-height: 100vh;
                 overflow-x: hidden;
+                -webkit-tap-highlight-color: transparent;
             }
             a {
                 color: inherit;
+            }
+            img,
+            svg,
+            canvas {
+                display: block;
+            }
+            button {
+                font: inherit;
+                color: inherit;
+            }
+            :focus-visible {
+                outline: 2px solid var(--gold);
+                outline-offset: 3px;
+            }
+            [hidden] {
+                display: none !important;
+            }
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+                white-space: nowrap;
+                border: 0;
+            }
+            .skip {
+                position: absolute;
+                left: 12px;
+                top: -60px;
+                z-index: 100;
+                padding: 12px 16px;
+                background: var(--gold);
+                color: var(--ink);
+                font-weight: 700;
+                text-decoration: none;
+            }
+            .skip:focus {
+                top: 12px;
             }
             .chart-bg {
                 position: fixed;
@@ -97,113 +160,368 @@
                     linear-gradient(var(--grid) 1px, transparent 1px),
                     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
                 background-size: 40px 40px;
-                mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.15) 70%);
-                -webkit-mask-image: linear-gradient(
-                    to bottom,
-                    rgba(0, 0, 0, 0.9),
-                    rgba(0, 0, 0, 0.15) 70%
-                );
+                background-position: -1px -1px;
+                mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.35) 90vh);
+                -webkit-mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.35) 90vh);
             }
             .wrap {
                 position: relative;
                 z-index: 1;
-                max-width: 1120px;
+                max-width: 1200px;
                 margin: 0 auto;
-                padding: 0 var(--gutter);
+                padding-left: max(var(--gutter), env(safe-area-inset-left));
+                padding-right: max(var(--gutter), env(safe-area-inset-right));
             }
-            header.top {
+
+            /* ---- Top bar (sticky, fixed height: never shifts layout) ---- */
+            .bar {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                height: var(--bar-h);
+                border-bottom: 1px solid transparent;
+                transition:
+                    background-color 160ms linear,
+                    border-color 160ms linear;
+            }
+            .bar.scrolled {
+                background: var(--ink);
+                border-bottom-color: var(--line);
+            }
+            .bar-in {
+                height: 100%;
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                padding: 18px 0;
+                gap: 16px;
             }
             .brand {
                 display: flex;
                 align-items: center;
                 gap: 10px;
+                min-height: 44px;
                 text-decoration: none;
+                flex: none;
             }
             .brand img {
-                width: 30px;
-                height: 30px;
+                width: 28px;
+                height: 28px;
                 image-rendering: pixelated;
             }
             .brand b {
-                font: 400 34px/1 var(--display);
+                font: 400 32px/1 var(--display);
                 letter-spacing: 0.02em;
             }
             .brand span {
                 font: 400 22px/1 var(--display);
                 color: var(--muted);
             }
+            .nav {
+                display: none;
+                margin: 0 auto;
+                gap: 2px;
+            }
+            .nav a {
+                display: inline-flex;
+                align-items: center;
+                min-height: 44px;
+                padding: 0 10px;
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: var(--muted);
+                text-decoration: none;
+            }
+            .nav a:hover {
+                color: var(--text);
+            }
+            .bar-r {
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .pill-x {
+                display: none;
+            }
             .pill {
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
-                padding: 6px 10px;
+                height: 30px;
+                padding: 0 10px;
                 border: 1px solid var(--line);
                 background: var(--panel);
-                font-size: 12px;
+                font-size: 11px;
                 letter-spacing: 0.08em;
                 text-transform: uppercase;
                 white-space: nowrap;
             }
             .dot {
+                display: inline-block;
                 width: 8px;
                 height: 8px;
+                flex: none;
                 background: var(--bull);
                 box-shadow: 0 0 10px var(--bull);
                 animation: blink 1.6s steps(2, jump-none) infinite;
+            }
+            .dot.off {
+                background: var(--muted);
+                box-shadow: none;
+                animation: none;
             }
             @keyframes blink {
                 50% {
                     opacity: 0.25;
                 }
             }
+            .bar-play {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                height: 44px;
+                padding: 0 16px 2px;
+                background: var(--bull);
+                color: var(--ink);
+                font: 400 26px/1 var(--display);
+                letter-spacing: 0.06em;
+                text-decoration: none;
+                box-shadow: 3px 3px 0 var(--bull-deep);
+                visibility: hidden;
+                opacity: 0;
+                transform: translateY(-6px);
+                transition:
+                    opacity 140ms ease,
+                    transform 140ms ease,
+                    visibility 0s linear 140ms;
+            }
+            .bar.cta-off .bar-play {
+                visibility: visible;
+                opacity: 1;
+                transform: none;
+                transition:
+                    opacity 140ms ease,
+                    transform 140ms ease;
+            }
+
+            /* ---- Hero ---- */
             .hero {
-                padding: clamp(28px, 7vw, 84px) 0 28px;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas: 'copy' 'mon' 'cta' 'board';
+                padding-top: clamp(16px, 4vw, 44px);
+            }
+            .h-copy {
+                grid-area: copy;
             }
             .eyebrow {
+                display: flex;
+                align-items: center;
+                gap: 10px;
                 color: var(--bull);
-                font-size: 12px;
+                font-size: 11px;
                 letter-spacing: 0.14em;
                 text-transform: uppercase;
-                margin: 0 0 18px;
+                margin: 0 0 14px;
             }
             h1 {
-                font: 400 clamp(52px, 12.5vw, 128px) / 0.86 var(--display);
+                font: 400 clamp(50px, 13.4vw, 104px) / 0.86 var(--display);
                 margin: 0;
-                max-width: 12ch;
                 letter-spacing: 0.005em;
+                text-wrap: balance;
             }
             h1 em {
                 font-style: normal;
                 color: var(--bull);
             }
             .sub {
-                margin: 22px 0 0;
-                font-size: clamp(15px, 2.2vw, 19px);
-                max-width: 40ch;
-                color: #c9d2dc;
+                margin: 16px 0 0;
+                font-size: clamp(14px, 3.73vw, 18px);
+                color: var(--text-2);
             }
-            .cta-row {
+            .sub span {
+                display: block;
+            }
+
+            /* The "monitor": a framed live view of the game. Size is reserved by aspect-ratio. */
+            .monitor {
+                grid-area: mon;
+                margin: 24px 0 0;
+                border: 1px solid var(--line-2);
+                background: var(--panel);
+                box-shadow: 6px 6px 0 #000;
+                min-width: 0;
+            }
+            .mon-bar {
                 display: flex;
-                flex-wrap: wrap;
                 align-items: center;
-                gap: 14px 22px;
-                margin: 34px 0 0;
+                gap: 10px;
+                height: 34px;
+                padding: 0 12px;
+                border-bottom: 1px solid var(--line-2);
+                background: var(--panel-2);
+                font-size: 11px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                white-space: nowrap;
             }
-            .play {
+            .mon-live {
                 display: inline-flex;
                 align-items: center;
+                gap: 7px;
+                color: var(--bull);
+                font-weight: 700;
+            }
+            .mon-title {
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                color: var(--text-2);
+            }
+            .mon-clock {
+                color: var(--muted);
+                font-variant-numeric: tabular-nums;
+            }
+            .screen {
+                position: relative;
+                aspect-ratio: 4 / 5;
+                overflow: hidden;
+                background-color: var(--ink);
+                background-image:
+                    linear-gradient(var(--grid) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+                background-size: 30px 30px;
+            }
+            .screen canvas,
+            .screen iframe {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+            }
+            .screen canvas {
+                image-rendering: pixelated;
+                image-rendering: crisp-edges;
+            }
+            .screen iframe {
+                pointer-events: none;
+                background: var(--ink);
+            }
+            .poster-ui {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 14px;
+                pointer-events: none;
+            }
+            .poster-ui a {
+                pointer-events: auto;
+            }
+            .chip {
+                align-self: flex-start;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px 7px;
+                background: var(--ink);
+                border: 1px solid var(--gold);
+                color: var(--gold);
+                font: 400 22px/1 var(--display);
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                box-shadow: 3px 3px 0 var(--gold-deep);
+            }
+            .cursor {
+                display: inline-block;
+                width: 0.45em;
+                height: 0.8em;
+                background: currentColor;
+                animation: blink 1s steps(2, jump-none) infinite;
+            }
+            .poster-cap {
+                margin: 0 -14px -14px;
+                padding: 9px 14px 10px 30px;
+                background: rgba(7, 9, 12, 0.92);
+                border-top: 1px solid var(--line-2);
+                font-size: 12px;
+                line-height: 1.5;
+                color: var(--text-2);
+                text-indent: -16px;
+            }
+            .poster-cap::before {
+                content: '>';
+                display: inline-block;
+                width: 16px;
+                text-indent: 0;
+                color: var(--gold);
+                font-weight: 700;
+            }
+            .poster-cap a {
+                color: var(--text);
+                text-underline-offset: 3px;
+            }
+            .poster-top {
+                display: grid;
+                justify-items: start;
+                gap: 10px;
+            }
+            .poster-sub {
+                margin: 0;
+                padding: 4px 8px;
+                background: rgba(7, 9, 12, 0.85);
+                font-size: 11px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+            .poster-sub b {
+                color: var(--gold);
+                font-weight: 400;
+                font-variant-numeric: tabular-nums;
+            }
+            .tap {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: flex-end;
+                justify-content: flex-end;
+                padding: 14px;
+                text-decoration: none;
+                z-index: 2;
+            }
+            .tap span {
+                padding: 9px 16px 11px;
+                background: var(--bull);
+                color: var(--ink);
+                font: 400 26px/1 var(--display);
+                letter-spacing: 0.08em;
+                box-shadow: 4px 4px 0 var(--bull-deep);
+            }
+            .tap:hover span,
+            .tap:focus-visible span {
+                transform: translate(-2px, -2px);
+                box-shadow: 6px 6px 0 var(--bull-deep);
+            }
+
+            .h-cta {
+                grid-area: cta;
+                margin-top: 28px;
+            }
+            .play {
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 gap: 14px;
-                min-height: 64px;
+                min-height: 68px;
                 padding: 10px 30px 12px;
                 background: var(--bull);
                 color: var(--ink);
                 text-decoration: none;
-                font: 400 42px/1 var(--display);
+                font: 400 46px/1 var(--display);
                 letter-spacing: 0.04em;
                 box-shadow: 6px 6px 0 var(--bull-deep);
                 transition:
@@ -223,45 +541,79 @@
                 height: 22px;
             }
             .cta-note {
+                margin: 14px 0 0;
                 color: var(--muted);
                 font-size: 13px;
             }
+
+            /* ---- Live numbers strip ---- */
+            .board-wrap {
+                grid-area: board;
+                margin-top: 36px;
+            }
+            .board-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                margin: 0 0 8px;
+                font-size: 11px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+            #updated {
+                text-transform: none;
+                letter-spacing: 0.04em;
+            }
+            .board-head b {
+                color: var(--text-2);
+                font-weight: 400;
+            }
             .board {
-                margin: 44px 0 0;
                 display: grid;
-                grid-template-columns: repeat(6, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 border: 1px solid var(--line);
                 background: var(--panel);
             }
             .cell {
-                padding: 14px 16px 16px;
+                padding: 14px 14px 14px;
                 border-right: 1px solid var(--line);
+                border-bottom: 1px solid var(--line);
                 min-width: 0;
             }
-            .cell:last-child {
+            .cell:nth-child(2n) {
                 border-right: 0;
+            }
+            .cell:nth-last-child(-n + 2) {
+                border-bottom: 0;
             }
             .cell .k {
                 font-size: 11px;
                 letter-spacing: 0.1em;
                 text-transform: uppercase;
                 color: var(--muted);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .cell .v {
-                font: 400 44px/1 var(--display);
+                font: 400 40px/1 var(--display);
+                height: 40px;
                 margin-top: 8px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
             .cell .v.empty {
-                color: #4a5563;
+                color: var(--dim);
             }
             .cell .n {
                 font-size: 11px;
+                line-height: 1.4;
                 color: var(--muted);
                 margin-top: 6px;
-                min-height: 1.4em;
+                min-height: 2.8em;
             }
             .v.bull {
                 color: var(--bull);
@@ -269,174 +621,200 @@
             .v.gold {
                 color: var(--gold);
             }
-            section.panel {
-                margin: 28px 0 0;
-                border: 1px solid var(--line);
-                background: var(--panel);
-                padding: 20px;
+            .v.flash {
+                animation: flash 900ms steps(6, end);
             }
-            section.panel h2 {
-                font: 400 30px/1 var(--display);
-                margin: 0 0 12px;
-                letter-spacing: 0.02em;
+            @keyframes flash {
+                0%,
+                40% {
+                    color: var(--ink);
+                    background: var(--bull);
+                }
             }
-            .now {
-                display: grid;
-                grid-template-columns: 1.3fr 1fr;
-                gap: 24px;
+
+            @media (min-width: 600px) {
+                .screen {
+                    aspect-ratio: 16 / 10;
+                }
+                .play {
+                    display: inline-flex;
+                }
+                .cell .n {
+                    min-height: 1.4em;
+                }
             }
-            .now p {
-                margin: 0 0 10px;
-                color: #c9d2dc;
-            }
-            .tag {
-                display: inline-block;
-                font-size: 11px;
-                padding: 2px 6px;
-                border: 1px solid currentColor;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                margin-right: 6px;
-            }
-            .tag.g {
-                color: var(--bull);
-            }
-            .tag.y {
-                color: var(--gold);
-            }
-            .tag.m {
-                color: var(--muted);
-            }
-            ul.split {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-            }
-            ul.split li {
-                padding: 7px 0;
-                border-top: 1px dashed var(--line);
-                font-size: 13px;
-                color: #c9d2dc;
-            }
-            ul.split li:first-child {
-                border-top: 0;
-            }
-            .cols {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 24px;
-            }
-            .cols h3 {
-                font-size: 12px;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                margin: 0 0 8px;
-            }
-            footer {
-                margin: 36px 0 0;
-                padding: 22px 0 40px;
-                border-top: 1px solid var(--line);
-                color: var(--muted);
-                font-size: 12px;
-                display: grid;
-                gap: 8px;
-            }
-            footer a {
-                color: var(--text);
-            }
-            @media (max-width: 900px) {
+            @media (min-width: 720px) {
                 .board {
-                    grid-template-columns: repeat(3, 1fr);
-                }
-                .cell:nth-child(3n) {
-                    border-right: 0;
-                }
-                .cell:nth-child(-n + 3) {
-                    border-bottom: 1px solid var(--line);
-                }
-                .now,
-                .cols {
-                    grid-template-columns: 1fr;
-                }
-            }
-            @media (max-width: 520px) {
-                .board {
-                    grid-template-columns: repeat(2, 1fr);
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
                 }
                 .cell,
-                .cell:nth-child(3n) {
+                .cell:nth-child(2n) {
                     border-right: 1px solid var(--line);
                     border-bottom: 1px solid var(--line);
                 }
-                .cell:nth-child(2n) {
+                .cell:nth-child(3n) {
                     border-right: 0;
                 }
-                .cell:nth-last-child(-n + 2) {
+                .cell:nth-last-child(-n + 3) {
                     border-bottom: 0;
                 }
+            }
+            @media (min-width: 960px) {
+                .hero {
+                    grid-template-columns: minmax(0, 4.4fr) minmax(0, 6fr);
+                    grid-template-areas: 'copy mon' 'cta mon' 'board board';
+                    grid-template-rows: auto 1fr auto;
+                    column-gap: clamp(32px, 4vw, 56px);
+                }
+                h1 {
+                    font-size: clamp(64px, 6.6vw, 92px);
+                }
+                .monitor {
+                    margin-top: 0;
+                    align-self: center;
+                }
+                .board-wrap {
+                    margin-top: 44px;
+                }
+                .board {
+                    grid-template-columns: repeat(6, minmax(0, 1fr));
+                }
+                .cell,
+                .cell:nth-child(2n),
+                .cell:nth-child(3n) {
+                    border-right: 1px solid var(--line);
+                    border-bottom: 0;
+                }
+                .cell:last-child {
+                    border-right: 0;
+                }
                 .cell .v {
-                    font-size: 38px;
+                    font-size: 44px;
+                    height: 44px;
                 }
-                .play {
-                    width: 100%;
-                    justify-content: center;
+            }
+            @media (min-width: 1100px) {
+                .nav {
+                    display: flex;
                 }
+                .bar-r {
+                    margin-left: 0;
+                }
+            }
+            @media (min-width: 560px) {
+                .pill-x {
+                    display: inline;
+                }
+            }
+            @media (max-width: 420px) {
                 .brand span {
                     display: none;
                 }
             }
             @media (prefers-reduced-motion: reduce) {
-                .dot {
+                .dot,
+                .cursor {
                     animation: none;
                 }
-                .play {
+                .play,
+                .bar,
+                .bar-play,
+                .bar.cta-off .bar-play {
                     transition: none;
+                }
+                .v.flash {
+                    animation: none;
                 }
             }
         </style>
+        <link rel="stylesheet" href="/hq.css" media="print" onload="this.media = 'all'" />
+        <noscript><link rel="stylesheet" href="/hq.css" /></noscript>
+        <script type="module" src="/hq.js"></script>
     </head>
     <body>
+        <a class="skip" href="#main">Skip to content</a>
         <div class="chart-bg" aria-hidden="true"></div>
-        <div class="wrap">
-            <header class="top">
-                <a class="brand" href="/" aria-label="PATCH home">
-                    <img src="/assets/patch.svg" alt="" width="30" height="30" />
+
+        <header class="bar" id="bar">
+            <div class="wrap bar-in">
+                <a class="brand" href="/" aria-label="PATCH / BULL RUN, home">
+                    <img src="/assets/patch.svg" alt="" width="28" height="28" />
                     <b>PATCH</b><span>/ BULL RUN</span>
                 </a>
-                <div class="pill">
-                    <i class="dot" aria-hidden="true"></i
-                    ><span id="dayPill">Day 1 of building</span>
+                <nav class="nav" aria-label="Sections">
+                    <a href="#build">Builds</a>
+                    <a href="#how">How it works</a>
+                    <a href="#vote">Vote</a>
+                    <a href="#challenge">Challenge</a>
+                    <a href="#receipts">Receipts</a>
+                    <a href="#coin">Coin</a>
+                    <a href="#faq">FAQ</a>
+                </nav>
+                <div class="bar-r">
+                    <span class="pill"
+                        ><i class="dot" id="pillDot" aria-hidden="true"></i
+                        ><span id="dayPill">Building</span></span
+                    >
+                    <a class="bar-play" href="/play">PLAY</a>
                 </div>
-            </header>
+            </div>
+        </header>
 
-            <main>
-                <section class="hero">
+        <main id="main">
+            <section class="hero wrap" aria-labelledby="heroTitle">
+                <div class="h-copy">
                     <p class="eyebrow">Live build log · Solana · AnsemHack</p>
-                    <h1>An AI is building a game <em>on its own budget.</em></h1>
+                    <h1 id="heroTitle">An AI is building a game <em>on its own budget.</em></h1>
                     <p class="sub">
-                        It ships a new version every day. You fund it, you steer it, you play it.
+                        <span>It ships a new version every day.</span>
+                        <span>You fund it, you steer it, you play it.</span>
                     </p>
-                    <div class="cta-row">
-                        <a class="play" href="/play" id="playBtn"
-                            >PLAY NOW
-                            <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
-                                <path
-                                    d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z"
-                                    fill="currentColor"
-                                /></svg
-                        ></a>
-                        <span class="cta-note">No wallet. No signup. Runs in your browser.</span>
-                    </div>
+                </div>
 
+                <figure class="monitor" id="monitor" aria-label="Live game view">
+                    <div class="mon-bar">
+                        <span class="mon-live"><i class="dot" aria-hidden="true"></i>Live</span>
+                        <span class="mon-title" id="monTitle">Build #— · connecting</span>
+                        <span class="mon-clock" id="clock" aria-hidden="true">--:--:-- UTC</span>
+                    </div>
+                    <div class="screen" id="screen">
+                        <canvas id="poster" aria-hidden="true"></canvas>
+                        <div class="poster-ui" id="posterUi">
+                            <div class="poster-top">
+                                <span class="chip" id="posterChip"
+                                    >Connecting<i class="cursor" aria-hidden="true"></i
+                                ></span>
+                                <p class="poster-sub" id="posterSub" hidden></p>
+                            </div>
+                            <p class="poster-cap" id="posterCap">Reading the build manifest.</p>
+                        </div>
+                    </div>
+                </figure>
+
+                <div class="h-cta">
+                    <a class="play" href="/play" id="playBtn"
+                        >PLAY NOW
+                        <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
+                            <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
+                        </svg>
+                    </a>
+                    <p class="cta-note">No wallet. No signup. Runs in your browser.</p>
+                </div>
+
+                <div class="board-wrap">
+                    <p class="board-head">
+                        <span>Live numbers</span>
+                        <span id="updated" aria-live="off">connecting…</span>
+                    </p>
                     <div class="board" role="list" aria-label="Live numbers">
                         <div class="cell" role="listitem">
                             <div class="k">Day</div>
-                            <div class="v bull" id="sDay">1</div>
+                            <div class="v empty" id="sDay">—</div>
                             <div class="n">of building in public</div>
                         </div>
                         <div class="cell" role="listitem">
                             <div class="k">Builds shipped</div>
-                            <div class="v" id="sBuilds">0</div>
+                            <div class="v empty" id="sBuilds">—</div>
                             <div class="n" id="sBuildsN">watch this number</div>
                         </div>
                         <div class="cell" role="listitem">
@@ -460,117 +838,535 @@
                             <div class="n" id="sTopN">no runs submitted yet</div>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <section class="panel now" aria-labelledby="nowTitle">
-                    <div>
-                        <h2 id="nowTitle">Right now</h2>
-                        <p>
-                            <span class="tag m">Build #0</span
-                            ><span id="liveTitle"
-                                >The untouched open-source game Patch starts from.</span
-                            >
-                            It is the "before" picture. Play it to see where this began.
-                        </p>
-                        <p>
-                            <span class="tag y">In progress</span>Build #1: the bull-vs-bear
-                            rebuild. You are a bull surviving an endless bear market. Red candles,
-                            rug-pullers, FUD clouds.
-                        </p>
-                        <p>
-                            <span class="tag g">Soon</span>A new build every day at 00:00 UTC, a
-                            Daily Challenge on that build, and a daily prize paid by the AI from its
-                            own treasury.
-                        </p>
+            <!-- 01 · Today's build + timeline -->
+            <section class="sec wrap" id="build" aria-labelledby="buildH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">01</span>
+                    <h2 id="buildH">Today's build</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                </div>
+                <div class="today" id="today" aria-live="polite">
+                    <div class="state">
+                        <p class="state-k">Reading the build manifest…</p>
                     </div>
-                    <div>
-                        <h2>Who does what</h2>
-                        <ul class="split">
-                            <li>
-                                <b style="color: var(--bull)">Patch (the AI)</b> writes the game
-                                code, picks features, writes the devlog.
+                </div>
+                <div class="tl-head">
+                    <h3>Every build so far</h3>
+                    <p>Newest first. This is the proof of work.</p>
+                </div>
+                <ol class="timeline" id="timeline" aria-label="Build history"></ol>
+            </section>
+
+            <!-- 02 · How it works -->
+            <section class="sec wrap" id="how" aria-labelledby="howH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">02</span>
+                    <h2 id="howH">How it works</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                </div>
+                <p class="lede">One loop. Every step leaves a public receipt.</p>
+                <div class="loop" id="loop">
+                    <svg class="loop-track" id="loopTrack" aria-hidden="true"></svg>
+                    <i class="loop-token" id="loopToken" aria-hidden="true"></i>
+                    <ol class="loop-steps">
+                        <li class="step">
+                            <div class="step-top">
+                                <svg
+                                    class="px-ico"
+                                    viewBox="0 0 12 12"
+                                    width="36"
+                                    height="36"
+                                    aria-hidden="true"
+                                    shape-rendering="crispEdges"
+                                >
+                                    <rect x="3" y="1" width="1" height="10" fill="#16E08A" />
+                                    <rect x="2" y="3" width="3" height="5" fill="#16E08A" />
+                                    <rect x="8" y="2" width="1" height="9" fill="#FF3B5C" />
+                                    <rect x="7" y="5" width="3" height="4" fill="#FF3B5C" />
+                                </svg>
+                                <span class="step-n">01</span>
+                            </div>
+                            <h3>Trades → fees</h3>
+                            <p>Every trade of the coin pays a creator fee.</p>
+                        </li>
+                        <li class="step">
+                            <div class="step-top">
+                                <svg
+                                    class="px-ico"
+                                    viewBox="0 0 12 12"
+                                    width="36"
+                                    height="36"
+                                    aria-hidden="true"
+                                    shape-rendering="crispEdges"
+                                >
+                                    <rect x="1" y="2" width="10" height="3" fill="#B07A00" />
+                                    <rect x="1" y="5" width="10" height="6" fill="#FFC53D" />
+                                    <rect x="5" y="4" width="2" height="3" fill="#07090C" />
+                                    <rect x="1" y="5" width="10" height="1" fill="#B07A00" />
+                                </svg>
+                                <span class="step-n">02</span>
+                            </div>
+                            <h3>Patch's treasury</h3>
+                            <p>The fees land in Patch's public wallet. Anyone can watch it.</p>
+                        </li>
+                        <li class="step">
+                            <div class="step-top">
+                                <svg
+                                    class="px-ico"
+                                    viewBox="0 0 12 12"
+                                    width="36"
+                                    height="36"
+                                    aria-hidden="true"
+                                    shape-rendering="crispEdges"
+                                >
+                                    <rect x="2" y="2" width="8" height="8" fill="#7D8896" />
+                                    <rect x="4" y="4" width="4" height="4" fill="#46C8FF" />
+                                    <rect x="3" y="0" width="1" height="2" fill="#7D8896" />
+                                    <rect x="6" y="0" width="1" height="2" fill="#7D8896" />
+                                    <rect x="8" y="0" width="1" height="2" fill="#7D8896" />
+                                    <rect x="3" y="10" width="1" height="2" fill="#7D8896" />
+                                    <rect x="6" y="10" width="1" height="2" fill="#7D8896" />
+                                    <rect x="8" y="10" width="1" height="2" fill="#7D8896" />
+                                    <rect x="0" y="3" width="2" height="1" fill="#7D8896" />
+                                    <rect x="0" y="6" width="2" height="1" fill="#7D8896" />
+                                    <rect x="0" y="8" width="2" height="1" fill="#7D8896" />
+                                    <rect x="10" y="3" width="2" height="1" fill="#7D8896" />
+                                    <rect x="10" y="6" width="2" height="1" fill="#7D8896" />
+                                    <rect x="10" y="8" width="2" height="1" fill="#7D8896" />
+                                </svg>
+                                <span class="step-n">03</span>
+                            </div>
+                            <h3>Compute + prize</h3>
+                            <p>
+                                It pays for AI compute and hosting, plus a capped daily $ANSEM
+                                prize.
+                            </p>
+                        </li>
+                        <li class="step">
+                            <div class="step-top">
+                                <svg
+                                    class="px-ico"
+                                    viewBox="0 0 12 12"
+                                    width="36"
+                                    height="36"
+                                    aria-hidden="true"
+                                    shape-rendering="crispEdges"
+                                >
+                                    <rect x="5" y="1" width="2" height="8" fill="#16E08A" />
+                                    <rect x="4" y="2" width="4" height="1" fill="#16E08A" />
+                                    <rect x="3" y="3" width="6" height="1" fill="#16E08A" />
+                                    <rect x="2" y="4" width="8" height="1" fill="#16E08A" />
+                                    <rect x="1" y="10" width="10" height="1" fill="#7D8896" />
+                                </svg>
+                                <span class="step-n">04</span>
+                            </div>
+                            <h3>A new build ships</h3>
+                            <p>
+                                Every day at 00:00 UTC. More players and attention bring more
+                                trades. Loop.
+                            </p>
+                        </li>
+                    </ol>
+                </div>
+                <p class="fine" id="howFine">
+                    That is the design. Until the coin launches, Osman pays the bills. After launch,
+                    the treasury pays them back on-chain, and the ledger below shows every payment.
+                </p>
+            </section>
+
+            <!-- 03 · Vote -->
+            <section class="sec wrap" id="vote" aria-labelledby="voteH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">03</span>
+                    <h2 id="voteH">Vote on tomorrow</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                </div>
+                <div class="vote">
+                    <div class="vote-state panel">
+                        <span class="flag gold">Voting opens when the coin launches</span>
+                        <p>
+                            Holders pick among features Patch proposes. Vote weight is
+                            <b class="sqrt">√(tokens held)</b>, so a whale can't own the roadmap.
+                        </p>
+                        <table class="wtable">
+                            <caption>
+                                How √ weighting scales
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Tokens held</th>
+                                    <th scope="col">Vote weight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>10,000</td>
+                                    <td>100</td>
+                                </tr>
+                                <tr>
+                                    <td>1,000,000</td>
+                                    <td>1,000</td>
+                                </tr>
+                                <tr>
+                                    <td>100,000,000</td>
+                                    <td>10,000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="fine">
+                            10,000× the tokens gets 100× the say, not 10,000×. Signing in is a plain
+                            text signature: no transaction, no approval.
+                        </p>
+                        <button class="btn" type="button" disabled>Connect wallet to vote</button>
+                    </div>
+                    <div class="examples">
+                        <p class="ex-note">
+                            <span class="flag dim">Example</span> What a poll will look like. These
+                            are not live polls and have no votes.
+                        </p>
+                        <ul class="ex-list">
+                            <li class="ex">
+                                <span class="ex-stamp" aria-hidden="true">Example</span>
+                                <h3><span class="sr-only">Example: </span>Rug Lord boss</h3>
+                                <p>A boss that pulls the floor out from under you. Literally.</p>
+                                <div class="ex-bar" aria-hidden="true"><i></i></div>
+                                <p class="ex-foot">not a live poll</p>
                             </li>
-                            <li>
-                                <b>Osman (operator)</b> set up the accounts, pays hosting, holds an
-                                emergency revert button. He doesn't write the features.
+                            <li class="ex">
+                                <span class="ex-stamp" aria-hidden="true">Example</span>
+                                <h3><span class="sr-only">Example: </span>Leverage passive</h3>
+                                <p>
+                                    Double damage dealt, double damage taken. High risk, high
+                                    reward.
+                                </p>
+                                <div class="ex-bar" aria-hidden="true"><i></i></div>
+                                <p class="ex-foot">not a live poll</p>
                             </li>
-                            <li>
-                                <b style="color: var(--gold)">Bootstrap phase</b>: until the
-                                scheduled Build Agent runs, the AI works in sessions Osman starts.
-                                Those commits are labelled <code>Build-Mode: bootstrap</code>.
+                            <li class="ex">
+                                <span class="ex-stamp" aria-hidden="true">Example</span>
+                                <h3><span class="sr-only">Example: </span>Crypto Winter stage</h3>
+                                <p>A frozen map where everything moves slower, including you.</p>
+                                <div class="ex-bar" aria-hidden="true"><i></i></div>
+                                <p class="ex-foot">not a live poll</p>
                             </li>
                         </ul>
                     </div>
-                </section>
-            </main>
-
-            <footer>
-                <div>
-                    Build #0 is
-                    <a
-                        href="https://github.com/ricardo-foundry/canvas-vampire-survivors"
-                        rel="noopener"
-                        >ricardo-foundry/canvas-vampire-survivors</a
-                    >
-                    (MIT), used unmodified. Everything after the <code>day-0</code> tag is new. Not
-                    affiliated with Vampire Survivors or poncle.
                 </div>
-                <div>
-                    The coin is not launched yet. When it is, it funds Patch's compute and gives
-                    holders a vote on what gets built. It is not an investment and it is never
-                    required to play or win.
-                </div>
-            </footer>
-        </div>
+            </section>
 
-        <script>
-            (function () {
-                function set(id, text, cls) {
-                    var el = document.getElementById(id);
-                    if (!el) return;
-                    el.textContent = text;
-                    if (cls !== undefined) el.className = 'v ' + cls;
-                }
-                function usd(n) {
-                    return '$' + Number(n).toFixed(2);
-                }
-                fetch('/api/stats', { headers: { accept: 'application/json' } })
-                    .then(function (r) {
-                        return r.ok ? r.json() : null;
-                    })
-                    .then(function (s) {
-                        if (!s) return;
-                        if (s.day) {
-                            set('sDay', String(s.day), 'bull');
-                            document.getElementById('dayPill').textContent =
-                                'Day ' + s.day + ' of building';
-                        }
-                        set('sBuilds', String(s.buildsShipped), s.buildsShipped > 0 ? 'bull' : '');
-                        if (s.buildsShipped > 0)
-                            document.getElementById('sBuildsN').textContent =
-                                'live build: #' + s.liveBuild.n;
-                        if (s.computeSpentUsd && s.computeSpentUsd.meteredRuns > 0) {
-                            set('sSpent', usd(s.computeSpentUsd.measured), '');
-                            document.getElementById('sSpentN').textContent =
-                                'measured, ' + s.computeSpentUsd.meteredRuns + ' agent runs';
-                        }
-                        if (s.playersToday !== null && s.playersToday > 0) {
-                            set('sPlayers', String(s.playersToday), '');
-                            document.getElementById('sPlayersN').textContent =
-                                'unique browsers, UTC day';
-                        }
-                        if (s.topScoreToday) {
-                            set('sTop', s.topScoreToday.score.toLocaleString('en-US'), 'gold');
-                            document.getElementById('sTopN').textContent = s.topScoreToday.verified
-                                ? 'verified'
-                                : 'not verified yet';
-                        }
-                        if (s.liveBuild && s.liveBuild.n > 0) {
-                            document.getElementById('liveTitle').textContent = s.liveBuild.title;
-                        }
-                    })
-                    .catch(function () {});
-            })();
-        </script>
+            <!-- 04 · Daily Challenge -->
+            <section class="sec wrap" id="challenge" aria-labelledby="chH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">04</span>
+                    <h2 id="chH">Daily Challenge</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                </div>
+                <div class="ch">
+                    <div class="ch-clock panel">
+                        <p class="k">Next build + new challenge in</p>
+                        <p
+                            class="countdown"
+                            id="countdown"
+                            role="timer"
+                            aria-label="Time until 00:00 UTC"
+                        >
+                            --:--:--
+                        </p>
+                        <p class="k">00:00 UTC · same seed, same build, for everyone</p>
+                        <dl class="ch-meta" id="chMeta">
+                            <div>
+                                <dt>Today</dt>
+                                <dd id="chDate">—</dd>
+                            </div>
+                            <div>
+                                <dt>Build</dt>
+                                <dd id="chBuild">—</dd>
+                            </div>
+                            <div>
+                                <dt>Stage</dt>
+                                <dd id="chStage">—</dd>
+                            </div>
+                        </dl>
+                        <a class="btn btn-go" id="chPlay" href="/play">Play today's challenge</a>
+                        <div class="prize">
+                            <svg
+                                class="px-ico"
+                                viewBox="0 0 12 12"
+                                width="28"
+                                height="28"
+                                aria-hidden="true"
+                                shape-rendering="crispEdges"
+                            >
+                                <rect x="3" y="1" width="6" height="4" fill="#FFC53D" />
+                                <rect x="1" y="1" width="2" height="1" fill="#FFC53D" />
+                                <rect x="9" y="1" width="2" height="1" fill="#FFC53D" />
+                                <rect x="1" y="2" width="1" height="2" fill="#FFC53D" />
+                                <rect x="10" y="2" width="1" height="2" fill="#FFC53D" />
+                                <rect x="4" y="5" width="4" height="1" fill="#FFC53D" />
+                                <rect x="5" y="6" width="2" height="2" fill="#B07A00" />
+                                <rect x="3" y="8" width="6" height="2" fill="#FFC53D" />
+                            </svg>
+                            <p>
+                                Daily #1 wins a prize paid by Patch from its treasury in $ANSEM.
+                                Prizes start after the coin launches. Holding the coin is never
+                                required to win.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="ch-board panel">
+                        <div class="lb-head">
+                            <h3>Today's leaderboard</h3>
+                            <span id="lbMeta"></span>
+                        </div>
+                        <div id="lb" aria-live="polite">
+                            <div class="state">
+                                <p class="state-k">Loading today's board…</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 05 · Receipts -->
+            <section class="sec wrap" id="receipts" aria-labelledby="rcH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">05</span>
+                    <h2 id="rcH">Receipts</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                </div>
+                <p class="lede">
+                    Every number on this page is real data, or it says that it isn't there yet.
+                </p>
+                <div class="wallets" id="wallets">
+                    <div class="wallet" data-wallet="treasury">
+                        <p class="k">Treasury wallet</p>
+                        <p class="w-desc">Receives the creator fees.</p>
+                        <div class="w-val"><span class="w-empty">Not created yet</span></div>
+                    </div>
+                    <div class="wallet" data-wallet="prize">
+                        <p class="k">Prize wallet</p>
+                        <p class="w-desc">Hot wallet. Holds a few days of prizes only.</p>
+                        <div class="w-val"><span class="w-empty">Not created yet</span></div>
+                    </div>
+                    <div class="wallet" data-wallet="costs">
+                        <p class="k">Costs wallet</p>
+                        <p class="w-desc">Where compute and hosting are paid back to.</p>
+                        <div class="w-val"><span class="w-empty">Not created yet</span></div>
+                    </div>
+                </div>
+
+                <div class="ledger panel">
+                    <div class="lb-head">
+                        <h3>Ledger</h3>
+                        <span id="ledgerMeta">every row: measured or estimate</span>
+                    </div>
+                    <div id="ledger" aria-live="polite">
+                        <div class="state">
+                            <p class="state-k">Loading the ledger…</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="who">
+                    <div class="who-col panel">
+                        <h3 class="who-h bull">Automated by Patch</h3>
+                        <ul class="ticks">
+                            <li>Picks the day's feature from holder votes and its own backlog</li>
+                            <li>Writes the code</li>
+                            <li>Runs the tests and smoke tests</li>
+                            <li>Ships at 00:00 UTC</li>
+                            <li>Writes the devlog</li>
+                            <li>Records its own compute cost</li>
+                        </ul>
+                    </div>
+                    <div class="who-col panel">
+                        <h3 class="who-h">Osman <span>operator</span></h3>
+                        <ul class="ticks op">
+                            <li>Set up the accounts</li>
+                            <li>Funds hosting until the treasury can</li>
+                            <li data-launched="Launched the coin">Launches the coin</li>
+                            <li>Posts the daily X update Patch drafts</li>
+                            <li>Holds an emergency revert switch</li>
+                        </ul>
+                        <p class="who-no">
+                            Does not write daily features. Any code he writes is labelled
+                            <code>human</code>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="notes">
+                    <div class="note gold">
+                        <h3>Bootstrap phase</h3>
+                        <p>
+                            Until the scheduled Build Agent runs, the AI works in sessions Osman
+                            starts. Those commits are labelled <code>Build-Mode: bootstrap</code>.
+                        </p>
+                    </div>
+                    <div class="note">
+                        <h3>Fork credit</h3>
+                        <p>
+                            Build #0 is
+                            <a
+                                href="https://github.com/ricardo-foundry/canvas-vampire-survivors"
+                                rel="noopener"
+                                >ricardo-foundry/canvas-vampire-survivors</a
+                            >
+                            (MIT), unmodified. See everything the AI added:
+                            <code>git diff day-0..main</code><span id="diffLink"></span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 06 · Coin -->
+            <section class="sec wrap" id="coin" aria-labelledby="coinH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">06</span>
+                    <h2 id="coinH">The coin</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                </div>
+                <div class="coin panel">
+                    <div class="ca">
+                        <p class="k" id="caLabel">Contract address</p>
+                        <div class="ca-row">
+                            <code class="ca-val empty" id="caVal">Not launched yet</code>
+                            <button
+                                class="btn btn-sm"
+                                type="button"
+                                id="caCopy"
+                                aria-describedby="caLabel"
+                                disabled
+                            >
+                                Copy
+                            </button>
+                        </div>
+                        <p class="copied" id="caCopied" role="status"></p>
+                    </div>
+                    <div class="coin-go">
+                        <a class="btn btn-go is-off" id="buyLink" aria-disabled="true"
+                            >Buy on pump.fun</a
+                        >
+                        <p class="fine" id="buyNote">Link turns on when the coin launches.</p>
+                    </div>
+                    <p class="coin-what">
+                        The coin funds Patch's compute and hosting through creator fees, and gives
+                        holders a vote on what gets built, plus cosmetics (a holder skin, a
+                        leaderboard badge). It is not an investment, pays nothing to holders, and is
+                        never required to play or win.
+                    </p>
+                    <div class="does">
+                        <div>
+                            <h3 class="bull">It does</h3>
+                            <ul class="ticks">
+                                <li>Fund compute and hosting through creator fees</li>
+                                <li>Give holders a vote on what gets built</li>
+                                <li>Unlock cosmetics: a holder skin, a leaderboard badge</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="bear">It does not</h3>
+                            <ul class="ticks no">
+                                <li>Pay anything to holders</li>
+                                <li>Gate playing the game</li>
+                                <li>Gate winning the daily prize</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 07 · FAQ -->
+            <section class="sec wrap" id="faq" aria-labelledby="faqH">
+                <div class="sec-h">
+                    <span class="idx" aria-hidden="true">07</span>
+                    <h2 id="faqH">FAQ</h2>
+                    <span class="rule" aria-hidden="true"></span>
+                </div>
+                <div class="faq">
+                    <details>
+                        <summary>Is the AI really building it?</summary>
+                        <p>
+                            Yes, and you can check. Every change is a public commit labelled with
+                            who made it: <code>agent</code> (the scheduled Build Agent: Claude Code
+                            running on GitHub Actions), <code>bootstrap</code> (the same AI in
+                            sessions Osman starts, used to set up the pipeline), or
+                            <code>human</code> (Osman typed it). Build #0 is the untouched
+                            open-source game Patch started from, so the diff from
+                            <code>day-0</code> shows everything the AI added.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>What does Osman do?</summary>
+                        <p>
+                            He's the operator. He created the accounts, pays for hosting until the
+                            treasury can,
+                            <span data-launched="launched the coin">launches the coin</span>, posts
+                            the daily X update Patch drafts, and holds an emergency revert switch.
+                            He doesn't write the daily features.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Where does the money go?</summary>
+                        <p>
+                            Creator fees from trading the coin go to Patch's public treasury wallet.
+                            It pays for the AI's compute and hosting, and a capped daily prize for
+                            the Daily Challenge winner. Every inflow and outflow is in the ledger
+                            with a Solscan link, and each number is labelled measured or estimate.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Why $ANSEM prizes?</summary>
+                        <p>
+                            The verified #1 of each Daily Challenge gets a small prize paid by Patch
+                            from its treasury, in $ANSEM bought on-chain. The prize is capped by the
+                            previous day's fees. Holding our coin is never required to win: it's a
+                            game prize, not a lottery.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Is it safe to connect my wallet?</summary>
+                        <p>
+                            You only need a wallet to vote. Connecting asks you to sign a plain text
+                            message: no transaction, no approval, no funds move. We read your token
+                            balance to weight your vote. Playing never needs a wallet.
+                        </p>
+                    </details>
+                </div>
+            </section>
+        </main>
+
+        <footer class="foot wrap">
+            <div class="foot-top">
+                <a class="brand" href="/" aria-label="PATCH / BULL RUN, home">
+                    <img src="/assets/patch.svg" alt="" width="28" height="28" loading="lazy" />
+                    <b>PATCH</b><span>/ BULL RUN</span>
+                </a>
+                <nav class="foot-links" aria-label="Footer">
+                    <a href="/play">Play</a>
+                    <a href="/b/0/">Build #0</a>
+                    <a href="#challenge">Daily Challenge</a>
+                    <a href="#receipts">Receipts</a>
+                    <a href="/api/stats">Open data</a>
+                    <a href="#faq">FAQ</a>
+                </nav>
+            </div>
+            <p>
+                Build #0 is
+                <a href="https://github.com/ricardo-foundry/canvas-vampire-survivors" rel="noopener"
+                    >ricardo-foundry/canvas-vampire-survivors</a
+                >
+                (MIT), used unmodified. Everything after the <code>day-0</code> tag is new. Not
+                affiliated with Vampire Survivors or poncle.
+            </p>
+            <p id="footCoin">
+                The coin is not launched yet. When it is, it funds Patch's compute and gives holders
+                a vote on what gets built. It is not an investment and it is never required to play
+                or win.
+            </p>
+        </footer>
     </body>
 </html>

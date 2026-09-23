@@ -32,12 +32,14 @@ export async function underLimit(limiter, ...keys) {
 }
 
 /**
- * Verify a Turnstile token. Returns 'skipped' when no secret is configured (such runs can never win
- * prizes), 'passed', 'failed', or 'unavailable' when siteverify can't be reached.
+ * Verify a Turnstile token. Returns 'skipped' when no secret is configured, 'none' when the client sent no
+ * token (the widget wanted a tap that never came, or didn't load), 'passed', 'failed' for a token
+ * Cloudflare rejects, or 'unavailable' when siteverify can't be reached. Only 'passed' runs can win prizes;
+ * 'skipped' and 'none' runs still rank, so a player who missed the checkbox doesn't lose their run.
  */
 export async function verifyTurnstile(env, token, ip) {
     if (!env.TURNSTILE_SECRET) return 'skipped';
-    if (!token) return 'failed';
+    if (!token) return 'none';
     const form = new FormData();
     form.append('secret', env.TURNSTILE_SECRET);
     form.append('response', token);

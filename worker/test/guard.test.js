@@ -26,7 +26,7 @@ test('underLimit checks every key and fails open on limiter errors', async () =>
     assert.equal(await underLimit(undefined, 'p:1'), true, 'no binding configured');
 });
 
-test('verifyTurnstile: skipped without a secret, failed without a token', async () => {
+test('verifyTurnstile: skipped without a secret, none without a token', async () => {
     assert.equal(await verifyTurnstile({}, 'tok', '1.2.3.4'), 'skipped');
-    assert.equal(await verifyTurnstile({ TURNSTILE_SECRET: 's' }, null, '1.2.3.4'), 'failed');
+    assert.equal(await verifyTurnstile({ TURNSTILE_SECRET: 's' }, null, '1.2.3.4'), 'none');
 });

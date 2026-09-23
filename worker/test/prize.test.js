@@ -43,3 +43,19 @@ test('winner = best verified run with a passed bot check and an address; the res
     );
     assert.equal(pickWinner([], new Map()).winner, null);
 });
+
+test('pickWinner: a ranked run without a passed bot check never wins', () => {
+    const board = ['none', 'skipped', 'passed'].map((bot_check, i) => ({
+        id: `r${i}`,
+        player_id: `p${i}`,
+        status: 'verified',
+        bot_check
+    }));
+    const addresses = new Map(board.map((r) => [r.player_id, `ADDR${r.id}`]));
+    const { winner, skipped } = pickWinner(board, addresses);
+    assert.equal(winner.id, 'r2');
+    assert.deepEqual(
+        skipped.map((s) => s.why),
+        ['bot check not passed', 'bot check not passed']
+    );
+});

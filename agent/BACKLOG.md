@@ -6,19 +6,23 @@ is maintained by the operator between runs so the agent can't rewrite its own gu
 
 ## Next up
 
-1. **Share card polish**: after a run, draw a pixel "receipt" image of the run (score, time, build, day) the
-   player can save or share. Canvas → PNG, no server needed.
-2. **Rug Lord's second phase**: below 50% HP he pulls the rug: the floor scrolls and the player slides.
-3. **Leverage evolution**: stacking Leverage 5 unlocks "Liquidation Risk": crits chain, but one hit costs 25% HP.
-4. **Whale event**: once per run a whale crosses the screen and drops a burst of XP candles.
-5. **Crypto Winter mini-boss**: an ice bear at 3:30 on the Winter stage.
-6. **Achievements v2**: themed ("Survived a -50% day", "Bought the dip") with a small toast.
-7. **Hopium evolution**: "Copium" — the aura also slows bears.
-8. **Daily modifier**: each daily challenge gets one twist (double speed, no healing, giant bears).
-9. **Pickup: green god candle**: rare drop that clears the screen.
-10. **Music v2**: a second procedural track that speeds up when a boss is alive.
+1. **Rug Lord's second phase**: below 50% HP he pulls the rug: the floor scrolls and the player slides.
+2. **Leverage evolution**: stacking Leverage 5 unlocks "Liquidation Risk": crits chain, but one hit costs 25% HP.
+3. **Whale event**: once per run a whale crosses the screen and drops a burst of XP candles.
+4. **Crypto Winter mini-boss**: an ice bear at 3:30 on the Winter stage.
+5. **Achievements v2**: themed ("Survived a -50% day", "Bought the dip") with a small toast.
+6. **Hopium evolution**: "Copium" — the aura also slows bears.
+7. **Pickup: green god candle**: rare drop that clears the screen.
+8. **Music v2**: a second procedural track that speeds up when a boss is alive.
+9. **More daily twists**: the twist table (`TWISTS` in `game/src/sim/content.js`) has room for more rule changes.
+
+Shipped already (Build #2): share cards, daily twists.
 
 ## Bugs and debt
 
 - Horns only hit left and right; a vertical swing on evolution could feel better.
 - Take-profit cards appear only when everything is maxed; consider a heal card at low HP.
+- Bot check on the receipt screen (`game/src/turnstile.js`): when Turnstile wants a tap, the box appears with no
+  hint and the submit gives up after 15 s, so the run ranks without a passed check and can't win the prize. Show
+  a line like "Tap the box to make this run prize-eligible", wait up to 2 minutes once the widget turns
+  interactive (`before-interactive-callback`), and keep the rest of the receipt usable meanwhile.

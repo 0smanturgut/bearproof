@@ -1,48 +1,52 @@
 #!/usr/bin/env node
-// Render static images from the HTML templates / SVGs in this repo.
+// Render the static brand images from the HTML templates in scripts/og/, drawn with the game's own sprites.
 // Usage: node scripts/og/render.mjs
-//   → hq/assets/og.png               1200×630 social card (from hq-card.html)
-//   → hq/assets/apple-touch-icon.png 180×180 home-screen icon (Proof icon, pixel-scaled on ink)
+//   → hq/assets/og.png                       1200×630 social card (hq-card.html)
+//   → hq/assets/brand/{coin,avatar,banner}.png  launch package (brand/*.html)
+// Icons (favicon, touch icons) come from scripts/og/emblem.mjs.
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { launch } from '../lib/browser.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const cards = [{ src: 'hq-card.html', out: 'hq/assets/og.png', width: 1200, height: 630 }];
+const MIME = {
+    '.html': 'text/html',
+    '.js': 'text/javascript',
+    '.svg': 'image/svg+xml',
+    '.woff2': 'font/woff2'
+};
+const server = http.createServer((req, res) => {
+    const file = path.join(root, decodeURIComponent(req.url.split('?')[0]));
+    if (!file.startsWith(root) || !fs.existsSync(file)) return res.writeHead(404).end();
+    res.writeHead(200, {
+        'content-type': MIME[path.extname(file)] || 'application/octet-stream'
+    }).end(fs.readFileSync(file));
+});
+await new Promise((r) => server.listen(0, '127.0.0.1', r));
+const base = `http://127.0.0.1:${server.address().port}`;
+fs.mkdirSync(path.join(root, 'hq/assets/brand'), { recursive: true });
 
+const jobs = [
+    ['scripts/og/hq-card.html', 'hq/assets/og.png', 1200, 630],
+    ['scripts/og/brand/coin.html', 'hq/assets/brand/coin.png', 1000, 1000],
+    ['scripts/og/brand/avatar.html', 'hq/assets/brand/avatar.png', 400, 400],
+    ['scripts/og/brand/banner.html', 'hq/assets/brand/banner.png', 1500, 500]
+];
 const browser = await launch('chromium');
-
-for (const job of cards) {
-    const page = await browser.newPage({
-        viewport: { width: job.width, height: job.height },
-        deviceScaleFactor: 1
-    });
-    await page.goto(pathToFileURL(path.join(here, job.src)).href);
+for (const [src, out, w, h] of jobs) {
+    const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.goto(`${base}/${src}`);
     await page.evaluate(() => document.fonts.ready);
-    await page.screenshot({ path: path.join(root, job.out), type: 'png' });
-    await page.close();
-    console.log('wrote', job.out);
-}
-
-// Apple touch icon: the 16×16 Proof SVG scaled ×10 with nearest-neighbour onto the ink background.
-// iOS rounds the corners itself, so the art keeps a 10 px safe margin on every side.
-{
-    const svg = fs.readFileSync(path.join(root, 'hq/assets/proof.svg'), 'utf8');
-    const page = await browser.newPage({
-        viewport: { width: 180, height: 180 },
-        deviceScaleFactor: 1
-    });
-    await page.setContent(`<!doctype html><html><body style="margin:0;background:#07090C">
-        <img src="data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}"
-             width="160" height="160" style="display:block;margin:10px;image-rendering:pixelated">
-        </body></html>`);
-    await page.waitForFunction(() => document.images[0].complete);
-    const out = 'hq/assets/apple-touch-icon.png';
-    await page.screenshot({ path: path.join(root, out), type: 'png' });
-    await page.close();
+    await page.waitForFunction(() => window.ready === true, null, { timeout: 10000 });
+    await page.screenshot({ path: path.join(root, out) });
+    if (errors.length) throw new Error(`${src}: ${errors.join('; ')}`);
     console.log('wrote', out);
+    await page.close();
 }
-
 await browser.close();
+server.close();

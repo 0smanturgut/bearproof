@@ -10,6 +10,7 @@
  */
 
 import { BUILDS } from './manifest.js';
+import { pendingRuns, verdict } from './routes/internal.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
 import { dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
 import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
@@ -149,10 +150,13 @@ export default {
                 }
                 if (pathname.startsWith('/api/run/'))
                     return getRun(pathname.slice('/api/run/'.length), env);
+                if (pathname === '/api/internal/runs/pending') return pendingRuns(request, env);
             }
             if (request.method === 'POST') {
                 if (pathname === '/api/session') return session(request, env);
                 if (pathname === '/api/runs') return submitRun(request, env);
+                const m = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/verdict$/);
+                if (m) return verdict(request, env, m[1]);
             }
             return error(404, 'not_found', `No route for ${request.method} ${pathname}`);
         }

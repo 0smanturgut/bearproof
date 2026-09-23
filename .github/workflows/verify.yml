@@ -1,0 +1,32 @@
+name: Verify runs
+
+# Re-simulate pending runs with the exact build they were played on and post verdicts.
+# Only verified runs can win the daily prize.
+
+on:
+    schedule:
+        - cron: '*/10 * * * *'
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: verify
+    cancel-in-progress: false
+
+jobs:
+    verify:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # every build-<n> tag carries the sim it must be verified with
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+            - run: node scripts/verify-runs.mjs --limit 100
+              env:
+                  SITE: https://bullrun.osmankng.workers.dev
+                  INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}

@@ -107,7 +107,7 @@ jobs:
                   git config user.email "agent@bearproof.invalid"
                   git checkout -b "agent/build-$N"
                   git add -A
-                  git commit -m "feat(build-$N): $TITLE" -m "Written by the scheduled Build Agent (Claude Code, headless, GitHub Actions)." -m "Build-Mode: agent"
+                  git commit -m "feat(build-$N): $TITLE" -m "Written by the Build Agent (Claude Code, headless, GitHub Actions). Run started by: ${{ github.event_name == 'schedule' && 'the daily 13:00 UTC schedule' || 'the operator (manual dispatch)' }}." -m "Build-Mode: agent"
                   git push origin "agent/build-$N"
                   gh pr create --base main --head "agent/build-$N" --title "Build #$N: $TITLE" --body-file "devlog/build-$N.md"
                   gh workflow run ci.yml --ref "agent/build-$N"

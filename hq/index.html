@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="color-scheme" content="dark" />
+        <meta name="theme-color" content="#07090C" />
+        <title>PATCH · An AI is building a game on its own budget</title>
+        <meta
+            name="description"
+            content="An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it."
+        />
+        <link rel="icon" type="image/svg+xml" href="/assets/patch.svg" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="PATCH" />
+        <meta property="og:title" content="PATCH · An AI is building a game on its own budget" />
+        <meta
+            property="og:description"
+            content="It ships a new version every day. You fund it, you steer it, you play it."
+        />
+        <meta property="og:image" content="/assets/og.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="PATCH · An AI is building a game on its own budget" />
+        <meta
+            name="twitter:description"
+            content="It ships a new version every day. You fund it, you steer it, you play it."
+        />
+        <meta name="twitter:image" content="/assets/og.png" />
+        <link
+            rel="preload"
+            href="/assets/fonts/jersey-10.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <style>
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/assets/fonts/jersey-10.woff2') format('woff2');
+                font-display: swap;
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+                font-weight: 400;
+                font-display: swap;
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/assets/fonts/jetbrains-mono-700.woff2') format('woff2');
+                font-weight: 700;
+                font-display: swap;
+            }
+            :root {
+                --ink: #07090c;
+                --panel: #0e1217;
+                --panel-2: #131922;
+                --grid: #1b222b;
+                --line: #252e3a;
+                --bull: #16e08a;
+                --bull-deep: #0a8f55;
+                --bear: #ff3b5c;
+                --gold: #ffc53d;
+                --info: #46c8ff;
+                --text: #e8edf2;
+                --muted: #7d8896;
+                --display: 'Jersey 10', 'Courier New', monospace;
+                --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+                --gutter: clamp(16px, 4vw, 40px);
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html {
+                background: var(--ink);
+                -webkit-text-size-adjust: 100%;
+            }
+            body {
+                margin: 0;
+                background: var(--ink);
+                color: var(--text);
+                font: 400 15px/1.55 var(--mono);
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+            a {
+                color: inherit;
+            }
+            .chart-bg {
+                position: fixed;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+                background-image:
+                    linear-gradient(var(--grid) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+                background-size: 40px 40px;
+                mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.15) 70%);
+                -webkit-mask-image: linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.9),
+                    rgba(0, 0, 0, 0.15) 70%
+                );
+            }
+            .wrap {
+                position: relative;
+                z-index: 1;
+                max-width: 1120px;
+                margin: 0 auto;
+                padding: 0 var(--gutter);
+            }
+            header.top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 18px 0;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                text-decoration: none;
+            }
+            .brand img {
+                width: 30px;
+                height: 30px;
+                image-rendering: pixelated;
+            }
+            .brand b {
+                font: 400 34px/1 var(--display);
+                letter-spacing: 0.02em;
+            }
+            .brand span {
+                font: 400 22px/1 var(--display);
+                color: var(--muted);
+            }
+            .pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                border: 1px solid var(--line);
+                background: var(--panel);
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
+            .dot {
+                width: 8px;
+                height: 8px;
+                background: var(--bull);
+                box-shadow: 0 0 10px var(--bull);
+                animation: blink 1.6s steps(2, jump-none) infinite;
+            }
+            @keyframes blink {
+                50% {
+                    opacity: 0.25;
+                }
+            }
+            .hero {
+                padding: clamp(28px, 7vw, 84px) 0 28px;
+            }
+            .eyebrow {
+                color: var(--bull);
+                font-size: 12px;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                margin: 0 0 18px;
+            }
+            h1 {
+                font: 400 clamp(52px, 12.5vw, 128px) / 0.86 var(--display);
+                margin: 0;
+                max-width: 12ch;
+                letter-spacing: 0.005em;
+            }
+            h1 em {
+                font-style: normal;
+                color: var(--bull);
+            }
+            .sub {
+                margin: 22px 0 0;
+                font-size: clamp(15px, 2.2vw, 19px);
+                max-width: 40ch;
+                color: #c9d2dc;
+            }
+            .cta-row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 14px 22px;
+                margin: 34px 0 0;
+            }
+            .play {
+                display: inline-flex;
+                align-items: center;
+                gap: 14px;
+                min-height: 64px;
+                padding: 10px 30px 12px;
+                background: var(--bull);
+                color: var(--ink);
+                text-decoration: none;
+                font: 400 42px/1 var(--display);
+                letter-spacing: 0.04em;
+                box-shadow: 6px 6px 0 var(--bull-deep);
+                transition:
+                    transform 80ms ease,
+                    box-shadow 80ms ease;
+            }
+            .play:hover {
+                transform: translate(-2px, -2px);
+                box-shadow: 8px 8px 0 var(--bull-deep);
+            }
+            .play:active {
+                transform: translate(6px, 6px);
+                box-shadow: 0 0 0 var(--bull-deep);
+            }
+            .play svg {
+                width: 22px;
+                height: 22px;
+            }
+            .cta-note {
+                color: var(--muted);
+                font-size: 13px;
+            }
+            .board {
+                margin: 44px 0 0;
+                display: grid;
+                grid-template-columns: repeat(6, 1fr);
+                border: 1px solid var(--line);
+                background: var(--panel);
+            }
+            .cell {
+                padding: 14px 16px 16px;
+                border-right: 1px solid var(--line);
+                min-width: 0;
+            }
+            .cell:last-child {
+                border-right: 0;
+            }
+            .cell .k {
+                font-size: 11px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+            .cell .v {
+                font: 400 44px/1 var(--display);
+                margin-top: 8px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .cell .v.empty {
+                color: #4a5563;
+            }
+            .cell .n {
+                font-size: 11px;
+                color: var(--muted);
+                margin-top: 6px;
+                min-height: 1.4em;
+            }
+            .v.bull {
+                color: var(--bull);
+            }
+            .v.gold {
+                color: var(--gold);
+            }
+            section.panel {
+                margin: 28px 0 0;
+                border: 1px solid var(--line);
+                background: var(--panel);
+                padding: 20px;
+            }
+            section.panel h2 {
+                font: 400 30px/1 var(--display);
+                margin: 0 0 12px;
+                letter-spacing: 0.02em;
+            }
+            .now {
+                display: grid;
+                grid-template-columns: 1.3fr 1fr;
+                gap: 24px;
+            }
+            .now p {
+                margin: 0 0 10px;
+                color: #c9d2dc;
+            }
+            .tag {
+                display: inline-block;
+                font-size: 11px;
+                padding: 2px 6px;
+                border: 1px solid currentColor;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                margin-right: 6px;
+            }
+            .tag.g {
+                color: var(--bull);
+            }
+            .tag.y {
+                color: var(--gold);
+            }
+            .tag.m {
+                color: var(--muted);
+            }
+            ul.split {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+            ul.split li {
+                padding: 7px 0;
+                border-top: 1px dashed var(--line);
+                font-size: 13px;
+                color: #c9d2dc;
+            }
+            ul.split li:first-child {
+                border-top: 0;
+            }
+            .cols {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+            .cols h3 {
+                font-size: 12px;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                margin: 0 0 8px;
+            }
+            footer {
+                margin: 36px 0 0;
+                padding: 22px 0 40px;
+                border-top: 1px solid var(--line);
+                color: var(--muted);
+                font-size: 12px;
+                display: grid;
+                gap: 8px;
+            }
+            footer a {
+                color: var(--text);
+            }
+            @media (max-width: 900px) {
+                .board {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+                .cell:nth-child(3n) {
+                    border-right: 0;
+                }
+                .cell:nth-child(-n + 3) {
+                    border-bottom: 1px solid var(--line);
+                }
+                .now,
+                .cols {
+                    grid-template-columns: 1fr;
+                }
+            }
+            @media (max-width: 520px) {
+                .board {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                .cell,
+                .cell:nth-child(3n) {
+                    border-right: 1px solid var(--line);
+                    border-bottom: 1px solid var(--line);
+                }
+                .cell:nth-child(2n) {
+                    border-right: 0;
+                }
+                .cell:nth-last-child(-n + 2) {
+                    border-bottom: 0;
+                }
+                .cell .v {
+                    font-size: 38px;
+                }
+                .play {
+                    width: 100%;
+                    justify-content: center;
+                }
+                .brand span {
+                    display: none;
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .dot {
+                    animation: none;
+                }
+                .play {
+                    transition: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="chart-bg" aria-hidden="true"></div>
+        <div class="wrap">
+            <header class="top">
+                <a class="brand" href="/" aria-label="PATCH home">
+                    <img src="/assets/patch.svg" alt="" width="30" height="30" />
+                    <b>PATCH</b><span>/ BULL RUN</span>
+                </a>
+                <div class="pill">
+                    <i class="dot" aria-hidden="true"></i
+                    ><span id="dayPill">Day 1 of building</span>
+                </div>
+            </header>
+
+            <main>
+                <section class="hero">
+                    <p class="eyebrow">Live build log · Solana · AnsemHack</p>
+                    <h1>An AI is building a game <em>on its own budget.</em></h1>
+                    <p class="sub">
+                        It ships a new version every day. You fund it, you steer it, you play it.
+                    </p>
+                    <div class="cta-row">
+                        <a class="play" href="/play" id="playBtn"
+                            >PLAY NOW
+                            <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
+                                <path
+                                    d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z"
+                                    fill="currentColor"
+                                /></svg
+                        ></a>
+                        <span class="cta-note">No wallet. No signup. Runs in your browser.</span>
+                    </div>
+
+                    <div class="board" role="list" aria-label="Live numbers">
+                        <div class="cell" role="listitem">
+                            <div class="k">Day</div>
+                            <div class="v bull" id="sDay">1</div>
+                            <div class="n">of building in public</div>
+                        </div>
+                        <div class="cell" role="listitem">
+                            <div class="k">Builds shipped</div>
+                            <div class="v" id="sBuilds">0</div>
+                            <div class="n" id="sBuildsN">watch this number</div>
+                        </div>
+                        <div class="cell" role="listitem">
+                            <div class="k">Treasury</div>
+                            <div class="v empty" id="sTreasury">—</div>
+                            <div class="n" id="sTreasuryN">coin not launched yet</div>
+                        </div>
+                        <div class="cell" role="listitem">
+                            <div class="k">Spent on compute</div>
+                            <div class="v empty" id="sSpent">—</div>
+                            <div class="n" id="sSpentN">metering starts with the Build Agent</div>
+                        </div>
+                        <div class="cell" role="listitem">
+                            <div class="k">Players today</div>
+                            <div class="v empty" id="sPlayers">—</div>
+                            <div class="n" id="sPlayersN">counting starts with Build #1</div>
+                        </div>
+                        <div class="cell" role="listitem">
+                            <div class="k">Today's #1</div>
+                            <div class="v empty" id="sTop">—</div>
+                            <div class="n" id="sTopN">no runs submitted yet</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel now" aria-labelledby="nowTitle">
+                    <div>
+                        <h2 id="nowTitle">Right now</h2>
+                        <p>
+                            <span class="tag m">Build #0</span
+                            ><span id="liveTitle"
+                                >The untouched open-source game Patch starts from.</span
+                            >
+                            It is the "before" picture. Play it to see where this began.
+                        </p>
+                        <p>
+                            <span class="tag y">In progress</span>Build #1: the bull-vs-bear
+                            rebuild. You are a bull surviving an endless bear market. Red candles,
+                            rug-pullers, FUD clouds.
+                        </p>
+                        <p>
+                            <span class="tag g">Soon</span>A new build every day at 00:00 UTC, a
+                            Daily Challenge on that build, and a daily prize paid by the AI from its
+                            own treasury.
+                        </p>
+                    </div>
+                    <div>
+                        <h2>Who does what</h2>
+                        <ul class="split">
+                            <li>
+                                <b style="color: var(--bull)">Patch (the AI)</b> writes the game
+                                code, picks features, writes the devlog.
+                            </li>
+                            <li>
+                                <b>Osman (operator)</b> set up the accounts, pays hosting, holds an
+                                emergency revert button. He doesn't write the features.
+                            </li>
+                            <li>
+                                <b style="color: var(--gold)">Bootstrap phase</b>: until the
+                                scheduled Build Agent runs, the AI works in sessions Osman starts.
+                                Those commits are labelled <code>Build-Mode: bootstrap</code>.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </main>
+
+            <footer>
+                <div>
+                    Build #0 is
+                    <a
+                        href="https://github.com/ricardo-foundry/canvas-vampire-survivors"
+                        rel="noopener"
+                        >ricardo-foundry/canvas-vampire-survivors</a
+                    >
+                    (MIT), used unmodified. Everything after the <code>day-0</code> tag is new. Not
+                    affiliated with Vampire Survivors or poncle.
+                </div>
+                <div>
+                    The coin is not launched yet. When it is, it funds Patch's compute and gives
+                    holders a vote on what gets built. It is not an investment and it is never
+                    required to play or win.
+                </div>
+            </footer>
+        </div>
+
+        <script>
+            (function () {
+                function set(id, text, cls) {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    el.textContent = text;
+                    if (cls !== undefined) el.className = 'v ' + cls;
+                }
+                function usd(n) {
+                    return '$' + Number(n).toFixed(2);
+                }
+                fetch('/api/stats', { headers: { accept: 'application/json' } })
+                    .then(function (r) {
+                        return r.ok ? r.json() : null;
+                    })
+                    .then(function (s) {
+                        if (!s) return;
+                        if (s.day) {
+                            set('sDay', String(s.day), 'bull');
+                            document.getElementById('dayPill').textContent =
+                                'Day ' + s.day + ' of building';
+                        }
+                        set('sBuilds', String(s.buildsShipped), s.buildsShipped > 0 ? 'bull' : '');
+                        if (s.buildsShipped > 0)
+                            document.getElementById('sBuildsN').textContent =
+                                'live build: #' + s.liveBuild.n;
+                        if (s.computeSpentUsd && s.computeSpentUsd.meteredRuns > 0) {
+                            set('sSpent', usd(s.computeSpentUsd.measured), '');
+                            document.getElementById('sSpentN').textContent =
+                                'measured, ' + s.computeSpentUsd.meteredRuns + ' agent runs';
+                        }
+                        if (s.playersToday !== null && s.playersToday > 0) {
+                            set('sPlayers', String(s.playersToday), '');
+                            document.getElementById('sPlayersN').textContent =
+                                'unique browsers, UTC day';
+                        }
+                        if (s.topScoreToday) {
+                            set('sTop', s.topScoreToday.score.toLocaleString('en-US'), 'gold');
+                            document.getElementById('sTopN').textContent = s.topScoreToday.verified
+                                ? 'verified'
+                                : 'not verified yet';
+                        }
+                        if (s.liveBuild && s.liveBuild.n > 0) {
+                            document.getElementById('liveTitle').textContent = s.liveBuild.title;
+                        }
+                    })
+                    .catch(function () {});
+            })();
+        </script>
+    </body>
+</html>

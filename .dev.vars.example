@@ -1,0 +1,3 @@
+# Copy to .dev.vars for `wrangler dev`. Real values are set with `wrangler secret put`.
+DAILY_SEED_SALT="local-dev-salt-not-secret"
+TURNSTILE_SECRET="1x0000000000000000000000000000000AA"

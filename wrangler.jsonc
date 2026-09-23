@@ -1,0 +1,50 @@
+// Cloudflare Worker: serves the HQ, every immutable game build (/b/<n>/) and the API.
+// Everything here is reproducible. Secrets are set with `wrangler secret put`, never in this file.
+// See docs/SETUP.md.
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "bullrun",
+    "main": "worker/src/index.js",
+    "compatibility_date": "2026-09-01",
+    "workers_dev": true,
+    "preview_urls": false,
+    "observability": { "enabled": true },
+
+    // Static assets are assembled by `npm run build` (scripts/build.mjs) into ./dist.
+    // Only these paths run Worker code. Every other request is a free static hit.
+    "assets": {
+        "directory": "./dist",
+        "binding": "ASSETS",
+        "not_found_handling": "404-page",
+        "run_worker_first": ["/play", "/play/*", "/api/*", "/run/*"]
+    },
+
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "bullrun-db",
+            "database_id": "d1a7b959-a4b1-4368-a2ad-ea28d9ac68ba",
+            "migrations_dir": "worker/migrations"
+        }
+    ],
+
+    // CONFIG holds operator switches: build_override (one-key revert), payouts_enabled (kill switch).
+    "kv_namespaces": [{ "binding": "CONFIG", "id": "f84d41c6e0b641faa24150bb9483be3f" }],
+
+    "ratelimits": [
+        { "name": "RL_SUBMIT", "namespace_id": "7301", "simple": { "limit": 12, "period": 60 } },
+        { "name": "RL_READ", "namespace_id": "7302", "simple": { "limit": 120, "period": 60 } }
+    ],
+
+    // Public, non-secret configuration. Empty string = not configured yet (the API reports that honestly).
+    "vars": {
+        "PROJECT_START_DATE": "2026-09-23",
+        "ANSEM_MINT": "9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump",
+        "TOKEN_MINT": "",
+        "TREASURY_WALLET": "",
+        "PRIZE_WALLET": "",
+        "COSTS_WALLET": "",
+        "TURNSTILE_SITE_KEY": "",
+        "REPO_URL": ""
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "builds": [
+        {
+            "n": 0,
+            "ref": "day-0",
+            "commit": "e616704889e57efc9c1f49098786a95c364008d3",
+            "path": ".",
+            "files": [
+                "index.html",
+                "styles.css",
+                "manifest.json",
+                "service-worker.js",
+                "src",
+                "docs/hero.svg",
+                "docs/og-card.svg"
+            ],
+            "title": "Untouched upstream: canvas-vampire-survivors v2.8.0",
+            "mode": "upstream",
+            "activatesAt": "2026-09-23T00:00:00Z",
+            "costUsd": null
+        }
+    ]
+}

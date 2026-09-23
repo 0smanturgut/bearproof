@@ -70,6 +70,24 @@ npm run db:migrate:remote   # only when worker/migrations changed
 npm run deploy              # build dist/ + wrangler deploy
 ```
 
+With `CLOUDFLARE_API_TOKEN` set in GitHub, every push to `main` and every pushed `build-*` tag deploys through
+`.github/workflows/deploy.yml`.
+
+## Cutting a build
+
+A build is an annotated tag `build-<n>` on a commit whose `game/` differs from the previous build. One build per
+00:00 UTC slot; `scripts/release.mjs` refuses a build that would activate before one already cut.
+
+- **Agent builds** are cut by the deploy workflow when it sees the agent's merge (`Build-Mode: agent`), for the
+  next 00:00 UTC. The agent workflow skips the day if that slot already has a build.
+- **Bootstrap or human builds** are cut by hand, then pushed:
+
+```bash
+node scripts/release.mjs --mode bootstrap                            # next 00:00 UTC
+node scripts/release.mjs --mode bootstrap --at 2026-09-25T00:00:00Z  # a later slot
+git push origin build-<n> && npm run deploy
+```
+
 ## Operator switches (CONFIG KV)
 
 ```bash

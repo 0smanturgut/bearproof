@@ -1,17 +1,15 @@
 name: Deploy
 
-# Every push to main: run the gates, cut a build tag if game/ changed, assemble dist/ and deploy the Worker.
+# Every push to main or of a build tag: run the gates, assemble dist/ from main plus every build tag, deploy.
+# A build tag is cut here only for the Build Agent's merge (commit trailer `Build-Mode: agent`), for the next
+# 00:00 UTC. Bootstrap and human builds are cut by hand with `node scripts/release.mjs` and pushed as tags.
 # The Build Agent cannot edit this file (GITHUB_TOKEN can't change workflows, and scripts/guard-paths.mjs refuses it).
 
 on:
     push:
         branches: [main]
+        tags: ['build-*']
     workflow_dispatch:
-        inputs:
-            activate_now:
-                description: 'Activate a new build immediately instead of at the next 00:00 UTC'
-                type: boolean
-                default: false
 
 permissions:
     contents: write # push build-<n> tags
@@ -37,6 +35,7 @@ jobs:
                   fi
             - uses: actions/checkout@v4
               with:
+                  ref: main # a tag push still deploys the current Worker and HQ, never an older commit
                   fetch-depth: 0
             - uses: actions/setup-node@v4
               with:
@@ -49,15 +48,17 @@ jobs:
                   npm run check
                   node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
                   node game/scripts/determinism.mjs --engines chromium --seeds 3
-            - name: Cut a build if game/ changed
+            - name: Cut the Build Agent's build (next 00:00 UTC)
               if: env.PAUSED != '1'
               run: |
                   git config user.name "release-bot"
                   git config user.email "release@bearproof.invalid"
                   MODE=$(git log -1 --format=%B | sed -n 's/^Build-Mode: *//p' | head -1)
-                  FLAGS="--push"
-                  if [ "${{ inputs.activate_now }}" = "true" ] || [ "$MODE" = "bootstrap" ]; then FLAGS="$FLAGS --now"; fi
-                  node scripts/release.mjs $FLAGS ${MODE:+--mode $MODE}
+                  if [ "$MODE" = "agent" ]; then
+                    node scripts/release.mjs --push --mode agent
+                  else
+                    echo "Not an agent merge (Build-Mode: ${MODE:-none}); no build cut."
+                  fi
             - run: npm run build
               if: env.PAUSED != '1'
             - run: npx wrangler d1 migrations apply bearproof-db --remote

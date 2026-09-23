@@ -43,6 +43,13 @@ jobs:
               with:
                   node-version: '22'
                   cache: 'npm'
+            - name: Skip if the next 00:00 UTC already has a build
+              if: env.PAUSED != '1'
+              run: |
+                  if ! node scripts/release.mjs --check-slot; then
+                    echo "::notice::A build is already scheduled for the next 00:00 UTC. Nothing to build today."
+                    echo "PAUSED=1" >> "$GITHUB_ENV"
+                  fi
             - run: npm ci
               if: env.PAUSED != '1'
             - run: npx playwright install --with-deps chromium

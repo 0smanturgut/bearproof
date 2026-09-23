@@ -50,35 +50,31 @@ opens a pull request, and the build ships at the next 00:00 UTC. Keep a monthly 
 Site key and `TURNSTILE_SECRET` are set; `/api/health` reports `turnstile: true`. Only runs with a passed check can
 win the daily prize.
 
-## 6. Treasury, prize wallet and the token launch (≈25 min)
+## 6. Coin ✅ launched (23 Sep) · prize wallet and IDs still open (≈10 min)
 
-Read `docs/TREASURY.md` once first. The fee payout wallet is set when the token is created. Do the steps in order.
+The coin is live and wired into the site: mint `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` (checked on chain:
+Token-2022, BEARPROOF / BPROOF, 1B supply, no mint or freeze authority). The treasury on the HQ is the coin's
+creator wallet `DvJVRbuB7yf6yswfZgZK2TRyQEjwjzap5Sb3TwJ918c`, where pump.fun creator fees accrue. Voting and
+holder requests open with the next ballot at 00:00 UTC.
 
-1. **Create the agent.** clawpump.tech/dashboard → sign in → **Create Agent**.
-    - Name: `BEARPROOF`
-    - Persona: `Treasury of BEARPROOF, the game an AI builds in public. Only sends to whitelisted wallets.`
-    - Model: any. This agent only holds the treasury; the Build Agent runs on GitHub.
-    - If the dashboard offers **Connect X**, connect **@bearproofapp**. The token is matched to the hackathon entry by
-      X handle. Do **not** enable automatic posting.
-    - **Send me:** the agent id and the agent wallet address.
-2. **Prize wallet.** Run:
+On chain I also see: the creator wallet was funded with 0.7335 SOL from `49CfXAr5…`, bought 24,845,152 BPROOF
+(2.48% of supply) at launch and moved them to `GNJoHj9y…`. The public ledger shows this as launch receipts.
+
+Still needed from you (**send me** the values; none of them is a secret):
+
+1. **Confirm** that `DvJVRbuB…918c` is the ClawPump agent wallet, and send the **ClawPump agent id** (the fee
+   snapshot, and so the prize amount, needs it).
+2. **Tell me** what `49CfXAr5…` (funded the launch) and `GNJoHj9y…` (holds the launch buy) are, so the ledger
+   can label them (for example "operator wallet"). If the launch buy is yours, say whether it is locked or not;
+   the HQ will state it either way.
+3. **Prize wallet.** Run this and send me the public address it prints (the secret goes straight to Cloudflare):
     ```bash
     node scripts/new-wallet.mjs | npx wrangler secret put PRIZE_WALLET_KEY
     ```
-    It prints only the public address. The secret key goes straight into Cloudflare, so nobody ever sees it.
-    **Send me:** that public address.
-3. **Whitelist** in the ClawPump dashboard: the prize wallet from step 2, and your own wallet (the costs wallet for
-   compute and hosting reimbursements). **Send me:** your costs wallet address.
-4. **Fund the agent wallet** with about **0.03 SOL** (the launch costs about 0.012 SOL plus fees).
-5. **Launch the token** with the fields in `docs/LAUNCH.md` (Name `BEARPROOF`, Symbol `BPROOF`, image
-   `https://bearproof.app/assets/brand/coin.png`, website, X `https://x.com/bearproofapp`). Leave the payout wallet as
-   the default (the agent wallet). No initial buy is needed.
-   **Send me:** the mint address.
-6. Add the token link to your hackathon registration if the form allows editing, and post
-   `content/x/010-coin-live.md` (I'll fill in the mint).
-
-After I have the mint and the four addresses, I wire them into the site. The HQ then shows the contract address,
-voting opens, and the treasury balance and ledger fill in from chain every 15 minutes.
+4. **Whitelist** the prize wallet and your costs wallet in the ClawPump dashboard, and **send me** the costs
+   wallet address.
+5. Add the token link to your hackathon registration if the form allows editing, and post
+   `content/x/010-coin-live.md` (the CA is filled in).
 
 ## 7. Turn on the daily prize (1 min, after step 6)
 

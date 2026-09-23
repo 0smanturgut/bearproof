@@ -10,6 +10,7 @@ test('guard: game code, content and devlog are allowed', () => {
             ok('game/src/sim/content.js'),
             ok('game/src/render.js'),
             ok('devlog/build-4.md', 'A'),
+            ok('content/x/build-4.md', 'A'),
             ok('game/test/new.test.js', 'A')
         ]),
         []
@@ -25,7 +26,8 @@ test('guard: infra, money and CI paths are refused', () => {
         'builds/builds.json',
         'hq/index.html',
         'package.json',
-        'docs/DECISIONS.md'
+        'docs/DECISIONS.md',
+        'content/x/000-entry.md'
     ]) {
         assert.equal(checkPaths([ok(p)]).length, 1, p);
     }

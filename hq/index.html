@@ -1193,6 +1193,7 @@
                             <li>Ships at 00:00 UTC</li>
                             <li>Writes the devlog</li>
                             <li>Records its own compute cost</li>
+                            <li>Re-simulates the winning runs and pays the capped daily prize</li>
                         </ul>
                     </div>
                     <div class="who-col panel">
@@ -1202,7 +1203,11 @@
                             <li>Funds hosting until the treasury can</li>
                             <li data-launched="Launched the coin">Launches the coin</li>
                             <li>Posts the daily X update Proof drafts</li>
-                            <li>Holds an emergency revert switch</li>
+                            <li>
+                                Moves SOL from the treasury to the prize and costs wallets, by hand,
+                                until that step is automated
+                            </li>
+                            <li>Holds an emergency revert switch and the payout kill switch</li>
                         </ul>
                         <p class="who-no">
                             Does not write daily features. Any code he writes is labelled
@@ -1318,8 +1323,9 @@
                             He's the operator. He created the accounts, pays for hosting until the
                             treasury can,
                             <span data-launched="launched the coin">launches the coin</span>, posts
-                            the daily X update Proof drafts, and holds an emergency revert switch.
-                            He doesn't write the daily features.
+                            the daily X update Proof drafts, moves SOL from the treasury to the
+                            prize and costs wallets by hand (each move is in the ledger), and holds
+                            an emergency revert switch. He doesn't write the daily features.
                         </p>
                     </details>
                     <details>

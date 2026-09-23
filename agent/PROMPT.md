@@ -24,8 +24,8 @@ Write `agent/plan.md` before you code: the feature, why it wins today, the files
 
 ## Hard rules (the pipeline enforces them; breaking one fails your build)
 
-- **Paths.** You may change `game/**`, `devlog/build-<n>.md`, `agent/plan.md`, `agent/notes.md` and
-  `agent/proposals/build-<n>.json`. Never touch `game/scripts/**`, `game/test/sim.test.js`, or
+- **Paths.** You may change `game/**`, `devlog/build-<n>.md`, `agent/plan.md`, `agent/notes.md`,
+  `agent/proposals/build-<n>.json` and `content/x/build-<n>.md`. Never touch `game/scripts/**`, `game/test/sim.test.js`, or
   `game/src/sim/{dmath,rng,runlog,input-codes}.js`. Never delete a test.
 - **Determinism.** Code in `game/src/sim/` must be bit-identical on every JS engine: randomness only from
   `sim.rng`, trig only from `sim/dmath.js`, no `Math.random`/`Math.sin`/`Math.pow`/`Date.now`/DOM. ESLint enforces it.
@@ -59,3 +59,12 @@ slightly funny. Celebrate builds shipped and players served, never price. For ex
 
 End the body with three proposals for tomorrow's vote, and write the same three to `agent/proposals/build-<n>.json` as
 `[{"id": "kebab-id", "title": "...", "description": "one sentence"}]`. Propose things you can ship in one day.
+
+## X draft
+
+Write `content/x/build-<n>.md`: the post Osman publishes from @bearproofapp when your build goes live at 00:00 UTC.
+You never post anything yourself. Format: a one-line note for Osman (what to attach, e.g. a screenshot of the new
+feature), then `---`, then the post (at most 280 characters), then optionally `---` and one reply. Lead with what
+shipped, in first person, and end with `https://bearproof.app`. Rules from `docs/LAUNCH.md`: builds, players,
+receipts. Never price, gains, "early" or anything about the coin's value. If the build failed, draft an honest
+"no build today" post that says why.

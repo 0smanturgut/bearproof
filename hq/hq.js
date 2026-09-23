@@ -1414,7 +1414,7 @@ function copyButton(value, label) {
     return btn;
 }
 
-function renderWallets(w) {
+function renderWallets(w, balances) {
     for (const el of document.querySelectorAll('[data-wallet]')) {
         const key = el.getAttribute('data-wallet');
         const addr = w && typeof w[key] === 'string' && B58.test(w[key]) ? w[key] : null;
@@ -1433,6 +1433,8 @@ function renderWallets(w) {
                 'Solscan ↗'
             )
         );
+        const bal = balances && balances[key];
+        if (isNum(bal)) val.append(h('span', { class: 'w-bal' }, `${bal.toFixed(3)} SOL`));
     }
 }
 
@@ -1466,7 +1468,8 @@ async function loadLedger() {
     const wallets = (data && data.wallets) || {};
     if (!wallets.treasury && s && s.treasury && s.treasury.wallet)
         wallets.treasury = s.treasury.wallet;
-    renderWallets(wallets);
+    const t = (s && s.treasury) || {};
+    renderWallets(wallets, { treasury: t.balance, prize: t.prizeWalletBalance });
 
     const box = $('#ledger');
     box.textContent = '';

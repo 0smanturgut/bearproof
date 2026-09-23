@@ -1,142 +1,143 @@
 # Operator TODO (Osman)
 
-Only things that need your accounts, money or signature. Everything else is handled. Steps are exact; when a step
-says **"send me"**, paste the value in chat. **Never paste secret keys in chat.** Those go through the commands shown.
+Only things that need your accounts, money or signature. Everything else is done or handled by me. When a step says
+**"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
+which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Wed 23 Sep 2026, evening. Build #1 is live._
+_Last updated: Wed 23 Sep 2026, 17:40 UTC. Build #1 is live, Build #2 goes live at 00:00 UTC._
+
+Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
 ---
 
-## Batch 1: today or tomorrow morning (≈30 min total)
+## 1. X account @bearproofapp (10 min)
 
-### 1. Pick the X handle (5 min) — blocks: registration, entry post, token
-
-Check availability on x.com in this order and take the first free one:
-`@PatchShips` → `@PatchBuilds` → `@patch_ai_dev`.
-If none is free, try the backups: `@NightlyBuilds` (brand NIGHTLY) or `@BuildoorAI` (brand BUILDOOR).
-
-- Create the account. Display name: **Proof**. Bio:
+- Profile: display name `BEARPROOF`, avatar `hq/assets/brand/avatar.png`, banner `hq/assets/brand/banner.png`,
+  website `https://bearproof.app`, bio:
   `An AI building a game on its own budget. New build every day at 00:00 UTC. You fund it, you steer it, you play it.`
-- Leave avatar and banner empty for now. I will render both tomorrow.
-- From that account, **follow @clawpumptech**. This is a hackathon requirement.
-- **Send me:** the handle you got.
+- **Follow @clawpumptech** from @bearproofapp. This is a hackathon requirement.
 
-### 2. Create the GitHub repo and push (3 min) — blocks: Build Agent, CI
+## 2. Register for the hackathon (5 min)
 
-In Terminal:
+Go to clawpump.tech/ansemhack → Register:
 
-```bash
-cd ~/Documents/Vampire-Survivors
-gh repo create bearproof --public --source=. --remote=origin --description "BEARPROOF: a game an AI builds in public, one build a day, on its own budget."
-git push -u origin main
-git push origin day-0
-```
+| Field              | Value                                                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Project name       | `BEARPROOF`                                                                                                             |
+| Project X handle   | `@bearproofapp`                                                                                                         |
+| One line (≤ 280)   | `An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.` |
+| Ticker (optional)  | `BPROOF`                                                                                                                |
+| Website (optional) | `https://bearproof.app`                                                                                                 |
+| Token link         | leave empty now; add it after step 6                                                                                    |
+| Track              | **ClawPump × pump.fun**                                                                                                 |
+| Primary contact    | your email                                                                                                              |
+| Team members       | you (the operator). The developer is the AI; say so if the form has a notes field.                                      |
 
-After this, pushing commits to this repo is part of my normal work.
+Then post the **pre-written announcement** the form gives you from @bearproofapp, and reply to it with the thread in
+`content/x/000-entry.md`.
 
-Then protect `main`. Go to github.com → the repo → **Settings → Rules → Rulesets → New branch ruleset**:
+## 3. Cloudflare API token for automatic deploys (5 min)
 
-- Name: `main`. Enforcement: **Active**. Target branches: **Default branch**.
-- Bypass list: add **Repository admin**. That's you; it lets the bootstrap commits land. The Build Agent is _not_
-  an admin.
-- Enable these rules:
-    - **Restrict deletions**
-    - **Block force pushes**
-    - **Require a pull request before merging** (0 approvals; tick _Require review from Code Owners_)
-    - **Require status checks to pass**, adding the check `Lint, format, tests, build`. It appears after the first CI run.
-- Save.
+Without it, every daily build needs me at the keyboard to deploy. With it, GitHub Actions deploys on its own.
 
-### 3. Cloudflare API token for GitHub Actions (5 min) — blocks: automatic deploys
-
-1. dash.cloudflare.com → top-right profile → **My Profile → API Tokens → Create Token**.
+1. dash.cloudflare.com → profile (top right) → **My Profile → API Tokens → Create Token**.
 2. Template **Edit Cloudflare Workers** → **Use template**.
-3. **Add more → Account → D1 → Edit**.
-4. Set Account Resources to _Include → Osmankng@icloud.com's Account_ and Zone Resources to _All zones_.
-5. **Continue → Create Token** and copy it.
-6. Go to github.com → the repo → **Settings → Secrets and variables → Actions → New repository secret**:
-    - `CLOUDFLARE_API_TOKEN` = the token
-    - `CLOUDFLARE_ACCOUNT_ID` = `8a4c7b65a2640a68401d2bb4f046ed6f`
+3. **+ Add more** → _Account_ → **D1** → **Edit**.
+4. Account Resources: _Include → Osmankng@icloud.com's Account_. Zone Resources: _Include → Specific zone →
+   bearproof.app_.
+5. **Continue to summary → Create Token**, copy it, then run this and paste it when asked:
+    ```bash
+    gh secret set CLOUDFLARE_API_TOKEN -R 0smanturgut/bearproof
+    ```
+    (`CLOUDFLARE_ACCOUNT_ID` is already set.)
 
-### 4. Turnstile widget (3 min) — blocks: score submission
+## 4. Anthropic API key for the Build Agent (5 min)
 
-1. dash.cloudflare.com → **Turnstile → Add widget**.
-2. Name `bearproof`. Hostnames: `bearproof.app` and `localhost`. Mode: **Managed**. Click **Create**.
-3. **Send me:** the **Site Key** (it is public).
-4. For the **Secret Key**, run this in the repo folder and paste the key when prompted:
+This is what makes the daily builds autonomous. Until it exists, builds are "bootstrap" builds made with me in a
+session, and they are labelled that way.
+
+1. console.anthropic.com → **API Keys → Create key**, name `bearproof-build-agent`.
+2. **Settings → Limits**: set a monthly spend limit (suggest **$150**; my estimate is $3–8 per daily build, and the real cost is measured and published).
+3. Run this and paste the key when asked:
+    ```bash
+    gh secret set ANTHROPIC_API_KEY -R 0smanturgut/bearproof
+    ```
+
+The agent then runs every day at 13:00 UTC, right after the holder vote closes. It opens a pull request, and the
+build ships at the next 00:00 UTC.
+
+## 5. Turnstile bot check (3 min)
+
+1. dash.cloudflare.com → **Turnstile → Add widget**. Name `bearproof`. Hostnames: `bearproof.app`. Mode: **Managed**.
+   Pre-clearance: **No**. **Create**.
+2. **Send me:** the **Site Key** (it is public).
+3. Run this and paste the **Secret Key** when asked:
     ```bash
     npx wrangler secret put TURNSTILE_SECRET
     ```
 
-### 5. Helius API key (3 min) — blocks: treasury panel, ledger, holder voting
+## 6. Treasury, prize wallet and the token launch (≈25 min)
 
-1. Go to dashboard.helius.dev, sign up and copy the default API key.
-2. In the repo folder, run this and paste the key when prompted:
+Read `docs/TREASURY.md` once first. The fee payout wallet is set when the token is created. Do the steps in order.
+
+1. **Create the agent.** clawpump.tech/dashboard → sign in → **Create Agent**.
+    - Name: `Proof`
+    - Persona: `Treasury of Proof, the AI game developer building BEARPROOF. Only sends to whitelisted wallets.`
+    - Model: any. This agent only holds the treasury; the Build Agent runs on GitHub.
+    - If the dashboard offers **Connect X**, connect **@bearproofapp**. The token is matched to the hackathon entry by
+      X handle. Do **not** enable automatic posting.
+    - **Send me:** the agent id and the agent wallet address.
+2. **Prize wallet.** Run:
     ```bash
-    npx wrangler secret put HELIUS_API_KEY
+    node scripts/new-wallet.mjs | npx wrangler secret put PRIZE_WALLET_KEY
     ```
+    It prints only the public address. The secret key goes straight into Cloudflare, so nobody ever sees it.
+    **Send me:** that public address.
+3. **Whitelist** in the ClawPump dashboard: the prize wallet from step 2, and your own wallet (the costs wallet for
+   compute and hosting reimbursements). **Send me:** your costs wallet address.
+4. **Fund the agent wallet** with about **0.03 SOL** (the launch costs about 0.012 SOL plus fees).
+5. **Launch the token** with the fields in `docs/LAUNCH.md` (Name `BEARPROOF`, Symbol `BPROOF`, image
+   `https://bearproof.app/assets/brand/coin.png`, website, X `https://x.com/bearproofapp`). Leave the payout wallet as
+   the default (the agent wallet). No initial buy is needed.
+   **Send me:** the mint address.
+6. Add the token link to your hackathon registration if the form allows editing, and post
+   `content/x/010-coin-live.md` (I'll fill in the mint).
 
-### 6. Register for the hackathon (5 min) — after step 1
+After I have the mint and the four addresses, I wire them into the site. The HQ then shows the contract address,
+voting opens, and the treasury balance and ledger fill in from chain every 15 minutes.
 
-Go to clawpump.tech/ansemhack and register:
+## 7. Turn on the daily prize (1 min, after step 6)
 
-| Field              | Value                                                                                                                   |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Project name       | `BPROOF`                                                                                                                |
-| Project X handle   | the handle from step 1                                                                                                  |
-| One line           | `An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.` |
-| Email              | yours                                                                                                                   |
-| Ticker (optional)  | `BPROOF`                                                                                                                |
-| Website (optional) | `https://bearproof.app`                                                                                                 |
+Payouts stay off until you say so. When you are ready, send me **"payouts on"**. The kill switch is one command
+(I'll run it, or you can):
 
-Don't post the entry tweet yet. I'll send the final text when Build #1 (the bull-vs-bear rebuild) is live.
-That should be Thursday. A first post that shows the actual game converts far better.
+```bash
+npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
+```
 
----
+## 8. Recurring (2 min a day, until automated)
 
-## Batch 2: Thursday/Friday (I'll ping you with the exact package)
-
-- **Anthropic API key for the Build Agent.** Go to console.anthropic.com → API Keys → create `patch-build-agent`,
-  and set a monthly spend limit (suggest $100). Add it as the GitHub secret `ANTHROPIC_API_KEY`.
-  I may switch this to a UsePod token funded from the treasury (it makes "the AI pays for its own compute" literally
-  true on-chain). I'll confirm before you do anything.
-- **Workers Paid plan ($5/month).** Go to dash.cloudflare.com → Workers & Pages → Plans. It is needed by Saturday
-  for Queues and for the CPU time that server-side replay verification uses.
-- **Treasury + token launch on ClawPump (≈25 min).** The plan is in `docs/TREASURY.md`; the fields are in `docs/LAUNCH.md`.
-  ⚠️ The fee payout wallet is fixed forever at launch, so do these in order:
-    1. clawpump.tech → sign in (Google) → **Create Agent**. Name `Proof`. Persona:
-       `Treasury of Proof, the AI game developer building BEARPROOF. Only sends to whitelisted wallets.`
-       Model: any free one (this agent only holds the treasury; the Build Agent runs elsewhere).
-       **Send me:** the agent id and its **agent wallet address**.
-    2. Prize wallet: in the repo folder run
-       `node scripts/new-wallet.mjs | npx wrangler secret put PRIZE_WALLET_KEY`
-       It prints only the public address. The secret goes straight into Cloudflare, so nobody sees it.
-       **Send me:** that public address.
-    3. In ClawPump, **Whitelist** two addresses: the prize wallet from step 2, and your own wallet (the costs wallet
-       for reimbursements). **Send me:** your costs wallet address.
-    4. Send about **0.03 SOL** to the agent wallet. It pays the ~0.012 SOL launch plus fees.
-    5. **Launch token** with the fields in `docs/LAUNCH.md`. Leave the payout wallet as the default (the agent wallet).
-       **Send me:** the token mint address.
-    6. Post `content/x/000-entry.md` from the project account. Then on clawpump.tech/ansemhack/entry, sign in with X
-       and attach that post's URL and the token mint.
-
-- **Agent GitHub token (3 min).** Go to github.com → Settings → Developer settings → Fine-grained tokens →
-  Generate. Repository access: only `bearproof`. Permissions: Contents _Read and write_, Pull requests
-  _Read and write_. Expiry: 30 days. Add it as the repo secret `AGENT_GH_TOKEN`. Then repo **Settings → General →
-  Pull Requests**: tick **Allow auto-merge**.
+- **Prize wallet top-up.** When the HQ shows the prize wallet under 0.5 SOL, send from the agent wallet to the prize
+  wallet in the ClawPump dashboard. Never more than 1.5 SOL in total there.
+- **Cost reimbursement** (weekly is fine). Send the measured compute plus hosting from the agent wallet to your costs
+  wallet. If the dashboard lets you add a memo, use `bearproof:costs:<YYYY-MM-DD> compute` (or `hosting`); without
+  one, sends to the costs wallet are labelled compute. The ledger picks them up automatically.
+- **Posts.** Publish `content/x/build-<n>.md` after each 00:00 UTC release. The agent drafts them; you post.
 
 ## Optional
 
-- **Custom domain** (~$10/yr, looks more serious to judges): buy something like `patch.fun` or `bearproof.gg`, add it
-  to Cloudflare, and send me the name. I'll wire it up.
+- **Helius API key** (free). It makes chain reads faster and more reliable than the public fallback.
+  dashboard.helius.dev → copy the key → `npx wrangler secret put HELIUS_API_KEY`.
 
 ---
 
 ## Done
 
-- [x] Cloudflare: Worker `bearproof`, D1 `bearproof-db`, KV `bearproof-config` created under your account via your
-      existing wrangler login. Nothing else in the account was touched.
-- [x] Secrets `DAILY_SEED_SALT` and `INGEST_TOKEN` generated and set (random, never displayed). A copy of
-      `INGEST_TOKEN` is in `.secrets/ingest-token` (git-ignored, owner-only). Once the repo exists, add it to GitHub
-      with `gh secret set INGEST_TOKEN < .secrets/ingest-token`. The run verifier needs it.
-- [x] Build #1 (the bull-vs-bear rebuild) deployed and live at https://bearproof.app/play.
-- [x] HQ v1 live at https://bearproof.app (Lighthouse 100/100/100/100 locally).
+- [x] bearproof.app live (Cloudflare Worker `bearproof`, D1 `bearproof-db`, KV). www and the old `bullrun` URL
+      redirect.
+- [x] GitHub repo https://github.com/0smanturgut/bearproof (public), `main` protected, `day-0`, `build-1` and
+      `build-2` tagged. Secrets `INGEST_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` set. Auto-merge on.
+- [x] Build #1 live. Build #2 scheduled for 00:00 UTC Thu 24 Sep.
+- [x] HQ live with honest pre-launch states. Holder voting, treasury feed, ledger and prize payouts are built and
+      tested, and switch on when the values from step 6 arrive.
+- [x] Run verifier running every 10 minutes (GitHub Actions).

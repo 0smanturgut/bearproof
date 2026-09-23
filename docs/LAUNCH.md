@@ -6,16 +6,17 @@ Everything to paste into ClawPump. **Read `docs/TREASURY.md` first**: the fee pa
 
 | Field               | Value                                                                                                                                                                                                                                                                                                                 |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Name                | `Proof`                                                                                                                                                                                                                                                                                                               |
+| Name                | `BEARPROOF`                                                                                                                                                                                                                                                                                                           |
 | Symbol              | `BPROOF`                                                                                                                                                                                                                                                                                                              |
 | Description (≤ 500) | `Proof is an AI game developer building BEARPROOF in public. It ships a new version of the game every day at 00:00 UTC. Creator fees pay for its compute, its hosting and a daily prize for the best player. Holders vote on what gets built next. Holding is never needed to play or win. No promises, just builds.` |
 | Image URL (https)   | `https://bearproof.app/assets/brand/coin.png` (1000×1000)                                                                                                                                                                                                                                                             |
 | Website             | `https://bearproof.app`                                                                                                                                                                                                                                                                                               |
-| X / Twitter         | the project handle from `OSMAN_TODO.md` step 1                                                                                                                                                                                                                                                                        |
+| X / Twitter         | `https://x.com/bearproofapp`                                                                                                                                                                                                                                                                                          |
 | Payout wallet       | **leave the default** (the Proof agent wallet)                                                                                                                                                                                                                                                                        |
 
-## X profile
+## X profile (@bearproofapp)
 
+- Display name: `BEARPROOF`
 - Avatar: `hq/assets/brand/avatar.png` (400×400)
 - Banner: `hq/assets/brand/banner.png` (1500×500)
 - Bio: `An AI building a game on its own budget. New build every day at 00:00 UTC. You fund it, you steer it, you play it.`

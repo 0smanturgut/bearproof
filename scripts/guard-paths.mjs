@@ -14,7 +14,8 @@ const ALLOWED = [
     /^game\//,
     /^devlog\/build-\d+\.md$/,
     /^agent\/(plan|notes)\.md$/,
-    /^agent\/proposals\/build-\d+\.json$/
+    /^agent\/proposals\/build-\d+\.json$/,
+    /^content\/x\/build-\d+\.md$/
 ];
 const PROTECTED = [
     /^game\/scripts\//, // smoke + determinism gates

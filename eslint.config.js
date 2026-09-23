@@ -68,6 +68,55 @@ module.exports = [
         }
     },
     {
+        // The simulation must be bit-identical on every JS engine (see game/src/sim/dmath.js), or server-side
+        // replay verification breaks. Engine-approximated Math functions, Math.random and clocks are banned.
+        files: ['game/src/sim/**/*.js'],
+        ignores: ['game/src/sim/bot.js', 'game/src/sim/input-codes.js'],
+        rules: {
+            'no-restricted-properties': [
+                'error',
+                ...[
+                    'random',
+                    'sin',
+                    'cos',
+                    'tan',
+                    'atan',
+                    'atan2',
+                    'asin',
+                    'acos',
+                    'hypot',
+                    'pow',
+                    'exp',
+                    'log',
+                    'log2',
+                    'log10',
+                    'cbrt',
+                    'sinh',
+                    'cosh',
+                    'tanh',
+                    'expm1',
+                    'log1p'
+                ].map((property) => ({
+                    object: 'Math',
+                    property,
+                    message:
+                        'Use sim/dmath.js or sim.rng: the sim must be deterministic across engines.'
+                })),
+                { object: 'Date', property: 'now', message: 'No clocks in the sim: use sim.tick.' },
+                {
+                    object: 'performance',
+                    property: 'now',
+                    message: 'No clocks in the sim: use sim.tick.'
+                }
+            ],
+            'no-restricted-globals': [
+                'error',
+                { name: 'document', message: 'The sim runs headless.' },
+                { name: 'window', message: 'The sim runs headless.' }
+            ]
+        }
+    },
+    {
         files: ['game/server.js', 'game/scripts/**/*.js', '*.config.js', '*.cjs'],
         languageOptions: {
             ecmaVersion: 2022,

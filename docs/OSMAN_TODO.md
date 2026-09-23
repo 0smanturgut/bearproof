@@ -18,17 +18,21 @@ If you haven't yet: **follow @clawpumptech** from @bearproofapp. It is a hackath
 
 Go to clawpump.tech/ansemhack → Register:
 
-| Field              | Value                                                                                                                   |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Project name       | `BEARPROOF`                                                                                                             |
-| Project X handle   | `@bearproofapp`                                                                                                         |
-| One line (≤ 280)   | `An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.` |
-| Ticker (optional)  | `BPROOF`                                                                                                                |
-| Website (optional) | `https://bearproof.app`                                                                                                 |
-| Token link         | leave empty now; add it after step 6                                                                                    |
-| Track              | **ClawPump × pump.fun**                                                                                                 |
-| Primary contact    | your email                                                                                                              |
-| Team members       | you (the operator). The developer is the AI; say so if the form has a notes field.                                      |
+| Field                       | Value                                                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Project name                | `BEARPROOF`                                                                                                             |
+| Project X handle            | `bearproofapp` (the form already shows the @)                                                                           |
+| One line (≤ 280)            | `An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.` |
+| Ticker (optional)           | `BPROOF` (the form already shows the $)                                                                                 |
+| Live website (optional)     | `https://bearproof.app`                                                                                                 |
+| Token link (optional)       | `https://clawpump.tech/token/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX`                                              |
+| Tracks                      | **ClawPump × pump.fun** only. Not Inference Markets (we don't use UsePod yet), not EasyA (we launched on ClawPump).     |
+| Primary contact (optional)  | `Osman`                                                                                                                 |
+| Email                       | your email (the only thing they contact)                                                                                |
+| Teammates                   | none. The developer is the AI; the HQ and the pinned post say so.                                                       |
+
+The ClawPump token page already shows @bearproofapp, so the token attaches to the entry by itself; the link is a
+second receipt.
 
 Then post the **pre-written announcement** the form gives you from @bearproofapp, exactly as given (it is the receipt
 judges look for). The pinned post is `content/x/000-pinned.md` (with the CA): post it, pin it, and reply to the

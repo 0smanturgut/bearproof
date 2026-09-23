@@ -26,7 +26,14 @@ const DIST = path.join(ROOT, 'dist');
 const args = new Set(process.argv.slice(2));
 
 // Top-level entries of game/ that are dev-only and never shipped.
-const GAME_EXCLUDE = ['test', 'scripts', 'server.js', 'BALANCE.md', 'README.md'];
+const GAME_EXCLUDE = [
+    'test',
+    'scripts',
+    'server.js',
+    'BALANCE.md',
+    'README.md',
+    'art-preview.html'
+];
 
 function git(...a) {
     return execFileSync('git', a, { cwd: ROOT, maxBuffer: 512 * 1024 * 1024 });
@@ -51,7 +58,37 @@ function pruneGame(dir) {
         fs.rmSync(path.join(dir, name), { recursive: true, force: true });
 }
 
-const { builds } = JSON.parse(fs.readFileSync(path.join(ROOT, 'builds/builds.json'), 'utf8'));
+/**
+ * Builds = static entries in builds/builds.json (Build #0) + one annotated tag `build-<n>` per shipped build.
+ * The tag message's last line is JSON metadata: {"n","title","mode","activatesAt","costUsd"}. The release
+ * workflow creates those tags; the Build Agent can't. `revoked` in builds.json pulls a build from rotation.
+ */
+function collectBuilds() {
+    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'builds/builds.json'), 'utf8'));
+    const out = manifest.builds.map((b) => ({ ...b }));
+    const tags = git('tag', '-l', 'build-*').toString().split('\n').filter(Boolean);
+    for (const tag of tags) {
+        const msg = git('tag', '-l', '--format=%(contents)', tag).toString().trim().split('\n');
+        let meta;
+        try {
+            meta = JSON.parse(msg[msg.length - 1]);
+        } catch {
+            throw new Error(`tag ${tag}: last line of the tag message must be JSON metadata`);
+        }
+        const n = Number(tag.slice('build-'.length));
+        if (meta.n !== n) throw new Error(`tag ${tag}: metadata says n=${meta.n}`);
+        if (out.some((b) => b.n === n)) throw new Error(`build ${n} defined twice`);
+        const commit = git('rev-parse', `${tag}^{commit}`).toString().trim();
+        out.push({ path: 'game', costUsd: null, ...meta, n, ref: tag, commit });
+    }
+    for (const n of manifest.revoked || []) {
+        const b = out.find((x) => x.n === n);
+        if (b) b.revoked = true;
+    }
+    return out.sort((a, b) => a.n - b.n);
+}
+
+const builds = collectBuilds();
 
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(path.join(DIST, 'b'), { recursive: true });
@@ -87,6 +124,11 @@ if (args.has('--next')) {
 }
 
 fs.cpSync(path.join(ROOT, 'hq'), DIST, { recursive: true });
+
+// The Worker bundles this merged manifest (worker/src/manifest.js).
+const GEN = path.join(ROOT, 'worker/src/generated');
+fs.mkdirSync(GEN, { recursive: true });
+fs.writeFileSync(path.join(GEN, 'builds.json'), JSON.stringify({ builds }, null, 2));
 
 fs.writeFileSync(
     path.join(DIST, 'builds.json'),

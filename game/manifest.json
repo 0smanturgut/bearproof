@@ -1,27 +1,12 @@
 {
-    "name": "Survivor — Open Source Roguelite",
-    "short_name": "Survivor",
-    "description": "A zero-dependency HTML5 Canvas roguelite inspired by Vampire Survivors. Plays in any modern browser.",
-    "start_url": "./index.html",
+    "name": "BULL RUN",
+    "short_name": "BULL RUN",
+    "description": "Survive the bear market. A game an AI builds in public, one build a day.",
+    "start_url": "./",
     "scope": "./",
     "display": "fullscreen",
-    "orientation": "landscape",
-    "theme_color": "#1b1330",
-    "background_color": "#0a0a12",
-    "categories": ["games", "entertainment"],
-    "lang": "en",
-    "icons": [
-        {
-            "src": "./docs/hero.svg",
-            "sizes": "any",
-            "type": "image/svg+xml",
-            "purpose": "any"
-        },
-        {
-            "src": "./docs/og-card.svg",
-            "sizes": "1200x630",
-            "type": "image/svg+xml",
-            "purpose": "any"
-        }
-    ]
+    "orientation": "any",
+    "background_color": "#07090C",
+    "theme_color": "#07090C",
+    "icons": [{ "src": "./assets/patch.svg", "sizes": "any", "type": "image/svg+xml" }]
 }

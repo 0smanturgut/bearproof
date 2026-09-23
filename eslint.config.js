@@ -49,6 +49,10 @@ module.exports = [
                 CustomEvent: 'readonly',
                 KeyboardEvent: 'readonly',
                 structuredClone: 'readonly',
+                AbortController: 'readonly',
+                OffscreenCanvas: 'readonly',
+                crypto: 'readonly',
+                matchMedia: 'readonly',
                 alert: 'readonly',
                 confirm: 'readonly',
                 prompt: 'readonly'

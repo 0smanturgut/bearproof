@@ -1,326 +1,196 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+        />
         <meta name="color-scheme" content="dark" />
-        <meta name="theme-color" content="#1b1330" />
+        <meta name="theme-color" content="#07090C" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <title>BULL RUN · a game an AI builds every day</title>
         <meta
             name="description"
-            content="Open-source HTML5 Canvas roguelite inspired by Vampire Survivors. Zero dependencies, plays in any modern browser."
+            content="You are a bull. The bear market is endless. A new build ships every day, written by an AI on its own budget."
         />
-        <title>Survivor — Open Source Roguelite</title>
-
-        <!-- Canonical + favicon (SVG keeps the bundle dependency-free) -->
-        <link rel="canonical" href="https://ricardo-foundry.github.io/canvas-vampire-survivors/" />
-        <link rel="icon" type="image/svg+xml" href="./docs/hero.svg" />
-        <link rel="manifest" href="./manifest.json" />
-
-        <!-- Open Graph / social share -->
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Survivor — Open Source Roguelite" />
+        <meta property="og:title" content="BULL RUN · survive the bear market" />
         <meta
             property="og:description"
-            content="A zero-dependency HTML5 Canvas roguelite. Clone, play, hack."
+            content="A browser game an AI builds in public, one build a day. Play today's challenge."
         />
-        <meta property="og:image" content="./docs/og-card.svg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta
-            property="og:url"
-            content="https://ricardo-foundry.github.io/canvas-vampire-survivors/"
-        />
-
-        <!-- Twitter card -->
+        <meta property="og:image" content="/assets/og.png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Survivor — Open Source Roguelite" />
-        <meta
-            name="twitter:description"
-            content="A zero-dependency HTML5 Canvas roguelite. Clone, play, hack."
+        <meta name="twitter:image" content="/assets/og.png" />
+        <link rel="icon" type="image/svg+xml" href="./assets/patch.svg" />
+        <link rel="manifest" href="./manifest.json" />
+        <link
+            rel="preload"
+            href="./assets/fonts/jersey-10.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
         />
-        <meta name="twitter:image" content="./docs/og-card.svg" />
-
         <link rel="stylesheet" href="./styles.css" />
     </head>
     <body>
-        <div id="gameContainer" aria-label="Survivor game">
-            <canvas
-                id="gameCanvas"
-                width="1200"
-                height="800"
-                tabindex="0"
-                aria-label="Game canvas"
-            ></canvas>
+        <div id="app">
+            <canvas id="game" aria-label="BULL RUN play field"></canvas>
+            <div id="touch" class="touch-surface" aria-hidden="true"></div>
+            <div id="joy" class="joy" aria-hidden="true"><div class="joy-knob"></div></div>
 
-            <div id="ui" role="presentation">
-                <div id="topLeft" class="hud">
-                    <div><span data-i18n="level">LEVEL</span>: <span id="level">1</span></div>
-                    <div class="bar-label" data-i18n="xp">XP</div>
-                    <div class="exp-bar">
-                        <div class="exp-fill" id="expBar" style="width: 0%"></div>
-                    </div>
-                    <div class="bar-label">
-                        <span data-i18n="time">TIME</span>: <span id="time">00:00</span>
-                    </div>
-                    <div id="waveLabel" class="hud-sub"></div>
-                    <div id="highScore" class="hud-sub"></div>
+            <header id="hud" class="hud" hidden>
+                <div class="hud-left">
+                    <div class="hud-lvl">LV <b id="hLevel">1</b></div>
+                    <div class="bar bar-xp" aria-label="Experience"><i id="hXp"></i></div>
+                    <div class="bar bar-hp" aria-label="Health"><i id="hHp"></i></div>
                 </div>
-
-                <div id="topRight" class="hud">
-                    <div><span data-i18n="kills">KILLS</span>: <span id="kills">0</span></div>
-                    <div id="fpsCounter" class="hud-sub" style="display: none">0 fps</div>
-                    <button id="btnPause" class="icon-btn" aria-label="Pause">⏸</button>
+                <div class="hud-mid">
+                    <div id="hTime" class="hud-time">00:00</div>
+                    <div id="hWave" class="hud-wave"></div>
                 </div>
-
-                <div id="bottomLeft" class="hud">
-                    <div>
-                        <span data-i18n="hp">HP</span>: <span id="hp">100</span>/<span id="maxHp"
-                            >100</span
-                        >
-                    </div>
-                    <div class="hp-bar">
-                        <div class="hp-fill" id="hpBar" style="width: 100%"></div>
-                    </div>
-                    <div class="chip-row" id="passiveIcons" role="list" aria-label="Passives"></div>
+                <div class="hud-right">
+                    <div class="hud-score"><small>SCORE</small><b id="hScore">0</b></div>
+                    <button id="btnPause" class="icon-btn" aria-label="Pause">
+                        <svg viewBox="0 0 8 8" aria-hidden="true">
+                            <path d="M1 1h2v6H1zM5 1h2v6H5z" />
+                        </svg>
+                    </button>
                 </div>
-
-                <div
-                    class="chip-row weapon-icons"
-                    id="weaponIcons"
-                    role="list"
-                    aria-label="Weapons"
-                ></div>
-
-                <div id="bossBanner" class="boss-banner" aria-live="polite"></div>
-
-                <div
-                    id="achievementToasts"
-                    class="ach-toast-host"
-                    aria-live="polite"
-                    aria-atomic="false"
-                ></div>
-
-                <!--
-                    Visually-hidden live region. All gameplay events with
-                    meaningful accessibility signal (boss incoming, level-up,
-                    achievement unlock, boss defeated) are mirrored into this
-                    paragraph so screen readers announce them. See
-                    docs/ACCESSIBILITY.md for the full list.
-                -->
-                <p
-                    id="a11yLiveRegion"
-                    class="sr-only"
-                    role="status"
-                    aria-live="polite"
-                    aria-atomic="true"
-                ></p>
+            </header>
+            <div id="loadout" class="loadout" hidden></div>
+            <div id="bossbar" class="bossbar" hidden>
+                <div class="bossbar-name" id="bossName"></div>
+                <div class="bar bar-boss"><i id="bossHp"></i></div>
+            </div>
+            <div id="toast" class="toast" aria-live="polite"></div>
+            <div id="hint" class="hint-move" hidden>
+                DRAG ANYWHERE TO MOVE<span> · WASD / ARROWS</span>
             </div>
 
-            <!-- Virtual joystick (touch only) -->
-            <div id="joystickBase" class="joystick" aria-hidden="true">
-                <div id="joystickKnob" class="joystick-knob"></div>
+            <div id="bossCard" class="boss-card" hidden>
+                <div class="boss-ticker"><span id="bossTicker"></span></div>
+                <div class="boss-warn">⚠ BOSS INCOMING</div>
+                <div class="boss-title" id="bossTitle"></div>
+                <div class="boss-tag" id="bossTag"></div>
             </div>
 
-            <!-- iter-14: special-skill button (touch only). Bottom-right counterpart
-                 to the joystick on mobile. Opens the pause menu by default until
-                 per-build skills are wired in. -->
-            <button
-                id="specialSkillBtn"
-                class="special-skill-btn"
-                aria-label="Special skill"
-                aria-hidden="true"
-            >
-                ✦
-            </button>
-
-            <!-- iter-14: PWA install prompt. Shown once on first load on a browser
-                 that fires `beforeinstallprompt`; dismissed forever once the user
-                 acts on it. -->
-            <div
-                id="pwaInstallPrompt"
-                class="pwa-install-prompt"
-                role="dialog"
-                aria-live="polite"
-                style="display: none"
-            >
-                <span>Install Survivor as an app for full-screen play.</span>
-                <button id="pwaInstallBtn" class="btn primary">Install</button>
-                <button id="pwaInstallDismiss" class="btn">Not now</button>
-            </div>
-
-            <!-- Menus -->
-            <div
-                id="startScreen"
-                class="overlay"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="startTitle"
-            >
-                <div class="overlay-card">
-                    <h1 id="startTitle" data-i18n="title">SURVIVOR</h1>
-                    <div class="subtitle" data-i18n="subtitle">
-                        Vampire Survivors style roguelite
-                    </div>
-                    <div class="instructions">
-                        <div><strong data-i18n="howToPlay">How to play</strong></div>
-                        <div>• <span data-i18n="move">WASD / arrow keys to move</span></div>
-                        <div>
-                            • <span data-i18n="autoAttack">Weapons auto-attack nearby foes</span>
-                        </div>
-                        <div>• Esc / P to pause</div>
-                        <div>• <span data-i18n="survive">Survive as long as you can!</span></div>
-                    </div>
-                    <div class="btn-row">
-                        <button id="btnStart" class="btn primary" data-i18n="start">
-                            Start Run
-                        </button>
-                        <button
-                            id="btnStage"
-                            class="btn ghost"
-                            data-i18n="stage"
-                            aria-describedby="btnStageChip"
-                        >
-                            Stage <span id="btnStageChip" class="stage-chip">🌲 Whisperwood</span>
-                        </button>
-                        <button id="btnDaily" class="btn ghost" data-i18n="dailyChallenge">
-                            Daily Challenge
-                        </button>
-                        <button id="btnViewStreak" class="btn ghost" data-i18n="viewStreak">
-                            View Streak
-                        </button>
-                        <button id="btnSpeedrun" class="btn ghost" data-i18n="speedrun">
-                            Speedrun
-                        </button>
-                        <button id="btnLeaderboard" class="btn ghost" data-i18n="leaderboard">
-                            Leaderboard
-                        </button>
-                        <button id="btnSettings" class="btn ghost" data-i18n="settings">
-                            Settings
-                        </button>
-                        <button id="btnAchievements" class="btn ghost" data-i18n="viewAchievements">
-                            View Achievements
-                        </button>
-                        <button id="btnHowTo" class="btn ghost" data-i18n="howToPlayBtn">
-                            How to Play
-                        </button>
-                        <button id="btnTutorial" class="btn ghost" data-i18n="tryTutorial">
-                            Try Tutorial
-                        </button>
-                        <button id="btnReplay" class="btn ghost" data-i18n="replayLastRun">
-                            Replay Last Run
-                        </button>
-                    </div>
-                    <div class="hotkey-hint" aria-hidden="true">
-                        <span data-i18n="hotkeyHint"
-                            >Tip: <kbd>P</kbd>/<kbd>Esc</kbd> pause · <kbd>M</kbd> mute ·
-                            <kbd>H</kbd> help</span
-                        >
-                    </div>
+            <section id="screenTitle" class="screen screen-title" aria-labelledby="logo">
+                <a class="chip" href="/" target="_top"
+                    ><i class="dot"></i>PATCH <span class="buildLabel">#1</span> · BUILT BY AN AI</a
+                >
+                <canvas
+                    id="titleBull"
+                    class="title-bull"
+                    width="180"
+                    height="140"
+                    aria-hidden="true"
+                ></canvas>
+                <h1 id="logo" class="logo">BULL RUN</h1>
+                <p class="tagline">You are a bull. The bear market is endless.</p>
+                <button id="btnDaily" class="btn btn-primary btn-big">
+                    <span>PLAY TODAY'S CHALLENGE</span>
+                    <small id="dailySub">Same market for everyone</small>
+                </button>
+                <button id="btnFree" class="btn btn-ghost">FREE RUN</button>
+                <div class="title-row">
+                    <button id="btnBoard" class="btn btn-text">LEADERBOARD</button>
+                    <button id="btnSettings" class="btn btn-text">SETTINGS</button>
+                    <button id="btnSound" class="btn btn-text">SOUND ON</button>
                 </div>
-            </div>
+                <p id="todayTop" class="today-top"></p>
+                <p class="title-foot">
+                    Patch, an AI game developer, ships a new build every day.
+                    <a href="/" target="_top">See what it built today →</a>
+                </p>
+            </section>
 
-            <div id="achievementsScreen" class="overlay" style="display: none"></div>
-            <div id="leaderboardScreen" class="overlay" style="display: none"></div>
-            <div id="stagePickerScreen" class="overlay" style="display: none"></div>
-            <div id="streakScreen" class="overlay" style="display: none"></div>
-            <div id="helpScreen" class="overlay" style="display: none"></div>
-            <div id="howToPlayScreen" class="overlay" style="display: none"></div>
-
-            <div
-                id="levelUpMenu"
-                class="overlay"
-                style="display: none"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="levelUpTitle"
-            >
-                <div class="overlay-card levelup">
-                    <h2 id="levelUpTitle" data-i18n="chooseUpgrade">Choose an upgrade</h2>
-                    <div id="upgradeOptions" role="menu"></div>
+            <section id="screenLevel" class="screen screen-level" hidden aria-labelledby="lvTitle">
+                <div class="level-head">
+                    <div class="ath" id="lvTitle">NEW ATH</div>
+                    <div class="lv">LEVEL <b id="lvN">2</b></div>
                 </div>
-            </div>
+                <div id="cards" class="cards" role="menu"></div>
+                <p class="level-hint">Tap a card · keys 1 2 3</p>
+            </section>
 
-            <div
-                id="pauseMenu"
-                class="overlay"
-                style="display: none"
-                role="dialog"
-                aria-modal="true"
+            <section
+                id="screenPause"
+                class="screen screen-pause"
+                hidden
                 aria-labelledby="pauseTitle"
             >
-                <div class="overlay-card">
-                    <h2 id="pauseTitle" data-i18n="paused">PAUSED</h2>
-                    <div class="btn-row vertical">
-                        <button id="btnResume" class="btn primary" data-i18n="resume">
-                            Resume
-                        </button>
-                        <button id="btnQuit" class="btn ghost" data-i18n="quit">
-                            Quit to Menu
-                        </button>
-                    </div>
-                </div>
-            </div>
+                <h2 id="pauseTitle" class="screen-h">PAUSED</h2>
+                <p class="pause-sub" id="pauseSub"></p>
+                <button id="btnResume" class="btn btn-primary">RESUME</button>
+                <button id="btnRestart" class="btn">RESTART</button>
+                <button id="btnQuit" class="btn btn-ghost">QUIT TO TITLE</button>
+            </section>
 
-            <div
-                id="gameOver"
-                class="overlay"
-                style="display: none"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="gameOverTitle"
+            <section id="screenOver" class="screen screen-over" hidden aria-labelledby="overTitle">
+                <div class="over-title" id="overTitle">LIQUIDATED</div>
+                <div class="over-sub" id="overSub"></div>
+                <div class="over-score"><small>SCORE</small><b id="overScore">0</b></div>
+                <div class="over-stats">
+                    <div><small>SURVIVED</small><b id="overTime">00:00</b></div>
+                    <div><small>BEARS</small><b id="overKills">0</b></div>
+                    <div><small>LEVEL</small><b id="overLevel">1</b></div>
+                </div>
+                <div class="over-rank" id="overRank"></div>
+                <form id="nameForm" class="name-form" hidden>
+                    <label for="nameInput">Your name on the board</label>
+                    <div class="name-row">
+                        <input
+                            id="nameInput"
+                            maxlength="16"
+                            placeholder="anon"
+                            autocomplete="nickname"
+                            enterkeyhint="done"
+                            spellcheck="false"
+                        />
+                        <button type="submit" class="btn btn-primary">SUBMIT</button>
+                    </div>
+                </form>
+                <div class="over-btns">
+                    <button id="btnShare" class="btn btn-primary">SHARE</button>
+                    <button id="btnAgain" class="btn">RUN IT BACK</button>
+                    <button id="btnOverBoard" class="btn btn-ghost">BOARD</button>
+                </div>
+                <p class="over-build" id="overBuild"></p>
+            </section>
+
+            <section
+                id="screenBoard"
+                class="screen screen-board"
+                hidden
+                aria-labelledby="boardTitle"
             >
-                <div class="overlay-card gameover">
-                    <h1 id="gameOverTitle" data-i18n="gameover">YOU DIED</h1>
-                    <div class="stats">
-                        <div>
-                            <span data-i18n="finalTime">Survived</span>:
-                            <span id="finalTime">00:00</span>
-                        </div>
-                        <div>
-                            <span data-i18n="finalKills">Kills</span>:
-                            <span id="finalKills">0</span>
-                        </div>
-                        <div>
-                            <span data-i18n="finalLevel">Level</span>:
-                            <span id="finalLevel">1</span>
-                        </div>
-                    </div>
-                    <details class="hs-details">
-                        <summary data-i18n="highScores">High Scores</summary>
-                        <div id="highScoreList" class="hs-list"></div>
-                    </details>
-                    <div class="btn-row">
-                        <button id="btnRetry" class="btn primary" data-i18n="retry">Retry</button>
-                        <button id="btnMenu" class="btn ghost" data-i18n="mainMenu">
-                            Main Menu
-                        </button>
-                    </div>
-                </div>
+                <h2 id="boardTitle" class="screen-h">TODAY'S BOARD</h2>
+                <p class="board-sub" id="boardSub"></p>
+                <ol id="boardList" class="board-list"></ol>
+                <button id="btnBoardBack" class="btn">BACK</button>
+            </section>
+
+            <section
+                id="screenSettings"
+                class="screen screen-settings"
+                hidden
+                aria-labelledby="setTitle"
+            >
+                <h2 id="setTitle" class="screen-h">SETTINGS</h2>
+                <div id="settingsList" class="settings-list"></div>
+                <button id="btnSettingsBack" class="btn">DONE</button>
+            </section>
+
+            <div id="attractBadge" class="attract-badge" hidden>
+                <i class="dot"></i>LIVE BUILD <span class="buildLabel">#1</span>
             </div>
-
-            <div id="settingsMenu" class="overlay" style="display: none"></div>
+            <p id="sr" class="sr-only" aria-live="polite"></p>
         </div>
-
-        <script type="module">
-            import { boot } from './src/main.js';
-            const game = boot();
-            // Pause button (UI click) mirrors Esc.
-            document
-                .getElementById('btnPause')
-                ?.addEventListener('click', () => game.togglePause());
-        </script>
-
-        <!-- Optional offline support. SW registration is a no-op on file:// -->
-        <script>
-            if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker
-                        .register('./service-worker.js')
-                        .catch((err) => console.warn('[sw] registration failed', err));
-                });
-            }
-        </script>
+        <noscript>BULL RUN needs JavaScript. It's a game.</noscript>
+        <script type="module" src="./src/main.js"></script>
     </body>
 </html>

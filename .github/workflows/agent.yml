@@ -91,7 +91,7 @@ jobs:
                   echo "PR state: $STATE"
                   [ "$STATE" = "MERGED" ] || exit 1
                   gh workflow run deploy.yml --ref main
-            - uses: actions/upload-artifact@v4
+            - uses: actions/upload-artifact@v7
               if: always()
               with:
                   name: agent-run

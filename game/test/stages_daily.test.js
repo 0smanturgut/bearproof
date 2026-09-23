@@ -124,29 +124,35 @@ test('daily: dailyChallenge is deterministic per date and pins a stage', () => {
 
 test('daily: saveDailyResult persists and prunes old days (>14d)', () => {
     _resetDailyForTests();
-    saveDailyResult({
-        date: '2026-04-25',
-        stage: 'forest',
-        timeSurvived: 600,
-        kills: 500,
-        level: 18,
-        weapons: ['whip', 'orbit'],
-        won: true,
-        noHit: false,
-        seed: 12345
-    });
+    saveDailyResult(
+        {
+            date: '2026-04-25',
+            stage: 'forest',
+            timeSurvived: 600,
+            kills: 500,
+            level: 18,
+            weapons: ['whip', 'orbit'],
+            won: true,
+            noHit: false,
+            seed: 12345
+        },
+        Date.UTC(2026, 3, 25, 12)
+    );
     const ancient = '2024-01-01';
-    saveDailyResult({
-        date: ancient,
-        stage: 'forest',
-        timeSurvived: 50,
-        kills: 5,
-        level: 2,
-        weapons: ['whip'],
-        won: false,
-        noHit: false,
-        seed: 1
-    });
+    saveDailyResult(
+        {
+            date: ancient,
+            stage: 'forest',
+            timeSurvived: 50,
+            kills: 5,
+            level: 2,
+            weapons: ['whip'],
+            won: false,
+            noHit: false,
+            seed: 1
+        },
+        Date.UTC(2026, 3, 25, 12)
+    );
     const h = loadDailyHistory();
     assert.ok(h['2026-04-25-forest'], 'today entry should be present');
     assert.equal(h[`${ancient}-forest`], undefined, 'entries older than 14 days should be pruned');

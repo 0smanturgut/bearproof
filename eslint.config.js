@@ -5,10 +5,17 @@
 
 module.exports = [
     {
-        ignores: ['node_modules/**', '_site/**', 'coverage/**']
+        ignores: [
+            'node_modules/**',
+            '_site/**',
+            'coverage/**',
+            'dist/**',
+            '.wrangler/**',
+            'docs/upstream/**'
+        ]
     },
     {
-        files: ['src/**/*.js'],
+        files: ['game/src/**/*.js', 'hq/**/*.js'],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
@@ -57,7 +64,7 @@ module.exports = [
         }
     },
     {
-        files: ['server.js', '*.config.js', '*.cjs'],
+        files: ['game/server.js', 'game/scripts/**/*.js', '*.config.js', '*.cjs'],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'commonjs',
@@ -89,7 +96,7 @@ module.exports = [
     },
     {
         // Tests run under the Node `node:test` runner as ESM modules.
-        files: ['test/**/*.js'],
+        files: ['game/test/**/*.js', 'worker/test/**/*.js'],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',

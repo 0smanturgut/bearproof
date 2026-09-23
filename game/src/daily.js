@@ -129,17 +129,18 @@ function writeDailyHistory(history) {
  * @param {{date:string, stage:string, timeSurvived:number, kills:number,
  *          level:number, weapons:string[], won:boolean, noHit:boolean,
  *          seed:number}} entry
+ * @param {number} [nowMs] clock override (tests); defaults to Date.now()
  */
-export function saveDailyResult(entry) {
+export function saveDailyResult(entry, nowMs = Date.now()) {
     if (!entry || !entry.date || !entry.stage) return;
     const history = loadDailyHistory();
     const key = `${entry.date}-${entry.stage}`;
-    history[key] = { ...entry, savedAt: Date.now() };
+    history[key] = { ...entry, savedAt: nowMs };
 
     // Prune anything older than DAILY_KEEP_DAYS by comparing the stored date
     // string. We deliberately don't trust `savedAt` for the cutoff because a
     // user could have a clock skew across runs.
-    const cutoff = todayKey(new Date(Date.now() - DAILY_KEEP_DAYS * 86400 * 1000));
+    const cutoff = todayKey(new Date(nowMs - DAILY_KEEP_DAYS * 86400 * 1000));
     for (const k of Object.keys(history)) {
         const d = k.slice(0, 10); // 'YYYY-MM-DD'
         if (d < cutoff) delete history[k];

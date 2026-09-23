@@ -109,17 +109,20 @@ test('streak: collapses multiple stages on the same date to one played day', () 
 
 test('streak: saveDailyResult round-trips into the streak summary', () => {
     _resetDailyForTests();
-    saveDailyResult({
-        date: '2026-04-25',
-        stage: 'forest',
-        timeSurvived: 480,
-        kills: 320,
-        level: 14,
-        weapons: ['whip'],
-        won: true,
-        noHit: false,
-        seed: 1
-    });
+    saveDailyResult(
+        {
+            date: '2026-04-25',
+            stage: 'forest',
+            timeSurvived: 480,
+            kills: 320,
+            level: 14,
+            weapons: ['whip'],
+            won: true,
+            noHit: false,
+            seed: 1
+        },
+        Date.UTC(2026, 3, 25, 12)
+    );
     const s = dailyStreakSummary(undefined, new Date(Date.UTC(2026, 3, 25)));
     // Today is played, won.
     assert.equal(s.days[0].played, true);

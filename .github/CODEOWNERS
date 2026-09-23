@@ -1,7 +1,11 @@
-# CODEOWNERS — automatic review requests on PRs.
-# Format docs: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
-#
-# A catch-all that routes every change to the maintainer. Add module-specific
-# owners below as the contributor base grows (e.g. `src/i18n.js @translator-x`).
-
-* @Ricardo-M-L
+# Paths the Build Agent must never change. Branch protection requires the operator's review for these.
+# The agent's own guard (scripts/guard-paths.mjs) fails the pipeline before a PR even exists.
+*                   @0smanturgut
+/.github/           @0smanturgut
+/worker/            @0smanturgut
+/agent/             @0smanturgut
+/scripts/           @0smanturgut
+/builds/            @0smanturgut
+/wrangler.jsonc     @0smanturgut
+/package.json       @0smanturgut
+/package-lock.json  @0smanturgut

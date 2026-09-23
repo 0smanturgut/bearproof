@@ -1,6 +1,10 @@
 node_modules/
 _site/
+dist/
+.wrangler/
 coverage/
 package-lock.json
 LICENSE
-QUICKSTART.md
+docs/upstream/
+CLAUDE.md
+.claude/

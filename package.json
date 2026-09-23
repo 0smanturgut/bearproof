@@ -1,57 +1,32 @@
 {
-    "name": "canvas-vampire-survivors",
-    "version": "2.8.0",
-    "description": "Vanilla JavaScript HTML5 Canvas roguelite inspired by Vampire Survivors. Zero runtime dependencies.",
-    "main": "server.js",
-    "type": "commonjs",
-    "private": false,
-    "scripts": {
-        "start": "node server.js",
-        "dev": "node server.js",
-        "lint": "eslint \"src/**/*.js\" \"test/**/*.js\" server.js",
-        "lint:fix": "eslint --fix \"src/**/*.js\" \"test/**/*.js\" server.js",
-        "format": "prettier --write \"**/*.{js,html,css,md,json}\"",
-        "format:check": "prettier --check \"**/*.{js,html,css,md,json}\"",
-        "test": "node --test test/*.test.js",
-        "check": "npm run lint && npm run format:check && npm test",
-        "smoke": "node scripts/runtime-smoke.js",
-        "smoke:live": "node scripts/test-live-deploy.js",
-        "smoke:extended": "node scripts/extended-smoke.js"
-    },
-    "keywords": [
-        "game",
-        "html5",
-        "html5-canvas-game",
-        "canvas",
-        "roguelite",
-        "vampire-survivors",
-        "vampire-survivors-clone",
-        "browser-roguelite",
-        "bullet-hell",
-        "browser-game",
-        "vanilla-js",
-        "zero-dependencies",
-        "indie-game",
-        "speedrun",
-        "open-source"
-    ],
-    "author": "Survivor contributors",
+    "name": "patch-bull-run",
+    "version": "0.1.0",
+    "private": true,
+    "description": "BULL RUN: a game built in public by Patch, an AI game developer that ships a new build every day on its own budget.",
     "license": "MIT",
+    "type": "commonjs",
     "engines": {
-        "node": ">=18"
+        "node": ">=20"
     },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/ricardo-foundry/canvas-vampire-survivors.git"
+    "scripts": {
+        "dev": "node game/server.js",
+        "dev:worker": "npm run build && wrangler dev",
+        "build": "node scripts/build.mjs",
+        "deploy": "npm run build && wrangler deploy",
+        "test": "node --test game/test/*.test.js worker/test/*.test.js",
+        "lint": "eslint \"game/src/**/*.js\" \"game/test/**/*.js\" game/server.js",
+        "format": "prettier --write \"**/*.{js,mjs,html,css,md,json,jsonc}\"",
+        "format:check": "prettier --check \"**/*.{js,mjs,html,css,md,json,jsonc}\"",
+        "check": "npm run lint && npm run format:check && npm test",
+        "smoke": "node game/scripts/runtime-smoke.js",
+        "db:migrate:local": "wrangler d1 migrations apply bullrun-db --local",
+        "db:migrate:remote": "wrangler d1 migrations apply bullrun-db --remote"
     },
-    "bugs": {
-        "url": "https://github.com/ricardo-foundry/canvas-vampire-survivors/issues"
-    },
-    "homepage": "https://github.com/ricardo-foundry/canvas-vampire-survivors#readme",
     "devDependencies": {
         "@axe-core/playwright": "^4.11.2",
         "eslint": "^9.0.0",
-        "playwright": "^1.59.1",
-        "prettier": "^3.2.0"
+        "playwright": "^1.63.0",
+        "prettier": "^3.2.0",
+        "wrangler": "^4.137.0"
     }
 }

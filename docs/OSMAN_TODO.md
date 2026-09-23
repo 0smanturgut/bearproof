@@ -94,17 +94,10 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
   one, sends to the costs wallet are labelled compute. The ledger picks them up automatically.
 - **Posts.** Publish `content/x/build-<n>.md` after each 00:00 UTC release. The agent drafts them; you post.
 
-## ⚠️ Helius API key (5 min, important now that the coin is live)
+## Helius API key ✅ done (23 Sep)
 
-The free public Solana RPC rate-limits Cloudflare (HTTP 429). The site falls back and retries, but vote and
-request balance checks and the treasury feed can still fail at busy moments. A free Helius key fixes it.
-
-1. dashboard.helius.dev → sign up (free plan) → copy the **API key**.
-2. Run this and paste the key when asked (never in chat):
-    ```bash
-    npx wrangler secret put HELIUS_API_KEY
-    ```
-3. Tell me "helius set"; I check the live feeds.
+`HELIUS_API_KEY` is set. The treasury balance, the unclaimed creator fees and the ledger read from chain every 15
+minutes, and vote and request balance checks go through Helius first.
 
 ## Done
 

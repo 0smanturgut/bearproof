@@ -277,7 +277,9 @@ function renderStats(s) {
             : t.balance && isNum(t.balance.sol)
               ? t.balance.sol
               : null;
-        const fees = isNum(t.feesUnclaimed) ? t.feesUnclaimed : 0;
+        // Only the treasury's share of unclaimed creator fees counts (ClawPump keeps the rest). An estimate.
+        const share = isNum(t.feeShare) && t.feeShare > 0 && t.feeShare <= 1 ? t.feeShare : 0;
+        const fees = isNum(t.feesUnclaimed) ? t.feesUnclaimed * share : 0;
         if (bal === null) {
             setV('sTreasury', '—', 'empty');
             setN('sTreasuryN', 'wallet live · balance feed pending');
@@ -287,7 +289,7 @@ function renderStats(s) {
             setN(
                 'sTreasuryN',
                 fees > 0
-                    ? `incl. ${fees.toFixed(3)} SOL creator fees, unclaimed`
+                    ? `incl. ~${fees.toFixed(3)} SOL of unclaimed creator fees (est. ${Math.round(share * 100)}% share)`
                     : 'on-chain balance'
             );
         }

@@ -58,3 +58,13 @@ through PublicNode's free RPC (`api.mainnet-beta.solana.com` refuses requests fr
 
 We only claim "the AI pays for its own compute" for the amounts that were actually reimbursed on-chain, and each one
 links to its transaction.
+
+## Live addresses (23 Sep 2026)
+
+| Role                    | Address                                        | Notes                                                         |
+| ----------------------- | ---------------------------------------------- | ------------------------------------------------------------- |
+| Coin (mint)             | `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` | Token-2022, 1B supply, no mint or freeze authority            |
+| Treasury (agent wallet) | `GNJoHj9yfn3jqNNkC5ffQDaB5vTrnvVqy4FjQuXmBLS6` | `TREASURY_WALLET`; receives the agent's 75% of creator fees   |
+| pump.fun creator        | `DvJVRbuB7yf6yswfZgZK2TRyQEjwjzap5Sb3TwJ918c`  | Run by ClawPump; a known fee source in the ledger             |
+| pump.fun creator vault  | `CGy3DDwzLERGkeeJRQ7perGaMbGtRNuRy8YZ755NuBpp` | `CREATOR_VAULT`; unclaimed fees, shown on the HQ × 75% (est.) |
+| ClawPump launch payee   | `49CfXAr58cCTGJnYsbm16fEsE5JRpdR8QQP8E1ZinGCq` | `ledger:launch_addresses`; received the launch payment        |

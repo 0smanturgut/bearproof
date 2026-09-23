@@ -90,6 +90,8 @@ async function treasuryStats(env) {
         // Creator fees earned on pump.fun and not yet claimed into the wallet (they are the treasury's too).
         creatorVault: env.CREATOR_VAULT || null,
         feesUnclaimed: bal && typeof bal.creatorVault === 'number' ? bal.creatorVault : null,
+        // The treasury's estimated share of those fees (ClawPump keeps the rest).
+        feeShare: Number(env.CREATOR_FEE_SHARE) || null,
         note: 'On-chain SOL balances, read every 15 minutes.'
     };
 }

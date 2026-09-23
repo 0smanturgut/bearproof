@@ -50,31 +50,31 @@ opens a pull request, and the build ships at the next 00:00 UTC. Keep a monthly 
 Site key and `TURNSTILE_SECRET` are set; `/api/health` reports `turnstile: true`. Only runs with a passed check can
 win the daily prize.
 
-## 6. Coin ✅ launched (23 Sep) · prize wallet and IDs still open (≈10 min)
+## 6. Coin ✅ launched (23 Sep) · prize wallet still open (≈5 min)
 
-The coin is live and wired into the site: mint `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` (checked on chain:
-Token-2022, BEARPROOF / BPROOF, 1B supply, no mint or freeze authority). The treasury on the HQ is the coin's
-creator wallet `DvJVRbuB7yf6yswfZgZK2TRyQEjwjzap5Sb3TwJ918c`, where pump.fun creator fees accrue. Voting and
-holder requests open with the next ballot at 00:00 UTC.
+Wired into the site and checked on chain:
 
-On chain I also see: the creator wallet was funded with 0.7335 SOL from `49CfXAr5…`, bought 24,845,152 BPROOF
-(2.48% of supply) at launch and moved them to `GNJoHj9y…`. The public ledger shows this as launch receipts.
+- Mint `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` (Token-2022, BEARPROOF / BPROOF, 1B supply, no mint or
+  freeze authority).
+- Treasury = the ClawPump agent wallet `GNJoHj9yfn3jqNNkC5ffQDaB5vTrnvVqy4FjQuXmBLS6`. ClawPump claims the creator
+  fees from the coin's pump.fun creator vault (`CGy3DD…uBpp`, creator wallet `DvJVRb…918c`, run by ClawPump) and
+  forwards the agent's 75% share here.
+- Launch receipt on the HQ: the agent wallet paid 0.7335 SOL to ClawPump (`49CfXA…nGCq`) for the creation and a
+  launch buy of 24,845,152 BPROOF (2.48%), which the treasury holds.
+- ClawPump has no agent id for a single agent, so fees are measured from chain instead.
 
-Still needed from you (**send me** the values; none of them is a secret):
+Still needed from you:
 
-1. **Confirm** that `DvJVRbuB…918c` is the ClawPump agent wallet, and send the **ClawPump agent id** (the fee
-   snapshot, and so the prize amount, needs it).
-2. **Tell me** what `49CfXAr5…` (funded the launch) and `GNJoHj9y…` (holds the launch buy) are, so the ledger
-   can label them (for example "operator wallet"). If the launch buy is yours, say whether it is locked or not;
-   the HQ will state it either way.
-3. **Prize wallet.** Run this and send me the public address it prints (the secret goes straight to Cloudflare):
+1. **Tell me** whether `5Em3PQ…` (sent the agent wallet 1 SOL at 21:04 UTC) is your wallet, so the ledger can say
+   "operator funding". Careful: right after it, `5Em1A2…` sent 0.000001 SOL. That is address-poisoning spam made to
+   look like your address; never copy an address from the wallet's history.
+2. **Prize wallet.** Run this and send me the public address it prints (the secret goes straight to Cloudflare):
     ```bash
     node scripts/new-wallet.mjs | npx wrangler secret put PRIZE_WALLET_KEY
     ```
-4. **Whitelist** the prize wallet and your costs wallet in the ClawPump dashboard, and **send me** the costs
-   wallet address.
-5. Add the token link to your hackathon registration if the form allows editing, and post
-   `content/x/000-pinned.md` and pin it (it carries the CA). `010-coin-live.md` is optional.
+    Then whitelist it in the ClawPump dashboard.
+3. Post `content/x/010-coin-live.md` (CA filled in) and add the token link to your hackathon registration if the
+   form allows editing.
 
 ## 7. Turn on the daily prize (1 min, after step 6)
 

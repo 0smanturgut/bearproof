@@ -101,6 +101,9 @@ export function classifyTx(tx, signature, wallet, known = {}) {
         } else {
             label = 'coin launch';
         }
+    } else if (peer && (known.launch || []).includes(peer)) {
+        category = 'launch';
+        label = 'coin launch: paid to ClawPump for the creation and the launch buy';
     } else if (peer && peer === known.prize) {
         category = 'sweep';
         label = 'prize wallet top-up';
@@ -130,8 +133,15 @@ async function knownAddresses(env) {
     } catch {
         feeSources = [];
     }
+    let launch = [];
+    try {
+        launch = JSON.parse((await env.CONFIG.get('ledger:launch_addresses')) || '[]');
+    } catch {
+        launch = [];
+    }
     return {
         feeSources,
+        launch,
         prize: env.PRIZE_WALLET || null,
         costs: env.COSTS_WALLET || null,
         mint: env.TOKEN_MINT || null

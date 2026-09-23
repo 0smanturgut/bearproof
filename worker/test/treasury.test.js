@@ -149,3 +149,13 @@ test('launch receipts: a launch buy and a token move are spelled out', () => {
     assert.equal(r2.category, 'launch');
     assert.equal(r2.memo, 'moved 24,845,152 $BPROOF to Othe…1111');
 });
+
+test('a payment to a known launch address is the coin launch', () => {
+    const LAUNCH = 'Launch1111111111111111111111111111111111111';
+    const r = classifyTx(tx({ from: T, to: LAUNCH, lamports: 7e8 }), 's3', T, {
+        ...known,
+        launch: [LAUNCH]
+    });
+    assert.equal(r.category, 'launch');
+    assert.match(r.memo, /coin launch: paid to ClawPump/);
+});

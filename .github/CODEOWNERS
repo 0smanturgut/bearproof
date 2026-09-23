@@ -1,11 +1,15 @@
-# Paths the Build Agent must never change. Branch protection requires the operator's review for these.
+# Paths the Build Agent must never change. With "Require review from Code Owners" enabled on main,
+# any PR touching these needs the operator's approval. game/ and devlog/ are deliberately unowned so
+# the agent's daily PRs can merge on green checks alone.
 # The agent's own guard (scripts/guard-paths.mjs) fails the pipeline before a PR even exists.
-*                   @0smanturgut
 /.github/           @0smanturgut
 /worker/            @0smanturgut
 /agent/             @0smanturgut
 /scripts/           @0smanturgut
 /builds/            @0smanturgut
+/hq/                @0smanturgut
+/docs/              @0smanturgut
 /wrangler.jsonc     @0smanturgut
 /package.json       @0smanturgut
 /package-lock.json  @0smanturgut
+/eslint.config.js   @0smanturgut

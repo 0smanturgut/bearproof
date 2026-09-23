@@ -261,3 +261,39 @@ function runParade(canvas, { SPRITES, bakeSprite, bakeGlow }) {
     };
     requestAnimationFrame(frame);
 }
+
+// ---------------------------------------------------------------- live ticker (real numbers only)
+
+(async () => {
+    const el = document.getElementById('ticker');
+    const track = document.getElementById('tickerTrack');
+    if (!el || !track) return;
+    const get = (u) =>
+        fetch(u, { cache: 'no-cache', headers: { accept: 'application/json' } })
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null);
+    const [s, d] = await Promise.all([get('/api/stats'), get('/api/daily')]);
+    const items = [];
+    const esc = (v) => String(v).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+    const add = (label, value, tone = '') =>
+        items.push(`<span class="${tone}">${esc(label)} <b>${esc(value)}</b></span>`);
+    if (s && s.liveBuild) add('Live build', `#${s.liveBuild.n} · ${s.liveBuild.title}`, 'g');
+    if (s && Number.isFinite(s.day)) add('Day', `${s.day} of building`);
+    if (s && Number.isFinite(s.buildsShipped)) add('Builds shipped', s.buildsShipped, 'g');
+    if (d && d.twist && d.twist.name) add("Today's twist", d.twist.name, 'y');
+    if (d && d.stageName) add('Stage', d.stageName);
+    if (s && s.playersToday > 0) add('Players today', s.playersToday, 'g');
+    if (s && s.topScoreToday)
+        add(
+            "Today's #1",
+            `${Number(s.topScoreToday.score).toLocaleString('en-US')}${s.topScoreToday.verified ? ' ✓' : ''}`,
+            'y'
+        );
+    if (s && s.treasury && Number.isFinite(s.treasury.balance))
+        add('Treasury', `${s.treasury.balance.toFixed(2)} SOL`, 'y');
+    add('Next build', '00:00 UTC');
+    if (items.length < 3) return;
+    const run = items.join('');
+    track.innerHTML = run + run; // doubled for a seamless loop
+    el.hidden = false;
+})();

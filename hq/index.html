@@ -339,6 +339,63 @@
                     transform 140ms ease;
             }
 
+            /* ---- Live ticker: only real numbers from the API ---- */
+            .ticker {
+                position: relative;
+                z-index: 2;
+                height: 30px;
+                overflow: hidden;
+                border-bottom: 1px solid var(--line);
+                background: rgba(7, 9, 12, 0.85);
+                -webkit-mask-image: linear-gradient(
+                    90deg,
+                    transparent,
+                    #000 6%,
+                    #000 94%,
+                    transparent
+                );
+                mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+            }
+            .ticker-track {
+                display: flex;
+                width: max-content;
+                height: 100%;
+                align-items: center;
+                animation: tick 38s linear infinite;
+            }
+            .ticker-track span {
+                padding: 0 22px;
+                font-size: 11px;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                white-space: nowrap;
+                color: var(--muted);
+            }
+            .ticker-track span b {
+                font-weight: 700;
+                color: var(--text);
+            }
+            .ticker-track span.g b {
+                color: var(--bull);
+            }
+            .ticker-track span.y b {
+                color: var(--gold);
+            }
+            .ticker-track span::before {
+                content: '▲';
+                margin-right: 10px;
+                color: var(--bull);
+            }
+            .ticker-track span.y::before {
+                content: '◆';
+                color: var(--gold);
+            }
+            @keyframes tick {
+                to {
+                    transform: translateX(-50%);
+                }
+            }
+
             /* ---- Hero ---- */
             .hero {
                 display: grid;
@@ -857,7 +914,8 @@
                     transition: none;
                     animation: none;
                 }
-                .v.flash {
+                .v.flash,
+                .ticker-track {
                     animation: none;
                 }
             }
@@ -898,6 +956,9 @@
         </header>
 
         <main id="main">
+            <div class="ticker" id="ticker" aria-label="Live ticker" hidden>
+                <div class="ticker-track" id="tickerTrack"></div>
+            </div>
             <section class="hero wrap" aria-labelledby="heroTitle">
                 <div class="h-copy">
                     <p class="eyebrow">Live build log · Solana · AnsemHack</p>
@@ -1042,6 +1103,162 @@
                     <p>Newest first. This is the proof of work.</p>
                 </div>
                 <ol class="timeline" id="timeline" aria-label="Build history"></ol>
+
+                <div class="bestiary">
+                    <div class="tl-head">
+                        <h3>Meet the bear market</h3>
+                        <p>Everything that wants your bull liquidated, drawn by the AI in code.</p>
+                    </div>
+                    <ul class="bosses" aria-label="Bosses">
+                        <li class="boss">
+                            <canvas
+                                data-sprite="rug_lord"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Rug Lord</b><span>He is pulling everything.</span>
+                        </li>
+                        <li class="boss">
+                            <canvas
+                                data-sprite="capitulation"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Capitulation</b
+                            ><span>The biggest red candle you have ever seen.</span>
+                        </li>
+                        <li class="boss">
+                            <canvas
+                                data-sprite="liquidation"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Liquidation</b><span>Your position is being closed.</span>
+                        </li>
+                        <li class="boss">
+                            <canvas
+                                data-sprite="bear_market"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>The Bear Market</b><span>Survive this and the cycle turns.</span>
+                        </li>
+                        <li class="boss">
+                            <canvas
+                                data-sprite="long_winter"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>The Long Winter</b><span>Crypto winter has a face.</span>
+                        </li>
+                    </ul>
+                    <ul class="foes" aria-label="Enemies">
+                        <li class="foe">
+                            <canvas
+                                data-sprite="red_candle"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Red Candle</b><span>Down only.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="bag_holder"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Bag Holder</b><span>Still holding.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="paper_hands"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Paper Hands</b><span>Sold the bottom.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="rug_puller"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Rug Puller</b><span>Dashes in. Takes the rug.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="grizzly"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Grizzly</b><span>Armoured, slow, hurts.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="fud_cloud"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>FUD Cloud</b><span>Fast and loud.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="doomposter"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Doomposter</b><span>Shoots bad news.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="ponzi"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Ponzi</b><span>Pops into its downline.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="downline"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Downline</b><span>Recruited.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="margin_call"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Margin Call</b><span>Rings, then blows up.</span>
+                        </li>
+                        <li class="foe">
+                            <canvas
+                                data-sprite="sybil"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                            <b>Sybil</b><span>There are always more.</span>
+                        </li>
+                    </ul>
+                </div>
             </section>
 
             <!-- 02 · How it works -->

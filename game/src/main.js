@@ -122,7 +122,14 @@ async function boot() {
 
     // Today's challenge (or the one in the URL). The game is fully playable without it.
     const d = await api.getDaily(challenge || undefined);
-    if (d.ok && d.data?.seed) {
+    const onThisBuild = d.ok && String(d.data?.build) === String(build.n);
+    if (d.ok && d.data?.seed && !onThisBuild) {
+        // Today's board is pinned to the build that was live at 00:00 UTC. Say so instead of pretending.
+        document.querySelector('#btnDaily span').textContent = 'PLAY NOW';
+        ui.setDailySub(
+            `Today's board runs on Patch #${d.data.build}. This build's first board opens at 00:00 UTC.`
+        );
+    } else if (d.ok && d.data?.seed) {
         game.daily = d.data;
         const tick = () => {
             const left = Date.parse(d.data.endsAt) - Date.now();

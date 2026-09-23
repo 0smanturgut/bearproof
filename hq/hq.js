@@ -1648,7 +1648,7 @@ async function loadLedger() {
                 h(
                     'p',
                     { class: 'state-k' },
-                    'No transactions yet — the ledger starts with the coin launch.'
+                    'No transactions yet. The ledger reads the treasury wallet from chain every 15 minutes.'
                 )
             )
         );

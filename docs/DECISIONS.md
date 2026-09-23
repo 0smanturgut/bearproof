@@ -1,0 +1,92 @@
+# Decisions log
+
+One line per decision: **what**, **why**, and the **alternatives rejected**. Newest at the bottom. The four big M0
+decisions have a short rationale section at the end.
+
+| #   | Date  | Decision                                                                                                                                                                                                                        | Why                                                                                                                                                            | Rejected                                                                                                                    |
+| --- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| D1  | 09-23 | **Brand: PATCH.** The agent is _Patch_, the coin is **$PATCH**, and every build is "Patch #N".                                                                                                                                  | "Patch" is what a dev ships, so the name says "it ships every day". It reads as a scrappy robot character and makes the build counter the brand.               | NIGHTLY, BUILDOOR (kept as backups, see §1)                                                                                 |
+| D2  | 09-23 | **Game name: BULL RUN.**                                                                                                                                                                                                        | A roguelite run is literally a "run". "Your bull run lasted 4:12" is the joke, the genre and the theme in one line. It works with all three brand options.     | Bear Market Survivor (too close to the original's name), Green Candle (generic)                                             |
+| D3  | 09-23 | **Art direction: "Terminal Arcade".** A trading-terminal chart grid rendered as a pixel arcade game. Green = bull, red = bear, gold = rewards. Fonts: Jersey 10 (display) + JetBrains Mono (UI).                                | Instantly legible to crypto Twitter, cohesive across game, HQ and share cards, and cheap to render at 60 fps.                                                  | Neon synthwave (overused), purple gradients (AI-slop look), glossy 3D (can't ship in 8 days)                                |
+| D4  | 09-23 | **Hosting: one Cloudflare Worker with static assets** serving the HQ, every game build and `/api/*`.                                                                                                                            | One deploy unit and one config. Cron, Queues, D1, KV, R2 and Durable Objects bind to the same Worker. Static asset hits are free.                              | Pages + Functions (no cron in Functions, split config, Cloudflare now steers new projects to Workers)                       |
+| D5  | 09-23 | **Build Agent runtime: GitHub Actions running Claude Code headless** on a schedule. Deploy is a separate workflow gated on green tests.                                                                                         | Most reliable option inside 8 days. Real repo checkout, real git, measured cost in the JSON output, and `GITHUB_TOKEN` natively can't edit workflow files.     | Cloudflare Sandbox/Containers (beta, more infra to build and secure), custom Agent SDK loop (more code for the same result) |
+| D6  | 09-23 | **Immutable builds at `/b/<n>/`.** `builds/builds.json` lists each build with `activatesAt`. The Worker picks the live build per request.                                                                                       | The switch happens at exactly 00:00:00 UTC with no cron jitter (GitHub cron often runs 5–30 min late). Old builds stay reachable for replays and verification. | Overwriting one `/play` bundle each night (no history, stale SW caches, can't verify old runs)                              |
+| D7  | 09-23 | **Revert = one KV key.** `wrangler kv key put --binding=CONFIG build_override <n>`.                                                                                                                                             | Instant and no redeploy. Works even if CI is broken.                                                                                                           | Git revert + redeploy (minutes, depends on CI)                                                                              |
+| D8  | 09-23 | **Monorepo layout:** `game/` `hq/` `worker/` `agent/` `devlog/` `builds/` `docs/`.                                                                                                                                              | The agent's allowed paths become a simple prefix rule (`game/`, `devlog/`).                                                                                    | Keeping the game at the root (guardrail globs get messy)                                                                    |
+| D9  | 09-23 | **Keep upstream git history** and tag the fork commit `day-0`.                                                                                                                                                                  | `git diff day-0..main` is the honest "what we added" view for judges.                                                                                          | Fresh repo with a copied snapshot (loses provenance)                                                                        |
+| D10 | 09-23 | **Deterministic sim:** fixed 60 Hz tick, one seeded `sfc32` RNG for gameplay, own `sin/cos/atan2/hypot`, events out to the renderer.                                                                                            | Required for server re-simulation. Engine-specific `Math.sin` would make an iPhone run diverge on V8.                                                          | Trusting client scores (unwinnable anti-cheat), verifying only duration (trivially spoofed)                                 |
+| D11 | 09-23 | **Input log = int8 move vector per tick (RLE) + level-up pick indices.** The live sim consumes the quantised input too.                                                                                                         | Live play and replay are the same computation. 15 minutes of play compresses to a few KB.                                                                      | Float vectors (bigger, and quantisation mismatch breaks replay)                                                             |
+| D12 | 09-23 | **API: plain `fetch` router, no framework.**                                                                                                                                                                                    | ~10 routes. Zero deps matches the game's ethos and keeps the bundle tiny.                                                                                      | Hono (fine, but unnecessary)                                                                                                |
+| D13 | 09-23 | **Commit trailer `Build-Mode: bootstrap \| agent \| human`** on every commit from now on.                                                                                                                                       | Makes the autonomy claim auditable. Bootstrap = written by Claude Code in a session Osman started. Agent = scheduled Build Agent. Human = Osman typed it.      | Unlabelled history (invites overclaim accusations)                                                                          |
+| D14 | 09-23 | **Build numbering:** Build #0 = untouched upstream (`day-0`). Build #1 = the bull-vs-bear reskin.                                                                                                                               | Build #0 on the site shows the "before" the AI started from.                                                                                                   | Starting at #1 (hides the baseline)                                                                                         |
+| D15 | 09-23 | **English-only shipped UI.** Keep the i18n mechanism, drop zh-CN strings from the bundle.                                                                                                                                       | The audience is global CT. Half-translated themed copy is worse than none.                                                                                     | Keeping zh-CN (every themed string would need a translation daily)                                                          |
+| D16 | 09-23 | **One tap to play.** No blocking modals before the first run. Controls hints show in-game for the first 5 s.                                                                                                                    | "Playing in 10 seconds" is the bar. Upstream shows two modals first.                                                                                           | Keep the tutorial offer (it costs the first impression)                                                                     |
+| D17 | 09-23 | **Prize policy (provisional, finalised in M3):** daily prize = min(10% of the previous 24h creator fees, 0.5 SOL equivalent), paid in $ANSEM. Below 0.01 SOL it rolls over. The hot wallet never holds more than 3 days of cap. | Capped, fee-funded, and can't drain the treasury. The absolute cap keeps it a prize, not a yield.                                                              | Fixed prize regardless of fees (can drain the treasury), % of treasury (grows with price, invites "yield" framing)          |
+| D18 | 09-23 | **Vote weight (provisional):** `floor(sqrt(tokens held))`, snapshot at vote time, one vote per wallet per poll, changeable until close.                                                                                         | A whale with 100× the tokens gets 10× the say, not 100×. Easy to explain in one line.                                                                          | Linear (whale owns the roadmap), 1 wallet = 1 vote (sybil-trivial)                                                          |
+
+## §1. Name, persona, ticker
+
+Three candidates. The game is **BULL RUN** in all three.
+
+| Option                | Agent                           | Coin       | Why it could win                                                                                               | Risk                                                              |
+| --------------------- | ------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **PATCH** _(picked)_  | Patch, a scrappy robot game dev | **$PATCH** | Every build is literally "Patch #N". "Patch notes, day 7" is native gamer language. Short, friendly, memeable. | Common word, so we need a distinctive handle, e.g. `@PatchShips`. |
+| NIGHTLY _(backup 1)_  | Nightly                         | $NIGHTLY   | "Nightly build" is exact dev culture and matches the 00:00 UTC ritual.                                         | Less CT-native, 7 letters.                                        |
+| BUILDOOR _(backup 2)_ | Buildoor                        | $BUILDOOR  | Pure CT slang ("buildooor"), instantly funny.                                                                  | Jokier, less of a character, spelling varies.                     |
+
+**Handles for Osman to check (in order):** `@PatchShips`, `@PatchBuilds`, `@patch_ai_dev`. Fallback for backups:
+`@NightlyBuilds`, `@BuildoorAI`. Ticker: `PATCH`.
+
+**Persona voice.** First person, concise, dry, numbers-first, slightly funny. It celebrates builds shipped and
+players served, never price. Example:
+
+> Patch #7 is live. Shipped: Diamond Hands evolves into Iron Grip. Cost: 0.04 SOL (measured). 312 players yesterday.
+> Tomorrow: the Rug Lord boss, 61% of holder votes.
+
+Avatar: a small pixel robot head with a green-candle antenna and a bandage patch. It is original, generic and not
+based on any real person or logo.
+
+## §2. Art direction: "Terminal Arcade"
+
+- **The world is a chart.** Ink-black ground, hairline grid, faint price-line "terrain". Enemies are red candles
+  (body + wick), bears, rug-pullers, FUD clouds and paper hands. The player is a chunky green pixel bull.
+- **Palette (tokens):** `--ink #07090C` · `--panel #0E1217` · `--grid #1B222B` · `--bull #16E08A` · `--bear #FF3B5C`
+  · `--gold #FFC53D` · `--info #46C8FF` (sparingly) · `--text #E8EDF2` · `--muted #7D8896`.
+- **Type:** Jersey 10 for headlines, scores and big numbers (pixel scoreboard). JetBrains Mono for UI and body
+  (terminal). Both are SIL OFL 1.1 and self-hosted, so there are no third-party requests.
+- **Sprites:** procedural pixel art defined as ASCII grids in code, pre-rendered to offscreen canvases and scaled
+  with nearest-neighbour. They are ours, tiny, and crisp at any DPI.
+- **Juice:** white hit-flash frames, knockback, big crit numbers in gold, candle-shatter particles, 3-frame
+  hit-stop on boss hits, a boss intro card ("⚠ LIQUIDATION INCOMING"). Screen shake is off under `prefers-reduced-motion`.
+- **Copy tone:** the game is allowed market jokes ("REKT", "WAGMI", "-99%"). The coin copy is never about price.
+
+## §3. Hosting: Workers with static assets
+
+`wrangler.jsonc` at the repo root. `scripts/build.mjs` assembles `dist/`:
+
+```
+dist/index.html, dist/hq/*      HQ landing page (static, fetches /api/*)
+dist/b/0/…                      Build #0 = files from tag day-0 (untouched upstream)
+dist/b/<n>/…                    Build #n = game/ at tag build-<n>
+dist/builds.json                manifest: [{n, tag, commit, activatesAt, title}]
+```
+
+Routes: `/` → HQ. `/play` → 302 to `/b/<live>/`. `/b/<n>/*` → immutable assets with long cache. `/api/*` → Worker code.
+Worker code runs first only for `/play`, `/api/*` and `/run/*`. Everything else is a free static hit.
+
+## §4. Build Agent runtime
+
+```
+GitHub Actions (cron 12:00 UTC, or manual)
+  1. pick   : fetch votes + backlog from /api → agent writes plan.md (one feature)
+  2. build  : claude -p (headless) on branch agent/patch-<n>, allowed paths game/** devlog/**
+  3. guard  : scripts/guard-paths.mjs fails if any other path changed
+  4. test   : npm test + golden replay + Playwright smoke (boot, seeded run completes, no console errors, 390×844 viewport)
+  5. merge  : squash to main, tag build-<n>, activatesAt = next 00:00 UTC
+  6. deploy : deploy workflow (separate, not editable by the agent) → wrangler deploy
+  7. publish: devlog/patch-<n>.md + measured cost (Claude Code JSON `total_cost_usd`) → /api/internal/devlog
+```
+
+A red step means no merge. The devlog still publishes an honest "failed today" entry. Secrets (`ANTHROPIC_API_KEY`,
+`CLOUDFLARE_API_TOKEN`) live only in GitHub Actions secrets and are never exposed to the agent's shell tools beyond
+what the CLI itself needs. Treasury and payout keys are **never** in GitHub; they live only as Worker secrets.

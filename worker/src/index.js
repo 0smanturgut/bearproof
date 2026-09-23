@@ -4,44 +4,18 @@
  *   /            HQ landing page (static asset)
  *   /b/<n>/      immutable game build n (static asset)
  *   /play        302 to the live build (or the build pinned for ?challenge=YYYY-MM-DD)
- *   /api/*       JSON API (this file)
+ *   /api/*       JSON API (routes here and in ./routes/, documented in docs/API.md)
  *
  * Every number the API returns is either real data or `null` with a reason. Nothing is invented.
  */
 
-import manifest from '../../builds/builds.json';
+import { BUILDS } from './manifest.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
-import {
-    dailySeed,
-    dayNumber,
-    isDateKey,
-    nextUtcMidnight,
-    stageForSeed,
-    utcDate
-} from './lib/daily.js';
+import { dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
+import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
 import { edgeCached, error, json, redirect } from './lib/http.js';
-
-const BUILDS = manifest.builds;
-
-async function buildOverride(env) {
-    try {
-        return (await env.CONFIG.get('build_override')) ?? null;
-    } catch {
-        return null;
-    }
-}
-
-/** Query helper that turns "table missing / DB unavailable" into null instead of a 500. */
-async function first(env, sql, ...args) {
-    try {
-        return await env.DB.prepare(sql)
-            .bind(...args)
-            .first();
-    } catch (err) {
-        console.warn('[db]', err?.message || err);
-        return null;
-    }
-}
+import { ledger } from './routes/ledger.js';
+import { getRun, leaderboard, session, submitRun } from './routes/runs.js';
 
 // --- Routes ----------------------------------------------------------------
 
@@ -62,32 +36,8 @@ async function daily(request, env) {
     const date = isDateKey(url.searchParams.get('date'))
         ? url.searchParams.get('date')
         : utcDate(now);
-    if (date > utcDate(now)) return error(403, 'not_yet', 'That challenge has not started.');
-
-    // A pinned row wins: the challenge stays on the build that was live at 00:00 UTC, even if a new
-    // build lands later that day.
-    let row = await first(
-        env,
-        'SELECT date, build, seed, stage FROM daily_challenges WHERE date = ?',
-        date
-    );
-    if (!row) {
-        if (!env.DAILY_SEED_SALT)
-            return error(503, 'not_configured', 'Daily seed secret is not set.');
-        const build = buildForDate(BUILDS, date, await buildOverride(env));
-        if (!build) return error(503, 'no_build', 'No build is live yet.');
-        const seed = await dailySeed(date, env.DAILY_SEED_SALT);
-        row = { date, build: build.n, seed, stage: stageForSeed(seed) };
-        try {
-            await env.DB.prepare(
-                'INSERT OR IGNORE INTO daily_challenges (date, build, seed, stage, created_at) VALUES (?, ?, ?, ?, ?)'
-            )
-                .bind(row.date, row.build, row.seed, row.stage, now)
-                .run();
-        } catch (err) {
-            console.warn('[daily] could not pin challenge', err?.message || err);
-        }
-    }
+    const { row, error: failed } = await getOrCreateDaily(env, date, BUILDS);
+    if (failed) return failed;
     const endsAt = nextUtcMidnight(Date.parse(`${date}T00:00:00Z`));
     return json(
         {
@@ -192,7 +142,17 @@ export default {
                         return daily(request, env);
                     case '/api/stats':
                         return edgeCached(request, ctx, 15, () => stats(env));
+                    case '/api/leaderboard':
+                        return edgeCached(request, ctx, 15, () => leaderboard(request, env));
+                    case '/api/ledger':
+                        return edgeCached(request, ctx, 30, () => ledger(env));
                 }
+                if (pathname.startsWith('/api/run/'))
+                    return getRun(pathname.slice('/api/run/'.length), env);
+            }
+            if (request.method === 'POST') {
+                if (pathname === '/api/session') return session(request, env);
+                if (pathname === '/api/runs') return submitRun(request, env);
             }
             return error(404, 'not_found', `No route for ${request.method} ${pathname}`);
         }

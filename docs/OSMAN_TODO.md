@@ -4,18 +4,15 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Wed 23 Sep 2026, 17:40 UTC. Build #1 is live, Build #2 goes live at 00:00 UTC._
+_Last updated: Wed 23 Sep 2026, 21:10 UTC. Build #1 is live, Build #2 goes live at 00:00 UTC Thu 24 Sep._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
 ---
 
-## 1. X account @bearproofapp (10 min)
+## 1. X account @bearproofapp ✅ done (23 Sep)
 
-- Profile: display name `BEARPROOF`, avatar `hq/assets/brand/avatar.png`, banner `hq/assets/brand/banner.png`,
-  website `https://bearproof.app`, bio:
-  `An AI building a game on its own budget. New build every day at 00:00 UTC. You fund it, you steer it, you play it.`
-- **Follow @clawpumptech** from @bearproofapp. This is a hackathon requirement.
+If you haven't yet: **follow @clawpumptech** from @bearproofapp. It is a hackathon requirement.
 
 ## 2. Register for the hackathon (5 min)
 
@@ -36,45 +33,40 @@ Go to clawpump.tech/ansemhack → Register:
 Then post the **pre-written announcement** the form gives you from @bearproofapp, and reply to it with the thread in
 `content/x/000-entry.md`.
 
-## 3. Cloudflare API token for automatic deploys (5 min)
+## 3. Cloudflare API token for automatic deploys (3 min)
 
 Without it, every daily build needs me at the keyboard to deploy. With it, GitHub Actions deploys on its own.
+The stock template is enough. You don't need to add any permission.
 
-1. dash.cloudflare.com → profile (top right) → **My Profile → API Tokens → Create Token**.
-2. Template **Edit Cloudflare Workers** → **Use template**.
-3. **+ Add more** → _Account_ → **D1** → **Edit**.
-4. Account Resources: _Include → Osmankng@icloud.com's Account_. Zone Resources: _Include → Specific zone →
-   bearproof.app_.
-5. **Continue to summary → Create Token**, copy it, then run this and paste it when asked:
+1. dash.cloudflare.com → the person icon (top right) → **Profile** → **API Tokens** (left menu) → **Create Token**.
+2. In the list, find **Edit Cloudflare Workers** → click **Use template** on that row.
+3. Don't touch the **Permissions** list. Scroll down to the two rows below it:
+    - **Account Resources**: first box `Include`, second box: pick your account.
+    - **Zone Resources**: first box `Include`, second box `Specific zone`, third box `bearproof.app`.
+4. Leave everything else as it is. **Continue to summary** → **Create Token**.
+5. The next page shows the token once. Click **Copy**, then run this in the terminal and paste it when it asks
+   (nothing shows while you paste; press Enter):
     ```bash
     gh secret set CLOUDFLARE_API_TOKEN -R 0smanturgut/bearproof
     ```
-    (`CLOUDFLARE_ACCOUNT_ID` is already set.)
+    Tell me "token set". I run a test deploy through GitHub and confirm. (`CLOUDFLARE_ACCOUNT_ID` is already set.)
 
-## 4. Anthropic API key for the Build Agent (5 min)
+## 4. Anthropic API key for the Build Agent ✅ done (23 Sep)
 
-This is what makes the daily builds autonomous. Until it exists, builds are "bootstrap" builds made with me in a
-session, and they are labelled that way.
+`ANTHROPIC_API_KEY` is set in GitHub. The agent runs every day at 13:00 UTC, right after the holder vote closes. It
+opens a pull request, and the build ships at the next 00:00 UTC. Keep a monthly spend limit on the key
+(console.anthropic.com → Settings → Limits; suggested **$150**).
 
-1. console.anthropic.com → **API Keys → Create key**, name `bearproof-build-agent`.
-2. **Settings → Limits**: set a monthly spend limit (suggest **$150**; my estimate is $3–8 per daily build, and the real cost is measured and published).
-3. Run this and paste the key when asked:
-    ```bash
-    gh secret set ANTHROPIC_API_KEY -R 0smanturgut/bearproof
-    ```
+## 5. Turnstile bot check (1 min left)
 
-The agent then runs every day at 13:00 UTC, right after the holder vote closes. It opens a pull request, and the
-build ships at the next 00:00 UTC.
+The site key is received and live. One step remains: run this and paste the widget's **Secret Key** when asked
+(dash.cloudflare.com → Turnstile → `bearproof` → **Settings** / **Manage** shows it):
 
-## 5. Turnstile bot check (3 min)
+```bash
+npx wrangler secret put TURNSTILE_SECRET
+```
 
-1. dash.cloudflare.com → **Turnstile → Add widget**. Name `bearproof`. Hostnames: `bearproof.app`. Mode: **Managed**.
-   Pre-clearance: **No**. **Create**.
-2. **Send me:** the **Site Key** (it is public).
-3. Run this and paste the **Secret Key** when asked:
-    ```bash
-    npx wrangler secret put TURNSTILE_SECRET
-    ```
+Until then the widget runs but the server skips the check (the API reports `turnstile: false` honestly).
 
 ## 6. Treasury, prize wallet and the token launch (≈25 min)
 
@@ -136,9 +128,10 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
 - [x] bearproof.app live (Cloudflare Worker `bearproof`, D1 `bearproof-db`, KV). www and the old `bullrun` URL
       redirect.
 - [x] GitHub repo https://github.com/0smanturgut/bearproof (public), `main` protected, `day-0`, `build-1` and
-      `build-2` tagged. Secrets `INGEST_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` set. Auto-merge on.
-- [x] Build #1 live. Build #2 (fair play) scheduled for 00:00 UTC Thu 24 Sep, Build #3 (daily twists, share cards)
-      for 00:00 UTC Fri 25 Sep. The Build Agent takes the next free slot once step 4 is done.
+      `build-2` tagged. Secrets `INGEST_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and `ANTHROPIC_API_KEY` set. Auto-merge on.
+- [x] Build #1 live. Build #2 (new look, daily twists, share cards, fair play) goes live at 00:00 UTC Thu 24 Sep.
+      The Build Agent takes the next free slot (Fri 25 Sep).
+- [x] X account @bearproofapp set up. Turnstile site key live.
 - [x] HQ live with honest pre-launch states. Holder voting, treasury feed, ledger and prize payouts are built and
       tested, and switch on when the values from step 6 arrive.
 - [x] Run verifier running every 10 minutes (GitHub Actions).

@@ -54,7 +54,7 @@
         "PRIZE_WALLET": "",
         "CLAWPUMP_AGENT_ID": "",
         "COSTS_WALLET": "",
-        "TURNSTILE_SITE_KEY": "",
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAFBfsyRdhquSMqN7",
         "REPO_URL": "https://github.com/0smanturgut/bearproof"
     }
 }

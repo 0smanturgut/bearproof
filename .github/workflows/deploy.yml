@@ -4,6 +4,9 @@ name: Deploy
 # A build tag is cut here only for the Build Agent's merge (commit trailer `Build-Mode: agent`), for the next
 # 00:00 UTC. Bootstrap and human builds are cut by hand with `node scripts/release.mjs` and pushed as tags.
 # The Build Agent cannot edit this file (GITHUB_TOKEN can't change workflows, and scripts/guard-paths.mjs refuses it).
+# D1 migrations are not applied here: only human commits can touch worker/migrations, and the operator applies
+# them (`npm run db:migrate:remote`) before pushing. That keeps the CI token on the stock "Edit Cloudflare Workers"
+# template, with no D1 permission.
 
 on:
     push:
@@ -60,8 +63,6 @@ jobs:
                     echo "Not an agent merge (Build-Mode: ${MODE:-none}); no build cut."
                   fi
             - run: npm run build
-              if: env.PAUSED != '1'
-            - run: npx wrangler d1 migrations apply bearproof-db --remote
               if: env.PAUSED != '1'
             - run: npx wrangler deploy
               if: env.PAUSED != '1'

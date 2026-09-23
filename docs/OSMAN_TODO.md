@@ -30,8 +30,9 @@ Go to clawpump.tech/ansemhack → Register:
 | Primary contact    | your email                                                                                                              |
 | Team members       | you (the operator). The developer is the AI; say so if the form has a notes field.                                      |
 
-Then post the **pre-written announcement** the form gives you from @bearproofapp, and reply to it with the thread in
-`content/x/000-entry.md`.
+Then post the **pre-written announcement** the form gives you from @bearproofapp, exactly as given (it is the receipt
+judges look for). The pinned intro post is `content/x/000-entry.md`: post it after 00:00 UTC on 24 Sep, pin it, and
+reply to the announcement with its link.
 
 ## 3. Cloudflare API token for automatic deploys (3 min)
 

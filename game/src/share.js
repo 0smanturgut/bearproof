@@ -1,7 +1,7 @@
 /**
  * @module share
- * @description Share text for a finished run (Wordle-style: short, specific, one link) and the
- * platform share sheet with a clipboard fallback.
+ * @description Share text for a finished run (Wordle-style: short, specific, one link), and the ways out:
+ * the platform share sheet, X's composer, the clipboard and the run's card image.
  */
 
 import { fmtNum, fmtTime } from './format.js';
@@ -25,21 +25,65 @@ export function shareText({ summary, mode, date, build, origin, runId }) {
     return { text: [head, line, stats, who].join('\n'), url };
 }
 
-/** Returns 'shared' | 'copied' | 'failed'. */
-export async function share({ text, url }) {
-    const full = `${text}\n${url}`;
+/** X's post composer, prefilled. The /run/<id> link unfurls as the run's card. */
+export function xIntentUrl({ text, url }) {
+    return `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+}
+
+/** Copy to the clipboard, with the old textarea trick where the async API is missing or blocked. */
+export async function copyText(value) {
     try {
-        if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-            await navigator.share({ text, url });
-            return 'shared';
-        }
-    } catch (err) {
-        if (err?.name === 'AbortError') return 'failed';
+        await navigator.clipboard.writeText(value);
+        return true;
+    } catch {
+        /* fall through */
     }
     try {
-        await navigator.clipboard.writeText(full);
-        return 'copied';
+        const ta = document.createElement('textarea');
+        ta.value = value;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, value.length);
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
     } catch {
-        return 'failed';
+        return false;
+    }
+}
+
+/** The platform share sheet exists (phones, some desktops). */
+export function canNativeShare() {
+    return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+}
+
+/**
+ * Open the platform share sheet. `file` (the run's card as a PNG File) is attached when the platform takes
+ * files. Call it straight from a click: Safari refuses a share that isn't a direct response to the tap.
+ * @returns {Promise<'shared'|'cancelled'|'failed'>}
+ */
+export async function nativeShare({ text, url, file = null }) {
+    const data = { text, url };
+    if (file && navigator.canShare?.({ files: [file] })) data.files = [file];
+    try {
+        await navigator.share(data);
+        return 'shared';
+    } catch (err) {
+        return err?.name === 'AbortError' ? 'cancelled' : 'failed';
+    }
+}
+
+/** The run's share card as a File, or null (no run id yet, offline). Fetched ahead of the tap. */
+export async function fetchCard(origin, runId) {
+    if (!runId) return null;
+    try {
+        const r = await fetch(`${origin}/og/run/${runId}.png`);
+        if (!r.ok) return null;
+        const blob = await r.blob();
+        return new globalThis.File([blob], `bearproof-${runId}.png`, { type: 'image/png' });
+    } catch {
+        return null;
     }
 }

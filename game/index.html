@@ -217,25 +217,9 @@
                     <div class="over-rank" id="overRank"></div>
                 </div>
                 <div id="turnstile" class="turnstile-box"></div>
-                <form id="payoutForm" class="name-form" hidden>
-                    <label for="payoutInput"
-                        >Win today's prize: your Solana address (optional)</label
-                    >
-                    <div class="name-row">
-                        <input
-                            id="payoutInput"
-                            placeholder="Solana address"
-                            autocomplete="off"
-                            spellcheck="false"
-                            enterkeyhint="done"
-                        />
-                        <button type="submit" class="btn btn-primary">SAVE</button>
-                    </div>
-                    <small id="payoutNote"
-                        >Used only to pay you if your run is the verified #1. No wallet
-                        connection.</small
-                    >
-                </form>
+                <p id="turnstileHint" class="ts-hint" hidden>
+                    Tap the box above so this run can win today's prize.
+                </p>
                 <form id="nameForm" class="name-form" hidden>
                     <label for="nameInput">Your name on the board</label>
                     <div class="name-row">
@@ -247,9 +231,34 @@
                             enterkeyhint="done"
                             spellcheck="false"
                         />
-                        <button type="submit" class="btn btn-primary">SUBMIT</button>
+                        <button type="submit" class="btn btn-primary">SAVE</button>
                     </div>
                 </form>
+                <form id="payoutForm" class="name-form" hidden>
+                    <label for="payoutInput" id="payoutLabel"
+                        >Daily prize: your Solana address</label
+                    >
+                    <div class="name-row">
+                        <input
+                            id="payoutInput"
+                            placeholder="Solana address (optional)"
+                            autocomplete="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            enterkeyhint="done"
+                        />
+                        <button type="submit" class="btn btn-primary">SAVE</button>
+                    </div>
+                    <small id="payoutNote"
+                        >Only used to pay you if your run is the verified #1. A public address,
+                        never a private key or seed phrase.</small
+                    >
+                </form>
+                <p id="payoutSaved" class="payout-saved" hidden>
+                    Prize address <b id="payoutSavedAddr"></b>
+                    <button type="button" id="btnPayoutChange" class="link-btn">change</button>
+                </p>
+                <p id="overNote" class="over-note" aria-live="polite"></p>
                 <div class="over-btns">
                     <button id="btnShare" class="btn btn-primary">SHARE</button>
                     <button id="btnAgain" class="btn">RUN IT BACK</button>
@@ -257,6 +266,31 @@
                 </div>
                 <p class="over-q">ARE YOU BEARPROOF?</p>
                 <p class="over-build" id="overBuild"></p>
+            </section>
+
+            <section id="screenShare" class="screen screen-share" hidden aria-labelledby="shareH">
+                <h2 class="screen-h" id="shareH">SHARE YOUR RUN</h2>
+                <div class="panel share-panel">
+                    <img
+                        id="shareCard"
+                        class="share-card"
+                        alt=""
+                        width="1200"
+                        height="630"
+                        hidden
+                    />
+                    <pre id="shareText" class="share-text"></pre>
+                </div>
+                <div class="share-btns">
+                    <a id="btnShareX" class="btn btn-primary" target="_blank" rel="noopener"
+                        >POST ON X</a
+                    >
+                    <button id="btnShareCopy" class="btn" type="button">COPY</button>
+                    <a id="btnShareSave" class="btn" download hidden>SAVE IMAGE</a>
+                    <button id="btnShareNative" class="btn" type="button" hidden>MORE</button>
+                </div>
+                <p id="shareNote" class="share-note" aria-live="polite"></p>
+                <button id="btnShareBack" class="btn btn-ghost" type="button">BACK</button>
             </section>
 
             <section

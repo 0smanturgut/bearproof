@@ -17,7 +17,7 @@ import { STAGE_NAMES, dayNumber, isDateKey, nextUtcMidnight, utcDate } from './l
 import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
 import { edgeCached, error, json, redirect } from './lib/http.js';
 import { ledger } from './routes/ledger.js';
-import { getRun, leaderboard, session, submitRun } from './routes/runs.js';
+import { getRun, leaderboard, session, setPlayerName, submitRun } from './routes/runs.js';
 import { runCard, runPage } from './routes/share.js';
 import { twistFor } from './lib/twists.js';
 import { TWIST_BUILDS } from './generated/twists.js';
@@ -190,6 +190,7 @@ export default {
             if (request.method === 'POST') {
                 if (pathname === '/api/session') return session(request, env);
                 if (pathname === '/api/runs') return submitRun(request, env);
+                if (pathname === '/api/player') return setPlayerName(request, env);
                 if (pathname === '/api/vote') return castVote(request, env);
                 if (pathname === '/api/payout-address') return setPayoutAddress(request, env);
                 if (pathname === '/api/internal/payout/selftest')

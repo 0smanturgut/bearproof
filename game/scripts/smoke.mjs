@@ -54,7 +54,13 @@ const server = http.createServer((req, res) => {
         });
     if (url.pathname === '/api/leaderboard')
         return json({ date: today, build: 'smoke', total: 0, rows: [] });
-    if (url.pathname === '/api/session') return json({ ok: true });
+    if (['/api/session', '/api/player', '/api/payout-address'].includes(url.pathname))
+        return json({ ok: true });
+    // The run's share card (the Worker draws it in production; any PNG will do here).
+    if (/^\/og\/run\/[0-9a-z]+\.png$/.test(url.pathname))
+        return res
+            .writeHead(200, { 'content-type': 'image/png' })
+            .end(fs.readFileSync(path.join(DIR, 'assets', 'icon-512.png')));
     if (url.pathname === '/api/runs') {
         let body = '';
         req.on('data', (c) => (body += c));

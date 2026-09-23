@@ -136,6 +136,12 @@ Upserts the player and the `(UTC date, playerId)` row in `play_sessions` (its `r
 `RL_READ` (120/min) per player and per IP hash. Errors: `400 invalid_field`, `400 unknown_build`,
 `413 too_large` (> 2 KB), `429 rate_limited`, `503 db_unavailable`.
 
+### `POST /api/player`
+
+`{ playerId, name }` sets the board name for this browser's player id (`name: ''` clears it back to
+`anon-xxxx`). Runs are submitted the moment they end, so a name typed afterwards still shows on the board.
+Names are 1–16 of `[A-Za-z0-9 _.-]`. Rate limited. → `{ ok, name }`
+
 ### `POST /api/runs`
 
 Submit a finished run. Max body 400 KB.

@@ -89,6 +89,7 @@ async function boot() {
     $('btnQuit').addEventListener('click', () => game.quitToTitle());
     $('btnAgain').addEventListener('click', () => game.startRun(game.mode));
     $('btnShare').addEventListener('click', () => game.shareLast());
+    $('btnShareBack').addEventListener('click', () => ui.show('screenOver'));
 
     const openBoard = async (from) => {
         back = from;
@@ -98,7 +99,7 @@ async function boot() {
         ui.showBoard({
             title: "TODAY'S BOARD",
             sub: r.ok
-                ? `Daily ${r.data.date} · Build #${r.data.build ?? build.n} · ${fmtNum(r.data.total || rows.length)} players`
+                ? `Daily ${r.data.date} · Build #${r.data.build ?? build.n} · ${fmtNum(r.data.total || rows.length)} player${(r.data.total || rows.length) === 1 ? '' : 's'}`
                 : 'The board is offline right now.',
             entries: rows,
             me: game.lastRun?.id

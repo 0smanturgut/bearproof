@@ -19,7 +19,14 @@ const ENEMY_SPRITE = Object.fromEntries(
     [...Object.values(ENEMIES), ...Object.values(BOSSES)].map((d) => [d.id, d.sprite || d.id])
 );
 import { fmtNum, fmtTime } from './format.js';
-import { share, shareText } from './share.js';
+import {
+    canNativeShare,
+    copyText,
+    fetchCard,
+    nativeShare,
+    shareText,
+    xIntentUrl
+} from './share.js';
 import * as api from './api.js';
 import { cleanName, playerId, savePrefs } from './prefs.js';
 import { turnstileToken } from './turnstile.js';
@@ -399,7 +406,10 @@ export class Game {
             date: this.daily?.date,
             bytes: this.rec.toBytes(),
             durationMs: Math.round(performance.now() - this.startedAt),
-            runId: this._runId
+            seed: this.sim.seed,
+            runId: this._runId,
+            id: null,
+            card: null
         };
         const title = summary.won
             ? 'BEAR MARKET OVER'
@@ -431,25 +441,61 @@ export class Game {
             );
             return;
         }
-        if (!this.prefs.name) {
-            this.ui.askName('', (name) => {
-                this.prefs.name = cleanName(name);
-                savePrefs(this.prefs);
-                this._submit(run);
-            });
-            this.ui.setRank('Put a name on it, or leave it blank to stay anon.');
+        // The run goes to the board right away. A name and a prize address are optional extras.
+        this._submit(run);
+        if (!this.prefs.nameAsked) this.ui.askName(this.prefs.name, (name) => this._saveName(name));
+        this._offerPayout();
+    }
+
+    _offerPayout() {
+        if (this.prefs.payoutAddress) {
+            this.ui.payoutSaved(this.prefs.payoutAddress, () => this._askPayout());
             return;
         }
-        this._submit(run);
+        this._askPayout();
+    }
+
+    _askPayout() {
+        const live = this.daily?.prize?.status === 'live';
+        this.ui.askPayout(
+            this.prefs.payoutAddress || '',
+            live
+                ? 'Today’s verified #1 wins the daily prize in $ANSEM. Add your Solana address:'
+                : 'The daily $ANSEM prize starts when the coin launches. Add your Solana address to be eligible:',
+            (addr) => this._savePayout(addr)
+        );
+    }
+
+    async _saveName(raw) {
+        const name = cleanName(raw);
+        this.prefs.name = name;
+        this.prefs.nameAsked = true;
+        savePrefs(this.prefs);
+        const res = await api.setPlayerName(playerId(), name);
+        if (this.state !== 'over') return;
+        this.ui.overNote(
+            res.ok
+                ? name
+                    ? `You're on the board as ${name}.`
+                    : 'Staying anon on the board.'
+                : 'Could not save the name. It goes with your next run.',
+            res.ok ? 'good' : 'bad'
+        );
     }
 
     async _submit(run) {
         if (this.submitted) return;
         this.submitted = true;
         this.ui.setRank('Submitting to the board…');
+        const mine = () => run.runId === this._runId && this.state === 'over';
         const token = await turnstileToken(
             this.daily?.turnstileSiteKey,
-            document.getElementById('turnstile')
+            document.getElementById('turnstile'),
+            {
+                onInteractive: (on) => {
+                    if (mine()) this.ui.botCheckHint(on);
+                }
+            }
         );
         const s = run.summary;
         const res = await api.submitRun({
@@ -459,24 +505,27 @@ export class Game {
             mode: run.mode,
             challengeDate: run.date,
             build: this.build.n,
-            seed: this.sim.seed,
+            seed: run.seed,
             stage: s.stage,
             claimed: { score: s.score, timeMs: s.timeMs, kills: s.kills, level: s.level },
             durationMs: run.durationMs,
             log: toBase64Url(run.bytes),
             turnstileToken: token || undefined
         });
+        if (res.ok && res.data?.ok) {
+            run.id = res.data.id;
+            // Fetch the share card now, so a tap on SHARE can attach it without waiting.
+            fetchCard(location.origin, run.id).then((file) => (run.card = file));
+        }
         if (run.runId !== this._runId) return;
         if (res.ok && res.data?.ok) {
             const rank = res.data.rank;
-            this.lastRun.id = res.data.id;
             this.ui.setRank(
                 rank
-                    ? `#${rank} on today’s board · verification pending`
+                    ? `#${rank} on today’s board · verification pending${token ? '' : ' · no bot check, not prize-eligible'}`
                     : 'Submitted · verification pending'
             );
-            if (this.daily?.prize?.status === 'live')
-                this.ui.askPayout(this.prefs.payoutAddress || '', (addr) => this._savePayout(addr));
+            if (!document.getElementById('screenShare').hidden) this.shareLast({ refresh: true });
         } else if (res.status === 0) {
             this.ui.setRank('Offline: could not reach the board.');
         } else {
@@ -485,32 +534,72 @@ export class Game {
     }
 
     async _savePayout(address) {
+        if (address && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)) {
+            this.ui.payoutNote(
+                address.length > 44 || /\s/.test(address)
+                    ? 'That is not a public address. Never paste a private key or seed phrase anywhere.'
+                    : 'That is not a Solana address.',
+                'bad'
+            );
+            return;
+        }
         const res = await api.setPayoutAddress(playerId(), address);
         if (res.ok) {
             this.prefs.payoutAddress = address;
             savePrefs(this.prefs);
-            this.ui.payoutNote(
-                address ? 'Saved. If your run is the verified #1, the prize goes here.' : 'Removed.'
-            );
+            if (address) {
+                this.ui.payoutSaved(address, () => this._askPayout());
+                this.ui.overNote('Prize address saved.', 'good');
+            } else {
+                this.ui.payoutNote('Removed. You can add one after any daily run.');
+            }
         } else {
-            this.ui.payoutNote(res.data?.error?.message || 'Could not save. Try again.');
+            this.ui.payoutNote(res.data?.error?.message || 'Could not save. Try again.', 'bad');
         }
     }
 
-    async shareLast() {
+    /** SHARE: the phone's share sheet where there is one, otherwise the share screen. */
+    shareLast({ refresh = false } = {}) {
         const run = this.lastRun;
         if (!run) return;
-        const out = await share(
-            shareText({
-                summary: run.summary,
-                mode: run.mode,
-                date: run.date,
-                build: this.build.n,
-                origin: location.origin,
-                runId: run.id
-            })
+        const { text, url } = shareText({
+            summary: run.summary,
+            mode: run.mode,
+            date: run.date,
+            build: this.build.n,
+            origin: location.origin,
+            runId: run.id
+        });
+        const native = canNativeShare();
+        if (!refresh && native && matchMedia('(pointer: coarse)').matches) {
+            // Straight from the tap, or Safari refuses. The card is attached when it's already fetched.
+            nativeShare({ text, url, file: run.card }).then((out) => {
+                if (out === 'failed') this.shareLast({ refresh: true });
+            });
+            return;
+        }
+        const note = (t, tone) => this.ui.shareNote(t, tone);
+        this.ui.showShare(
+            {
+                text,
+                url,
+                xUrl: xIntentUrl({ text, url }),
+                cardUrl: run.id ? `${location.origin}/og/run/${run.id}.png` : null,
+                native
+            },
+            {
+                x: () => note('Opening X in a new tab…'),
+                copy: async () =>
+                    (await copyText(`${text}\n${url}`))
+                        ? note('Copied. Paste it anywhere.', 'good')
+                        : note('Copy failed. Select the text above and copy it.', 'bad'),
+                native: async () => {
+                    const out = await nativeShare({ text, url, file: run.card });
+                    if (out === 'failed')
+                        note('This browser could not open its share sheet.', 'bad');
+                }
+            }
         );
-        if (out === 'copied') this.ui.setRank('Copied. Paste it anywhere.');
     }
 }
 

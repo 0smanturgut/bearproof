@@ -52,7 +52,8 @@ export class UI {
             'screenPause',
             'screenOver',
             'screenBoard',
-            'screenSettings'
+            'screenSettings',
+            'screenShare'
         ];
         this.hud = {
             level: $('hLevel'),
@@ -86,8 +87,9 @@ export class UI {
         document.body.classList.toggle('no-hud', $('hud').hidden);
         this.hud.loadout.hidden = $('hud').hidden;
         if (id) {
-            const first =
-                $(id).querySelector('.btn-primary') || $(id).querySelector('button, [href], input');
+            const visible = (sel) =>
+                [...$(id).querySelectorAll(sel)].find((e) => e.offsetParent !== null);
+            const first = visible('.btn-primary') || visible('button, [href], input');
             if (first && !matchMedia('(pointer: coarse)').matches)
                 first.focus({ preventScroll: true });
         }
@@ -341,12 +343,27 @@ export class UI {
         $('overBuild').textContent = buildLine;
         $('overRank').textContent = '';
         $('payoutForm').hidden = true;
+        $('payoutSaved').hidden = true;
+        $('nameForm').hidden = true;
+        $('turnstileHint').hidden = true;
+        this.overNote('');
         this.show('screenOver');
         this.announce(`${title}. Score ${fmtNum(summary.score)}.`);
     }
 
     setRank(text) {
         $('overRank').textContent = text;
+    }
+
+    overNote(text, tone = '') {
+        const el = $('overNote');
+        el.textContent = text;
+        el.className = `over-note ${tone}`;
+    }
+
+    /** Turnstile wants a tap: point at the box. */
+    botCheckHint(on) {
+        $('turnstileHint').hidden = !on;
     }
 
     askName(current, onSubmit) {
@@ -356,15 +373,19 @@ export class UI {
         form.hidden = false;
         form.onsubmit = (e) => {
             e.preventDefault();
+            input.blur();
             form.hidden = true;
             onSubmit(input.value);
         };
     }
 
-    askPayout(current, onSubmit) {
+    /** The prize-address form. `label` says whether today's prize is live. */
+    askPayout(current, label, onSubmit) {
         const form = $('payoutForm');
         const input = $('payoutInput');
         input.value = current || '';
+        $('payoutLabel').textContent = label;
+        $('payoutSaved').hidden = true;
         form.hidden = false;
         form.onsubmit = (e) => {
             e.preventDefault();
@@ -372,12 +393,60 @@ export class UI {
         };
     }
 
-    payoutNote(text) {
-        $('payoutNote').textContent = text;
+    /** A saved address, shortened, with a way to change it. */
+    payoutSaved(address, onChange) {
+        $('payoutForm').hidden = true;
+        $('payoutSavedAddr').textContent = `${address.slice(0, 4)}…${address.slice(-4)}`;
+        $('payoutSaved').hidden = false;
+        $('btnPayoutChange').onclick = onChange;
+    }
+
+    payoutNote(text, tone = '') {
+        const el = $('payoutNote');
+        el.textContent = text;
+        el.className = tone;
     }
 
     hideNameForm() {
         $('nameForm').hidden = true;
+    }
+
+    /**
+     * The share screen: the run's card (once it has an id), the text, and the ways out.
+     * @param {{text:string, url:string, xUrl:string, cardUrl:string|null, native:boolean}} s
+     */
+    showShare(s, handlers) {
+        const img = $('shareCard');
+        if (s.cardUrl) {
+            if (img.getAttribute('src') !== s.cardUrl) img.src = s.cardUrl;
+            img.hidden = false;
+            img.onerror = () => (img.hidden = true);
+        } else {
+            img.hidden = true;
+            img.removeAttribute('src');
+        }
+        $('shareText').textContent = `${s.text}\n${s.url}`;
+        $('btnShareX').href = s.xUrl;
+        const save = $('btnShareSave');
+        save.hidden = !s.cardUrl;
+        if (s.cardUrl) {
+            save.href = s.cardUrl;
+            save.setAttribute('download', 'bearproof-run.png');
+        }
+        $('btnShareNative').hidden = !s.native;
+        $('btnShareCopy').onclick = handlers.copy;
+        $('btnShareNative').onclick = handlers.native;
+        $('btnShareX').onclick = handlers.x;
+        if ($('screenShare').hidden) {
+            this.shareNote('');
+            this.show('screenShare');
+        }
+    }
+
+    shareNote(text, tone = '') {
+        const el = $('shareNote');
+        el.textContent = text;
+        el.className = `share-note ${tone}`;
     }
 
     showBoard({ title, sub, entries, me }) {

@@ -25,8 +25,16 @@ function load() {
     return loading;
 }
 
-/** Resolve with a token, or null if the check can't run (the server then decides). */
-export async function turnstileToken(siteKey, container, timeoutMs = 15000) {
+/**
+ * Resolve with a token, or null if the check can't run (the server then decides: a run without a passed
+ * check still ranks, it just can't win the prize). Invisible for most players. When Turnstile wants a tap,
+ * `onInteractive(true)` fires and the wait stretches to `interactiveMs`, so there is time to find the box.
+ */
+export async function turnstileToken(
+    siteKey,
+    container,
+    { timeoutMs = 15000, interactiveMs = 120000, onInteractive = () => {} } = {}
+) {
     if (!siteKey || !container) return null;
     let ts;
     try {
@@ -35,16 +43,26 @@ export async function turnstileToken(siteKey, container, timeoutMs = 15000) {
         return null;
     }
     return new Promise((resolve) => {
-        const timer = setTimeout(() => finish(null), timeoutMs);
+        let timer = setTimeout(() => finish(null), timeoutMs);
         let settled = false;
         function finish(token) {
             if (settled) return;
             settled = true;
             clearTimeout(timer);
             pending = null;
+            onInteractive(false);
             resolve(token);
         }
-        pending = finish;
+        // The widget is rendered once and reset for later runs, so its callbacks go through `pending`.
+        pending = {
+            finish,
+            onInteractive,
+            interactive() {
+                onInteractive(true);
+                clearTimeout(timer);
+                timer = setTimeout(() => finish(null), interactiveMs);
+            }
+        };
         try {
             if (widgetId !== null) {
                 ts.reset(widgetId);
@@ -54,9 +72,14 @@ export async function turnstileToken(siteKey, container, timeoutMs = 15000) {
                 sitekey: siteKey,
                 appearance: 'interaction-only',
                 theme: 'dark',
-                callback: (token) => pending?.(token),
-                'error-callback': () => pending?.(null),
-                'expired-callback': () => ts.reset(widgetId)
+                callback: (token) => pending?.finish(token),
+                'error-callback': () => {
+                    pending?.finish(null);
+                    return true; // handled: no console noise
+                },
+                'expired-callback': () => ts.reset(widgetId),
+                'before-interactive-callback': () => pending?.interactive(),
+                'after-interactive-callback': () => pending?.onInteractive(false)
             });
         } catch {
             finish(null); // never block a submission on the bot check; the server decides

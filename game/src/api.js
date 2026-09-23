@@ -53,3 +53,7 @@ export function submitRun(payload) {
 export function setPayoutAddress(playerId, address) {
     return call('/api/payout-address', { method: 'POST', body: { playerId, address } });
 }
+
+export function setPlayerName(playerId, name) {
+    return call('/api/player', { method: 'POST', body: { playerId, name } });
+}

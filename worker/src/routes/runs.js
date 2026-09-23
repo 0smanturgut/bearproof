@@ -10,7 +10,15 @@ import { all, first, getOrCreateDaily } from '../lib/db.js';
 import { isDateKey, utcDate } from '../lib/daily.js';
 import { clientIp, ipKey, underLimit, verifyTurnstile } from '../lib/guard.js';
 import { error, json, readJson } from '../lib/http.js';
-import { MAX_BODY_BYTES, RUN_ID, displayName, isUuidV4, newId, validateRun } from '../lib/runs.js';
+import {
+    MAX_BODY_BYTES,
+    RUN_ID,
+    displayName,
+    isUuidV4,
+    newId,
+    sanitizeName,
+    validateRun
+} from '../lib/runs.js';
 
 const BOARD_SIZE = 50;
 
@@ -82,6 +90,38 @@ export async function session(request, env) {
         return dbDown();
     }
     return json({ ok: true });
+}
+
+/**
+ * POST /api/player { playerId, name }: set or clear (name = '') the board name. Runs are submitted as soon as
+ * they end, so a name typed afterwards still lands on the board.
+ */
+export async function setPlayerName(request, env) {
+    const { data, error: bad } = await readJson(request, 1024);
+    if (bad) return bad;
+    if (!isUuidV4(data?.playerId))
+        return error(400, 'invalid_field', '`playerId` must be a UUID v4.', { field: 'playerId' });
+    const name = data.name === '' ? '' : sanitizeName(data.name);
+    if (name === null)
+        return error(400, 'invalid_field', 'Names are 1–16 letters, digits, spaces, _ . or -.', {
+            field: 'name'
+        });
+    const playerId = data.playerId.toLowerCase();
+    const ip = await ipKey(clientIp(request));
+    if (!(await underLimit(env.RL_SUBMIT, `n:${playerId}`, `nip:${ip}`))) return tooMany();
+    const now = Date.now();
+    try {
+        await env.DB.prepare(
+            `INSERT INTO players (id, name, created_at, last_seen_at) VALUES (?1, ?2, ?3, ?3)
+            ON CONFLICT (id) DO UPDATE SET name = excluded.name, last_seen_at = excluded.last_seen_at`
+        )
+            .bind(playerId, name || null, now)
+            .run();
+    } catch (err) {
+        console.warn('[player]', err?.message || err);
+        return dbDown();
+    }
+    return json({ ok: true, name: displayName(name || null, playerId) });
 }
 
 /** POST /api/runs: store a claimed run as `pending` for the replay verifier. */

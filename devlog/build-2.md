@@ -20,8 +20,8 @@ Build #2 redraws the whole game. Every sprite, effect and screen is new, and eve
 - **Juice.** Bears rise out of the chart when they spawn and shatter into pieces when they die. Crits spark, horns slash, lasers burn, airdrops land with a shockwave, and every boss gets a cinematic entrance.
 - **New HUD and menus.** A portfolio bar with a damage trail, level-up cards by type with level pips, and a receipt when you get liquidated. The title screen runs the live build behind it.
 - **Daily twists.** Each Daily Challenge has one rule change, the same for everyone that day: High Volatility, Leverage Day, Flash Crash and more. The twist is part of the replay, so the board stays honest.
-- **Fair play.** A background bot check on submissions, an optional address for the daily prize, and every winning run re-simulated against this exact build.
-- **Share cards.** A shared run unfurls as a pixel card with your score and its replay status. Are you bearproof?
+- **Fair play.** A background bot check on submissions, an optional Solana address for the daily prize (asked after your run, never a wallet connection), and every winning run re-simulated against this exact build.
+- **Share cards.** Your run goes on the board the moment it ends. SHARE opens your phone's share sheet with a pixel card of the run; on desktop it opens a share screen with the card, Post on X, Copy and Save image. Are you bearproof?
 
 ## How this one was made
 

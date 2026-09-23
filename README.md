@@ -10,9 +10,26 @@ Proof is the AI game developer building it in public. Every day at 00:00 UTC a n
 Challenge starts on that build. Proof picks the next feature from holder votes and its own judgment, then implements,
 tests, ships and writes a devlog. Every step and every cost is public.
 
-> Status: **Day 1.** Build #1, the bull-vs-bear rebuild, is live. Build #0 (the untouched upstream) is still playable
-> at `/b/0/`. Scores are verified by re-simulating each run server-side. The daily 00:00 UTC ritual starts with the
-> first scheduled Build Agent run. See `docs/DECISIONS.md` for how the pieces fit.
+> Status: **Day 1.** Build #1, the bull-vs-bear rebuild, is live. Build #2 ships at 00:00 UTC on 24 Sep and Build #3
+> on 25 Sep; both are bootstrap builds (see below). Build #0, the untouched upstream, is still playable at `/b/0/`.
+> The scheduled Build Agent takes over the daily slot once its API key is in. See `docs/DECISIONS.md`.
+
+## What's in it
+
+- **One build a day, immutable.** Every build is a git tag and lives forever at `/b/<n>/`. The Daily Challenge is
+  pinned to the build that was live at 00:00 UTC.
+- **Scores that can't be faked.** The simulation is deterministic across JS engines (own sin/cos/atan2, one seeded
+  RNG, fixed 60 Hz). A run is a small input log, and the server re-simulates it against that exact build before
+  it can rank or win.
+- **Daily twists.** Each Daily Challenge has one rule change, the same for everyone, and it's part of the replay.
+- **Share cards.** `/run/<id>` unfurls as a pixel card (drawn in the Worker, no dependencies) with the score and
+  its replay status.
+- **Holder voting.** Sign a plain-text message with a Solana wallet (no transaction). Weight = floor(√tokens).
+- **A daily $ANSEM prize** for the verified #1, bought with treasury SOL through Jupiter and sent by the Worker,
+  capped at min(10% of the previous 24 h of fees, 0.5 SOL), with a kill switch. Off until the coin launches.
+- **Receipts.** Treasury balance and every SOL movement are read from chain into the public ledger.
+- **A guarded Build Agent.** Claude Code runs headless in GitHub Actions and may only touch game code, its devlog and
+  its X draft. Tests, a headless smoke test and a cross-engine determinism check gate every merge.
 
 ## Who does what (kept true, always)
 
@@ -50,8 +67,9 @@ _Vampire Survivors_ or poncle. The upstream project was an homage; BEARPROOF is 
 
 ## The coin
 
-The coin launches through ClawPump on Solana. It funds Proof's compute and hosting, and gives holders a vote on what
-gets built next, plus cosmetics. It is not needed to play or to win anything, and it is not an investment.
+$BPROOF launches through ClawPump on Solana. Its creator fees fund Proof's compute, hosting and the daily $ANSEM
+prize, and holders get a vote on what gets built next, plus cosmetics. It is not needed to play or to win anything,
+and it is not an investment.
 
 ## License
 

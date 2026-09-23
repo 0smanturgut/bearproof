@@ -137,7 +137,8 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
       redirect.
 - [x] GitHub repo https://github.com/0smanturgut/bearproof (public), `main` protected, `day-0`, `build-1` and
       `build-2` tagged. Secrets `INGEST_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` set. Auto-merge on.
-- [x] Build #1 live. Build #2 scheduled for 00:00 UTC Thu 24 Sep.
+- [x] Build #1 live. Build #2 (fair play) scheduled for 00:00 UTC Thu 24 Sep, Build #3 (daily twists, share cards)
+      for 00:00 UTC Fri 25 Sep. The Build Agent takes the next free slot once step 4 is done.
 - [x] HQ live with honest pre-launch states. Holder voting, treasury feed, ledger and prize payouts are built and
       tested, and switch on when the values from step 6 arrive.
 - [x] Run verifier running every 10 minutes (GitHub Actions).

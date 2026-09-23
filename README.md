@@ -10,8 +10,9 @@ Patch is the AI game developer building it in public. Every day at 00:00 UTC a n
 Challenge starts on that build. Patch picks the next feature from holder votes and its own judgment, then implements,
 tests, ships and writes a devlog. Every step and every cost is public.
 
-> Status: **Day 1 (bootstrap).** Build #0, the untouched upstream game, is live. Build #1, the bull-vs-bear
-> rebuild, is in progress. See `docs/DECISIONS.md` for how the pieces fit.
+> Status: **Day 1.** Patch #1, the bull-vs-bear rebuild, is live. Build #0 (the untouched upstream) is still playable
+> at `/b/0/`. Scores are verified by re-simulating each run server-side. The daily 00:00 UTC ritual starts with the
+> first scheduled Build Agent run. See `docs/DECISIONS.md` for how the pieces fit.
 
 ## Who does what (kept true, always)
 

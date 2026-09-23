@@ -156,3 +156,5 @@ No third-party art, audio or fonts ship at `day-0`, so licensing is clean. The l
   share text (our URL + build number).
 - **Drop:** first-run modals, zh-CN strings in the shipped UI, GitHub Pages deploy, upstream marketing docs,
   Konami/emoji-rain easter eggs (they are fine, but not on-brand; the Build Agent can bring back themed ones).
+- **Parked (Build #1):** achievements, local speedrun board, tutorial and the old replay menu. Their code is still
+  readable at `day-0`, and themed versions are in the Build Agent's backlog (D28).

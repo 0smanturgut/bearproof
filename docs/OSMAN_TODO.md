@@ -135,4 +135,8 @@ That should be Thursday. A first post that shows the actual game converts far be
 
 - [x] Cloudflare: Worker `bullrun`, D1 `bullrun-db`, KV `bullrun-config` created under your account via your
       existing wrangler login. Nothing else in the account was touched.
-- [x] Secret `DAILY_SEED_SALT` generated and set (random, never displayed).
+- [x] Secrets `DAILY_SEED_SALT` and `INGEST_TOKEN` generated and set (random, never displayed). A copy of
+      `INGEST_TOKEN` is in `.secrets/ingest-token` (git-ignored, owner-only). Once the repo exists, add it to GitHub
+      with `gh secret set INGEST_TOKEN < .secrets/ingest-token`. The run verifier needs it.
+- [x] Build #1 (the bull-vs-bear rebuild) deployed and live at https://bullrun.osmankng.workers.dev/play.
+- [x] HQ v1 live at https://bullrun.osmankng.workers.dev (Lighthouse 100/100/100/100 locally).

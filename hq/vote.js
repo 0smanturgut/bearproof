@@ -365,7 +365,7 @@
                     ? 'Requests open when the coin launches.'
                     : rq.status === 'full'
                       ? 'Today’s ballot is full. Vote for a request instead, or post tomorrow.'
-                      : 'Requests for this ballot closed at 12:00 UTC. The next ballot opens at 00:00 UTC.'
+                      : 'Requests for this ballot closed at 18:00 UTC. Voting is open until 21:00 UTC.'
             );
     }
 

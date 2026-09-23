@@ -55,7 +55,7 @@ test('a real ed25519 signature over the exact message verifies; anything else fa
     assert.equal(await verifySignature(wallet, msg, sig.slice(0, -2) + '11'), false);
 });
 
-test('tally shares and winner; poll closes 13:00 UTC', () => {
+test('tally shares and winner; poll closes 21:00 UTC', () => {
     const props = [
         { id: 'a', title: 'A' },
         { id: 'b', title: 'B' },
@@ -72,5 +72,5 @@ test('tally shares and winner; poll closes 13:00 UTC', () => {
     assert.equal(t.proposals.find((p) => p.id === 'a').voters, 2);
     assert.equal(tally(props, []).winner, null);
     const w = pollWindow('2026-09-24');
-    assert.equal(new Date(w.close).toISOString(), '2026-09-24T13:00:00.000Z');
+    assert.equal(new Date(w.close).toISOString(), '2026-09-24T21:00:00.000Z');
 });

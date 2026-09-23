@@ -2,12 +2,12 @@
  * Holder voting helpers (pure, unit-tested).
  *
  * The daily poll: Proof proposes three features in each devlog (`agent/proposals.json` at the build's tag).
- * Holders vote from 00:00 UTC until the Build Agent starts at 13:00 UTC; the winner is tomorrow's build.
+ * Holders vote from 00:00 UTC until the Build Agent starts at 21:00 UTC; the winner ships at the next 00:00 UTC.
  * Voting = signing a plain-text message with a Solana wallet. No transaction, no approval, nothing moves.
  * Weight = floor(sqrt(whole tokens held)), read from chain when the vote is cast.
  */
 
-export const POLL_CLOSE_UTC_HOUR = 13;
+export const POLL_CLOSE_UTC_HOUR = 21;
 export const MIN_TOKENS_TO_VOTE = 1000;
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
@@ -55,7 +55,7 @@ export function voteMessage({ domain, wallet, proposalId, forBuild, pollDate, no
     ].join('\n');
 }
 
-/** Poll window for a UTC date: open 00:00, close 13:00. */
+/** Poll window for a UTC date: open 00:00, close 21:00. */
 export function pollWindow(dateStr) {
     const open = Date.parse(`${dateStr}T00:00:00Z`);
     return { open, close: open + POLL_CLOSE_UTC_HOUR * 3600000 };

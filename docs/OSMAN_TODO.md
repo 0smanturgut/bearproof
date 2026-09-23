@@ -41,7 +41,7 @@ domains and passed the live check. Daily builds now deploy without anyone at the
 
 ## 4. Anthropic API key for the Build Agent ✅ done (23 Sep)
 
-`ANTHROPIC_API_KEY` is set in GitHub. The agent runs every day at 13:00 UTC, right after the holder vote closes. It
+`ANTHROPIC_API_KEY` is set in GitHub. The agent runs every day at 21:00 UTC, right when the holder vote closes. It
 opens a pull request, and the build ships at the next 00:00 UTC. Keep a monthly spend limit on the key
 (console.anthropic.com → Settings → Limits; suggested **$150**).
 

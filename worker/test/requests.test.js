@@ -65,9 +65,9 @@ test('the signed message names the request, the build and the poll', () => {
     assert.match(m, /moves no funds/);
 });
 
-test('request window closes at 12:00 UTC; ids and short wallets', () => {
+test('request window closes at 18:00 UTC; ids and short wallets', () => {
     const w = requestWindow('2026-09-26');
-    assert.equal(new Date(w.close).toISOString(), '2026-09-26T12:00:00.000Z');
+    assert.equal(new Date(w.close).toISOString(), '2026-09-26T18:00:00.000Z');
     assert.match(newRequestId(), REQUEST_ID);
     assert.equal(shortWallet('So11111111111111111111111111111111111111112'), 'So11…1112');
 });

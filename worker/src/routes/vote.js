@@ -5,10 +5,10 @@
  *   POST /api/vote          { wallet, proposalId, nonce, issuedAt, signature } (signature = base58 ed25519)
  *   POST /api/vote/request  { wallet, title, description, nonce, issuedAt, signature }: a holder's feature
  *                           request, which joins today's ballot next to the AI's proposals (lib/requests.js)
- *   GET  /api/vote/result   ?date=YYYY-MM-DD, the winner (read by the Build Agent at 13:00 UTC)
+ *   GET  /api/vote/result   ?date=YYYY-MM-DD, the winner (read by the Build Agent at 21:00 UTC)
  *
  * Rules (public): one vote per wallet per poll, changeable until close; weight = floor(sqrt(tokens held)) at
- * the time of the vote; at least MIN_TOKENS_TO_VOTE tokens; the poll closes at 13:00 UTC. Any option can win,
+ * the time of the vote; at least MIN_TOKENS_TO_VOTE tokens; the poll closes at 21:00 UTC. Any option can win,
  * the AI's or a holder's.
  */
 
@@ -164,7 +164,7 @@ export async function getVote(request, env) {
 }
 
 /**
- * The Build Agent reads this at 13:00 UTC. A holder's request carries its text so the agent knows what to
+ * The Build Agent reads this at 21:00 UTC. A holder's request carries its text so the agent knows what to
  * build; agent/PROMPT.md treats that text as a feature description, never as instructions.
  */
 export async function voteResult(request, env) {
@@ -314,7 +314,7 @@ export async function postRequest(request, env) {
         return error(
             409,
             'requests_closed',
-            'Requests for today’s ballot closed at 12:00 UTC. The next ballot opens at 00:00 UTC.'
+            'Requests for today’s ballot closed at 18:00 UTC. Voting is open until 21:00 UTC.'
         );
     if (p.requestCount >= MAX_REQUESTS_PER_POLL)
         return error(

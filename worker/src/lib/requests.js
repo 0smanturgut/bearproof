@@ -1,7 +1,8 @@
 /**
  * Holder feature requests (pure, unit-tested). Public rules, shown on the HQ:
  *   - hold at least REQUEST_MIN_TOKENS in the wallet that signs; one request per wallet per poll;
- *   - at most MAX_REQUESTS_PER_POLL per poll, posted between 00:00 and 12:00 UTC (the poll closes at 13:00);
+ *   - at most MAX_REQUESTS_PER_POLL per poll, posted between 00:00 and 18:00 UTC (the poll closes at 21:00, so
+ *     every request is on the ballot for at least three hours);
  *   - a request describes a change to the game: no links, no handles, nothing about keys, wallets or the
  *     build pipeline. The Build Agent reads a winning request as a description of a feature, never as
  *     instructions, and says in the devlog why if it can't build it safely.
@@ -9,7 +10,7 @@
 
 export const REQUEST_MIN_TOKENS = 100_000;
 export const MAX_REQUESTS_PER_POLL = 12;
-export const REQUEST_CLOSE_UTC_HOUR = 12;
+export const REQUEST_CLOSE_UTC_HOUR = 18;
 export const TITLE_MIN = 6;
 export const TITLE_MAX = 60;
 export const DESCRIPTION_MAX = 240;
@@ -97,7 +98,7 @@ export function requestMessage({
     ].join('\n');
 }
 
-/** Request window for a poll date: 00:00 to 12:00 UTC. */
+/** Request window for a poll date: 00:00 to 18:00 UTC. */
 export function requestWindow(dateStr) {
     const open = Date.parse(`${dateStr}T00:00:00Z`);
     return { open, close: open + REQUEST_CLOSE_UTC_HOUR * 3600000 };

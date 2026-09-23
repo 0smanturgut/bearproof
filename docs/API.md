@@ -126,8 +126,8 @@ Newest 100 ledger rows plus the public wallets. An empty list is a real answer.
 
 Tomorrow's ballot: the AI's three proposals (`source: "agent"`) and holders' requests (`source: "community"`,
 with `requestedBy` = shortened wallet), each with `weight`, `voters` and `share`. `status`:
-`not_live | open | closed` (closes 13:00 UTC). `requests` = `{ status: not_live|open|full|closed, closesAt,
-minTokens, maxPerPoll, count, titleMax, descriptionMax }` (requests close at 12:00 UTC). Edge 10 s.
+`not_live | open | closed` (closes 21:00 UTC). `requests` = `{ status: not_live|open|full|closed, closesAt,
+minTokens, maxPerPoll, count, titleMax, descriptionMax }` (requests close at 18:00 UTC). Edge 10 s.
 
 ### `GET /api/vote/result?date=YYYY-MM-DD`
 
@@ -168,7 +168,7 @@ is `voteMessage()` in `worker/src/lib/vote.js`. Weight = floor(√tokens), at le
 
 `{ wallet, title, description, nonce, issuedAt, signature }`: a holder's feature request for today's ballot.
 The signed text is `requestMessage()` in `worker/src/lib/requests.js`, byte for byte. Rules: ≥ 100,000 tokens,
-one per wallet per poll, 12 per poll, until 12:00 UTC, title 6–60 and details ≤ 240 characters, no links,
+one per wallet per poll, 12 per poll, until 18:00 UTC, title 6–60 and details ≤ 240 characters, no links,
 handles or talk of keys, wallets, payouts or the pipeline. Errors: `not_enough_tokens` (403),
 `already_requested`, `ballot_full`, `requests_closed`, `duplicate` (409), `bad_signature` (401).
 

@@ -1034,6 +1034,15 @@ body.on-title .title-veil {
     min-height: 46px;
     padding: 8px 16px 12px;
 }
+@media (max-width: 350px) {
+    .title-row {
+        gap: 6px;
+    }
+    .title-row .btn {
+        font-size: 19px;
+        padding: 8px 10px 12px;
+    }
+}
 .title-foot {
     max-width: 38ch;
     margin: 0;
@@ -1463,8 +1472,8 @@ body.on-title .title-veil {
     letter-spacing: 0.02em;
 }
 #payoutInput {
-    font: 400 13px/1.2 var(--mono);
-    width: 230px;
+    font: 400 16px/1.2 var(--mono); /* 16px: iOS Safari zooms into smaller inputs */
+    width: min(300px, 62vw);
 }
 .turnstile-box:empty {
     display: none;

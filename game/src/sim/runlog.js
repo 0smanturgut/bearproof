@@ -4,11 +4,12 @@
  *
  * Binary layout (little-endian):
  *   0   'B' 'R'                magic
- *   2   u8   format version (1)
+ *   2   u8   format version (2; version 1 had no twist byte)
  *   3   u8   sim version (SIM_VERSION)
  *   4   u32  seed
- *   8   u32  ticks simulated
- *   12  runs of move codes:    u8 code, varint count   … until counts sum to `ticks`
+ *   8   u8   twist (index into TWIST_IDS, 0 = none)
+ *   9   u32  ticks simulated
+ *   13  runs of move codes:    u8 code, varint count   … until counts sum to `ticks`
  *   ..  varint pick count, then per pick: varint tick (delta from previous pick), u8 card index
  *
  * A 15-minute run is usually a few KB. `replay()` runs the log through a fresh Simulation headlessly;
@@ -16,15 +17,16 @@
  */
 
 import { Simulation, SIM_VERSION } from './sim.js';
-import { SIM } from './content.js';
+import { SIM, TWIST_IDS } from './content.js';
 import { isValidCode } from './input-codes.js';
 
-export const RUNLOG_VERSION = 1;
+export const RUNLOG_VERSION = 2;
 const MAX_TICKS = SIM.MAX_TICKS;
 
 export class RunRecorder {
-    constructor(seed) {
+    constructor(seed, twist = null) {
         this.seed = seed >>> 0;
+        this.twist = Math.max(0, TWIST_IDS.indexOf(twist || 'none'));
         this.codes = [];
         this.counts = [];
         this.ticks = 0;
@@ -54,6 +56,7 @@ export class RunRecorder {
         out.u8(RUNLOG_VERSION);
         out.u8(SIM_VERSION);
         out.u32(this.seed);
+        out.u8(this.twist);
         out.u32(this.ticks);
         for (let i = 0; i < this.codes.length; i++) {
             out.u8(this.codes[i]);
@@ -70,14 +73,21 @@ export class RunRecorder {
     }
 }
 
-/** Parse bytes into `{ seed, ticks, simVersion, runs: [[code, count]], picks: [[tick, idx]] }`. Throws on malformed input. */
+/**
+ * Parse bytes into `{ seed, twist, ticks, simVersion, runs: [[code, count]], picks: [[tick, idx]] }`.
+ * Throws on malformed input.
+ */
 export function decodeRunLog(bytes) {
     const r = new ByteReader(bytes);
     if (r.u8() !== 0x42 || r.u8() !== 0x52) throw new Error('bad magic');
     const version = r.u8();
-    if (version !== RUNLOG_VERSION) throw new Error(`unsupported log version ${version}`);
+    if (version !== 1 && version !== RUNLOG_VERSION)
+        throw new Error(`unsupported log version ${version}`);
     const simVersion = r.u8();
     const seed = r.u32();
+    const twistIndex = version >= 2 ? r.u8() : 0;
+    if (twistIndex >= TWIST_IDS.length) throw new Error('unknown twist');
+    const twist = TWIST_IDS[twistIndex];
     const ticks = r.u32();
     if (ticks > MAX_TICKS) throw new Error('too many ticks');
     const runs = [];
@@ -101,7 +111,7 @@ export function decodeRunLog(bytes) {
         picks.push([t, idx]);
     }
     if (!r.done()) throw new Error('trailing bytes');
-    return { seed, ticks, simVersion, runs, picks };
+    return { seed, twist, ticks, simVersion, runs, picks };
 }
 
 /**
@@ -118,7 +128,7 @@ export function replay(bytes, { stage = null, onTick = null } = {}) {
     if (log.simVersion !== SIM_VERSION) {
         return { ok: false, error: `sim version ${log.simVersion} != ${SIM_VERSION}` };
     }
-    const sim = new Simulation({ seed: log.seed, stage });
+    const sim = new Simulation({ seed: log.seed, stage, twist: log.twist });
     let pi = 0;
     for (const [code, count] of log.runs) {
         for (let k = 0; k < count; k++) {
@@ -140,7 +150,13 @@ export function replay(bytes, { stage = null, onTick = null } = {}) {
     }
     if (pi !== log.picks.length) return fail(sim, 'unused picks');
     if (!sim.over) return fail(sim, 'run did not end');
-    return { ok: true, summary: sim.summary(), hash: sim.stateHash(), seed: log.seed };
+    return {
+        ok: true,
+        summary: sim.summary(),
+        hash: sim.stateHash(),
+        seed: log.seed,
+        twist: log.twist
+    };
 }
 
 function fail(sim, error) {
@@ -252,3 +268,4 @@ export function fromBase64Url(str) {
     }
     return out.subarray(0, o);
 }
+export { dailyTwistForSeed } from './content.js';

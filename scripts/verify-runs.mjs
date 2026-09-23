@@ -63,6 +63,12 @@ export async function judge(run) {
     if (!r.ok) return { status: 'rejected', reason: `replay failed: ${r.error}` };
     if (r.seed !== run.seed >>> 0)
         return { status: 'rejected', reason: 'log seed differs from the submitted seed' };
+    // Builds with daily twists: the log's twist must be the day's (daily) or none (free runs).
+    if (r.twist !== undefined && sim.dailyTwistForSeed) {
+        const want = run.mode === 'daily' ? sim.dailyTwistForSeed(run.seed >>> 0) : 'none';
+        if (r.twist !== want)
+            return { status: 'rejected', reason: `twist ${r.twist} in the log, ${want} expected` };
+    }
     const s = r.summary;
     const c = run.claimed;
     const diffs = [];

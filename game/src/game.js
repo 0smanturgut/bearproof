@@ -9,6 +9,7 @@ import { Simulation } from './sim/sim.js';
 import { SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
+import { TWISTS, dailyTwistForSeed } from './sim/content.js';
 import { createBot } from './sim/bot.js';
 import { Fx } from './fx.js';
 import { KILL_COLORS, Renderer } from './render.js';
@@ -56,8 +57,10 @@ export class Game {
     startRun(mode) {
         this.mode = mode === 'daily' && this.daily ? 'daily' : 'free';
         const seed = this.mode === 'daily' ? this.daily.seed : randomSeed();
-        this.sim = new Simulation({ seed });
-        this.rec = new RunRecorder(seed);
+        // The Daily Challenge has one twist, the same for everyone; free runs have none.
+        const twist = this.mode === 'daily' ? dailyTwistForSeed(seed) : null;
+        this.sim = new Simulation({ seed, twist });
+        this.rec = new RunRecorder(seed, twist);
         this.bot = this.attract ? createBot({ phase: Math.floor(Math.random() * 1000) }) : null;
         this.fx.clear();
         this.cam.x = 0;
@@ -77,6 +80,7 @@ export class Game {
             this.ui.moveHint(true);
             clearTimeout(this._hintTimer);
             this._hintTimer = setTimeout(() => this.ui.moveHint(false), 4000);
+            if (twist) this.ui.toast(`TWIST: ${TWISTS[twist].name.toUpperCase()}`, 'gold', 2200);
             api.startSession(playerId(), this.build.n, this.mode);
         }
     }

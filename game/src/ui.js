@@ -263,6 +263,12 @@ export class UI {
 
     // --- Title / over / board / settings ---------------------------------------
 
+    setDailyTwist(text) {
+        const el = $('dailyTwist');
+        el.textContent = text;
+        el.hidden = !text;
+    }
+
     setDailySub(text) {
         $('dailySub').textContent = text;
     }

@@ -670,6 +670,89 @@ export const STAGES = {
 export const STAGE_ROTATION = ['chop', 'bear_trap', 'winter'];
 export const DEFAULT_STAGE = 'chop';
 
+// ---------------------------------------------------------------- daily twists
+
+/**
+ * One rule change per Daily Challenge, the same for everyone that day (a pure function of the seed, like the
+ * stage). Free runs have no twist. The twist is also written into the run log, so a replay needs nothing else.
+ * TWIST_IDS is append-only: a twist's index is its byte in the log.
+ */
+export const TWIST_IDS = [
+    'none',
+    'high_volatility',
+    'leverage_day',
+    'whale_season',
+    'flash_crash',
+    'bull_run',
+    'thin_liquidity'
+];
+
+const TWIST_DEFAULTS = {
+    playerSpeedMult: 1,
+    playerDamageMult: 1,
+    enemyHpMult: 1,
+    enemyDmgMult: 1,
+    spawnMult: 1,
+    xpMult: 1
+};
+
+export const TWISTS = {
+    none: { id: 'none', name: 'No twist', description: 'The plain bear market.' },
+    high_volatility: {
+        id: 'high_volatility',
+        name: 'High Volatility',
+        description: '+30% bears, +30% XP.',
+        spawnMult: 1.3,
+        xpMult: 1.3
+    },
+    leverage_day: {
+        id: 'leverage_day',
+        name: 'Leverage Day',
+        description: 'You hit 50% harder. So do they.',
+        playerDamageMult: 1.5,
+        enemyDmgMult: 1.5
+    },
+    whale_season: {
+        id: 'whale_season',
+        name: 'Whale Season',
+        description: 'Bears have +60% HP and drop +60% XP.',
+        enemyHpMult: 1.6,
+        xpMult: 1.6
+    },
+    flash_crash: {
+        id: 'flash_crash',
+        name: 'Flash Crash',
+        description: 'Twice the bears, half the HP.',
+        spawnMult: 2,
+        enemyHpMult: 0.5
+    },
+    bull_run: {
+        id: 'bull_run',
+        name: 'Bull Run',
+        description: 'You run 25% faster. So does the spawn rate.',
+        playerSpeedMult: 1.25,
+        spawnMult: 1.25
+    },
+    thin_liquidity: {
+        id: 'thin_liquidity',
+        name: 'Thin Liquidity',
+        description: '-30% XP, but you hit 30% harder.',
+        xpMult: 0.7,
+        playerDamageMult: 1.3
+    }
+};
+
+/** Twist definition with every multiplier filled in. Unknown ids are "none". */
+export function twistDef(id) {
+    return { ...TWIST_DEFAULTS, ...(TWISTS[id] || TWISTS.none) };
+}
+
+/** The Daily Challenge twist: uses different bits of the seed than the stage, so pairings vary. */
+export function dailyTwistForSeed(seed) {
+    const rotation = TWIST_IDS.slice(1);
+    return rotation[Math.floor((seed >>> 0) / STAGE_ROTATION.length) % rotation.length];
+}
+
 const MOD_DEFAULTS = { playerSpeedMult: 1, enemyHpMult: 1, coldTickInterval: 0, coldTickDamage: 0 };
 
 export function getStage(id) {

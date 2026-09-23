@@ -5,9 +5,14 @@
  */
 
 import { fmtNum, fmtTime } from './format.js';
+import { TWISTS } from './sim/content.js';
 
 export function shareText({ summary, mode, date, build, origin, runId }) {
-    const head = mode === 'daily' ? `BEARPROOF · Daily ${date}` : 'BEARPROOF · Free run';
+    const twist = mode === 'daily' && TWISTS[summary.twist] && summary.twist !== 'none';
+    const head =
+        mode === 'daily'
+            ? `BEARPROOF · Daily ${date}${twist ? ` · ${TWISTS[summary.twist].name}` : ''}`
+            : 'BEARPROOF · Free run';
     const line = summary.won
         ? `🐂 I ended the bear market in ${fmtTime(summary.timeMs)}`
         : `🐂 I survived ${fmtTime(summary.timeMs)} of the bear market`;

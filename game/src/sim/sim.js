@@ -2,7 +2,7 @@
  * @module sim/sim
  * @description The deterministic BEARPROOF simulation. No DOM, no audio, no clocks, no Math.random.
  *
- *   const sim = new Simulation({ seed });
+ *   const sim = new Simulation({ seed, twist });   // twist: a TWISTS id for the Daily Challenge, else none
  *   while (!sim.over) {
  *       if (sim.choices) sim.choose(pickIndex);   // level-up: the sim waits until a card is picked
  *       else sim.step(moveCode);                  // one fixed 1/60 s tick
@@ -24,6 +24,7 @@ import {
     pickWeighted,
     stageForSeed,
     stageModifiers,
+    twistDef,
     wavesFor,
     weaponDef
 } from './content.js';
@@ -34,14 +35,16 @@ import { Rng } from './rng.js';
 import { SpatialHash } from './spatial.js';
 import { Weapon } from './weapons.js';
 
-/** Bump when a change alters simulation results for the same inputs. */
-export const SIM_VERSION = 1;
+/** Bump when a change alters simulation results for the same inputs. 2: daily twists. */
+export const SIM_VERSION = 2;
 
 export class Simulation {
-    constructor({ seed = 1, stage = null } = {}) {
+    constructor({ seed = 1, stage = null, twist = null } = {}) {
         resetEntityIds();
         this.seed = seed >>> 0;
         this.stageId = stage || stageForSeed(this.seed);
+        this.twist = twistDef(twist);
+        this.twistId = this.twist.id;
         this.rng = new Rng(this.seed);
         this.stageMods = stageModifiers(this.stageId);
         this.waves = wavesFor(this.stageId);
@@ -52,6 +55,8 @@ export class Simulation {
         this.tick = 0;
         this.time = 0;
         this.player = new Player(0, 0);
+        this.player.twistDamageMult = this.twist.playerDamageMult;
+        this.player.twistExpMult = this.twist.xpMult;
         this.player.weapons.push(new Weapon(weaponDef(STARTER_WEAPON)));
         this.enemies = [];
         this.projectiles = [];
@@ -101,8 +106,8 @@ export class Simulation {
         this.time = this.tick * dt;
 
         const timeDiff = 1 + Math.floor(this.time / 60) * 0.3;
-        this.hpMult = timeDiff * (this.stageMods.enemyHpMult || 1);
-        this.enemyDmgMult = timeDiff;
+        this.hpMult = timeDiff * (this.stageMods.enemyHpMult || 1) * this.twist.enemyHpMult;
+        this.enemyDmgMult = timeDiff * this.twist.enemyDmgMult;
         this._selectWave();
 
         this.spatial.rebuild(this.enemies);
@@ -269,7 +274,8 @@ export class Simulation {
     _spawn(dt) {
         const wave = this.wave;
         const max = Math.min(SIM.MAX_ENEMIES, 20 + Math.floor(this.time / 10));
-        const interval = Math.max(0.2, 1.2 - this.time / 200) / (wave.spawnMult || 1);
+        const interval =
+            Math.max(0.2, 1.2 - this.time / 200) / ((wave.spawnMult || 1) * this.twist.spawnMult);
         this.spawnAcc += dt;
         while (this.spawnAcc >= interval && this.enemies.length < max) {
             this.spawnAcc -= interval;
@@ -436,6 +442,7 @@ export class Simulation {
             won: this.won,
             reason: this.endReason,
             stage: this.stageId,
+            twist: this.twistId,
             weapons: this.player.weapons.map((w) => [w.id, w.level]),
             passives: this.player.passiveOrder.map((id) => [id, this.player.passives[id].count])
         };

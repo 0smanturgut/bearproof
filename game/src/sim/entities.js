@@ -43,7 +43,11 @@ export class Player {
     }
 
     update(dt, sim, mx, my) {
-        const speed = SIM.PLAYER_SPEED * this.getSpeedMult() * (sim.stageMods.playerSpeedMult || 1);
+        const speed =
+            SIM.PLAYER_SPEED *
+            this.getSpeedMult() *
+            (sim.stageMods.playerSpeedMult || 1) *
+            (sim.twist?.playerSpeedMult || 1);
         this.x += mx * speed * dt;
         this.y += my * speed * dt;
         this.moving = mx !== 0 || my !== 0;
@@ -90,7 +94,7 @@ export class Player {
     }
 
     getDamageMult() {
-        return this._mult('damageMult');
+        return this._mult('damageMult') * (this.twistDamageMult || 1);
     }
     getAreaMult() {
         return this._mult('areaMult');
@@ -102,7 +106,7 @@ export class Player {
         return this._mult('speedMult');
     }
     getExpMult() {
-        return this._mult('expMult');
+        return this._mult('expMult') * (this.twistExpMult || 1);
     }
     getMagnetRange() {
         return SIM.MAGNET_BASE * this._mult('magnetMult');

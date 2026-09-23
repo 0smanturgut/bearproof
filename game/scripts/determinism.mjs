@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { Simulation } from '../src/sim/sim.js';
 import { createBot } from '../src/sim/bot.js';
 import { RunRecorder, toBase64Url } from '../src/sim/runlog.js';
+import { dailyTwistForSeed } from '../src/sim/content.js';
 import { launch } from '../../scripts/lib/browser.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -43,9 +44,9 @@ function replayInJsc(runs) {
     }
 }
 
-function record(seed) {
-    const sim = new Simulation({ seed });
-    const rec = new RunRecorder(seed);
+function record(seed, twist = null) {
+    const sim = new Simulation({ seed, twist });
+    const rec = new RunRecorder(seed, twist);
     const bot = createBot();
     const reckless = createBot({ style: 'reckless' });
     while (!sim.over) {
@@ -77,7 +78,11 @@ const base = `http://127.0.0.1:${server.address().port}`;
 
 let failed = 0;
 const runs = [];
-for (let i = 0; i < nSeeds; i++) runs.push(record(0x9e3779b1 * (i + 1)));
+// Every other run plays its seed's daily twist, so twisted rules are checked on every engine too.
+for (let i = 0; i < nSeeds; i++) {
+    const seed = (0x9e3779b1 * (i + 1)) >>> 0;
+    runs.push(record(seed, i % 2 ? dailyTwistForSeed(seed) : null));
+}
 console.log(`recorded ${runs.length} runs in Node ${process.version}`);
 
 function report(engine, results, ua) {

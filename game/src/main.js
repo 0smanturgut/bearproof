@@ -18,6 +18,7 @@ import { loadPrefs, savePrefs } from './prefs.js';
 import { bakeSprite } from './art/sprites.js';
 import * as api from './api.js';
 import { createBot } from './sim/bot.js';
+import { TWISTS, dailyTwistForSeed } from './sim/content.js';
 
 const params = new URLSearchParams(location.search);
 const attract = params.has('attract');
@@ -131,6 +132,8 @@ async function boot() {
         );
     } else if (d.ok && d.data?.seed) {
         game.daily = d.data;
+        const tw = TWISTS[dailyTwistForSeed(d.data.seed)];
+        ui.setDailyTwist(`Today's twist: ${tw.name}. ${tw.description}`);
         const tick = () => {
             const left = Date.parse(d.data.endsAt) - Date.now();
             if (left <= 0)

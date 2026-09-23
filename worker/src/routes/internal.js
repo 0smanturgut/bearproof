@@ -89,3 +89,38 @@ export async function verdict(request, env, id) {
         return error(503, 'db_unavailable', 'Storage is unavailable.');
     }
 }
+
+/**
+ * POST /api/internal/payout/selftest — checks the prize wallet setup without paying anyone: the secret parses,
+ * WebCrypto signs, the public key matches PRIZE_WALLET, and the wallet's SOL balance is readable.
+ */
+export async function payoutSelftest(request, env) {
+    if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
+    if (!env.PRIZE_WALLET_KEY) return json({ ok: false, reason: 'PRIZE_WALLET_KEY not set' });
+    const { signerFromSecret, connection, solBalance } = await import('../lib/solana.js');
+    try {
+        const signer = await signerFromSecret(env.PRIZE_WALLET_KEY);
+        const msg = new TextEncoder().encode('bearproof selftest');
+        const sig = await signer.sign(msg);
+        const pub = await crypto.subtle.importKey(
+            'raw',
+            signer.publicKey.toBytes(),
+            { name: 'Ed25519' },
+            false,
+            ['verify']
+        );
+        const verified = await crypto.subtle.verify('Ed25519', pub, sig, msg);
+        const address = signer.publicKey.toBase58();
+        const lamports = await solBalance(connection(env), address).catch(() => null);
+        return json({
+            ok: verified && (!env.PRIZE_WALLET || env.PRIZE_WALLET === address),
+            address,
+            matchesPrizeWalletVar: env.PRIZE_WALLET ? env.PRIZE_WALLET === address : null,
+            signatureVerified: verified,
+            balanceSol: lamports === null ? null : lamports / 1e9,
+            payoutsEnabled: (await env.CONFIG.get('payouts_enabled')) === 'true'
+        });
+    } catch (err) {
+        return json({ ok: false, reason: String(err?.message || err) });
+    }
+}

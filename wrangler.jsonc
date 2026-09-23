@@ -6,6 +6,8 @@
     "name": "bearproof",
     "main": "worker/src/index.js",
     "compatibility_date": "2026-09-01",
+    // Buffer and friends for @solana/web3.js (payouts only).
+    "compatibility_flags": ["nodejs_compat"],
     "workers_dev": true,
     // The game and HQ live at https://bearproof.app (zone on this Cloudflare account). www redirects to the apex.
     "routes": [
@@ -14,6 +16,8 @@
     ],
     "preview_urls": false,
     "observability": { "enabled": true },
+    // Every 15 minutes: fee snapshot, settle yesterday's Daily Challenge, resume a half-finished payout.
+    "triggers": { "crons": ["*/15 * * * *"] },
 
     // Static assets are assembled by `npm run build` (scripts/build.mjs) into ./dist.
     // Only these paths run Worker code. Every other request is a free static hit.
@@ -48,6 +52,7 @@
         "TOKEN_MINT": "",
         "TREASURY_WALLET": "",
         "PRIZE_WALLET": "",
+        "CLAWPUMP_AGENT_ID": "",
         "COSTS_WALLET": "",
         "TURNSTILE_SITE_KEY": "",
         "REPO_URL": "https://github.com/0smanturgut/bearproof"

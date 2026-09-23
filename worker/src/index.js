@@ -10,7 +10,7 @@
  */
 
 import { BUILDS } from './manifest.js';
-import { pendingRuns, verdict } from './routes/internal.js';
+import { payoutSelftest, pendingRuns, verdict } from './routes/internal.js';
 import { castVote, getVote, voteResult } from './routes/vote.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
 import { STAGE_NAMES, dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
@@ -19,6 +19,7 @@ import { edgeCached, error, json, redirect } from './lib/http.js';
 import { ledger } from './routes/ledger.js';
 import { getRun, leaderboard, session, submitRun } from './routes/runs.js';
 import { setPayoutAddress } from './routes/payout.js';
+import { scheduled } from './cron.js';
 
 // --- Routes ----------------------------------------------------------------
 
@@ -123,6 +124,7 @@ function health(env) {
 // --- Entry -----------------------------------------------------------------
 
 export default {
+    scheduled,
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
         const { pathname } = url;
@@ -175,6 +177,8 @@ export default {
                 if (pathname === '/api/runs') return submitRun(request, env);
                 if (pathname === '/api/vote') return castVote(request, env);
                 if (pathname === '/api/payout-address') return setPayoutAddress(request, env);
+                if (pathname === '/api/internal/payout/selftest')
+                    return payoutSelftest(request, env);
                 const m = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/verdict$/);
                 if (m) return verdict(request, env, m[1]);
             }

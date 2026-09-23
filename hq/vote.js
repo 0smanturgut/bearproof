@@ -321,10 +321,26 @@
             .slice()
             .sort((a, b) => (live ? (b.weight || 0) - (a.weight || 0) : 0));
         for (const o of options) list.appendChild(card(o, live));
+        if (!options.length) {
+            // Builds before the ritual started shipped without proposals: say when the next ballot comes.
+            const li = el('li', 'ex');
+            li.appendChild(el('span', 'ex-stamp', 'Next ballot'));
+            li.appendChild(el('h3', null, 'Opens at 00:00 UTC'));
+            li.appendChild(
+                el(
+                    'p',
+                    null,
+                    'Every build ships with three proposals from the AI for the next one. The first ballot opens with the next build.'
+                )
+            );
+            list.appendChild(li);
+        }
         const community = poll.proposals.filter((o) => o.source === 'community').length;
         $('#ballotMeta').textContent = [
             `Build #${poll.forBuild}`,
-            `${poll.proposals.length - community} AI · ${community} holder`,
+            poll.proposals.length
+                ? `${poll.proposals.length - community} AI · ${community} holder`
+                : null,
             live ? `${fmt(poll.voters)} voter${poll.voters === 1 ? '' : 's'}` : null
         ]
             .filter(Boolean)
@@ -360,7 +376,7 @@
             });
             if (!r.ok) return;
             const data = await r.json();
-            if (!data || !Array.isArray(data.proposals) || !data.proposals.length) return;
+            if (!data || !Array.isArray(data.proposals)) return;
             poll = data;
             render();
         } catch {

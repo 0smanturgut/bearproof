@@ -341,3 +341,99 @@ function runParade(canvas, { SPRITES, bakeSprite, bakeGlow }) {
         set('verbSteer', 'Poll closed · next one at 00:00 UTC', true);
     if (s && s.liveBuild) set('verbPlay', `Live now · Build #${s.liveBuild.n}`, true);
 })();
+
+// ---------------------------------------------------------------- sections rise in, live numbers count up
+
+(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+            (es) => {
+                for (const e of es)
+                    if (e.isIntersecting) {
+                        e.target.classList.add('in');
+                        io.unobserve(e.target);
+                    }
+            },
+            { rootMargin: '0px 0px -8% 0px' }
+        );
+        for (const el of document.querySelectorAll('main > .sec, main > .verbs, main > .finale')) {
+            // Whatever is already on screen stays put, so nothing above the fold ever flashes.
+            if (el.getBoundingClientRect().top < innerHeight) continue;
+            el.classList.add('rv');
+            io.observe(el);
+        }
+    }
+    // The first time a live number arrives, it counts up to its value (once, under a second).
+    for (const el of document.querySelectorAll('.board .v')) {
+        let done = false;
+        let mine = null;
+        let latest = null;
+        const mo = new MutationObserver(() => {
+            const txt = el.textContent.trim();
+            if (txt === mine) return;
+            latest = txt;
+            if (done) return;
+            const m = /^\d[\d,]*$/.exec(txt);
+            if (!m) return;
+            const target = Number(txt.replace(/,/g, ''));
+            done = true;
+            if (!(target > 3)) return;
+            const t0 = performance.now();
+            const frame = (t) => {
+                const k = Math.min(1, (t - t0) / 800);
+                if (k < 1) {
+                    mine = Math.round(target * (1 - Math.pow(1 - k, 3))).toLocaleString('en-US');
+                    el.textContent = mine;
+                    requestAnimationFrame(frame);
+                } else {
+                    mine = null;
+                    el.textContent = latest;
+                    mo.disconnect();
+                }
+            };
+            requestAnimationFrame(frame);
+        });
+        mo.observe(el, { childList: true, characterData: true, subtree: true });
+    }
+})();
+
+// ---------------------------------------------------------------- Day 0 vs today slider
+
+(() => {
+    const stage = document.querySelector('#compare .cmp-stage');
+    if (!stage) return;
+    const range = stage.querySelector('.cmp-range');
+    const set = (v) => stage.style.setProperty('--x', `${v}%`);
+    range.addEventListener('input', () => set(range.value));
+    // Once, when it scrolls into view: a slow sweep that shows what the slider does.
+    if (
+        matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        !('IntersectionObserver' in window)
+    )
+        return;
+    let touched = false;
+    range.addEventListener('pointerdown', () => (touched = true), { once: true });
+    const io = new IntersectionObserver(
+        (es) => {
+            if (!es[0].isIntersecting) return;
+            io.disconnect();
+            const t0 = performance.now();
+            const path = (k) =>
+                k < 0.45
+                    ? 50 + 38 * Math.sin((k / 0.45) * Math.PI * 0.5)
+                    : 88 - 38 * ((k - 0.45) / 0.55) ** 1.4;
+            const frame = (t) => {
+                if (touched) return;
+                const k = Math.min(1, (t - t0) / 2600);
+                const v = path(k);
+                set(v);
+                range.value = String(Math.round(v));
+                if (k < 1) requestAnimationFrame(frame);
+            };
+            setTimeout(() => requestAnimationFrame(frame), 350);
+        },
+        { threshold: 0.6 }
+    );
+    io.observe(stage);
+})();

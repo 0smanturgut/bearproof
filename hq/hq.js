@@ -251,6 +251,11 @@ function renderStats(s) {
         pill.textContent = 'Day ' + s.day;
         pill.append(h('span', { class: 'pill-x' }, ' of building'));
     }
+    const line = $('#liveLine');
+    if (line && s.day)
+        line.textContent = s.liveBuild
+            ? `Live · Day ${s.day} · Build #${s.liveBuild.n}`
+            : `Live · Day ${s.day}`;
     if (isNum(s.buildsShipped)) {
         setV('sBuilds', String(s.buildsShipped), s.buildsShipped > 0 ? 'bull' : '');
         setN(
@@ -955,7 +960,23 @@ function renderToday(live, d, now) {
                     ...commitMeta(live.commit, live.ref),
                     h('li', null, 'cost ', h('b', null, costText(live, d)))
                 ),
-                playLink(live.n)
+                h(
+                    'div',
+                    { class: 'feat-go' },
+                    playLink(live.n),
+                    d
+                        ? h(
+                              'a',
+                              {
+                                  class: 'go dim',
+                                  href: `${REPO_URL}/blob/main/devlog/build-${live.n}.md`,
+                                  rel: 'noopener',
+                                  target: '_blank'
+                              },
+                              'Full devlog ↗'
+                          )
+                        : null
+                )
             )
         )
     );
@@ -1143,12 +1164,14 @@ async function loadBuilds() {
         items.push({ at: toMs(e.date) || 0, n: -1, b: null, d: e });
     }
     items.sort((a, b) => b.at - a.at || b.n - a.n);
+    // The live build already has the big card above; the timeline is everything else.
+    const rest = items.filter((it) => !live || it.n !== live.n);
 
     tl.textContent = '';
     const maxN = builds.reduce((m, b) => Math.max(m, b.n), 0);
     if (scheduled.length) for (const b of scheduled.reverse()) tl.append(nextItem(b.n, b));
     else tl.append(nextItem(maxN + 1, null));
-    for (const it of items) tl.append(timelineItem(it.b, it.d));
+    for (const it of rest) tl.append(timelineItem(it.b, it.d));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1365,7 +1388,6 @@ async function loadWinners() {
     const flag = $('#prizeFlag');
     flag.textContent = live ? 'Live' : 'Starts with the coin';
     flag.className = 'flag ' + (live ? 'gold' : 'dim');
-    if (w.rule && typeof w.rule.text === 'string') $('#prizeText').textContent = w.rule.text;
     const list = $('#winners');
     const rows = Array.isArray(w.winners) ? w.winners.slice(0, 5) : [];
     list.textContent = '';
@@ -1502,6 +1524,12 @@ function copyButton(value, label) {
 }
 
 function renderWallets(w, balances) {
+    const any = [...document.querySelectorAll('[data-wallet]')].some((el) => {
+        const v = w && w[el.getAttribute('data-wallet')];
+        return typeof v === 'string' && B58.test(v);
+    });
+    // Before launch the three wallets are one compact row instead of three empty cards.
+    $('#wallets').classList.toggle('none', !any);
     for (const el of document.querySelectorAll('[data-wallet]')) {
         const key = el.getAttribute('data-wallet');
         const addr = w && typeof w[key] === 'string' && B58.test(w[key]) ? w[key] : null;

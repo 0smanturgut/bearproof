@@ -357,6 +357,7 @@
         }[rq.status];
         reqFlag.className = 'flag ' + (open ? 'bull' : 'dim');
         for (const id of ['#reqTitle', '#reqDesc', '#reqSubmit']) $(id).disabled = !open;
+        $('#reqForm').classList.toggle('off', !open);
         if (!$('#reqStatus').textContent && !open)
             say(
                 '#reqStatus',

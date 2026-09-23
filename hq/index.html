@@ -1031,7 +1031,7 @@
                     <a href="#build">Builds</a>
                     <a href="#vote">Vote</a>
                     <a href="#challenge">Challenge</a>
-                    <a href="#bears">Bears</a>
+
                     <a href="#how">How it works</a>
                     <a href="#coin">Coin</a>
                     <a href="#receipts">Receipts</a>
@@ -1053,7 +1053,14 @@
             </div>
             <section class="hero wrap" aria-labelledby="heroTitle">
                 <div class="h-copy">
-                    <p class="eyebrow">Live build log · Solana · AnsemHack</p>
+                    <p class="eyebrow live-line">
+                        <i class="dot" aria-hidden="true"></i
+                        ><span id="liveLine">Live build log</span>
+                        <span class="ll-sep" aria-hidden="true">·</span>
+                        <span class="ll-long">next build in</span
+                        ><span class="ll-short">next in</span>
+                        <b data-countdown>--:--:--</b>
+                    </p>
                     <h1 id="heroTitle">An AI is building a game <em>on its own budget.</em></h1>
                     <p class="sub">
                         <span>It ships a new version every day.</span>
@@ -1088,7 +1095,7 @@
                             <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
                         </svg>
                     </a>
-                    <p class="cta-note">No wallet. No signup. Runs in your browser.</p>
+                    <p class="cta-note">No wallet. No signup. Free, in your browser.</p>
                 </div>
 
                 <div class="parade-wrap" aria-hidden="true">
@@ -1177,8 +1184,7 @@
                     <canvas data-icon="cold_wallet" data-scale="3" aria-hidden="true"></canvas>
                     <span class="verb-k">You <b>fund</b> it</span>
                     <span class="verb-t"
-                        >Trading $BPROOF pays creator fees. Those fees are the AI's budget: compute,
-                        hosting, prizes.</span
+                        >Trading $BPROOF pays creator fees. That is the AI's whole budget.</span
                     >
                     <span class="verb-s" id="verbFund">Starts at coin launch</span>
                 </a>
@@ -1186,8 +1192,7 @@
                     <canvas data-icon="conviction" data-scale="3" aria-hidden="true"></canvas>
                     <span class="verb-k">You <b>steer</b> it</span>
                     <span class="verb-t"
-                        >Holders vote on tomorrow's feature. Weight is √tokens, so no whale owns the
-                        roadmap.</span
+                        >Vote on tomorrow's feature, or put your own idea on the ballot.</span
                     >
                     <span class="verb-s" id="verbSteer">Starts at coin launch</span>
                 </a>
@@ -1195,8 +1200,7 @@
                     <canvas data-sprite="emblem" data-scale="3" aria-hidden="true"></canvas>
                     <span class="verb-k">You <b>play</b> it</span>
                     <span class="verb-t"
-                        >Free in your browser. One Daily Challenge for everyone, a daily $ANSEM
-                        prize for the verified #1.</span
+                        >One free Daily Challenge for everyone. The verified #1 wins $ANSEM.</span
                     >
                     <span class="verb-s on" id="verbPlay">Live now</span>
                 </a>
@@ -1221,12 +1225,51 @@
                         <p class="state-k">Reading the build manifest…</p>
                     </div>
                 </div>
+                <figure class="compare" id="compare">
+                    <figcaption class="cmp-head">
+                        <h3>What the AI changed</h3>
+                        <span
+                            >Build #0, the open-source original, next to Build #2. Drag to
+                            compare.</span
+                        >
+                    </figcaption>
+                    <div class="cmp-stage">
+                        <img
+                            class="cmp-img"
+                            src="/assets/compare/build-2.jpg"
+                            alt="Build #2: a pixel-art bull fighting bears on a candlestick chart, damage numbers flying"
+                            width="1200"
+                            height="675"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <div class="cmp-before">
+                            <img
+                                class="cmp-img"
+                                src="/assets/compare/build-0.jpg"
+                                alt="Build #0: the original game, coloured circles on a plain grid"
+                                width="1200"
+                                height="675"
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </div>
+                        <span class="cmp-tag l">#0 <span class="cmp-long">· original</span></span>
+                        <span class="cmp-tag r">#2 <span class="cmp-long">· by the AI</span></span>
+                        <span class="cmp-handle" aria-hidden="true"><i></i></span>
+                        <input
+                            class="cmp-range"
+                            type="range"
+                            min="0"
+                            max="100"
+                            value="50"
+                            aria-label="Slide between Build #0 and Build #2"
+                        />
+                    </div>
+                </figure>
                 <div class="tl-head">
-                    <h3>Recent builds</h3>
-                    <p>
-                        Newest first. Every build ever shipped stays playable: this is the proof of
-                        work.
-                    </p>
+                    <h3>Build history</h3>
+                    <p>Every build stays playable. That's the proof of work.</p>
                 </div>
                 <ol class="timeline" id="timeline" aria-label="Build history"></ol>
                 <button class="btn btn-sm tl-more" id="tlMore" type="button" hidden>
@@ -1249,9 +1292,8 @@
                     ></canvas>
                 </div>
                 <p class="lede">
-                    Every day the AI proposes three features for tomorrow's build, and holders can
-                    put their own idea on the same ballot. The most-voted option is what the AI
-                    builds next, whoever proposed it.
+                    The AI proposes three features a day. Holders can add their own. The most-voted
+                    one ships next, whoever wrote it.
                 </p>
                 <div class="vote">
                     <div class="vote-state panel">
@@ -1259,52 +1301,49 @@
                             >Voting opens when the coin launches</span
                         >
                         <ol class="vote-how">
-                            <li><b>The AI proposes</b> three features it can ship in a day.</li>
-                            <li>
-                                <b>Holders add requests</b>: their own feature, on the same ballot.
-                            </li>
-                            <li>
-                                <b>Holders vote</b> until 13:00 UTC. Weight is
-                                <b class="sqrt">√(tokens held)</b>, so a whale can't own the
-                                roadmap.
-                            </li>
-                            <li>
-                                <b>The winner ships</b> in the next 00:00 UTC build, credited in the
-                                devlog.
-                            </li>
+                            <li><b>The AI proposes</b> three features it can ship in a day</li>
+                            <li><b>Holders add</b> their own requests</li>
+                            <li><b>Holders vote</b> until 13:00 UTC</li>
+                            <li><b>The winner ships</b> in the next 00:00 UTC build</li>
                         </ol>
-                        <table class="wtable">
-                            <caption>
-                                How √ weighting scales
-                            </caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Tokens held</th>
-                                    <th scope="col">Vote weight</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>10,000</td>
-                                    <td>100</td>
-                                </tr>
-                                <tr>
-                                    <td>1,000,000</td>
-                                    <td>1,000</td>
-                                </tr>
-                                <tr>
-                                    <td>100,000,000</td>
-                                    <td>10,000</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="fine">
-                            Voting and posting are plain text signatures: no transaction, no
-                            approval, nothing moves. Playing never needs a wallet.
-                        </p>
+                        <details class="more">
+                            <summary>Vote weight is <b class="sqrt">√(tokens held)</b></summary>
+                            <table class="wtable">
+                                <caption class="sr-only">
+                                    How √ weighting scales
+                                </caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Tokens held</th>
+                                        <th scope="col">Vote weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>10,000</td>
+                                        <td>100</td>
+                                    </tr>
+                                    <tr>
+                                        <td>1,000,000</td>
+                                        <td>1,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td>100,000,000</td>
+                                        <td>10,000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="fine">
+                                10,000× the tokens gets 100× the say, so no whale owns the roadmap.
+                                At least 1,000 tokens to vote.
+                            </p>
+                        </details>
                         <button class="btn" type="button" id="voteConnect" disabled>
                             Connect wallet to vote
                         </button>
+                        <p class="fine sig-note">
+                            A free signature. No transaction, nothing moves.
+                        </p>
                         <p class="vote-status" id="voteStatus" aria-live="polite"></p>
                     </div>
                     <div class="ballot-col">
@@ -1319,52 +1358,60 @@
                                 <p>The AI's proposals for tomorrow's build.</p>
                             </li>
                         </ul>
-                        <form class="req panel" id="reqForm" novalidate>
+                        <form class="req panel off" id="reqForm" novalidate>
                             <div class="req-h">
                                 <h3>Request a feature</h3>
                                 <span class="flag dim" id="reqFlag">Opens with the coin</span>
                             </div>
-                            <ul class="req-rules">
-                                <li>
-                                    Hold at least <b>100,000 $BPROOF</b> in the wallet that signs.
-                                </li>
-                                <li>
-                                    One request per wallet per day, until 12:00 UTC. Up to 12 on a
-                                    ballot.
-                                </li>
-                                <li>
-                                    Describe a change to the game in words. No links, nothing about
-                                    keys, wallets or payouts.
-                                </li>
-                                <li>
-                                    If it wins, the AI builds it next (or its first playable slice).
-                                    If it can't be built safely, the devlog says why and the
-                                    runner-up ships.
-                                </li>
-                            </ul>
-                            <label for="reqTitle">Feature</label>
-                            <input
-                                id="reqTitle"
-                                name="title"
-                                maxlength="60"
-                                placeholder="e.g. A whale that crosses the screen and drops XP"
-                                autocomplete="off"
-                                disabled
-                            />
-                            <label for="reqDesc">Details <span>(optional)</span></label>
-                            <textarea
-                                id="reqDesc"
-                                name="description"
-                                maxlength="240"
-                                rows="3"
-                                placeholder="What it does and why it's fun, in one or two sentences."
-                                disabled
-                            ></textarea>
-                            <div class="req-foot">
-                                <span class="req-count" id="reqCount">0 / 240</span>
-                                <button class="btn btn-go" type="submit" id="reqSubmit" disabled>
-                                    Sign &amp; post request
-                                </button>
+                            <p class="req-need">
+                                <b>100,000 $BPROOF</b> in the signing wallet · one request a day ·
+                                until 12:00 UTC
+                            </p>
+                            <details class="more">
+                                <summary>Rules</summary>
+                                <ul class="req-rules">
+                                    <li>Up to 12 requests on a ballot, first come.</li>
+                                    <li>
+                                        A change to the game, in words. No links or handles, nothing
+                                        about keys, wallets or payouts.
+                                    </li>
+                                    <li>
+                                        If it wins, the AI builds it next (or its first playable
+                                        slice) and credits you. If it can't be built safely, the
+                                        devlog says why and the runner-up ships.
+                                    </li>
+                                </ul>
+                            </details>
+                            <div class="req-fields">
+                                <label for="reqTitle">Feature</label>
+                                <input
+                                    id="reqTitle"
+                                    name="title"
+                                    maxlength="60"
+                                    placeholder="e.g. A whale that crosses the screen and drops XP"
+                                    autocomplete="off"
+                                    disabled
+                                />
+                                <label for="reqDesc">Details <span>(optional)</span></label>
+                                <textarea
+                                    id="reqDesc"
+                                    name="description"
+                                    maxlength="240"
+                                    rows="3"
+                                    placeholder="What it does and why it's fun, in one or two sentences."
+                                    disabled
+                                ></textarea>
+                                <div class="req-foot">
+                                    <span class="req-count" id="reqCount">0 / 240</span>
+                                    <button
+                                        class="btn btn-go"
+                                        type="submit"
+                                        id="reqSubmit"
+                                        disabled
+                                    >
+                                        Sign &amp; post request
+                                    </button>
+                                </div>
                             </div>
                             <p class="vote-status" id="reqStatus" aria-live="polite"></p>
                         </form>
@@ -1443,23 +1490,14 @@
                                     >
                                 </p>
                                 <p id="prizeText">
-                                    The AI pays each day's verified #1 from its treasury: 10% of
-                                    that day's creator fees, at most 0.5 SOL, bought as $ANSEM.
-                                    Holding the coin is never required.
+                                    The AI pays each day's verified #1: 10% of the day's creator
+                                    fees (max 0.5 SOL), bought as $ANSEM. You never need the coin to
+                                    win.
                                 </p>
                                 <ol class="prize-how">
-                                    <li>
-                                        Play today's challenge. Your run goes on the board when it
-                                        ends.
-                                    </li>
-                                    <li>
-                                        Add a Solana address on the game-over screen. No wallet
-                                        connection, ever.
-                                    </li>
-                                    <li>
-                                        After 00:00 UTC the AI re-simulates the top runs and pays
-                                        the verified #1. Every payout is on the ledger.
-                                    </li>
+                                    <li>Play today's challenge</li>
+                                    <li>Add a Solana address at game over</li>
+                                    <li>The verified #1 is paid after 00:00 UTC</li>
                                 </ol>
                                 <ul class="winners" id="winners" hidden></ul>
                             </div>
@@ -1494,8 +1532,7 @@
                     ></canvas>
                 </div>
                 <p class="lede">
-                    Everything that wants your bull liquidated, drawn by the AI in code. New bears
-                    ship with new builds.
+                    Everything that wants your bull liquidated. Drawn by the AI, in code.
                 </p>
                 <div class="bestiary">
                     <ul class="bosses" aria-label="Bosses">
@@ -1730,8 +1767,8 @@
                     </ol>
                 </div>
                 <p class="fine" id="howFine">
-                    That is the design. Until the coin launches, Osman pays the bills. After launch,
-                    the treasury pays them back on-chain, and the ledger below shows every payment.
+                    Until the coin launches, Osman pays the bills. After, the treasury pays them
+                    back on-chain, and every payment is in the ledger.
                 </p>
             </section>
 
@@ -1773,18 +1810,16 @@
                         <p class="fine" id="buyNote">Link turns on when the coin launches.</p>
                     </div>
                     <p class="coin-what">
-                        The coin funds the AI's compute and hosting through creator fees, and gives
-                        holders a vote on what gets built, plus cosmetics (a holder skin, a
-                        leaderboard badge). It is not an investment, pays nothing to holders, and is
-                        never required to play or win.
+                        The AI's budget, a say in the roadmap, and cosmetics. That's all it is. Not
+                        an investment.
                     </p>
                     <div class="does">
                         <div>
                             <h3 class="bull">It does</h3>
                             <ul class="ticks">
-                                <li>Fund compute and hosting through creator fees</li>
-                                <li>Give holders a vote on what gets built</li>
-                                <li>Unlock cosmetics: a holder skin, a leaderboard badge</li>
+                                <li>Fund the AI's compute, hosting and prizes</li>
+                                <li>Give holders a vote and a place on the ballot</li>
+                                <li>Unlock cosmetics: a holder skin, a board badge</li>
                             </ul>
                         </div>
                         <div>
@@ -1813,9 +1848,7 @@
                         aria-hidden="true"
                     ></canvas>
                 </div>
-                <p class="lede">
-                    Every number on this page is real data, or it says that it isn't there yet.
-                </p>
+                <p class="lede">Every number here is real, or it says it isn't there yet.</p>
                 <div class="wallets" id="wallets">
                     <div class="wallet" data-wallet="treasury">
                         <p class="k">Treasury wallet</p>
@@ -1850,34 +1883,23 @@
                     <div class="who-col panel">
                         <h3 class="who-h bull">Automated by the AI</h3>
                         <p class="who-note" id="whoNote">
-                            Once the scheduled Build Agent runs. Until then the AI works in
-                            bootstrap sessions (below).
+                            Once the scheduled Build Agent runs. Until then: bootstrap sessions.
                         </p>
                         <ul class="ticks">
-                            <li>
-                                Picks the day's feature from the vote (its proposals and holders'
-                                requests) and its own backlog
-                            </li>
-                            <li>Writes the code</li>
-                            <li>Runs the tests and smoke tests</li>
-                            <li>Ships at 00:00 UTC</li>
-                            <li>Writes the devlog</li>
-                            <li>Records its own compute cost</li>
-                            <li>Re-simulates the winning runs and pays the capped daily prize</li>
+                            <li>Picks the feature: the vote, then its backlog</li>
+                            <li>Writes the code, runs the tests, ships at 00:00 UTC</li>
+                            <li>Writes the devlog and records its own cost</li>
+                            <li>Re-plays the top runs and pays the daily prize</li>
                         </ul>
                     </div>
                     <div class="who-col panel">
                         <h3 class="who-h">Osman <span>operator</span></h3>
                         <ul class="ticks op">
-                            <li>Set up the accounts</li>
-                            <li>Funds hosting until the treasury can</li>
+                            <li>Set up the accounts, pays hosting for now</li>
                             <li data-launched="Launched the coin">Launches the coin</li>
-                            <li>Posts the daily X update the AI drafts</li>
-                            <li>
-                                Moves SOL from the treasury to the prize and costs wallets, by hand,
-                                until that step is automated
-                            </li>
-                            <li>Holds an emergency revert switch and the payout kill switch</li>
+                            <li>Posts the X update the AI drafts</li>
+                            <li>Moves SOL to the prize and costs wallets (on the ledger)</li>
+                            <li>Holds the revert and payout kill switches</li>
                         </ul>
                         <p class="who-no">
                             Does not write daily features. Any code he writes is labelled
@@ -1890,8 +1912,8 @@
                     <div class="note gold">
                         <h3>Bootstrap phase</h3>
                         <p>
-                            Until the scheduled Build Agent runs, the AI works in sessions Osman
-                            starts. Those commits are labelled <code>Build-Mode: bootstrap</code>.
+                            Before the scheduled agent, the AI works in sessions Osman starts,
+                            labelled <code>Build-Mode: bootstrap</code>.
                         </p>
                     </div>
                     <div class="note">

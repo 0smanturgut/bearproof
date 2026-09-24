@@ -2,6 +2,7 @@
  * Daily prize policy (pure, unit-tested). Public rules, see docs/TREASURY.md:
  *   prize = min(10% of the previous 24 h creator fees, 0.5 SOL); below 0.01 SOL it rolls over.
  *   Winner = the best verified Daily Challenge run whose bot check passed and whose player left an address.
+ *   The operator's own runs rank on the board but never win (CONFIG `prize:excluded_players`).
  */
 
 export const LAMPORTS = 1_000_000_000;
@@ -32,9 +33,13 @@ export function prizeAmount(fees24hLamports, rolloverLamports = 0) {
  * Walk the day's board (best run per player, highest score first) and return the first eligible entry,
  * plus the names of everyone skipped and why, for the public note.
  */
-export function pickWinner(board, addresses) {
+export function pickWinner(board, addresses, excluded = new Set()) {
     const skipped = [];
     for (const r of board) {
+        if (excluded.has(r.player_id)) {
+            skipped.push({ runId: r.id, why: 'operator run, not prize-eligible' });
+            continue;
+        }
         if (r.status !== 'verified') {
             skipped.push({ runId: r.id, why: `run ${r.status}` });
             continue;

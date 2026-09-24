@@ -149,6 +149,26 @@ async function knownAddresses(env) {
 }
 
 /** Cache SOL balances for /api/stats. */
+/**
+ * Creator fees earned per UTC day, measured from the pump.fun creator vault every 15 minutes: a rise in its
+ * balance is new fees; a drop means ClawPump claimed, and whatever is in it now accrued since. Kept in lamports
+ * under `fees:vault:day:<date>`. Trades between a claim and the next read are missed, so it errs low.
+ */
+export function vaultAccrual(lastLamports, nowLamports) {
+    if (!Number.isFinite(lastLamports) || lastLamports < 0) return 0; // first reading: nothing to compare to
+    return nowLamports >= lastLamports ? nowLamports - lastLamports : nowLamports;
+}
+
+async function accrueVaultFees(env, lamports, nowMs) {
+    const raw = await env.CONFIG.get('fees:vault:last');
+    const add = vaultAccrual(raw === null ? NaN : Number(raw), lamports);
+    await env.CONFIG.put('fees:vault:last', String(lamports));
+    if (add <= 0) return;
+    const key = `fees:vault:day:${new Date(nowMs).toISOString().slice(0, 10)}`;
+    const prev = Number((await env.CONFIG.get(key)) || 0);
+    await env.CONFIG.put(key, String(prev + add), { expirationTtl: 60 * 86400 });
+}
+
 export async function snapshotBalances(env, nowMs) {
     // creatorVault: pump.fun's per-creator fee account. Its balance is creator fees earned but not claimed yet.
     const wallets = {
@@ -171,6 +191,7 @@ export async function snapshotBalances(env, nowMs) {
             const r = await rpc(env, 'getBalance', [addr, { commitment: 'confirmed' }]);
             out[k] = r.value / 1e9;
             read++;
+            if (k === 'creatorVault') await accrueVaultFees(env, r.value, nowMs);
         } catch (err) {
             console.warn('[treasury] balance', k, err?.message || err);
             if (typeof prev[k] === 'number') out[k] = prev[k];

@@ -46,13 +46,17 @@ async function snapshotFees(env, today) {
 }
 
 /**
- * Creator fees the treasury received on `date` (lamports), or null when not measurable. With a ClawPump agent id
- * this is the difference of two daily earnings snapshots; without one, it is the sum of the day's ledger rows
- * labelled creator fees (read from chain), which only counts fees actually forwarded to the treasury.
+ * The treasury's creator fees for `date` (lamports), or null when not measurable. With a ClawPump agent id: the
+ * difference of two daily earnings snapshots. Without one: the day's accrual in the pump.fun creator vault times
+ * the agent's share (CREATOR_FEE_SHARE), or failing that, the day's ledger inflows labelled creator fees.
  */
 async function fees24h(env, date) {
     if (!env.CLAWPUMP_AGENT_ID) {
         if (!env.TREASURY_WALLET) return null;
+        // Preferred: the day's accrual in the creator vault, times the agent's share (an on-chain measurement).
+        const vault = await env.CONFIG.get(`fees:vault:day:${date}`);
+        const share = Number(env.CREATOR_FEE_SHARE) || 0;
+        if (vault !== null && share > 0) return Math.floor(Number(vault) * share);
         const from = Date.parse(`${date}T00:00:00Z`);
         const row = await first(
             env,
@@ -95,6 +99,15 @@ async function setWinner(env, date, fields) {
         .run();
 }
 
+/** Player ids that can't win prizes (the operator's own browsers). */
+export async function excludedPlayers(env) {
+    try {
+        return new Set(JSON.parse((await env.CONFIG.get('prize:excluded_players')) || '[]'));
+    } catch {
+        return new Set();
+    }
+}
+
 /** Pick and record yesterday's winner (idempotent: the row is the claim). */
 async function claimDay(env, date) {
     const exists = await first(env, 'SELECT date FROM daily_winners WHERE date = ?', date);
@@ -123,7 +136,8 @@ async function claimDay(env, date) {
     );
     const { winner, skipped } = pickWinner(
         board,
-        new Map(payable.map((a) => [a.player_id, a.sol_address]))
+        new Map(payable.map((a) => [a.player_id, a.sol_address])),
+        await excludedPlayers(env)
     );
     const rollover = Number((await env.CONFIG.get('prize:rollover')) || 0);
     const prize = prizeAmount(await fees24h(env, date), rollover);

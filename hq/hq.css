@@ -2336,3 +2336,10 @@ details.more .wtable {
     padding-left: 14px;
     padding-right: 14px;
 }
+.badge.op {
+    margin-left: 8px;
+    height: 18px;
+    font-size: 9.5px;
+    color: var(--muted);
+    border-style: dashed;
+}

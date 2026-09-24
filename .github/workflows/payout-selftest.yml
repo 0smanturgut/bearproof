@@ -1,0 +1,23 @@
+name: Payout selftest
+
+# Operator check before payouts are switched on: the Worker signs a test message with PRIZE_WALLET_KEY and reports
+# whether that key belongs to PRIZE_WALLET, plus the wallet's balance. Prints no secrets. Moves no funds.
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    selftest:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - name: Ask the Worker
+              env:
+                  INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+              run: |
+                  curl -fsS -X POST https://bearproof.app/api/internal/payout/selftest \
+                    -H "authorization: Bearer $INGEST_TOKEN" \
+                    | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const d=JSON.parse(s);const o={ok:d.ok,address:d.address,matchesPrizeWalletVar:d.matchesPrizeWalletVar,signatureVerified:d.signatureVerified,balanceSol:d.balanceSol,payoutsEnabled:d.payoutsEnabled,reason:d.reason};console.log(JSON.stringify(o,null,2));if(!d.ok)process.exit(1)})"

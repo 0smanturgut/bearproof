@@ -217,6 +217,12 @@ export async function leaderboard(request, env) {
 
     const rows = await all(env, boardSql(col), key);
     if (!rows) return dbDown();
+    let operators = new Set();
+    try {
+        operators = new Set(JSON.parse((await env.CONFIG.get('prize:excluded_players')) || '[]'));
+    } catch {
+        operators = new Set();
+    }
     return json(
         {
             ...meta,
@@ -230,7 +236,9 @@ export async function leaderboard(request, env) {
                 kills: r.claimed_kills,
                 status: r.status,
                 build: r.build,
-                runId: r.id
+                runId: r.id,
+                // The operator's own runs rank but never win the prize.
+                ...(operators.has(r.player_id) ? { operator: true } : {})
             })),
             generatedAt: new Date().toISOString()
         },

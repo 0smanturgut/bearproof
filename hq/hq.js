@@ -1543,21 +1543,33 @@ async function loadChallenge() {
     ]
         .filter(Boolean)
         .join(' · ');
-    const rows = entries
-        .slice(0, 20)
-        .map((e, i) =>
+    const rows = entries.slice(0, 20).map((e, i) =>
+        h(
+            'tr',
+            { class: (e.rank || i + 1) === 1 ? 'first' : null },
+            h('td', { class: 'rk' }, String(e.rank || i + 1)),
             h(
-                'tr',
-                { class: (e.rank || i + 1) === 1 ? 'first' : null },
-                h('td', { class: 'rk' }, String(e.rank || i + 1)),
-                h('td', { class: 'nm' }, h('span', null, e.name ? String(e.name) : 'anon')),
-                h('td', { class: 'sc num' }, fmtInt(e.score)),
-                h('td', { class: 'num opt' }, mss(e.timeMs)),
-                h('td', { class: 'num opt' }, isNum(e.level) ? String(e.level) : '—'),
-                h('td', { class: 'num opt' }, fmtInt(e.kills)),
-                h('td', null, statusChip(e.status, e.runId))
-            )
-        );
+                'td',
+                { class: 'nm' },
+                h('span', null, e.name ? String(e.name) : 'anon'),
+                e.operator
+                    ? h(
+                          'span',
+                          {
+                              class: 'badge op',
+                              title: "The operator's run: it ranks, but it can't win the prize."
+                          },
+                          'operator'
+                      )
+                    : null
+            ),
+            h('td', { class: 'sc num' }, fmtInt(e.score)),
+            h('td', { class: 'num opt' }, mss(e.timeMs)),
+            h('td', { class: 'num opt' }, isNum(e.level) ? String(e.level) : '—'),
+            h('td', { class: 'num opt' }, fmtInt(e.kills)),
+            h('td', null, statusChip(e.status, e.runId))
+        )
+    );
     box.append(
         h(
             'table',

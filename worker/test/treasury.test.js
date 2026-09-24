@@ -159,3 +159,11 @@ test('a payment to a known launch address is the coin launch', () => {
     assert.equal(r.category, 'launch');
     assert.match(r.memo, /coin launch: paid to ClawPump/);
 });
+
+test('vault accrual: a rise is new fees, a drop means a claim, the first reading counts nothing', async () => {
+    const { vaultAccrual } = await import('../src/lib/treasury.js');
+    assert.equal(vaultAccrual(NaN, 5e8), 0);
+    assert.equal(vaultAccrual(1e8, 3e8), 2e8);
+    assert.equal(vaultAccrual(3e8, 2e7), 2e7, 'claimed, then 0.02 SOL accrued again');
+    assert.equal(vaultAccrual(3e8, 3e8), 0);
+});

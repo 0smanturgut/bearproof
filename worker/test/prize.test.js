@@ -59,3 +59,17 @@ test('pickWinner: a ranked run without a passed bot check never wins', () => {
         ['bot check not passed', 'bot check not passed']
     );
 });
+
+test("pickWinner: the operator's run ranks but the prize goes to the next eligible run", () => {
+    const board = [
+        { id: 'r1', player_id: 'op', status: 'verified', bot_check: 'passed' },
+        { id: 'r2', player_id: 'p2', status: 'verified', bot_check: 'passed' }
+    ];
+    const addresses = new Map([
+        ['op', 'ADDR_OP'],
+        ['p2', 'ADDR2']
+    ]);
+    const { winner, skipped } = pickWinner(board, addresses, new Set(['op']));
+    assert.equal(winner.id, 'r2');
+    assert.equal(skipped[0].why, 'operator run, not prize-eligible');
+});

@@ -6,7 +6,7 @@
         <title>Live · BEARPROOF</title>
         <meta
             name="description"
-            content="Watch an AI build tomorrow's version of a game, live. Every night at 21:00 UTC: it reads the holder vote and the player data, writes the code, tests it and ships at 00:00 UTC."
+            content="The AI's control room: the game it builds, playing live; what it knows about its players; tomorrow's ballot; and every night at 21:00 UTC, the AI writing the next version, streamed as it happens."
         />
         <meta name="theme-color" content="#07090c" />
         <link rel="icon" type="image/svg+xml" href="/assets/bull.svg" />
@@ -17,7 +17,7 @@
         <meta property="og:title" content="Watch an AI build a game, live" />
         <meta
             property="og:description"
-            content="Every night at 21:00 UTC the AI reads the vote and the player data, writes the code, tests it and ships at 00:00 UTC. Watch it work."
+            content="Every night at 21:00 UTC the AI reads the vote and the player data, writes the code, tests it and ships at 00:00 UTC. The rest of the day: its control room, live."
         />
         <meta property="og:url" content="https://bearproof.app/live" />
         <meta property="og:image" content="https://bearproof.app/assets/og.png" />
@@ -53,6 +53,7 @@
                 --line-2: #34404f;
                 --bull: #16e08a;
                 --bull-2: #7bf5a6;
+                --bull-deep: #0a7a48;
                 --gold: #ffc53d;
                 --bear: #ff3b5c;
                 --ice: #6fd8ff;
@@ -72,30 +73,50 @@
                 margin: 0;
                 background: var(--ink);
                 color: var(--text);
-                font: 400 14px/1.55 var(--mono);
+                font: 400 14px/1.5 var(--mono);
             }
             body {
                 min-height: 100vh;
                 background-image:
+                    radial-gradient(ellipse at 20% -10%, rgba(22, 224, 138, 0.1), transparent 55%),
                     linear-gradient(var(--grid) 1px, transparent 1px),
                     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-                background-size: 40px 40px;
+                background-size:
+                    auto,
+                    40px 40px,
+                    40px 40px;
                 background-attachment: fixed;
             }
             a {
                 color: var(--bull);
             }
-            .wrap {
-                width: min(1100px, 100%);
+            .room {
+                width: min(1440px, 100%);
                 margin: 0 auto;
-                padding: 0 16px;
+                padding: 12px 16px 24px;
+                display: grid;
+                gap: 14px;
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas: 'top' 'status' 'console' 'game' 'knows' 'ballot' 'foot';
+            }
+            @media (min-width: 1100px) {
+                .room {
+                    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+                    grid-template-areas:
+                        'top top'
+                        'status status'
+                        'game console'
+                        'knows console'
+                        'ballot console'
+                        'foot foot';
+                }
             }
             header.top {
+                grid-area: top;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 gap: 12px;
-                padding: 16px 0;
             }
             .brand {
                 display: inline-flex;
@@ -111,6 +132,24 @@
                 height: 30px;
                 image-rendering: pixelated;
             }
+            .brand small {
+                font: 700 11px/1 var(--mono);
+                letter-spacing: 0.14em;
+                color: var(--muted);
+                text-transform: uppercase;
+            }
+            .top-r {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 12px;
+                color: var(--muted);
+                letter-spacing: 0.08em;
+            }
+            .top-r b {
+                color: var(--text);
+                font-variant-numeric: tabular-nums;
+            }
             .play {
                 display: inline-flex;
                 align-items: center;
@@ -118,35 +157,64 @@
                 background: var(--bull);
                 color: var(--ink);
                 text-decoration: none;
-                font: 400 24px/1 var(--display);
+                font: 400 22px/1 var(--display);
                 letter-spacing: 0.06em;
-                box-shadow: 4px 4px 0 #0a7a48;
+                box-shadow: 4px 4px 0 var(--bull-deep);
             }
-            h1 {
-                margin: 18px 0 6px;
-                font: 400 clamp(40px, 9vw, 76px) / 0.95 var(--display);
-                letter-spacing: 0.02em;
+            .panel {
+                position: relative;
+                border: 1px solid var(--line-2);
+                background: rgba(14, 18, 23, 0.92);
+                min-width: 0;
             }
-            h1 em {
-                font-style: normal;
-                color: var(--bull);
-                text-shadow: 0 0 24px rgba(22, 224, 138, 0.35);
+            .panel::before {
+                content: '';
+                position: absolute;
+                left: -1px;
+                top: -1px;
+                width: 12px;
+                height: 12px;
+                border-left: 2px solid var(--bull);
+                border-top: 2px solid var(--bull);
+                pointer-events: none;
             }
-            .lede {
-                max-width: 62ch;
-                margin: 0 0 18px;
-                color: var(--text-2);
+            .ph {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 9px 12px;
+                border-bottom: 1px solid var(--line);
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--muted);
             }
+            .ph b {
+                color: var(--text);
+            }
+            /* status band */
             .status {
+                grid-area: status;
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
-                gap: 8px 14px;
-                margin: 0 0 14px;
-                font-size: 12px;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color: var(--muted);
+                gap: 10px 18px;
+                padding: 14px 16px;
+            }
+            .status h1 {
+                margin: 0;
+                flex: 1 1 420px;
+                font: 400 clamp(30px, 5vw, 54px) / 0.95 var(--display);
+                letter-spacing: 0.02em;
+            }
+            .status h1 em {
+                font-style: normal;
+                color: var(--bull);
+            }
+            .status.running h1 em {
+                color: var(--bear);
             }
             .pill {
                 display: inline-flex;
@@ -154,7 +222,11 @@
                 gap: 8px;
                 padding: 5px 10px 6px;
                 border: 1px solid currentColor;
+                font-size: 12px;
                 font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--gold);
             }
             .pill i {
                 width: 9px;
@@ -162,80 +234,257 @@
                 background: currentColor;
                 box-shadow: 0 0 10px currentColor;
             }
-            .pill.running {
+            .running .pill {
                 color: var(--bear);
             }
-            .pill.running i {
+            .running .pill i {
                 animation: blink 1.2s steps(2, start) infinite;
-            }
-            .pill.done {
-                color: var(--bull);
-            }
-            .pill.failed,
-            .pill.stalled {
-                color: var(--gold);
-            }
-            .pill.idle {
-                color: var(--gold);
             }
             @keyframes blink {
                 50% {
                     opacity: 0.2;
                 }
             }
-            .status b {
-                color: var(--text);
-                font-variant-numeric: tabular-nums;
+            .status .sub {
+                width: 100%;
+                margin: 0;
+                color: var(--text-2);
+                font-size: 13px;
             }
-            .term {
-                position: relative;
-                border: 2px solid var(--line-2);
-                background: rgba(7, 9, 12, 0.92);
-                box-shadow:
-                    0 0 0 1px #000,
-                    0 30px 80px rgba(0, 0, 0, 0.6),
-                    0 0 90px rgba(22, 224, 138, 0.12);
-            }
-            .term-bar {
+            .steps {
                 display: flex;
-                align-items: center;
-                gap: 10px;
+                flex-wrap: wrap;
+                gap: 6px;
+                width: 100%;
+                margin: 4px 0 0;
+                padding: 0;
+                list-style: none;
+            }
+            .thought {
+                width: 100%;
+                margin: 2px 0 0;
                 padding: 8px 12px;
-                border-bottom: 1px solid var(--line-2);
-                background: var(--panel-2);
+                border-left: 3px solid var(--bull);
+                background: rgba(22, 224, 138, 0.06);
+                font-size: 15px;
+                line-height: 1.45;
+                color: var(--text);
+            }
+            .thought::before {
+                content: 'Thinking: ';
+                color: var(--bull);
+                font-weight: 700;
+            }
+            .thought[hidden],
+            .steps[hidden] {
+                display: none;
+            }
+            .steps li {
+                flex: 1 1 110px;
+                padding: 6px 8px;
+                border: 1px solid var(--line);
                 font-size: 11px;
+                font-weight: 700;
                 letter-spacing: 0.08em;
                 text-transform: uppercase;
                 color: var(--muted);
+                background: rgba(0, 0, 0, 0.25);
             }
-            .term-bar .dots {
-                display: inline-flex;
-                gap: 6px;
+            .steps li.done {
+                color: var(--bull);
+                border-color: rgba(22, 224, 138, 0.45);
             }
-            .term-bar .dots i {
-                width: 10px;
-                height: 10px;
-                background: var(--line-2);
+            .steps li.now {
+                color: var(--ink);
+                background: var(--bull);
+                border-color: var(--bull);
+                animation: glow 1.6s ease-in-out infinite;
             }
-            .term-bar .t {
-                flex: 1;
+            .steps li.bad {
+                color: var(--ink);
+                background: var(--bear);
+                border-color: var(--bear);
+            }
+            @keyframes glow {
+                50% {
+                    box-shadow: 0 0 18px rgba(22, 224, 138, 0.6);
+                }
+            }
+            /* game */
+            .game {
+                grid-area: game;
+            }
+            .screen {
+                position: relative;
+                aspect-ratio: 16 / 10;
+                background: var(--ink);
+                overflow: hidden;
+            }
+            .screen iframe {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+                pointer-events: none;
+            }
+            .screen .tag {
+                position: absolute;
+                left: 10px;
+                bottom: 10px;
+                z-index: 2;
+                padding: 4px 8px 5px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                background: rgba(7, 9, 12, 0.82);
+                border: 1px solid var(--line-2);
+                color: var(--text-2);
+            }
+            /* knows */
+            .knows {
+                grid-area: knows;
+            }
+            .facts {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .facts div {
+                padding: 12px;
+                border-right: 1px solid var(--line);
                 min-width: 0;
+            }
+            .facts div:last-child {
+                border-right: 0;
+            }
+            .facts small {
+                display: block;
+                font-size: 10.5px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+            .facts b {
+                display: block;
+                font: 400 30px/1.05 var(--display);
+                font-variant-numeric: tabular-nums;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
+            .facts span {
+                font-size: 11.5px;
+                color: var(--text-2);
+            }
+            .knows-note {
+                margin: 0;
+                padding: 8px 12px 10px;
+                border-top: 1px solid var(--line);
+                font-size: 12px;
+                color: var(--text-2);
+            }
+            .knows-note::before {
+                content: 'BEARPROOF: ';
+                color: var(--bull);
+                font-weight: 700;
+            }
+            /* ballot */
+            .ballot {
+                grid-area: ballot;
+            }
+            .opts {
+                margin: 0;
+                padding: 8px 12px 12px;
+                list-style: none;
+                display: grid;
+                gap: 8px;
+            }
+            .opts li {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 4px 10px;
+                font-size: 13px;
+            }
+            .opts .src {
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--bull);
+                margin-right: 6px;
+            }
+            .opts .src.h {
+                color: var(--gold);
+            }
+            .opts .bar {
+                grid-column: 1 / -1;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.06);
+            }
+            .opts .bar i {
+                display: block;
+                height: 100%;
+                background: var(--bull);
+                box-shadow: 0 0 10px rgba(22, 224, 138, 0.5);
+                transition: width 500ms ease;
+            }
+            .opts .h + .bar i,
+            .opts li.h .bar i {
+                background: var(--gold);
+            }
+            .opts b {
+                font-variant-numeric: tabular-nums;
+            }
+            /* console */
+            .console {
+                grid-area: console;
+                display: flex;
+                flex-direction: column;
+                min-height: 420px;
+            }
+            .tabs {
+                display: flex;
+                gap: 4px;
+            }
+            .tabs[hidden] {
+                display: none;
+            }
+            .tabs button {
+                padding: 4px 8px;
+                font: 700 10.5px/1 var(--mono);
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--muted);
+                background: none;
+                border: 1px solid var(--line);
+                cursor: pointer;
+            }
+            .tabs button[aria-selected='true'] {
+                color: var(--ink);
+                background: var(--bull);
+                border-color: var(--bull);
+            }
             .feed {
-                height: min(64vh, 640px);
+                flex: 1;
+                min-height: 360px;
+                max-height: 72vh;
                 overflow-y: auto;
-                padding: 12px 0;
+                padding: 8px 0;
                 scroll-behavior: smooth;
+            }
+            @media (min-width: 1100px) {
+                .feed {
+                    max-height: none;
+                    height: 0; /* fill the column */
+                }
             }
             .row {
                 display: grid;
-                grid-template-columns: 74px 20px minmax(0, 1fr);
+                grid-template-columns: 62px 16px minmax(0, 1fr);
                 gap: 8px;
-                padding: 3px 14px;
-                font-size: 13px;
+                padding: 3px 12px;
+                font-size: 12.5px;
                 line-height: 1.5;
                 animation: in 260ms ease-out;
             }
@@ -257,11 +506,13 @@
                 min-width: 0;
                 overflow-wrap: anywhere;
             }
-            .row.say .tx {
+            .row.say .tx,
+            .row.reply .tx {
                 color: var(--text);
             }
             .row.say .ic,
-            .row.plan .ic {
+            .row.plan .ic,
+            .row.reply .ic {
                 color: var(--bull);
             }
             .row.tool .tx {
@@ -270,97 +521,70 @@
             .row.test .tx,
             .row.gate .tx,
             .row.ship .tx,
-            .row.done .tx {
+            .row.done .tx,
+            .row.verified .tx,
+            .row.fees .tx,
+            .row.prize .tx {
                 color: var(--bull-2);
             }
-            .row.test.bad .tx {
+            .row.test.bad .tx,
+            .row.failed .tx,
+            .row.rejected .tx {
                 color: var(--bear);
             }
             .row.start .tx,
-            .row.cost .tx {
+            .row.cost .tx,
+            .row.vote .tx,
+            .row.prize .ic {
                 color: var(--gold);
             }
-            .row.context .tx {
+            .row.context .tx,
+            .row.run .tx {
                 color: var(--ice);
             }
             .row.review .tx,
-            .row.review .ic {
+            .row.review .ic,
+            .row.request .tx {
                 color: var(--violet);
-            }
-            .row.failed .tx {
-                color: var(--bear);
             }
             .row.start,
             .row.done,
-            .row.failed {
-                margin: 6px 0;
-                padding-top: 8px;
-                padding-bottom: 8px;
+            .row.failed,
+            .row.prize {
+                margin: 5px 0;
+                padding-top: 7px;
+                padding-bottom: 7px;
                 background: rgba(255, 255, 255, 0.03);
+            }
+            .row a {
+                color: inherit;
             }
             .cursor {
                 display: inline-block;
                 width: 8px;
-                height: 15px;
-                margin: 4px 0 0 116px;
+                height: 14px;
+                margin: 4px 0 0 98px;
                 background: var(--bull);
                 animation: blink 1s steps(2, start) infinite;
             }
             .empty {
-                padding: 40px 16px;
+                padding: 28px 16px;
                 text-align: center;
                 color: var(--text-2);
             }
-            .empty b {
-                display: block;
-                margin-bottom: 6px;
-                font: 400 44px/1 var(--display);
-                color: var(--gold);
-                font-variant-numeric: tabular-nums;
-            }
-            .facts {
-                display: grid;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 0;
-                margin: 14px 0 0;
-                border: 1px solid var(--line);
-                background: var(--panel);
-            }
-            .facts div {
-                padding: 12px 14px;
-                border-right: 1px solid var(--line);
-            }
-            .facts div:last-child {
-                border-right: 0;
-            }
-            .facts small {
-                display: block;
-                font-size: 10.5px;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
+            .foot {
+                grid-area: foot;
+                margin: 4px 0 0;
                 color: var(--muted);
+                font-size: 12px;
             }
-            .facts b {
-                font: 400 30px/1.1 var(--display);
-                font-variant-numeric: tabular-nums;
-            }
-            .how {
-                margin: 22px 0 30px;
-                color: var(--muted);
-                font-size: 12.5px;
-            }
-            .how a {
+            .foot a {
                 color: var(--text-2);
             }
+            .url {
+                display: none;
+            }
             @media (max-width: 640px) {
-                .row {
-                    grid-template-columns: 58px 16px minmax(0, 1fr);
-                    padding: 3px 10px;
-                    font-size: 12.5px;
-                }
-                .cursor {
-                    margin-left: 90px;
-                }
                 .facts {
                     grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
@@ -370,242 +594,184 @@
                 .facts div:nth-child(-n + 2) {
                     border-bottom: 1px solid var(--line);
                 }
-                .play {
-                    font-size: 20px;
+                .top-r .clock,
+                .brand small {
+                    display: none;
                 }
+                .steps li {
+                    flex: 1 1 22%;
+                    padding: 5px 6px;
+                    font-size: 10px;
+                }
+            }
+
+            /* TV mode (?tv=1): a fixed 1920x1080 stage for a stream, scaled to the window */
+            body.tv {
+                overflow: hidden;
+                background-attachment: scroll;
+            }
+            body.tv .room {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 1920px;
+                height: 1080px;
+                padding: 18px 26px;
+                transform-origin: 0 0;
+                grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+                grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+                grid-template-areas:
+                    'top top'
+                    'status status'
+                    'game console'
+                    'knows console'
+                    'ballot console';
+            }
+            body.tv .foot,
+            body.tv .play,
+            body.tv .tabs {
+                display: none;
+            }
+            body.tv .url {
+                display: inline-flex;
+                padding: 6px 10px;
+                border: 1px solid var(--bull);
+                color: var(--bull);
+                font-weight: 700;
+                letter-spacing: 0.08em;
+            }
+            body.tv .feed {
+                height: 0;
+                max-height: none;
+                scroll-behavior: auto;
+            }
+            body.tv .screen {
+                aspect-ratio: auto;
+                height: 100%;
+            }
+            body.tv .game {
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+            }
+            body.tv .game .screen {
+                flex: 1;
+            }
+            body.tv .row {
+                grid-template-columns: 80px 18px minmax(0, 1fr);
+                font-size: 15px;
+            }
+            body.tv .thought {
+                font-size: 20px;
             }
             @media (prefers-reduced-motion: reduce) {
                 .row,
                 .pill i,
-                .cursor {
+                .cursor,
+                .steps li.now {
                     animation: none;
-                }
-                .feed {
-                    scroll-behavior: auto;
                 }
             }
         </style>
     </head>
     <body>
-        <div class="wrap">
+        <div class="room" id="room">
             <header class="top">
-                <a class="brand" href="/"><img src="/assets/bull.svg" alt="" />BEARPROOF</a>
-                <a class="play" href="/play">PLAY</a>
-            </header>
-            <main>
-                <h1>Watch the AI <em>build</em>.</h1>
-                <p class="lede">
-                    Every night at 21:00 UTC the vote closes and the AI goes to work: it reads what
-                    holders chose and what players did, writes the code, plays its own build, has a
-                    second session review it, and ships at 00:00 UTC. Everything below is streamed
-                    from that run as it happens.
-                </p>
-                <p class="status" aria-live="polite">
-                    <span class="pill idle" id="pill"
-                        ><i aria-hidden="true"></i><span id="pillText">Connecting</span></span
-                    >
-                    <span id="statusText"></span>
-                </p>
-                <section class="term" aria-label="The AI's build log">
-                    <div class="term-bar">
-                        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                        <span class="t" id="termTitle">build-agent · waiting</span>
-                        <span id="clock">--:--:-- UTC</span>
-                    </div>
-                    <div class="feed" id="feed" role="log" aria-live="polite">
-                        <div class="empty" id="empty">
-                            <b id="countdown">--:--:--</b>
-                            until the next build session (21:00 UTC)
-                        </div>
-                    </div>
-                </section>
-                <div class="facts" aria-label="This run in numbers">
-                    <div><small>Build</small><b id="fBuild">—</b></div>
-                    <div><small>Running for</small><b id="fTime">—</b></div>
-                    <div><small>Files touched</small><b id="fFiles">—</b></div>
-                    <div><small>Cost so far</small><b id="fCost">—</b></div>
+                <a class="brand" href="/"
+                    ><img src="/assets/bull.svg" alt="" />BEARPROOF <small>Control room</small></a
+                >
+                <div class="top-r">
+                    <span class="url">bearproof.app/live</span>
+                    <span class="clock"><b id="clock">--:--:--</b> UTC</span>
+                    <span id="day"></span>
+                    <a class="play" href="/play">PLAY</a>
                 </div>
-                <p class="how">
-                    Lines come from the run on GitHub Actions: the agent's own sentences, each file
-                    it opens or edits, each test. Anything that looks like a secret is dropped
-                    before it leaves the run. The full, public log of every run is on
-                    <a
-                        href="https://github.com/0smanturgut/bearproof/actions/workflows/agent.yml"
-                        rel="noopener"
-                        >GitHub</a
-                    >. <a href="/#build">What it shipped so far →</a>
+            </header>
+
+            <section class="status panel" id="status" aria-live="polite">
+                <span class="pill"
+                    ><i aria-hidden="true"></i><span id="pillText">Connecting</span></span
+                >
+                <h1 id="headline">An AI is building a game, <em>in public</em>.</h1>
+                <p class="sub" id="sub">
+                    Every night at 21:00 UTC the vote closes and the AI builds the next version: it
+                    reads the vote and the player data, writes the code, plays its own build, has a
+                    second session review it, and ships at 00:00 UTC.
                 </p>
-            </main>
+                <p class="thought" id="thought" hidden></p>
+                <ol class="steps" id="steps" hidden>
+                    <li data-step="context">Read data</li>
+                    <li data-step="plan">Plan</li>
+                    <li data-step="build">Code</li>
+                    <li data-step="playtest">Playtest</li>
+                    <li data-step="review">Review</li>
+                    <li data-step="gate">Gates</li>
+                    <li data-step="ship">Ship</li>
+                </ol>
+            </section>
+
+            <section class="game panel" aria-label="The game, live">
+                <div class="ph">
+                    <span>The game, playing itself</span><b id="buildNow">Build —</b>
+                </div>
+                <div class="screen" id="screen">
+                    <span class="tag" id="gameTag">Autopilot · the live build</span>
+                </div>
+            </section>
+
+            <section class="knows panel" aria-label="What the AI knows">
+                <div class="ph">
+                    <span>What the AI knows about its players</span
+                    ><span id="knowsWin">last 24 h</span>
+                </div>
+                <div class="facts">
+                    <div>
+                        <small>Verified runs</small><b id="kRuns">—</b><span id="kPlayers"></span>
+                    </div>
+                    <div>
+                        <small>Median run</small><b id="kMedian">—</b><span id="kBest"></span>
+                    </div>
+                    <div>
+                        <small>Deadliest bear</small><b id="kDeath">—</b><span id="kDeathN"></span>
+                    </div>
+                    <div><small>Top pick</small><b id="kPick">—</b><span id="kPickN"></span></div>
+                </div>
+                <p class="knows-note" id="knowsNote">Reading the numbers…</p>
+            </section>
+
+            <section class="ballot panel" aria-label="Tomorrow's ballot">
+                <div class="ph"><span>Tomorrow's ballot</span><span id="ballotMeta"></span></div>
+                <ul class="opts" id="opts"></ul>
+            </section>
+
+            <section class="console panel" aria-label="The AI's console">
+                <div class="ph">
+                    <span id="consoleTitle">The AI's console</span>
+                    <span class="tabs" role="tablist">
+                        <button type="button" role="tab" id="tabLive" aria-selected="true">
+                            Now
+                        </button>
+                        <button type="button" role="tab" id="tabLog" aria-selected="false">
+                            Last build
+                        </button>
+                    </span>
+                </div>
+                <div class="feed" id="feed" role="log" aria-live="polite">
+                    <div class="empty">Connecting…</div>
+                </div>
+            </section>
+
+            <p class="foot">
+                Everything here is live data: runs are re-played on the server before they count,
+                votes are wallet signatures, the build log comes straight from the run on
+                <a
+                    href="https://github.com/0smanturgut/bearproof/actions/workflows/agent.yml"
+                    rel="noopener"
+                    >GitHub Actions</a
+                >, with anything that looks like a secret dropped before it leaves. For streams:
+                <a href="/live?tv=1">bearproof.app/live?tv=1</a>. <a href="/">Back to the HQ →</a>
+            </p>
         </div>
-        <script>
-            (function () {
-                'use strict';
-                var $ = function (id) {
-                    return document.getElementById(id);
-                };
-                var ICON = {
-                    start: '▶',
-                    context: 'i',
-                    say: '›',
-                    tool: '·',
-                    test: '✓',
-                    plan: '✎',
-                    review: '◆',
-                    gate: '✓',
-                    cost: '$',
-                    ship: '⇡',
-                    done: '■',
-                    failed: '!'
-                };
-                var seen = 0;
-                var state = null;
-                var pad = function (n) {
-                    return String(n).padStart(2, '0');
-                };
-                var hms = function (ms) {
-                    var s = Math.max(0, Math.floor(ms / 1000));
-                    return (
-                        pad(Math.floor(s / 3600)) +
-                        ':' +
-                        pad(Math.floor((s % 3600) / 60)) +
-                        ':' +
-                        pad(s % 60)
-                    );
-                };
-                var nextSession = function () {
-                    var d = new Date();
-                    var t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 21);
-                    return t > Date.now() ? t : t + 86400000;
-                };
-                function row(e) {
-                    var r = document.createElement('div');
-                    var bad =
-                        e.type === 'test' &&
-                        /fail|FAILED/.test(e.text) &&
-                        !/, 0 failed/.test(e.text);
-                    r.className = 'row ' + e.type + (bad ? ' bad' : '');
-                    var t = document.createElement('time');
-                    t.dateTime = e.ts;
-                    t.textContent = e.ts.slice(11, 19);
-                    var ic = document.createElement('span');
-                    ic.className = 'ic';
-                    ic.setAttribute('aria-hidden', 'true');
-                    ic.textContent = ICON[e.type] || '·';
-                    var tx = document.createElement('span');
-                    tx.className = 'tx';
-                    tx.textContent = e.text;
-                    r.append(t, ic, tx);
-                    return r;
-                }
-                function facts(data) {
-                    var files = {};
-                    var cost = 0;
-                    data.events.forEach(function (e) {
-                        var m = /^(?:Editing|Writing) (\S+)/.exec(e.text);
-                        if (e.type === 'tool' && m) files[m[1]] = 1;
-                        if (e.data && typeof e.data.costUsd === 'number') cost += e.data.costUsd;
-                    });
-                    $('fBuild').textContent = data.build ? '#' + data.build : '—';
-                    $('fFiles').textContent = String(Object.keys(files).length);
-                    $('fCost').textContent = cost ? '$' + cost.toFixed(2) : '—';
-                }
-                function render(data) {
-                    var prevRun = state && state.run;
-                    state = data;
-                    var feed = $('feed');
-                    if (prevRun && prevRun !== data.run) {
-                        seen = 0; // a new run started: start a fresh log
-                        feed.querySelectorAll('.row').forEach(function (r) {
-                            r.remove();
-                        });
-                    }
-                    var running = data.status === 'running';
-                    var pill = $('pill');
-                    pill.className =
-                        'pill ' +
-                        (data.status === 'none'
-                            ? 'idle'
-                            : data.status === 'running'
-                              ? 'running'
-                              : data.status);
-                    $('pillText').textContent =
-                        data.status === 'running'
-                            ? 'Live now'
-                            : data.status === 'done'
-                              ? 'Last run: shipped'
-                              : data.status === 'failed'
-                                ? 'Last run: stopped'
-                                : data.status === 'stalled'
-                                  ? 'Last run: no news'
-                                  : 'Next session 21:00 UTC';
-                    $('termTitle').textContent = data.build
-                        ? 'build-agent · build #' + data.build + (running ? ' · live' : '')
-                        : 'build-agent · waiting';
-                    if (!data.events || !data.events.length) {
-                        $('empty').hidden = false;
-                        return;
-                    }
-                    $('empty').hidden = true;
-                    var nearBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
-                    var old = feed.querySelector('.cursor');
-                    if (old) old.remove();
-                    data.events.forEach(function (e) {
-                        if (e.id > seen) {
-                            feed.appendChild(row(e));
-                            seen = e.id;
-                        }
-                    });
-                    if (running) {
-                        var c = document.createElement('span');
-                        c.className = 'cursor';
-                        c.setAttribute('aria-hidden', 'true');
-                        feed.appendChild(c);
-                    }
-                    if (nearBottom || running) feed.scrollTop = feed.scrollHeight;
-                    facts(data);
-                }
-                function tick() {
-                    var now = new Date();
-                    $('clock').textContent =
-                        pad(now.getUTCHours()) +
-                        ':' +
-                        pad(now.getUTCMinutes()) +
-                        ':' +
-                        pad(now.getUTCSeconds()) +
-                        ' UTC';
-                    $('countdown').textContent = hms(nextSession() - Date.now());
-                    if (state && state.startedAt) {
-                        var end =
-                            state.status === 'running' ? Date.now() : Date.parse(state.updatedAt);
-                        $('fTime').textContent = hms(end - Date.parse(state.startedAt));
-                        $('statusText').textContent =
-                            state.status === 'running'
-                                ? 'Started ' + state.startedAt.slice(11, 16) + ' UTC'
-                                : 'Next session in ' + hms(nextSession() - Date.now());
-                    } else {
-                        $('statusText').textContent =
-                            'Next session in ' + hms(nextSession() - Date.now());
-                    }
-                }
-                function load() {
-                    fetch('/api/agent/live', { cache: 'no-cache' })
-                        .then(function (r) {
-                            return r.ok ? r.json() : null;
-                        })
-                        .then(function (d) {
-                            if (d) render(d);
-                        })
-                        .catch(function () {})
-                        .then(function () {
-                            var running = state && state.status === 'running';
-                            var soon = nextSession() - Date.now() < 10 * 60000;
-                            setTimeout(load, running || soon ? 3000 : 30000);
-                        });
-                }
-                setInterval(tick, 1000);
-                tick();
-                load();
-            })();
-        </script>
+        <script src="/live.js" defer></script>
     </body>
 </html>

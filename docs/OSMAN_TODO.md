@@ -4,7 +4,7 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Wed 23 Sep 2026, 21:20 UTC. Build #1 is live, Build #2 goes live at 00:00 UTC Thu 24 Sep._
+_Last updated: Thu 24 Sep 2026, 16:45 UTC. Build #2 is live; tonight 21:00 UTC the Build Agent makes Build #3 on its own, live at bearproof.app/live._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
@@ -97,6 +97,34 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
   wallet. If the dashboard lets you add a memo, use `bearproof:costs:<YYYY-MM-DD> compute` (or `hosting`); without
   one, sends to the costs wallet are labelled compute. The ledger picks them up automatically.
 - **Posts.** Publish `content/x/build-<n>.md` after each 00:00 UTC release. The agent drafts them; you post.
+
+## 9. 24/7 live stream of the control room on X (optional, ≈20 min)
+
+`https://bearproof.app/live?tv=1` is a fixed 1920×1080 screen made for streaming: the live build playing on
+autopilot, what the AI knows about its players, tomorrow's ballot, live activity (runs, server verifications, votes,
+requests, fees, prizes) and, every night from 21:00 UTC, the AI's console as it builds. It says **LIVE NOW** only
+while a real build session is running; the rest of the day it shows the countdown and, now and then, a replay of the
+last session, labelled as a replay. It reloads itself twice a day (never during a session) and switches to the new
+build at 00:00 UTC on its own. Nothing to update on your side.
+
+1. **X: get a stream key.** On a computer, open **x.com → More → Creator Studio (Media Studio) → Producer → Sources →
+   Create source**, region nearest to you. It shows an **RTMP URL** and a **stream key**. The key is a secret: don't
+   paste it in chat. If you don't see Producer, the account doesn't have live access yet; X's help page "How to go
+   live on X" lists what it needs. Skip this section if it isn't there.
+2. **Install OBS Studio** from obsproject.com (free).
+3. **OBS → Settings:**
+    - **Video:** Base and Output resolution `1920x1080`, FPS `30`.
+    - **Output → Streaming:** Video bitrate `6000 Kbps`, Keyframe interval `3 s` (switch Output Mode to Advanced if you
+      don't see it), Audio bitrate `128`.
+    - **Stream:** Service `Custom…`, Server = the RTMP URL from step 1, Stream Key = the key from step 1.
+4. **OBS → Sources → + → Browser:** URL `https://bearproof.app/live?tv=1`, Width `1920`, Height `1080`, FPS `30`.
+   Untick "Shutdown source when not visible", tick "Refresh browser when scene becomes active". OK.
+5. **Start Streaming** in OBS, then in X Producer create the broadcast, title for example
+   `An AI is building a game, live. Build session every night 21:00 UTC. bearproof.app` and click **Go live**.
+6. **Keep the Mac awake:** plug it in, and run `caffeinate -dimsu` in a Terminal tab while the stream runs
+   (Ctrl+C stops it). If X ends the broadcast after some hours, press Go live again; the key stays the same.
+
+Pin the broadcast (or a post linking it) during the 21:00–00:00 UTC session: that's when the console is live.
 
 ## Helius API key ✅ done (23 Sep)
 

@@ -22,6 +22,7 @@ import {
 } from './routes/internal.js';
 import { agentLive, postAgentEvents } from './routes/agent.js';
 import { insights } from './routes/insights.js';
+import { activity } from './routes/activity.js';
 import { castVote, getVote, postRequest, voteResult } from './routes/vote.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
 import { STAGE_NAMES, dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
@@ -219,6 +220,8 @@ export default {
                         return voteResult(request, env);
                     case '/api/agent/live':
                         return agentLive(request, env);
+                    case '/api/activity':
+                        return edgeCached(request, ctx, 10, () => activity(env));
                     case '/api/insights':
                         return edgeCached(request, ctx, 60, () => insights(request, env));
                     case '/api/winners':

@@ -183,7 +183,8 @@ const devlog = compileDevlog(ROOT);
 fs.writeFileSync(path.join(DIST, 'devlog.json'), JSON.stringify(devlog, null, 2));
 console.log(`devlog: ${devlog.entries.length} entr${devlog.entries.length === 1 ? 'y' : 'ies'}`);
 
-// Builds are immutable, so they can be cached forever. The HQ revalidates.
+// Builds don't change, but a rare labelled hotfix can (D47), so browsers keep them for an hour, not forever.
+// Every file of a build shares one lifetime, so a page and its modules can't drift apart. The HQ revalidates.
 fs.writeFileSync(
     path.join(DIST, '_headers'),
     `/*
@@ -191,7 +192,7 @@ fs.writeFileSync(
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 /b/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=3600
 /assets/*
   Cache-Control: public, max-age=604800
 `

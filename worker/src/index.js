@@ -10,7 +10,16 @@
  */
 
 import { BUILDS } from './manifest.js';
-import { payoutSelftest, pendingRuns, requestStatus, verdict } from './routes/internal.js';
+import {
+    payoutSelftest,
+    pendingRuns,
+    requestStatus,
+    runStats,
+    unstatedRuns,
+    verdict
+} from './routes/internal.js';
+import { agentLive, postAgentEvents } from './routes/agent.js';
+import { insights } from './routes/insights.js';
 import { castVote, getVote, postRequest, voteResult } from './routes/vote.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
 import { STAGE_NAMES, dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
@@ -206,12 +215,17 @@ export default {
                         return getVote(request, env);
                     case '/api/vote/result':
                         return voteResult(request, env);
+                    case '/api/agent/live':
+                        return agentLive(request, env);
+                    case '/api/insights':
+                        return edgeCached(request, ctx, 60, () => insights(request, env));
                     case '/api/winners':
                         return edgeCached(request, ctx, 60, () => winners(env));
                 }
                 if (pathname.startsWith('/api/run/'))
                     return getRun(pathname.slice('/api/run/'.length), env);
                 if (pathname === '/api/internal/runs/pending') return pendingRuns(request, env);
+                if (pathname === '/api/internal/runs/unstated') return unstatedRuns(request, env);
             }
             if (request.method === 'POST') {
                 if (pathname === '/api/session') return session(request, env);
@@ -222,8 +236,11 @@ export default {
                 if (pathname === '/api/payout-address') return setPayoutAddress(request, env);
                 if (pathname === '/api/internal/payout/selftest')
                     return payoutSelftest(request, env);
+                if (pathname === '/api/internal/agent/events') return postAgentEvents(request, env);
                 const m = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/verdict$/);
                 if (m) return verdict(request, env, m[1]);
+                const st = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/stats$/);
+                if (st) return runStats(request, env, st[1]);
                 const rq = pathname.match(
                     /^\/api\/internal\/requests\/(req-[0-9a-z]{10})\/status$/
                 );

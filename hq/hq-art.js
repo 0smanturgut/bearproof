@@ -472,3 +472,34 @@ function runParade(canvas, { SPRITES, bakeSprite, bakeGlow }) {
         }
     });
 })();
+
+// ---------------------------------------------------------------- the Build Agent, live
+// While the nightly run is going, the hero's status line and the nav say so and link to /live.
+
+(() => {
+    const line = document.getElementById('liveLine');
+    const nav = document.getElementById('navLive');
+    const check = async () => {
+        let d = null;
+        try {
+            const r = await fetch('/api/agent/live', { cache: 'no-cache' });
+            d = r.ok ? await r.json() : null;
+        } catch {
+            d = null;
+        }
+        const running = d && d.status === 'running';
+        if (nav) nav.classList.toggle('on', !!running);
+        if (line && running) {
+            line.textContent = '';
+            const a = document.createElement('a');
+            a.href = '/live';
+            a.className = 'live-now';
+            a.textContent = `The AI is building${d.build ? ` #${d.build}` : ''} right now · watch`;
+            line.append(a);
+        }
+        // Around the nightly session, check often; otherwise now and then.
+        const h = new Date().getUTCHours();
+        setTimeout(check, h >= 20 && h <= 23 ? 30000 : 300000);
+    };
+    check();
+})();

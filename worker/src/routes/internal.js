@@ -9,6 +9,7 @@
  */
 
 import { all } from '../lib/db.js';
+import { cleanStats } from '../lib/insights.js';
 import { error, json, readJson } from '../lib/http.js';
 import { RUN_ID } from '../lib/runs.js';
 
@@ -76,12 +77,13 @@ export async function verdict(request, env, id) {
         return error(400, 'invalid_field', 'Bad status.', { field: 'status' });
     const score = Number.isSafeInteger(data.verifiedScore) ? data.verifiedScore : null;
     const reason = typeof data.reason === 'string' ? data.reason.slice(0, 300) : null;
+    const stats = data.status === 'verified' ? cleanStats(data.stats) : null;
     try {
         const res = await env.DB.prepare(
-            `UPDATE runs SET status = ?1, verified_score = ?2, verified_at = ?3, reject_reason = ?4
+            `UPDATE runs SET status = ?1, verified_score = ?2, verified_at = ?3, reject_reason = ?4, stats = ?6
               WHERE id = ?5 AND status = 'pending'`
         )
-            .bind(data.status, score, Date.now(), reason, id)
+            .bind(data.status, score, Date.now(), reason, id, stats ? JSON.stringify(stats) : null)
             .run();
         return json({ ok: true, updated: res.meta?.changes ?? 0 });
     } catch (err) {
@@ -147,4 +149,50 @@ export async function requestStatus(request, env, id) {
         return error(503, 'db_unavailable', 'Storage is unavailable.');
     }
     return json({ ok: true, id, status: data.status });
+}
+
+/** GET /api/internal/runs/unstated?limit=50: verified runs the verifier re-played before stats existed. */
+export async function unstatedRuns(request, env) {
+    if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
+    const limit = Math.min(
+        200,
+        Math.max(1, Number(new URL(request.url).searchParams.get('limit')) || 50)
+    );
+    const rows = await all(
+        env,
+        `SELECT id, mode, build, seed, input_log FROM runs
+          WHERE status = 'verified' AND stats IS NULL AND input_log IS NOT NULL ORDER BY created_at DESC LIMIT ?`,
+        limit
+    );
+    if (!rows) return error(503, 'db_unavailable', 'Storage is unavailable.');
+    return json({
+        runs: rows.map((r) => ({
+            id: r.id,
+            mode: r.mode,
+            build: r.build,
+            seed: r.seed,
+            log: toBase64Url(new Uint8Array(r.input_log))
+        }))
+    });
+}
+
+/** POST /api/internal/runs/:id/stats { stats }: fill in a verified run's stats (backfill). */
+export async function runStats(request, env, id) {
+    if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
+    if (!RUN_ID.test(id)) return error(400, 'invalid_field', 'Bad run id.', { field: 'id' });
+    const { data, error: bad } = await readJson(request, 4096);
+    if (bad) return bad;
+    const stats = cleanStats(data?.stats);
+    if (!stats) return error(400, 'invalid_field', 'Bad stats.', { field: 'stats' });
+    try {
+        const res = await env.DB.prepare(
+            "UPDATE runs SET stats = ?1 WHERE id = ?2 AND status = 'verified' AND stats IS NULL"
+        )
+            .bind(JSON.stringify(stats), id)
+            .run();
+        return json({ ok: true, updated: res.meta?.changes ?? 0 });
+    } catch (err) {
+        console.warn('[run stats]', err?.message || err);
+        return error(503, 'db_unavailable', 'Storage is unavailable.');
+    }
 }

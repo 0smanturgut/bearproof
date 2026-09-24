@@ -59,7 +59,8 @@ export async function judge(run) {
         };
     if (!run.log) return { status: 'rejected', reason: 'no input log' };
     const bytes = sim.fromBase64Url(run.log);
-    const r = sim.replay(bytes);
+    let last = null;
+    const r = sim.replay(bytes, { onTick: (state) => (last = state) });
     if (!r.ok) return { status: 'rejected', reason: `replay failed: ${r.error}` };
     if (r.seed !== run.seed >>> 0)
         return { status: 'rejected', reason: 'log seed differs from the submitted seed' };
@@ -80,7 +81,66 @@ export async function judge(run) {
         diffs.push(`stage ${run.stage} claimed, ${s.stage} replayed`);
     if (diffs.length)
         return { status: 'rejected', reason: diffs.join('; '), verifiedScore: s.score };
-    return { status: 'verified', verifiedScore: s.score };
+    return { status: 'verified', verifiedScore: s.score, stats: runStats(s, last) };
+}
+
+/**
+ * What the replay says about the run, for GET /api/insights: how long, how far, what was picked, and what the
+ * bull died to (the enemy closest to it on the last tick, a good proxy for the killing blow).
+ */
+export function runStats(summary, sim) {
+    let diedTo = null;
+    let boss = false;
+    if (!summary.won && sim && Array.isArray(sim.enemies) && sim.player) {
+        let best = Infinity;
+        for (const e of sim.enemies) {
+            if (!e || e.dead) continue;
+            const d = (e.x - sim.player.x) ** 2 + (e.y - sim.player.y) ** 2;
+            if (d < best) {
+                best = d;
+                diedTo = e.id || null;
+                boss = !!e.boss;
+            }
+        }
+    }
+    return {
+        t: summary.timeMs,
+        lvl: summary.level,
+        k: summary.kills,
+        s: summary.score,
+        bk: summary.bossKills || 0,
+        won: !!summary.won,
+        reason: summary.reason || null,
+        diedTo,
+        boss,
+        w: summary.weapons || [],
+        p: summary.passives || []
+    };
+}
+
+/** --backfill: stats for runs verified before the verifier kept them. */
+async function backfill(headers) {
+    const res = await fetch(`${SITE}/api/internal/runs/unstated?limit=${opt('--limit', 50)}`, {
+        headers
+    });
+    if (!res.ok) throw new Error(`unstated: HTTP ${res.status}`);
+    const { runs } = await res.json();
+    let n = 0;
+    for (const run of runs) {
+        const sim = await simFor(run.build);
+        if (!sim || !run.log) continue;
+        let last = null;
+        const r = sim.replay(sim.fromBase64Url(run.log), { onTick: (state) => (last = state) });
+        if (!r.ok) continue;
+        if (DRY) continue;
+        const post = await fetch(`${SITE}/api/internal/runs/${run.id}/stats`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ stats: runStats(r.summary, last) })
+        });
+        if (post.ok) n++;
+    }
+    console.log(`backfill: stats for ${n} of ${runs.length} verified run(s)`);
 }
 
 async function main() {
@@ -89,6 +149,7 @@ async function main() {
         process.exit(2);
     }
     const headers = { authorization: `Bearer ${TOKEN}`, 'content-type': 'application/json' };
+    if (args.includes('--backfill')) return backfill(headers);
     const res = await fetch(`${SITE}/api/internal/runs/pending?limit=${opt('--limit', 50)}`, {
         headers
     });

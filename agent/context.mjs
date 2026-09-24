@@ -38,6 +38,8 @@ function lastBuildNumber() {
 
 const stats = await get('/api/stats');
 const vote = await get('/api/vote/result');
+// What verified players did on the live build in the last 24 h (numbers and content ids only).
+const insights = await get('/api/insights?hours=24');
 const devlogDir = path.join(ROOT, 'devlog');
 const recent = fs
     .readdirSync(devlogDir)
@@ -82,6 +84,7 @@ const out = {
           }
         : null,
     vote: vote?.winner ? { winner: option(vote.winner), runnerUp: option(vote.runnerUp) } : null,
+    players: insights && insights.runs > 0 ? insights : null,
     recentDevlogs: recent
 };
 process.stdout.write(JSON.stringify(out, null, 2) + '\n');

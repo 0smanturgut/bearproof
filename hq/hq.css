@@ -2343,3 +2343,33 @@ details.more .wtable {
     color: var(--muted);
     border-style: dashed;
 }
+
+/* Live: the nightly Build Agent run */
+.nav-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.nav-live i {
+    width: 7px;
+    height: 7px;
+    background: var(--muted);
+}
+.nav-live.on {
+    color: var(--bear) !important;
+}
+.nav-live.on i {
+    background: var(--bear);
+    box-shadow: 0 0 8px var(--bear);
+    animation: blink 1.2s steps(2, start) infinite;
+}
+.live-now {
+    color: var(--bear);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+}
+@media (prefers-reduced-motion: reduce) {
+    .nav-live.on i {
+        animation: none;
+    }
+}

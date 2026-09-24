@@ -35,6 +35,7 @@ jobs:
                   while [ "$(date +%s)" -lt "$END" ]; do
                     git fetch -q --tags --force origin || true # a build tagged mid-shift must be verifiable too
                     node scripts/verify-runs.mjs --limit 100 || echo "::warning::verify pass failed; retrying in 5 min"
+                    node scripts/verify-runs.mjs --backfill --limit 100 || true # stats for runs verified before stats existed
                     sleep 300
                   done
               env:

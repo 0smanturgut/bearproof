@@ -1132,9 +1132,10 @@ function nextItem(n, scheduled) {
               h(
                   'p',
                   null,
-                  'Next release window: 00:00 UTC, in ',
+                  'The AI builds it tonight from 21:00 UTC and it ships at 00:00 UTC, in ',
                   h('b', { 'data-countdown': '' }, hms(state.nextBuildAt - Date.now())),
-                  '. If a build passes its tests, it ships then. If not, the devlog says why.'
+                  '. If it fails its tests, the current build stays and the devlog says why. ',
+                  h('a', { href: '/live' }, 'Watch it build live →')
               )
           ];
     return h(

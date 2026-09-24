@@ -45,7 +45,23 @@ async function snapshotFees(env, today) {
     return lamports;
 }
 
+/**
+ * Creator fees the treasury received on `date` (lamports), or null when not measurable. With a ClawPump agent id
+ * this is the difference of two daily earnings snapshots; without one, it is the sum of the day's ledger rows
+ * labelled creator fees (read from chain), which only counts fees actually forwarded to the treasury.
+ */
 async function fees24h(env, date) {
+    if (!env.CLAWPUMP_AGENT_ID) {
+        if (!env.TREASURY_WALLET) return null;
+        const from = Date.parse(`${date}T00:00:00Z`);
+        const row = await first(
+            env,
+            "SELECT COALESCE(SUM(amount_lamports), 0) AS l, COUNT(*) AS n FROM ledger WHERE category = 'creator_fees' AND direction = 'in' AND ts >= ?1 AND ts < ?2",
+            from,
+            from + DAY
+        );
+        return row ? Number(row.l) : null;
+    }
     const next = utcDate(Date.parse(`${date}T00:00:00Z`) + DAY);
     const [a, b] = await Promise.all([
         env.CONFIG.get(`fees:snap:${date}`),

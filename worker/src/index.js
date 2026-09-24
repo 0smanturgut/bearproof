@@ -46,6 +46,10 @@ async function daily(request, env) {
         : utcDate(now);
     const { row, error: failed } = await getOrCreateDaily(env, date, BUILDS);
     if (failed) return failed;
+    // The prize is live only when the coin, the prize wallet and the operator's switch are all on.
+    const prizeLive =
+        !!(env.TOKEN_MINT && env.PRIZE_WALLET) &&
+        (await env.CONFIG.get('payouts_enabled').catch(() => null)) === 'true';
     const endsAt = nextUtcMidnight(Date.parse(`${date}T00:00:00Z`));
     return json(
         {
@@ -61,13 +65,12 @@ async function daily(request, env) {
             turnstileSiteKey: env.TURNSTILE_SITE_KEY || null,
             prize: {
                 token: 'ANSEM',
-                status: env.TOKEN_MINT && env.PRIZE_WALLET ? 'live' : 'not_live',
-                note:
-                    env.TOKEN_MINT && env.PRIZE_WALLET
-                        ? 'The verified #1 with a payout address is paid in $ANSEM after 00:00 UTC.'
-                        : env.TOKEN_MINT
-                          ? 'The coin is live. Daily $ANSEM prizes start when the prize wallet is funded.'
-                          : 'Prizes start after the coin launches.'
+                status: prizeLive ? 'live' : 'not_live',
+                note: prizeLive
+                    ? 'The verified #1 with a payout address is paid in $ANSEM after 00:00 UTC.'
+                    : env.TOKEN_MINT
+                      ? 'The coin is live. Daily $ANSEM prizes start when the prize wallet is funded.'
+                      : 'Prizes start after the coin launches.'
             }
         },
         { maxAge: 30 }

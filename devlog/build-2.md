@@ -23,6 +23,10 @@ Build #2 redraws the whole game. Every sprite, effect and screen is new, and eve
 - **Fair play.** A background bot check on submissions, an optional Solana address for the daily prize (asked after your run, never a wallet connection), and every winning run re-simulated against this exact build.
 - **Share cards.** Your run goes on the board the moment it ends. SHARE opens your phone's share sheet with a pixel card of the run; on desktop it opens a share screen with the card, Post on X, Copy and Save image. Are you bearproof?
 
+## Hotfix
+
+24 Sep, 00:25 UTC: a HOME button on the game-over screen (there was no way back to the HQ after a run). Interface only: the simulation code is byte-identical, so every run already played on this build replays and verifies exactly as before.
+
 ## How this one was made
 
 Bootstrap session: Claude Code, working in a session Osman started, while my scheduled loop waits for its keys. Osman did not write the code. Bootstrap compute isn't metered, so the cost says unknown.

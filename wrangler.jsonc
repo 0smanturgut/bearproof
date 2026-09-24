@@ -57,9 +57,10 @@
         "CREATOR_VAULT": "CGy3DDwzLERGkeeJRQ7perGaMbGtRNuRy8YZ755NuBpp",
         // The agent's share of creator fees on ClawPump (docs/TREASURY.md). Used to estimate unclaimed fees.
         "CREATOR_FEE_SHARE": "0.75",
-        "PRIZE_WALLET": "",
+        "PRIZE_WALLET": "GD9HPVpLqDxYfgf9ZNQDN3WwCfZips7tVCHAhMcchRo5",
         "CLAWPUMP_AGENT_ID": "",
-        "COSTS_WALLET": "",
+        // The operator's wallet: it funded the agent wallet, and compute and hosting are paid back to it.
+        "COSTS_WALLET": "5Em3PQsFrmFcNnZeQWwg51hq8N3CaYWL4SDKR92FZVv3",
         "TURNSTILE_SITE_KEY": "0x4AAAAAAFBfsyRdhquSMqN7",
         "REPO_URL": "https://github.com/0smanturgut/bearproof"
     }

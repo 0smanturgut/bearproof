@@ -23,7 +23,9 @@ export async function winners(env) {
           ORDER BY w.date DESC LIMIT 14`
     );
     if (!rows) return error(503, 'db_unavailable', 'Storage is unavailable.');
-    const live = !!(env.TOKEN_MINT && env.PRIZE_WALLET);
+    const live =
+        !!(env.TOKEN_MINT && env.PRIZE_WALLET) &&
+        (await env.CONFIG.get('payouts_enabled').catch(() => null)) === 'true';
     return json(
         {
             // 'wallet_pending': the coin is out, the prize wallet isn't funded yet.

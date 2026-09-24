@@ -18,18 +18,18 @@ If you haven't yet: **follow @clawpumptech** from @bearproofapp. It is a hackath
 
 Go to clawpump.tech/ansemhack → Register:
 
-| Field                       | Value                                                                                                                   |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Project name                | `BEARPROOF`                                                                                                             |
-| Project X handle            | `bearproofapp` (the form already shows the @)                                                                           |
-| One line (≤ 280)            | `An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.` |
-| Ticker (optional)           | `BPROOF` (the form already shows the $)                                                                                 |
-| Live website (optional)     | `https://bearproof.app`                                                                                                 |
-| Token link (optional)       | `https://clawpump.tech/token/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX`                                              |
-| Tracks                      | **ClawPump × pump.fun** only. Not Inference Markets (we don't use UsePod yet), not EasyA (we launched on ClawPump).     |
-| Primary contact (optional)  | `Osman`                                                                                                                 |
-| Email                       | your email (the only thing they contact)                                                                                |
-| Teammates                   | none. The developer is the AI; the HQ and the pinned post say so.                                                       |
+| Field                      | Value                                                                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Project name               | `BEARPROOF`                                                                                                             |
+| Project X handle           | `bearproofapp` (the form already shows the @)                                                                           |
+| One line (≤ 280)           | `An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.` |
+| Ticker (optional)          | `BPROOF` (the form already shows the $)                                                                                 |
+| Live website (optional)    | `https://bearproof.app`                                                                                                 |
+| Token link (optional)      | `https://clawpump.tech/token/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX`                                              |
+| Tracks                     | **ClawPump × pump.fun** only. Not Inference Markets (we don't use UsePod yet), not EasyA (we launched on ClawPump).     |
+| Primary contact (optional) | `Osman`                                                                                                                 |
+| Email                      | your email (the only thing they contact)                                                                                |
+| Teammates                  | none. The developer is the AI; the HQ and the pinned post say so.                                                       |
 
 The ClawPump token page already shows @bearproofapp, so the token attaches to the entry by itself; the link is a
 second receipt.
@@ -67,18 +67,16 @@ Wired into the site and checked on chain:
   launch buy of 24,845,152 BPROOF (2.48%), which the treasury holds.
 - ClawPump has no agent id for a single agent, so fees are measured from chain instead.
 
+Done since: the prize wallet `GD9HPVpLqDxYfgf9ZNQDN3WwCfZips7tVCHAhMcchRo5` exists (its key is a Worker secret),
+`5Em3PQ…ZVv3` is labelled as your wallet (operator funding; costs are paid back to it), and the coin-live and Build #2
+posts are out.
+
 Still needed from you:
 
-1. **Tell me** whether `5Em3PQ…` (sent the agent wallet 1 SOL at 21:04 UTC) is your wallet, so the ledger can say
-   "operator funding". Careful: right after it, `5Em1A2…` sent 0.000001 SOL. That is address-poisoning spam made to
-   look like your address; never copy an address from the wallet's history.
-2. **Prize wallet.** Run this and send me the public address it prints (the secret goes straight to Cloudflare):
-    ```bash
-    node scripts/new-wallet.mjs | npx wrangler secret put PRIZE_WALLET_KEY
-    ```
-    Then whitelist it in the ClawPump dashboard.
-3. Post `content/x/010-coin-live.md` (CA filled in) and add the token link to your hackathon registration if the
-   form allows editing.
+1. **Whitelist** the prize wallet `GD9HPVpLqDxYfgf9ZNQDN3WwCfZips7tVCHAhMcchRo5` in the ClawPump dashboard, then send
+   it about **0.5 SOL** from the agent wallet. Copy the address from here, never from a wallet's history
+   (address-poisoning spam already targets the agent wallet).
+2. Add the token link to your hackathon registration if the form allows editing.
 
 ## 7. Turn on the daily prize (1 min, after step 6)
 

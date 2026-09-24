@@ -1415,7 +1415,16 @@ body.on-title .title-veil {
     width: min(400px, 100%);
 }
 .over-btns .btn {
-    flex: 1 1 110px;
+    flex: 1 1 96px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+@media (max-width: 440px) {
+    .over-btns .btn:not(#btnShare) {
+        font-size: 19px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
 }
 #btnShare {
     flex-basis: 100%;

@@ -68,3 +68,7 @@ links to its transaction.
 | pump.fun creator        | `DvJVRbuB7yf6yswfZgZK2TRyQEjwjzap5Sb3TwJ918c`  | Run by ClawPump; a known fee source in the ledger             |
 | pump.fun creator vault  | `CGy3DDwzLERGkeeJRQ7perGaMbGtRNuRy8YZ755NuBpp` | `CREATOR_VAULT`; unclaimed fees, shown on the HQ × 75% (est.) |
 | ClawPump launch payee   | `49CfXAr58cCTGJnYsbm16fEsE5JRpdR8QQP8E1ZinGCq` | `ledger:launch_addresses`; received the launch payment        |
+
+Prize measurement without a ClawPump agent id (D49): the cron reads the creator vault every 15 minutes and adds each
+rise (or, after a claim, the new balance) to `fees:vault:day:<date>`; the day's treasury fees are that times
+`CREATOR_FEE_SHARE` (0.75). The operator's own runs never win (D48).

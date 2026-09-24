@@ -78,10 +78,12 @@ Still needed from you:
    (address-poisoning spam already targets the agent wallet).
 2. Add the token link to your hackathon registration if the form allows editing.
 
-## 7. Turn on the daily prize (1 min, after step 6)
+## 7. Daily prize ✅ on (24 Sep, 01:38 UTC)
 
-Payouts stay off until you say so. When you are ready, send me **"payouts on"**. The kill switch is one command
-(I'll run it, or you can):
+The selftest showed the prize key belongs to `GD9HPV…hRo5` (0.6 SOL). The first payout is for the 24 Sep challenge,
+after 00:10 UTC on 25 Sep. Your own runs rank but can't win (tagged "operator" on the board).
+
+Kill switch, if anything looks wrong (tell me, or run it yourself):
 
 ```bash
 npx wrangler kv key put --binding CONFIG payouts_enabled false --remote

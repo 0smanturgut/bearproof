@@ -107,10 +107,17 @@ while a real build session is running; the rest of the day it shows the countdow
 last session, labelled as a replay. It reloads itself twice a day (never during a session) and switches to the new
 build at 00:00 UTC on its own. Nothing to update on your side.
 
-**Preferred: from a VPS, so it runs without your Mac.** I set the server up (`ops/stream/README.md`); you only
-(a) add the SSH key I give you in Hostinger → VPS → Settings → SSH keys and send me the server's IP, and (b) type
-the X stream key yourself when I open the prompt (it's hidden, I never see it). Get the key with step 1 below; skip
-steps 2–6. Without a VPS, the OBS route below works from your Mac.
+**VPS route ✅ server ready (24 Sep):** the Hostinger VPS (76.13.2.222) is set up and tested end to end (720p30,
+steady). Clash is stopped there (containers kept, data untouched; `docker start clash-mariadb-1 clash-server-1
+clash-web-1` brings it back). What's left for you:
+
+1. Get the RTMP URL and stream key from X (step 1 below).
+2. Run this in the Terminal tab. It asks for the URL, then the key (hidden, never shown to me), and starts the
+   stream: `ssh -t -i ~/.ssh/bearproof_vps root@76.13.2.222 'bash /opt/bearproof/ops/stream/set-key.sh'`
+3. In X Producer: **Broadcasts → Create broadcast**, pick the source, title, **Go live**. The server keeps sending
+   24/7; you only start and end broadcasts.
+
+Skip steps 2–6 below (they're the OBS-from-your-Mac route).
 
 1. **X: get a stream key.** On a computer, open **x.com → More → Creator Studio (Media Studio) → Producer → Sources →
    Create source**, region nearest to you. It shows an **RTMP URL** and a **stream key**. The key is a secret: don't

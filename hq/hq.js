@@ -1363,12 +1363,27 @@ function initLoop() {
 // 04 · Daily Challenge
 // ---------------------------------------------------------------------------------------------
 
-function statusChip(st) {
+function statusChip(st, runId) {
+    let chip;
     if (st === 'verified')
-        return h('span', { class: 'badge verified chk' }, ICON_CHECK(), 'verified');
-    if (st === 'pending' || !st) return h('span', { class: 'badge pending' }, 'replay check');
-    if (st === 'rejected') return h('span', { class: 'badge failed' }, 'rejected');
-    return h('span', { class: 'badge pending' }, String(st));
+        chip = h('span', { class: 'badge verified chk' }, ICON_CHECK(), 'verified');
+    else if (st === 'pending' || !st) chip = h('span', { class: 'badge pending' }, 'checking');
+    else if (st === 'rejected') chip = h('span', { class: 'badge failed' }, 'rejected');
+    else chip = h('span', { class: 'badge pending' }, String(st));
+    if (!runId || !/^[0-9a-z]{8,40}$/.test(runId)) return chip;
+    // The run's own page: its card, its score and what the replay check found.
+    return h(
+        'a',
+        {
+            class: 'chip-link',
+            href: `/run/${runId}`,
+            title:
+                st === 'verified'
+                    ? 'The server re-played this run from its inputs and got the same score.'
+                    : 'The server re-plays every run from its recorded inputs, usually within the hour. Only verified runs can win the prize.'
+        },
+        chip
+    );
 }
 
 function lbHead() {
@@ -1540,7 +1555,7 @@ async function loadChallenge() {
                 h('td', { class: 'num opt' }, mss(e.timeMs)),
                 h('td', { class: 'num opt' }, isNum(e.level) ? String(e.level) : '—'),
                 h('td', { class: 'num opt' }, fmtInt(e.kills)),
-                h('td', null, statusChip(e.status))
+                h('td', null, statusChip(e.status, e.runId))
             )
         );
     box.append(

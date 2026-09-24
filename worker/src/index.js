@@ -25,6 +25,18 @@ import { setPayoutAddress } from './routes/payout.js';
 import { winners } from './routes/winners.js';
 import { scheduled } from './cron.js';
 
+// Until 26 Sep, browsers that cached build files "immutable" before D47 get their HTTP cache for this site
+// cleared once (a cookie marks it done), so they pick up the Build #2 hotfix. Storage (prefs, player id) stays.
+const CACHE_RESET_UNTIL = Date.parse('2026-09-26T00:00:00Z');
+function withCacheReset(request, res) {
+    if (Date.now() > CACHE_RESET_UNTIL) return res;
+    if (/(?:^|;\s*)bp_cc=1/.test(request.headers.get('cookie') || '')) return res;
+    const out = new Response(res.body, res);
+    out.headers.set('Clear-Site-Data', '"cache"');
+    out.headers.append('Set-Cookie', 'bp_cc=1; Max-Age=172800; Path=/; Secure; SameSite=Lax');
+    return out;
+}
+
 // --- Routes ----------------------------------------------------------------
 
 async function play(request, env) {
@@ -162,7 +174,8 @@ export default {
                 301
             );
         }
-        if (pathname === '/play' || pathname === '/play/') return play(request, env);
+        if (pathname === '/play' || pathname === '/play/')
+            return withCacheReset(request, await play(request, env));
 
         if (pathname.startsWith('/api/')) {
             if (request.method === 'OPTIONS') {
@@ -247,6 +260,7 @@ export default {
         }
 
         // Anything else that reached the Worker falls back to assets.
-        return env.ASSETS.fetch(request);
+        const asset = await env.ASSETS.fetch(request);
+        return pathname === '/' ? withCacheReset(request, asset) : asset;
     }
 };

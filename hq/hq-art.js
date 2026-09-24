@@ -397,3 +397,72 @@ function runParade(canvas, { SPRITES, bakeSprite, bakeGlow }) {
         mo.observe(el, { childList: true, characterData: true, subtree: true });
     }
 })();
+
+// ---------------------------------------------------------------- prize address from the HQ
+// The game and the HQ share an origin, so a browser that has played has its player id here too. Lets a player add
+// or change the address a Daily Challenge win is paid to without playing another run.
+
+(() => {
+    const form = document.getElementById('prizeAddr');
+    if (!form) return;
+    let id = null;
+    let prefs = {};
+    try {
+        id = localStorage.getItem('bearproof_player_id');
+        prefs = JSON.parse(localStorage.getItem('bearproof_prefs_v1') || '{}') || {};
+    } catch {
+        return;
+    }
+    if (!id) return; // never played on this device: nothing to attach an address to
+    const input = document.getElementById('prizeAddrIn');
+    const note = document.getElementById('prizeAddrNote');
+    const say = (t, tone) => {
+        note.textContent = t;
+        note.className = 'pa-note' + (tone ? ' ' + tone : '');
+    };
+    if (prefs.payoutAddress) {
+        input.value = prefs.payoutAddress;
+        say('Saved on this device. Change it any time.', 'good');
+    }
+    form.hidden = false;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const address = input.value.trim();
+        if (address && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address))
+            return say(
+                address.length > 44 || /\s/.test(address)
+                    ? 'That is not a public address. Never paste a private key or seed phrase anywhere.'
+                    : 'That is not a Solana address.',
+                'bad'
+            );
+        say('Saving…');
+        try {
+            const r = await fetch('/api/payout-address', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ playerId: id, address })
+            });
+            const data = await r.json().catch(() => null);
+            if (!r.ok)
+                return say(
+                    (data && data.error && data.error.message) || 'Could not save. Try again.',
+                    'bad'
+                );
+            try {
+                const cur = JSON.parse(localStorage.getItem('bearproof_prefs_v1') || '{}') || {};
+                cur.payoutAddress = address;
+                localStorage.setItem('bearproof_prefs_v1', JSON.stringify(cur));
+            } catch {
+                /* the server has it; the device copy is a convenience */
+            }
+            say(
+                address
+                    ? 'Saved. If your run is the verified #1, the prize goes here.'
+                    : 'Removed.',
+                'good'
+            );
+        } catch {
+            say('Network error. Try again.', 'bad');
+        }
+    });
+})();

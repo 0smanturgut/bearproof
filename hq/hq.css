@@ -2258,3 +2258,64 @@ details.more .wtable {
     color: var(--bull);
     border-color: rgba(22, 224, 138, 0.5);
 }
+
+/* Board legend, clickable status, prize address */
+.chip-link {
+    text-decoration: none;
+    cursor: pointer;
+}
+.chip-link:hover .badge,
+.chip-link:focus-visible .badge {
+    color: var(--text);
+    border-style: solid;
+}
+.lb-legend {
+    margin: 14px 0 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+.lb-legend b {
+    color: var(--text-2);
+    font-weight: 700;
+}
+.prize-addr {
+    display: grid;
+    gap: 6px;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+}
+.prize-addr label {
+    font-size: 12px;
+    color: var(--text-2);
+}
+.pa-row {
+    display: flex;
+    gap: 6px;
+}
+.pa-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    font: 400 16px/1.2 var(--mono);
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--line-2);
+    border-radius: 0;
+}
+.pa-row input:focus {
+    outline: none;
+    border-color: var(--bull);
+}
+.pa-note {
+    margin: 0 !important;
+    font-size: 11px !important;
+    color: var(--muted) !important;
+}
+.pa-note.good {
+    color: var(--bull) !important;
+}
+.pa-note.bad {
+    color: var(--bear) !important;
+}

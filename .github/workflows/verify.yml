@@ -5,7 +5,7 @@ name: Verify runs
 
 on:
     schedule:
-        - cron: '*/10 * * * *'
+        - cron: '*/5 * * * *' # GitHub often runs schedules late; the more tries, the sooner a run is checked
     workflow_dispatch:
 
 permissions:

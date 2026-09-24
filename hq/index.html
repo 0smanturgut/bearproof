@@ -1485,6 +1485,26 @@
                                     <li>Add a Solana address at game over</li>
                                     <li>The verified #1 is paid after 00:00 UTC</li>
                                 </ol>
+                                <form class="prize-addr" id="prizeAddr" hidden novalidate>
+                                    <label for="prizeAddrIn"
+                                        >Played on this device? The Solana address a win is paid
+                                        to:</label
+                                    >
+                                    <div class="pa-row">
+                                        <input
+                                            id="prizeAddrIn"
+                                            autocomplete="off"
+                                            autocapitalize="off"
+                                            spellcheck="false"
+                                            placeholder="Solana address (public)"
+                                        />
+                                        <button class="btn btn-sm" type="submit">Save</button>
+                                    </div>
+                                    <p class="pa-note" id="prizeAddrNote">
+                                        A public address only, never a private key or seed phrase.
+                                        No wallet connection.
+                                    </p>
+                                </form>
                                 <ul class="winners" id="winners" hidden></ul>
                             </div>
                         </div>
@@ -1499,6 +1519,11 @@
                                 <p class="state-k">Loading today's board…</p>
                             </div>
                         </div>
+                        <p class="lb-legend">
+                            <b>checking</b>: the server is re-playing the run from its recorded
+                            inputs, usually within the hour. <b>verified</b>: same score. Only
+                            verified runs can win the prize. Tap a status to open the run.
+                        </p>
                     </div>
                 </div>
             </section>

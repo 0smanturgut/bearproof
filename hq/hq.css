@@ -2319,3 +2319,20 @@ details.more .wtable {
 .pa-note.bad {
     color: var(--bear) !important;
 }
+.prize-body {
+    flex: 1 1 auto;
+}
+.prize-addr,
+.pa-row {
+    min-width: 0;
+}
+.pa-row input {
+    width: 100%;
+}
+.pa-row .btn {
+    flex: none;
+    min-width: 0;
+    width: auto;
+    padding-left: 14px;
+    padding-right: 14px;
+}

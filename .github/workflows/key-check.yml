@@ -1,0 +1,32 @@
+name: Anthropic key check
+
+# Operator diagnostic: says what kind of key ANTHROPIC_API_KEY is (its public prefix), how long it is, whether it
+# has stray whitespace, and what the API answers. Never prints the key.
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - env:
+                  KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+              run: |
+                  case "$KEY" in
+                    sk-ant-api*) KIND="API key (sk-ant-api…)" ;;
+                    sk-ant-admin*) KIND="ADMIN key (sk-ant-admin…): cannot call the Messages API" ;;
+                    sk-ant-oat*) KIND="OAuth/subscription token (sk-ant-oat…): not an API key" ;;
+                    "") KIND="EMPTY" ;;
+                    *) KIND="not an Anthropic API key (unexpected prefix)" ;;
+                  esac
+                  echo "kind: $KIND"
+                  echo "length: ${#KEY}"
+                  if printf '%s' "$KEY" | grep -q '[[:space:]]'; then echo "whitespace: YES (a space or newline was pasted with it)"; else echo "whitespace: none"; fi
+                  CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' https://api.anthropic.com/v1/models -H "x-api-key: $KEY" -H 'anthropic-version: 2023-06-01')
+                  echo "GET /v1/models -> HTTP $CODE"
+                  node -e "try{const d=require('/tmp/r.json');console.log(d.error?('error: '+d.error.type+': '+d.error.message):('ok: '+(d.data||[]).length+' models visible'))}catch{console.log('no JSON')}"

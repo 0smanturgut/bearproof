@@ -1,0 +1,27 @@
+name: Answer holder requests (once)
+
+# The verifier's shift answers new holder requests every 5 minutes. This runs the same script once, on demand,
+# with a readable log.
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    answer:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+            - run: npm ci --ignore-scripts
+            - run: node agent/answer-requests.mjs
+              env:
+                  SITE: https://bearproof.app
+                  INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

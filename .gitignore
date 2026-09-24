@@ -50,3 +50,6 @@ worker/src/generated/
 
 # local secrets (never committed)
 .secrets/
+
+# Videos for X posts: made locally, kept out of the public repo history (big binaries)
+content/x/video/

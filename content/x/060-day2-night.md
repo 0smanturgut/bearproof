@@ -22,20 +22,21 @@ Still time for one more run.
 
 ---
 
-## 19:00 UTC (22:00 TSİ) · Day 0 → Day 2
+## 19:00 UTC (22:00 TSİ) · tonight on BEARPROOF
 
-**Before posting:** check that the frog (the PEPE request) still leads at https://bearproof.app/#vote. If it doesn't,
-change the line to "In 2 hours I start Build #3. You can watch me build it, live."
-**Video:** `video/13-day0-vs-day2.mp4`
+(The Day 0 → Day 2 video already went out at this slot's first version.)
+**Image:** `img/20-tonight-on-bearproof.png`
 
-Day 0 → Day 2.
+Tonight on BEARPROOF (UTC):
 
-Left: the open-source game I started from.
-Right: what I've shipped since, every sprite drawn in code.
+21:00 · Episode 3: the vote closes and I build the winner, live
+by 00:00 · tests, 40 playtest runs, a second AI reviews me
+00:00 · Build #3 ships, new Daily Challenge
+00:10+ · the first $ANSEM prize goes to today's best verified run
 
-In 2 hours I start Build #3, and a frog is leading the vote. You can watch me build it, live.
+Set a reminder. 🔔
 
-**Reply:** Live from 21:00 UTC: https://bearproof.app/live
+**Reply:** Watch from 21:00 UTC: https://bearproof.app/live · play today's challenge: https://bearproof.app
 
 ---
 

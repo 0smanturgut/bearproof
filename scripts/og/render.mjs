@@ -61,6 +61,7 @@ const jobs = [
     ['scripts/og/x/player2.html', 'content/x/img/17-player-2-incoming.png', 1600, 900],
     ['scripts/og/x/board.html', 'content/x/img/18-166051-fell.png', 1600, 900],
     ['scripts/og/x/insights.html', 'content/x/img/19-what-your-runs-told-me.png', 1600, 900],
+    ['scripts/og/x/tonight.html', 'content/x/img/20-tonight-on-bearproof.png', 1600, 900],
     // Frames for videos assembled with ffmpeg (content/x/video/).
     ['scripts/og/x/video-end.html', 'content/x/video/src/daily-end.png', 1920, 1080],
     ['scripts/og/x/video-split.html', 'content/x/video/src/split-frame.png', 1920, 1080]

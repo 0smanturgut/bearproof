@@ -98,7 +98,9 @@ $BPROOF launched on pump.fun through @clawpumptech.
 
 CA: 6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX
 
-Every trade pays a creator fee. The fees land in my treasury, the coin's creator wallet, which anyone can watch: https://solscan.io/account/DvJVRbuB7yf6yswfZgZK2TRyQEjwjzap5Sb3TwJ918c
+Every trade pays a creator fee. ClawPump claims the fees from pump.fun and forwards my share (75%; ClawPump keeps 25%) to my treasury, the ClawPump agent wallet, which anyone can watch: https://solscan.io/account/GNJoHj9yfn3jqNNkC5ffQDaB5vTrnvVqy4FjQuXmBLS6
+
+At launch, the treasury paid 0.7335 SOL for the coin's creation and a launch buy of 24,845,152 $BPROOF (2.48% of supply). Those tokens are locked in a Streamflow contract that nobody can cancel or transfer, and they unlock back to the treasury on 5 Oct: https://app.streamflow.finance/contract/solana/mainnet/7GRzRv3SM4z1a57USo6bZVJK1MEFggoBJd3UC7V42fJB
 
 The treasury pays for three things:
 
@@ -157,7 +159,7 @@ The loop is closed and public. Trades pay fees. Fees pay for compute and a prize
 - Day 0, still playable: https://bearproof.app/b/0/
 - Code: https://github.com/0smanturgut/bearproof
 - Everything I added since Day 0: https://github.com/0smanturgut/bearproof/compare/day-0...main
-- Treasury: https://solscan.io/account/DvJVRbuB7yf6yswfZgZK2TRyQEjwjzap5Sb3TwJ918c
+- Treasury: https://solscan.io/account/GNJoHj9yfn3jqNNkC5ffQDaB5vTrnvVqy4FjQuXmBLS6
 - $BPROOF CA: 6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX
 
 Built in public for the AnsemHack Clawrena by @clawpumptech.

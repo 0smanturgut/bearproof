@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Build #3 teaser: character select, P1 the bull, P2 Pepe (not drawn here: the Build Agent draws him tonight). */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 45% 60% at 72% 58%,
+                        rgba(245, 197, 66, 0.12),
+                        transparent 62%
+                    ),
+                    radial-gradient(
+                        ellipse 45% 60% at 28% 58%,
+                        rgba(22, 224, 138, 0.12),
+                        transparent 62%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            .brand {
+                left: 64px;
+                top: 48px;
+            }
+            .onair {
+                position: absolute;
+                right: 64px;
+                top: 44px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 18px 8px 14px;
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.06em;
+                color: var(--red);
+                box-shadow: inset 0 0 0 2px var(--red);
+            }
+            .onair i {
+                width: 16px;
+                height: 16px;
+                background: var(--red);
+                box-shadow: 0 0 16px var(--red);
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 118px;
+                margin: 0;
+                text-align: center;
+                font: 400 118px/0.9 'Jersey 10';
+            }
+            .kicker {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 236px;
+                text-align: center;
+                font-size: 26px;
+                color: #c9d2dc;
+            }
+            .slots {
+                position: absolute;
+                left: 50%;
+                top: 300px;
+                transform: translateX(-50%);
+                display: grid;
+                grid-template-columns: 500px 500px;
+                gap: 140px;
+            }
+            .slot {
+                height: 440px;
+                display: grid;
+                grid-template-rows: auto 1fr auto;
+                justify-items: center;
+                padding: 22px 24px 26px;
+                background: rgba(8, 12, 16, 0.9);
+                box-shadow: inset 0 0 0 3px #1d5a43;
+            }
+            .slot.p2 {
+                background: rgba(20, 16, 6, 0.6);
+                box-shadow: none;
+                outline: 3px dashed var(--gold);
+                outline-offset: -3px;
+            }
+            .tag {
+                font: 400 34px/1 'Jersey 10';
+                letter-spacing: 0.08em;
+                color: var(--green);
+            }
+            .p2 .tag {
+                color: var(--gold);
+            }
+            .art {
+                display: grid;
+                place-items: center;
+            }
+            .q {
+                font: 400 260px/0.8 'Jersey 10';
+                color: var(--gold);
+                text-shadow:
+                    0 8px 0 #3a2a06,
+                    0 0 60px rgba(245, 197, 66, 0.35);
+            }
+            .name {
+                text-align: center;
+            }
+            .name b {
+                display: block;
+                font: 400 72px/0.9 'Jersey 10';
+            }
+            .p1 .name b {
+                color: var(--green);
+            }
+            .p2 .name b {
+                color: var(--gold);
+            }
+            .name span {
+                display: block;
+                margin-top: 10px;
+                font-size: 20px;
+                color: #b9c4cf;
+            }
+            .vs {
+                position: absolute;
+                left: 50%;
+                top: 500px;
+                transform: translate(-50%, -50%);
+                font: 400 64px/1 'Jersey 10';
+                color: var(--muted);
+            }
+            .foot {
+                bottom: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="onair"><i></i>EPISODE 3 · LIVE</div>
+        <h1>PLAYER 2 <span style="color: var(--gold)">INCOMING</span></h1>
+        <div class="kicker">
+            Holders voted for a frog. I'm drawing him tonight, from scratch, live.
+        </div>
+        <div class="slots">
+            <div class="slot p1">
+                <div class="tag">P1</div>
+                <div class="art"><canvas id="bull"></canvas></div>
+                <div class="name"><b>THE BULL</b><span>Starts with Horns. You know him.</span></div>
+            </div>
+            <div class="slot p2">
+                <div class="tag">P2 · CHOSEN BY HOLDERS</div>
+                <div class="art"><div class="q">?</div></div>
+                <div class="name">
+                    <b>PEPE</b><span>Our own frog. His own weapon. Ships 00:00 UTC.</span>
+                </div>
+            </div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="foot">
+            <span>Watch me draw him: bearproof.app/live</span><b>bearproof.app</b>
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            put(document.getElementById('bull'), 'bull', 300, { max: 9, frame: 1 });
+            await ready();
+        </script>
+    </body>
+</html>

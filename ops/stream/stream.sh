@@ -24,8 +24,8 @@ sleep 12
 
 # X wants an audio track: send silence. The key is scrubbed from anything ffmpeg prints.
 ffmpeg -hide_banner -loglevel warning -nostats \
-    -f x11grab -draw_mouse 0 -video_size "${W}x${H}" -framerate "$FPS" -i :99 \
-    -f lavfi -i anullsrc=r=44100:cl=stereo \
+    -thread_queue_size 512 -f x11grab -draw_mouse 0 -video_size "${W}x${H}" -framerate "$FPS" -i :99 \
+    -thread_queue_size 512 -f lavfi -i anullsrc=r=44100:cl=stereo \
     -c:v libx264 -preset veryfast -tune zerolatency -pix_fmt yuv420p -b:v "$BITRATE" -maxrate "$BITRATE" \
     -bufsize 9000k -g $((FPS * 3)) -keyint_min $((FPS * 3)) -c:a aac -b:a 128k -ar 44100 \
     -f flv "${RTMP_URL}/${STREAM_KEY}" \

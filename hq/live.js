@@ -76,10 +76,10 @@
     if (TV) {
         document.body.classList.add('tv');
         var fit = function () {
-            var s = Math.min(innerWidth / 1920, innerHeight / 1080);
+            var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
             $('room').style.transform = 'scale(' + s + ')';
         };
-        addEventListener('resize', fit);
+        window.addEventListener('resize', fit);
         fit();
         // A stream runs for days: pick up page updates twice a day, never during a build session.
         setInterval(function () {
@@ -152,6 +152,7 @@
         if (feed.dataset.key !== key) {
             feed.textContent = '';
             feed.dataset.key = key;
+            delete feed.dataset.filled;
             seen[key] = {};
         }
         var nearBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
@@ -180,7 +181,12 @@
             c.setAttribute('aria-hidden', 'true');
             feed.appendChild(c);
         }
-        if (nearBottom || running || TV) feed.scrollTop = feed.scrollHeight;
+        if (nearBottom || running || TV) {
+            // The first fill jumps; new rows after that glide in.
+            feed.style.scrollBehavior = feed.dataset.filled ? '' : 'auto';
+            feed.scrollTop = feed.scrollHeight;
+            feed.dataset.filled = '1';
+        }
         $('consoleTitle').textContent = running
             ? "The AI's console · live"
             : tab === 'log'

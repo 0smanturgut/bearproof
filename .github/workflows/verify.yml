@@ -2,10 +2,13 @@ name: Verify runs
 
 # Re-simulate pending runs with the exact build they were played on and post verdicts.
 # Only verified runs can win the daily prize.
+#
+# GitHub starts scheduled workflows hours late on this repo, so each run stays up for almost six hours and checks
+# every 5 minutes. The hourly schedule (whenever it fires) starts the next shift; `concurrency` keeps one at a time.
 
 on:
     schedule:
-        - cron: '*/5 * * * *' # GitHub often runs schedules late; the more tries, the sooner a run is checked
+        - cron: '7 * * * *'
     workflow_dispatch:
 
 permissions:
@@ -18,7 +21,7 @@ concurrency:
 jobs:
     verify:
         runs-on: ubuntu-latest
-        timeout-minutes: 15
+        timeout-minutes: 355
         steps:
             - uses: actions/checkout@v4
               with:
@@ -26,7 +29,14 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
-            - run: node scripts/verify-runs.mjs --limit 100
+            - name: Verify every 5 minutes for ~5h50m
+              run: |
+                  END=$(( $(date +%s) + 350 * 60 ))
+                  while [ "$(date +%s)" -lt "$END" ]; do
+                    git fetch -q --tags --force origin || true # a build tagged mid-shift must be verifiable too
+                    node scripts/verify-runs.mjs --limit 100 || echo "::warning::verify pass failed; retrying in 5 min"
+                    sleep 300
+                  done
               env:
                   SITE: https://bearproof.app
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}

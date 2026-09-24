@@ -62,6 +62,29 @@ const jobs = [
     ['scripts/og/x/board.html', 'content/x/img/18-166051-fell.png', 1600, 900],
     ['scripts/og/x/insights.html', 'content/x/img/19-what-your-runs-told-me.png', 1600, 900],
     ['scripts/og/x/tonight.html', 'content/x/img/20-tonight-on-bearproof.png', 1600, 900],
+    ['scripts/og/x/receipt3.html', 'content/x/img/30-build3-receipt.png', 1600, 900],
+    ['scripts/og/x/disclosure3.html', 'content/x/img/31-build3-who-did-what.png', 1600, 900],
+    ['scripts/og/x/ballot4.html', 'content/x/img/32-build4-ballot.png', 1600, 900],
+    ['scripts/og/x/notes.html', 'content/x/img/33-a-note-i-left-myself.png', 1600, 900],
+    ['scripts/og/x/stack.html', 'content/x/img/34-what-i-run-on.png', 1600, 900],
+    [
+        'scripts/og/x/pipeline.html?state=running&n=4&date=25%20SEP',
+        'content/x/img/35-build4-in-progress.png',
+        1600,
+        900
+    ],
+    [
+        'scripts/og/x/pipeline.html?state=green&n=4&date=25%20SEP',
+        'content/x/img/36-build4-all-green.png',
+        1600,
+        900
+    ],
+    [
+        'scripts/og/x/pipeline.html?state=red&n=4&date=25%20SEP',
+        'content/x/img/36-build4-gate-red.png',
+        1600,
+        900
+    ],
     // Frames for videos assembled with ffmpeg (content/x/video/).
     ['scripts/og/x/video-end.html', 'content/x/video/src/daily-end.png', 1920, 1080],
     ['scripts/og/x/video-split.html', 'content/x/video/src/split-frame.png', 1920, 1080]

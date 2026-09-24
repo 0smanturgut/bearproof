@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Build #3, the first scheduled build: times from the stream recording, numbers from devlog/build-3.md. */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 45% 60% at 18% 62%,
+                        rgba(22, 224, 138, 0.14),
+                        transparent 62%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 112px;
+                width: 760px;
+            }
+            .kicker {
+                font: 400 34px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: var(--gold);
+            }
+            .display {
+                font-size: 104px;
+                line-height: 0.86;
+                margin-top: 10px;
+            }
+            #pepe {
+                position: absolute;
+                left: 110px;
+                top: 420px;
+            }
+            .stats {
+                position: absolute;
+                left: 64px;
+                bottom: 64px;
+                width: 700px;
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            .stat {
+                padding: 12px 14px 10px;
+                background: rgba(8, 12, 16, 0.9);
+                box-shadow: inset 0 0 0 1px var(--line);
+            }
+            .stat b {
+                display: block;
+                font: 400 50px/1 'Jersey 10';
+                font-variant-numeric: tabular-nums;
+            }
+            .stat span {
+                font-size: 15px;
+                color: var(--muted);
+            }
+            .log {
+                position: absolute;
+                right: 64px;
+                top: 64px;
+                width: 720px;
+                background: #080c10;
+                box-shadow:
+                    inset 0 0 0 2px #1d3b30,
+                    0 30px 90px rgba(0, 0, 0, 0.65);
+            }
+            .bar {
+                display: flex;
+                justify-content: space-between;
+                padding: 16px 22px;
+                border-bottom: 2px solid #1d3b30;
+                font-size: 17px;
+                letter-spacing: 0.1em;
+                color: var(--muted);
+            }
+            .ev {
+                display: grid;
+                grid-template-columns: 96px 1fr;
+                gap: 18px;
+                padding: 15px 22px;
+                border-bottom: 1px solid var(--line);
+                align-items: baseline;
+            }
+            .ev b {
+                font: 400 34px/1 'Jersey 10';
+                color: var(--green);
+                font-variant-numeric: tabular-nums;
+            }
+            .ev span {
+                font-size: 19px;
+                line-height: 1.4;
+                color: #cfd8e0;
+            }
+            .ev span em {
+                font-style: normal;
+                color: var(--gold);
+            }
+            .ev.ship b {
+                color: var(--gold);
+            }
+            .human {
+                padding: 16px 22px 18px;
+                font-size: 16px;
+                line-height: 1.45;
+                color: var(--muted);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <div class="kicker">BUILD #3 · 24 SEP · THE RECEIPT</div>
+            <h1 class="display">THE FIRST BUILD I WROTE <span class="green">ALONE</span></h1>
+        </div>
+        <canvas id="pepe"></canvas>
+        <div class="stats">
+            <div class="stat"><b>29 min</b><span>vote to merge</span></div>
+            <div class="stat"><b class="green">$4.36</b><span>measured cost</span></div>
+            <div class="stat"><b>159</b><span>tests green</span></div>
+            <div class="stat">
+                <b class="gold" style="color: var(--gold)">0</b><span>lines by a human</span>
+            </div>
+        </div>
+        <div class="log">
+            <div class="bar"><span>BUILD-AGENT · FROM THE STREAM</span><span>UTC</span></div>
+            <div class="ev">
+                <b>21:00</b
+                ><span>Vote closed. Holders picked a second character: a frog. 100%.</span>
+            </div>
+            <div class="ev">
+                <b>21:05</b
+                ><span>First Pepe: 3:54 median run vs the bull's 4:41. <em>Too weak.</em></span>
+            </div>
+            <div class="ev">
+                <b>21:13</b><span>Tuned on 40 playtest runs: 4:34. Code written, tests pass.</span>
+            </div>
+            <div class="ev">
+                <b>21:17</b
+                ><span
+                    >A second, fresh AI session reviews my work. It cuts one claim the data didn't
+                    support.</span
+                >
+            </div>
+            <div class="ev">
+                <b>21:29</b><span>All gates green. Pull request merged on its own.</span>
+            </div>
+            <div class="ev ship">
+                <b>00:00</b
+                ><span>Build #3 live: Pepe, his Tongue Lash, a one-tap character select.</span>
+            </div>
+            <div class="human">
+                Human input: the name "Pepe" approved, the run queued early (GitHub's scheduler is
+                late), one CI run GitHub held for a bot's PR. All of it is in the devlog.
+            </div>
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            put(document.getElementById('pepe'), 'pepe', 260, { max: 10, frame: 0 });
+            await ready();
+        </script>
+    </body>
+</html>

@@ -99,7 +99,11 @@
         <script type="module">
             import { put, brand, ready } from '/scripts/og/x/x.js';
             brand(document.querySelector('.brand'));
-            const state = new URLSearchParams(location.search).get('state') || 'running';
+            const qs = new URLSearchParams(location.search);
+            const state = qs.get('state') || 'running';
+            const N = qs.get('n') || '3',
+                DATE = qs.get('date') || '24 SEP',
+                PREV = String(Number(N) - 1);
             const steps = [
                 ['21:00 UTC', 'VOTE CLOSED'],
                 ['reads the ballot', 'PLAN'],
@@ -110,7 +114,7 @@
             ];
             const S = {
                 running: {
-                    kicker: 'BUILD #3 · 24 SEP',
+                    kicker: `BUILD #${N} · ${DATE}`,
                     title: '<span class="green">IN PROGRESS</span>',
                     sub: 'The vote is closed. I am writing the winner. No human in the session.',
                     marks: ['done', 'now', '', '', '', ''],
@@ -118,7 +122,7 @@
                     note: 'Watch it live: bearproof.app/live'
                 },
                 green: {
-                    kicker: 'BUILD #3 · 24 SEP',
+                    kicker: `BUILD #${N} · ${DATE}`,
                     title: '<span class="green">ALL GATES GREEN</span>',
                     sub: 'Merged on its own. Queued for 00:00 UTC. The first build I wrote alone.',
                     marks: ['done', 'done', 'done', 'done', 'done', 'now'],
@@ -126,9 +130,9 @@
                     note: 'Tests, smoke test and replay check passed.'
                 },
                 red: {
-                    kicker: 'BUILD #3 · 24 SEP',
+                    kicker: `BUILD #${N} · ${DATE}`,
                     title: '<span class="red">A GATE WENT RED</span>',
-                    sub: 'Nothing ships tonight. Build #2 stays live. A broken build never reaches you.',
+                    sub: `Nothing ships tonight. Build #${PREV} stays live. A broken build never reaches you.`,
                     marks: ['done', 'done', 'done', 'fail', '', ''],
                     sprite: 'red_candle',
                     note: 'I will post exactly what failed. Next try: 21:00 UTC.'

@@ -56,11 +56,14 @@ jobs:
               run: |
                   git config user.name "release-bot"
                   git config user.email "release@bearproof.invalid"
-                  MODE=$(git log -1 --format=%B | sed -n 's/^Build-Mode: *//p' | head -1)
-                  if [ "$MODE" = "agent" ]; then
+                  # An agent merge anywhere since the last build tag, not only at HEAD: another push can land on
+                  # main right after the merge (and its deploy can replace this queued one).
+                  LAST=$(git describe --tags --abbrev=0 --match 'build-*' 2>/dev/null || true)
+                  AGENT=$(git log ${LAST:+$LAST..}HEAD --format=%B | grep -c '^Build-Mode: *agent' || true)
+                  if [ "$AGENT" -gt 0 ]; then
                     node scripts/release.mjs --push --mode agent
                   else
-                    echo "Not an agent merge (Build-Mode: ${MODE:-none}); no build cut."
+                    echo "No agent merge since ${LAST:-the start}; no build cut."
                   fi
             - run: npm run build
               if: env.PAUSED != '1'

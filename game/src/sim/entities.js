@@ -103,7 +103,7 @@ export class Player {
         return Math.max(0.2, this._mult('cooldownMult'));
     }
     getSpeedMult() {
-        return this._mult('speedMult');
+        return this._mult('speedMult') * (this.characterSpeedMult || 1);
     }
     getExpMult() {
         return this._mult('expMult') * (this.twistExpMult || 1);

@@ -1,7 +1,7 @@
 /**
  * @module sim/weapons
  * @description One Weapon class driven by a content definition. `type` picks the firing strategy:
- * melee | projectile | instant | aura | mine | nova | drain | orbit. Scaling:
+ * melee | projectile | instant | aura | mine | nova | drain | orbit | tongue. Scaling:
  *   damage   = base * (1 + 0.2 * (lvl - 1)) * player.damageMult (* evolveDamageMult)
  *   cooldown = base * 0.92^(lvl - 1) * player.cooldownMult (* evolveCooldownMult)
  *   range    = base * (1 + 0.1 * (lvl - 1)) * player.areaMult
@@ -108,7 +108,48 @@ export class Weapon {
                 return this._nova(player, sim);
             case 'drain':
                 return this._drain(player, sim);
+            case 'tongue':
+                return this._tongue(player, sim);
         }
+    }
+
+    /** Lash at the nearest bear: hits every bear whose body touches the line, out to full range. */
+    _tongue(player, sim) {
+        const range = this.getRange(player);
+        const target = sim.spatial.findNearest(player.x, player.y, range);
+        if (!target) return;
+        const base = this.getDamage(player);
+        const half = (this.def.width || 16) / 2;
+        const evolved = this.isEvolved();
+        const fan = evolved ? this.def.evolveFan || 3 : 1;
+        const aim = atan2(target.y - player.y, target.x - player.x);
+        const hit = new Set();
+        for (let i = 0; i < fan; i++) {
+            const a = aim + ((i - (fan - 1) / 2) * 22 * Math.PI) / 180;
+            const ux = cos(a);
+            const uy = sin(a);
+            const cx = player.x + (ux * range) / 2;
+            const cy = player.y + (uy * range) / 2;
+            for (const e of sim.spatial.queryRect(cx, cy, range / 2 + half + 40)) {
+                if (e.hp <= 0 || hit.has(e)) continue;
+                const dx = e.x - player.x;
+                const dy = e.y - player.y;
+                const along = dx * ux + dy * uy;
+                if (along < -e.size || along > range + e.size) continue;
+                if (Math.abs(dx * uy - dy * ux) > half + e.size) continue;
+                hit.add(e);
+                this.hit(e, base, player, sim);
+            }
+            sim.emit({
+                t: 'tongue',
+                x1: player.x,
+                y1: player.y,
+                x2: player.x + ux * range,
+                y2: player.y + uy * range,
+                evolved
+            });
+        }
+        sim.emit({ t: 'fire', w: this.id, x: player.x, y: player.y });
     }
 
     _melee(player, sim) {

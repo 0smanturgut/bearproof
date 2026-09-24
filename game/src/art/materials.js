@@ -22,6 +22,20 @@ export const M = {
         line: '#1E170C'
     }),
 
+    // Pepe the frog: a warmer, yellower green than the bull, a pale belly, brick-red lips, a pink tongue
+    frog: mat(['#0C2210', '#1C4A1E', '#2F7A2E', '#4FAA3E', '#86D25E', '#CFF39A'], {
+        line: '#061208'
+    }),
+    frogBelly: mat(['#2A4A22', '#4F7A3A', '#7FA85A', '#AFCF84', '#D6EDB0', '#F2FFDC'], {
+        line: '#0E1A0A'
+    }),
+    lip: mat(['#2E0E0A', '#5E1F16', '#8E3624', '#B8543A', '#DB7A5C', '#F6A88A'], {
+        line: '#1A0605'
+    }),
+    tongue: mat(['#4A0E22', '#8A1E44', '#C83A6A', '#FF6E9C', '#FFA3C0', '#FFD8E4'], {
+        line: '#2A0614'
+    }),
+
     // Bears, candles and everything bearish
     bear: mat(['#2B0714', '#6E0F2A', '#B81E40', '#FF3B5C', '#FF7E86', '#FFC9BF'], {
         line: '#1A040C'

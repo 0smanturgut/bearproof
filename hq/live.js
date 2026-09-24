@@ -39,6 +39,7 @@
     var agent = null;
     var activityItems = [];
     var tab = 'live';
+    var userPicked = false;
     var seen = {};
     var mounted = null;
 
@@ -62,6 +63,22 @@
         var t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 21);
         return t > Date.now() ? t : t + 86400000;
     };
+    // 21:00-24:00 UTC is the build window: the vote has closed and tonight's session runs, or is starting up.
+    var tonight = function () {
+        var d = new Date();
+        return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 21);
+    };
+    var inWindow = function () {
+        return Date.now() >= tonight();
+    };
+    var startedTonight = function () {
+        return !!(
+            agent &&
+            agent.startedAt &&
+            Date.parse(agent.startedAt) >= tonight() - 3 * 3600000
+        );
+    };
+    var liveN = null;
     var getJSON = function (u) {
         return fetch(u, { cache: 'no-cache', headers: { accept: 'application/json' } })
             .then(function (r) {
@@ -83,8 +100,8 @@
         fit();
         // A stream runs for days: pick up page updates twice a day, never during a build session.
         setInterval(function () {
-            if (!(agent && agent.status === 'running') && nextSession() - Date.now() > 30 * 60000)
-                location.reload();
+            var quiet = !(agent && agent.status === 'running') && !inWindow();
+            if (quiet && nextSession() - Date.now() > 30 * 60000) location.reload();
         }, 12 * 3600000);
     }
 
@@ -133,7 +150,9 @@
     function renderFeed() {
         var feed = $('feed');
         var running = agent && agent.status === 'running';
-        var showAgent = running || tab === 'log';
+        // After tonight's session ends, its log stays up until 00:00 unless the viewer picks "Now".
+        var tonightsLog = !running && !userPicked && inWindow() && startedTonight();
+        var showAgent = running || tab === 'log' || tonightsLog;
         document.querySelector('.tabs').hidden = !!running;
         var items = showAgent
             ? (agent && agent.events) || []
@@ -189,10 +208,12 @@
         }
         $('consoleTitle').textContent = running
             ? "The AI's console · live"
-            : tab === 'log'
-              ? 'Replay · the last build session' +
-                (agent && agent.build ? ' (Build #' + agent.build + ')' : '')
-              : 'Live activity';
+            : tonightsLog
+              ? "Tonight's session" + (agent.build ? ' · Build #' + agent.build : '')
+              : tab === 'log'
+                ? 'Replay · the last build session' +
+                  (agent && agent.build ? ' (Build #' + agent.build + ')' : '')
+                : 'Live activity';
     }
 
     // --- the nightly run: status band + steps ------------------------------------------------
@@ -248,6 +269,10 @@
             [].forEach.call(steps.children, function (li, i) {
                 li.className = i < reached ? 'done' : i === reached ? (failed ? 'bad' : 'now') : '';
             });
+        } else if (inWindow()) {
+            steps.hidden = true;
+            $('thought').hidden = true;
+            windowStatus();
         } else {
             steps.hidden = true;
             $('thought').hidden = true;
@@ -273,6 +298,44 @@
         }
     }
 
+    // Between 21:00 and 00:00 UTC, outside a running session: starting up, ready to ship, or stopped.
+    function windowStatus() {
+        var ran = startedTonight() ? agent : null;
+        var n = (ran && ran.build) || (liveN ? liveN + 1 : null);
+        var em = function (t) {
+            return Object.assign(document.createElement('em'), { textContent: t });
+        };
+        var toShip = hms(tonight() + 3 * 3600000 - Date.now());
+        $('headline').innerHTML = '';
+        if (ran && ran.status === 'done') {
+            $('pillText').textContent = 'Ships in ' + toShip;
+            $('headline').append(em('Build #' + n), ' is ready.');
+            $('sub').textContent =
+                "Tonight's session finished at " +
+                String(ran.updatedAt || '').slice(11, 16) +
+                ' UTC with every gate green. It goes live at 00:00 UTC. Its log is in the console.';
+        } else if (ran) {
+            $('pillText').textContent = 'No new build tonight';
+            $('headline').append("Tonight's session ", em('stopped'), '.');
+            $('sub').textContent =
+                (ran.status === 'failed'
+                    ? 'It stopped before shipping'
+                    : 'It went quiet before it finished') +
+                ', so nothing broken goes live: ' +
+                (liveN ? 'Build #' + liveN : 'the current build') +
+                ' stays. The log is in the console. The next session starts tomorrow at 21:00 UTC.';
+        } else {
+            $('pillText').textContent = 'Starting up';
+            $('headline').append('The vote is closed. ', em('The AI is starting.'));
+            $('sub').textContent =
+                Date.now() - tonight() < 30 * 60000
+                    ? 'Its runner is booting on GitHub Actions' +
+                      (n ? ' to make Build #' + n : '') +
+                      '. The console opens here the moment it starts.'
+                    : "Its runner hasn't started yet (GitHub's schedules can run late). If it doesn't start, the current build stays live.";
+        }
+    }
+
     // --- loaders -------------------------------------------------------------------------------
     function loadAgent() {
         return getJSON('/api/agent/live').then(function (d) {
@@ -292,6 +355,7 @@
             if (!s) return;
             if (s.day) $('day').textContent = 'Day ' + s.day;
             if (s.liveBuild) {
+                liveN = s.liveBuild.n;
                 $('buildNow').textContent = 'Build #' + s.liveBuild.n;
                 $('gameTag').textContent = 'Autopilot · Build #' + s.liveBuild.n + ', live now';
                 mountGame(s.liveBuild.n);
@@ -383,12 +447,14 @@
     // --- tabs, clock, polling -------------------------------------------------------------------
     $('tabLive').addEventListener('click', function () {
         tab = 'live';
+        userPicked = true;
         $('tabLive').setAttribute('aria-selected', 'true');
         $('tabLog').setAttribute('aria-selected', 'false');
         renderFeed();
     });
     $('tabLog').addEventListener('click', function () {
         tab = 'log';
+        userPicked = true;
         $('tabLog').setAttribute('aria-selected', 'true');
         $('tabLive').setAttribute('aria-selected', 'false');
         renderFeed();
@@ -412,7 +478,8 @@
         var run = function () {
             fn().then(function () {
                 var running = agent && agent.status === 'running';
-                var soon = nextSession() - Date.now() < 10 * 60000;
+                var soon =
+                    nextSession() - Date.now() < 10 * 60000 || (inWindow() && !startedTonight());
                 setTimeout(run, running || soon ? fastMs : slowMs);
             });
         };

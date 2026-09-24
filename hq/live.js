@@ -107,13 +107,13 @@
 
     // --- the game view ------------------------------------------------------------------------
     // Remounts when a new build goes live at 00:00 UTC, so a stream that runs for days shows the latest one.
-    function mountGame(n) {
-        if (mounted === n || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        mounted = n;
+    function mountGame(key, src) {
+        if (mounted === key || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        mounted = key;
         var old = $('screen').querySelector('iframe');
         if (old) old.remove();
         var f = document.createElement('iframe');
-        f.src = '/play?attract=1';
+        f.src = src;
         f.title = 'BEARPROOF, playing on autopilot';
         f.setAttribute('tabindex', '-1');
         f.setAttribute('loading', 'lazy');
@@ -151,7 +151,8 @@
         var feed = $('feed');
         var running = agent && agent.status === 'running';
         // After tonight's session ends, its log stays up until 00:00 unless the viewer picks "Now".
-        var tonightsLog = !running && !userPicked && inWindow() && startedTonight();
+        // (On a stream, the rotation below alternates it with live activity instead.)
+        var tonightsLog = !running && !userPicked && !TV && inWindow() && startedTonight();
         var showAgent = running || tab === 'log' || tonightsLog;
         document.querySelector('.tabs').hidden = !!running;
         var items = showAgent
@@ -208,7 +209,7 @@
         }
         $('consoleTitle').textContent = running
             ? "The AI's console · live"
-            : tonightsLog
+            : showAgent && inWindow() && startedTonight()
               ? "Tonight's session" + (agent.build ? ' · Build #' + agent.build : '')
               : tab === 'log'
                 ? 'Replay · the last build session' +
@@ -298,6 +299,20 @@
         }
     }
 
+    /** The build tonight's session shipped (merged, cut for 00:00), or null. */
+    function readyTonight() {
+        return inWindow() && startedTonight() && agent.status === 'done' && agent.build
+            ? agent.build
+            : null;
+    }
+    /** The title from the session's "Pull request opened" line, if there was one. */
+    function shippedTitle() {
+        var e = ((agent && agent.events) || []).find(function (x) {
+            return x.type === 'ship' && /"(.+)"/.test(x.text);
+        });
+        return e ? e.text.match(/"(.+)"/)[1] : null;
+    }
+
     // Between 21:00 and 00:00 UTC, outside a running session: starting up, ready to ship, or stopped.
     function windowStatus() {
         var ran = startedTonight() ? agent : null;
@@ -309,11 +324,15 @@
         $('headline').innerHTML = '';
         if (ran && ran.status === 'done') {
             $('pillText').textContent = 'Ships in ' + toShip;
-            $('headline').append(em('Build #' + n), ' is ready.');
+            var title = shippedTitle();
+            $('headline').append(
+                em('Build #' + n),
+                title ? ' is ready: ' + title + '.' : ' is ready.'
+            );
             $('sub').textContent =
                 "Tonight's session finished at " +
                 String(ran.updatedAt || '').slice(11, 16) +
-                ' UTC with every gate green. It goes live at 00:00 UTC. Its log is in the console.';
+                ' UTC with every gate green. It goes live at 00:00 UTC; the game is a preview of it, and its log is in the console.';
         } else if (ran) {
             $('pillText').textContent = 'No new build tonight';
             $('headline').append("Tonight's session ", em('stopped'), '.');
@@ -342,6 +361,7 @@
             if (d) agent = d;
             renderStatus();
             renderFeed();
+            syncGame();
         });
     }
     function loadActivity() {
@@ -354,13 +374,24 @@
         return getJSON('/api/stats').then(function (s) {
             if (!s) return;
             if (s.day) $('day').textContent = 'Day ' + s.day;
-            if (s.liveBuild) {
-                liveN = s.liveBuild.n;
-                $('buildNow').textContent = 'Build #' + s.liveBuild.n;
-                $('gameTag').textContent = 'Autopilot · Build #' + s.liveBuild.n + ', live now';
-                mountGame(s.liveBuild.n);
-            }
+            if (!s.liveBuild) return;
+            liveN = s.liveBuild.n;
+            syncGame();
         });
+    }
+    /** The live build on autopilot; after tonight's session ships, until 00:00, a preview of the new one. */
+    function syncGame() {
+        if (liveN == null) return;
+        var next = readyTonight();
+        if (next && next > liveN) {
+            $('buildNow').textContent = 'Build #' + next + ' · preview';
+            $('gameTag').textContent = 'Preview · Build #' + next + ', live at 00:00 UTC';
+            mountGame('preview-' + next, '/b/' + next + '/?attract=1');
+            return;
+        }
+        $('buildNow').textContent = 'Build #' + liveN;
+        $('gameTag').textContent = 'Autopilot · Build #' + liveN + ', live now';
+        mountGame('live-' + liveN, '/play?attract=1');
     }
     function loadInsights() {
         return getJSON('/api/insights?hours=24').then(function (d) {

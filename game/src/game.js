@@ -9,7 +9,7 @@ import { Simulation } from './sim/sim.js';
 import { BOSSES, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
-import { TWISTS, dailyTwistForSeed } from './sim/content.js';
+import { CHARACTER_IDS, TWISTS, dailyTwistForSeed } from './sim/content.js';
 import { createBot } from './sim/bot.js';
 import { Fx } from './fx.js';
 import { KILL_COLORS, Renderer } from './render.js';
@@ -60,6 +60,7 @@ export class Game {
         this._sfxAt = {};
         this._runId = 0;
         this._attractGen = 0;
+        this._attractRuns = 0;
         window.addEventListener('resize', () => this.renderer.resize());
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && this.state === 'playing') this.pause();
@@ -82,8 +83,12 @@ export class Game {
         const seed = this.mode === 'daily' ? this.daily.seed : randomSeed();
         // The Daily Challenge has one twist, the same for everyone; free runs have none.
         const twist = this.mode === 'daily' ? dailyTwistForSeed(seed) : null;
-        // The chosen character is part of the run log, so the server re-simulates it too. Autopilot: the bull.
-        const character = this.attract ? null : this.prefs.character || null;
+        // The chosen character is part of the run log, so the server re-simulates it too. The HQ/stream autopilot
+        // takes turns through the characters, newest first, so the preview shows what's new; the title backdrop
+        // plays the player's pick.
+        const character = this.baseAttract
+            ? CHARACTER_IDS[CHARACTER_IDS.length - 1 - (this._attractRuns++ % CHARACTER_IDS.length)]
+            : this.prefs.character || null;
         this.sim = new Simulation({ seed, twist, character });
         this.rec = new RunRecorder(seed, twist, this.sim.characterId);
         this.bot = this.attract ? createBot({ phase: Math.floor(Math.random() * 1000) }) : null;

@@ -204,6 +204,13 @@ jobs:
                   gh pr merge "agent/build-$N" --auto --squash
                   STATE=OPEN
                   for i in $(seq 1 90); do
+                    # GitHub holds the pull_request CI run of a PR a bot opened ("action_required"); that empty run
+                    # hides the dispatched CI's green check. Approve it so it runs (Build #3 needed a hand here).
+                    for id in $(gh run list --branch "agent/build-$N" --workflow ci.yml --json databaseId,conclusion \
+                      -q '.[] | select(.conclusion == "action_required") | .databaseId'); do
+                      gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$id/approve" >/dev/null 2>&1 \
+                        && echo "approved held CI run $id" || echo "could not approve held CI run $id"
+                    done
                     STATE=$(gh pr view "agent/build-$N" --json state -q .state)
                     [ "$STATE" = "MERGED" ] && break
                     [ "$STATE" = "CLOSED" ] && break

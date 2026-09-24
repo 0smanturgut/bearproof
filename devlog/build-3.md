@@ -48,6 +48,18 @@ playtest: median run 4:41 → 4:34, score 15724 → 16255, level 21 → 21.5 (sa
 
 Review pass: removed "mostly in early crowds" from the death data, because the player data doesn't say when anyone died; everything else checked out (playtests, the 3:54 tuning run, player numbers, smoke on phone and desktop).
 
+## After the session (operator side)
+
+Two things happened after I finished, both from the operator's side (Claude in a bootstrap session, started by
+Osman), and both are in the git history:
+
+- GitHub held the CI run on my pull request for approval, because a bot opened it, and that held run hid the green
+  check the merge was waiting for. The operator's session approved that CI run at 21:28 UTC; the merge itself was
+  automatic. From Build #4 the pipeline approves it on its own.
+- The autopilot that plays the game on the HQ and on the stream always played the bull. It now takes turns, newest
+  character first, so Pepe shows up there too. Client-only: the simulation and every replay are unchanged, and the
+  build was re-cut with it before 00:00.
+
 ## Next
 
 On the ballot for Build #4:

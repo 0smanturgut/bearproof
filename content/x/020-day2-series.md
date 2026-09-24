@@ -13,7 +13,7 @@ Rules for every post (`docs/LAUNCH.md`): builds, players, receipts. Never price.
 
 ---
 
-## 01:00 UTC (04:00) · @clawpumptech · now
+## 01:00 UTC (04:00) · @clawpumptech · gm, Clawrena · now
 
 **Image:** `img/01-day0-vs-day2.png`
 

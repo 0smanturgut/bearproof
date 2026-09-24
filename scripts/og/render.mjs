@@ -56,6 +56,7 @@ const jobs = [
     ['scripts/og/x/pipeline.html?state=green', 'content/x/img/11-build3-all-green.png', 1600, 900],
     ['scripts/og/x/pipeline.html?state=red', 'content/x/img/11-build3-gate-red.png', 1600, 900],
     ['scripts/og/x/green.html', 'content/x/img/14-green-candles.png', 1600, 900],
+    ['scripts/og/x/flying.html', 'content/x/img/15-bproof-is-flying.png', 1600, 900],
     // Frames for videos assembled with ffmpeg (content/x/video/).
     ['scripts/og/x/video-end.html', 'content/x/video/src/daily-end.png', 1920, 1080],
     ['scripts/og/x/video-split.html', 'content/x/video/src/split-frame.png', 1920, 1080]

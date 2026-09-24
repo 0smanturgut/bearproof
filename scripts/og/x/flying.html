@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* "$BPROOF is flying": the bull on top of a run of green candles. */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 55% 60% at 88% 18%,
+                        rgba(22, 224, 138, 0.26),
+                        transparent 62%
+                    ),
+                    radial-gradient(
+                        ellipse 60% 50% at 10% 100%,
+                        rgba(22, 224, 138, 0.08),
+                        transparent 60%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            #chart {
+                position: absolute;
+                inset: 0;
+            }
+            .brand {
+                left: 64px;
+                top: 48px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 124px;
+            }
+            .display {
+                font-size: 150px;
+                line-height: 0.84;
+            }
+            .sub {
+                margin-top: 26px;
+                font-size: 30px;
+                line-height: 1.45;
+            }
+            .sub b {
+                color: var(--green);
+                font-weight: 400;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="chart" width="1600" height="900"></canvas>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <h1 class="display"><span class="green">$BPROOF</span><br />IS FLYING</h1>
+            <p class="sub">
+                More budget. More compute. Better builds.<br /><b>Build #3 ships tonight.</b>
+            </p>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            import { bakeSprite, bakeGlow } from '/game/src/art/sprites.js';
+            brand(document.querySelector('.brand'));
+            const ctx = document.getElementById('chart').getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            let r = 23;
+            const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+            // A run of candles climbing from bottom left to top right; a few red ones on the way up.
+            // Built in abstract units first, then fitted between y 830 (first open) and y 300 (last high).
+            const n = 20,
+                x0 = 520,
+                step = 44,
+                w = 28;
+            const raw = [];
+            let v = 0;
+            for (let i = 0; i < n; i++) {
+                const green = i < 3 ? rnd() < 0.5 : rnd() > 0.16 || i > n - 5;
+                const body = green ? 30 + rnd() * 46 + i * 1.6 : 18 + rnd() * 26;
+                const open = v;
+                const close = green ? v + body : v - body * 0.8;
+                raw.push({
+                    green,
+                    open,
+                    close,
+                    hi: Math.max(open, close) + 8 + rnd() * 22,
+                    lo: Math.min(open, close) - 6 - rnd() * 18
+                });
+                v = close;
+            }
+            const top = Math.max(...raw.map((c) => c.hi)),
+                bot = Math.min(...raw.map((c) => c.lo));
+            const Y = (u) => 840 - ((u - bot) / (top - bot)) * (840 - 300);
+            const tops = [];
+            raw.forEach((c, i) => {
+                const x = x0 + i * step;
+                ctx.shadowColor = c.green ? 'rgba(22,224,138,0.8)' : 'rgba(255,59,92,0.6)';
+                ctx.shadowBlur = c.green ? 22 : 12;
+                ctx.fillStyle = c.green ? '#16e08a' : '#ff3b5c';
+                ctx.fillRect(x + w / 2 - 3, Y(c.hi), 6, Y(c.lo) - Y(c.hi));
+                const yt = Y(Math.max(c.open, c.close)),
+                    yb = Y(Math.min(c.open, c.close));
+                ctx.fillRect(x, yt, w, Math.max(6, yb - yt));
+                ctx.shadowBlur = 0;
+                tops.push([x + w / 2, Y(c.hi)]);
+            });
+            // The trend line under it.
+            ctx.strokeStyle = 'rgba(22,224,138,0.35)';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([14, 12]);
+            ctx.beginPath();
+            ctx.moveTo(x0 - 40, 880);
+            ctx.lineTo(tops[n - 1][0] + 60, tops[n - 1][1] + 70);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            // The bull, charging on top of the last candle, with XP candles flying around it.
+            const put = (id, cx, bottom, k, frame = 0, glowA = 0.8) => {
+                const img = bakeSprite(id, k)[frame % bakeSprite(id, k).length];
+                const g = bakeGlow(id, k);
+                const x = Math.round(cx - img.width / 2),
+                    y = Math.round(bottom - img.height);
+                if (g) {
+                    const gi = g[frame % g.length];
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.globalAlpha = glowA;
+                    ctx.drawImage(
+                        gi,
+                        Math.round(cx - gi.width / 2),
+                        Math.round(y + img.height / 2 - gi.height / 2)
+                    );
+                    ctx.globalAlpha = 1;
+                    ctx.globalCompositeOperation = 'source-over';
+                }
+                ctx.drawImage(img, x, y);
+            };
+            const [bxTop, byTop] = tops[n - 1];
+            put('bull', bxTop - 30, byTop + 8, 8, 1, 0.9);
+            // XP candles trailing behind the bull, clear of its body.
+            const sparks = [
+                [bxTop - 300, byTop - 30, 'xp_candle'],
+                [bxTop - 390, byTop - 150, 'xp_candle_big'],
+                [bxTop - 250, byTop - 200, 'xp_candle'],
+                [bxTop - 480, byTop + 30, 'xp_candle'],
+                [bxTop + 120, byTop + 90, 'xp_candle_big']
+            ];
+            for (const [x, y, id] of sparks) put(id, x, y, 4, 0, 0.9);
+            // The bear market, left behind at the bottom.
+            put('red_candle', 250, 880, 4, 0, 0.4);
+            put('paper_hands', 360, 880, 4, 0, 0.4);
+            put('fud_cloud', 150, 860, 4, 0, 0.4);
+            await ready();
+        </script>
+    </body>
+</html>

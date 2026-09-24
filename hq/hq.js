@@ -1465,6 +1465,27 @@ async function loadWinners() {
     flag.className = 'flag ' + (live ? 'gold' : 'dim');
     const list = $('#winners');
     const rows = Array.isArray(w.winners) ? w.winners.slice(0, 5) : [];
+    // The newest paid prize, big, for a day and a half: the AI paying a player on-chain is the proof.
+    const paid = rows.find((r) => r.status === 'paid' && r.tx);
+    const banner = $('#paidBanner');
+    if (paid && Date.now() - Date.parse(`${paid.date}T00:00:00Z`) < 60 * 3600000) {
+        const amount =
+            paid.token === 'SOL'
+                ? `${(Number(paid.amountRaw) / 1e9).toFixed(3)} SOL`
+                : `${fmtInt(Math.round(Number(paid.amountRaw) / 1e6))} $${paid.token || 'ANSEM'}`;
+        banner.textContent = '';
+        banner.append(
+            h('span', { class: 'paid-k' }, 'Prize paid'),
+            h(
+                'span',
+                { class: 'paid-t' },
+                `The AI paid ${paid.name}, the verified #1 of ${paid.date}, ${amount} on-chain.`
+            ),
+            h('span', { class: 'paid-go' }, 'Solscan ↗')
+        );
+        banner.href = `https://solscan.io/tx/${paid.tx}`;
+        banner.hidden = false;
+    }
     list.textContent = '';
     list.hidden = !rows.length;
     for (const r of rows) {

@@ -1,0 +1,9 @@
+[Unit]
+Description=Record the stream every night during the build
+
+[Timer]
+OnCalendar=*-*-* 20:55:00 UTC
+Persistent=false
+
+[Install]
+WantedBy=timers.target

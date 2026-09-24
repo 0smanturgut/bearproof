@@ -1,0 +1,19 @@
+[Unit]
+Description=BEARPROOF nightly build recording (the streamed screen to disk)
+After=bearproof-stream.service
+
+[Service]
+Type=simple
+User=bpstream
+Group=bpstream
+StateDirectory=bearproof-rec
+ExecStart=/opt/bearproof/ops/stream/record.sh
+# record.sh stops itself at 00:35 UTC (exit 124 from timeout); anything else, such as the stream restarting
+# under it, starts it again into the same night's folder.
+SuccessExitStatus=124
+Restart=on-failure
+RestartSec=15
+Nice=19
+CPUWeight=10
+KillSignal=SIGINT
+TimeoutStopSec=30

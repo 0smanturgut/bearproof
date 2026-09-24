@@ -20,3 +20,22 @@ journalctl -u bearproof-stream -f           # logs (the key is scrubbed)
 After a page deploy, reload the page without cutting the stream: `DISPLAY=:99 xdotool key F5`.
 
 The stream key lives only in `/etc/bearproof/stream.env` on the server (root-only). Never commit it.
+
+## Nightly recording (for clips and screenshots)
+
+`bearproof-rec.timer` starts `bearproof-rec.service` at 20:55 UTC every night: a second ffmpeg reads the same
+virtual screen and writes it to disk until 00:35 UTC (the vote close, the whole build, the 00:00 switch). It runs
+at the lowest CPU priority (measured: ~0.25 core at 720p30, the stream keeps its frames) and never touches the
+stream. About 1.5 GB an hour.
+
+```bash
+cp /opt/bearproof/ops/stream/bearproof-rec.{service,timer} /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now bearproof-rec.timer
+```
+
+Output: `/var/lib/bearproof-rec/<night's UTC date>/HHMMSS.mkv` (15-minute pieces, named by start time in UTC) and
+`shots/HHMMSS.png` (one a minute). Pull a night to the Mac (outside the repo, it's big):
+
+```bash
+rsync -av -e "ssh -i ~/.ssh/bearproof_vps -o IdentitiesOnly=yes" root@76.13.2.222:/var/lib/bearproof-rec/2026-09-24/ ~/Movies/BEARPROOF/2026-09-24/
+```

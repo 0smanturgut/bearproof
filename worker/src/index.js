@@ -13,8 +13,10 @@ import { BUILDS } from './manifest.js';
 import {
     payoutSelftest,
     pendingRuns,
+    requestReply,
     requestStatus,
     runStats,
+    unansweredRequests,
     unstatedRuns,
     verdict
 } from './routes/internal.js';
@@ -226,6 +228,8 @@ export default {
                     return getRun(pathname.slice('/api/run/'.length), env);
                 if (pathname === '/api/internal/runs/pending') return pendingRuns(request, env);
                 if (pathname === '/api/internal/runs/unstated') return unstatedRuns(request, env);
+                if (pathname === '/api/internal/requests/unanswered')
+                    return unansweredRequests(request, env);
             }
             if (request.method === 'POST') {
                 if (pathname === '/api/session') return session(request, env);
@@ -245,6 +249,8 @@ export default {
                     /^\/api\/internal\/requests\/(req-[0-9a-z]{10})\/status$/
                 );
                 if (rq) return requestStatus(request, env, rq[1]);
+                const rr = pathname.match(/^\/api\/internal\/requests\/(req-[0-9a-z]{10})\/reply$/);
+                if (rr) return requestReply(request, env, rr[1]);
             }
             return error(404, 'not_found', `No route for ${request.method} ${pathname}`);
         }

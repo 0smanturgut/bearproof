@@ -2373,3 +2373,45 @@ details.more .wtable {
         animation: none;
     }
 }
+
+/* The AI's take on a holder request */
+.ai-take {
+    display: grid;
+    gap: 4px;
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-left: 2px solid var(--bull);
+    background: rgba(22, 224, 138, 0.06);
+}
+.ai-take.slice {
+    border-left-color: var(--gold);
+    background: rgba(255, 197, 61, 0.06);
+}
+.ai-take.no {
+    border-left-color: var(--bear);
+    background: rgba(255, 59, 92, 0.06);
+}
+.ai-take p {
+    margin: 0 !important;
+    font-size: 12.5px !important;
+    color: var(--text-2) !important;
+}
+.ai-take p::before {
+    content: 'BEARPROOF: ';
+    color: var(--bull);
+    font-weight: 700;
+}
+.ai-tag {
+    justify-self: start;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bull);
+}
+.ai-take.slice .ai-tag {
+    color: var(--gold);
+}
+.ai-take.no .ai-tag {
+    color: var(--bear);
+}

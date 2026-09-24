@@ -10,6 +10,7 @@
 
 import { all } from '../lib/db.js';
 import { cleanStats } from '../lib/insights.js';
+import { REPLY_VERDICTS, checkReply } from '../lib/requests.js';
 import { error, json, readJson } from '../lib/http.js';
 import { RUN_ID } from '../lib/runs.js';
 
@@ -193,6 +194,48 @@ export async function runStats(request, env, id) {
         return json({ ok: true, updated: res.meta?.changes ?? 0 });
     } catch (err) {
         console.warn('[run stats]', err?.message || err);
+        return error(503, 'db_unavailable', 'Storage is unavailable.');
+    }
+}
+
+/** GET /api/internal/requests/unanswered: open holder requests the AI hasn't answered yet. */
+export async function unansweredRequests(request, env) {
+    if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
+    const rows = await all(
+        env,
+        `SELECT id, poll_date, title, description FROM feature_requests
+          WHERE status = 'open' AND ai_at IS NULL ORDER BY created_at LIMIT 20`
+    );
+    if (!rows) return error(503, 'db_unavailable', 'Storage is unavailable.');
+    return json({
+        requests: rows.map((r) => ({
+            id: r.id,
+            pollDate: r.poll_date,
+            title: r.title,
+            description: r.description
+        }))
+    });
+}
+
+/** POST /api/internal/requests/:id/reply { verdict, reply }: store the AI's take (the reply is filtered). */
+export async function requestReply(request, env, id) {
+    if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
+    const { data, error: bad } = await readJson(request, 2048);
+    if (bad) return bad;
+    if (!REPLY_VERDICTS.has(data?.verdict))
+        return error(400, 'invalid_field', "`verdict` must be 'day', 'slice' or 'no'.", {
+            field: 'verdict'
+        });
+    const reply = checkReply(data.reply);
+    try {
+        const r = await env.DB.prepare(
+            'UPDATE feature_requests SET ai_verdict = ?1, ai_reply = ?2, ai_at = ?3 WHERE id = ?4 AND ai_at IS NULL'
+        )
+            .bind(data.verdict, reply, Date.now(), id)
+            .run();
+        return json({ ok: true, updated: r.meta?.changes ?? 0, replyKept: !!reply });
+    } catch (err) {
+        console.warn('[request reply]', err?.message || err);
         return error(503, 'db_unavailable', 'Storage is unavailable.');
     }
 }

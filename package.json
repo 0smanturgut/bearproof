@@ -23,6 +23,7 @@
         "db:migrate:remote": "wrangler d1 migrations apply bearproof-db --remote"
     },
     "devDependencies": {
+        "@anthropic-ai/sdk": "^0.128.0",
         "@axe-core/playwright": "^4.11.2",
         "eslint": "^9.0.0",
         "playwright": "^1.63.0",

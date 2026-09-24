@@ -1,7 +1,7 @@
 name: Verify runs
 
-# Re-simulate pending runs with the exact build they were played on and post verdicts.
-# Only verified runs can win the daily prize.
+# Re-simulate pending runs with the exact build they were played on and post verdicts (with what each run did,
+# for /api/insights). Only verified runs can win the daily prize. Also: the AI answers new holder requests.
 #
 # GitHub starts scheduled workflows hours late on this repo, so each run stays up for almost six hours and checks
 # every 5 minutes. The hourly schedule (whenever it fires) starts the next shift; `concurrency` keeps one at a time.
@@ -29,6 +29,8 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
+                  cache: 'npm'
+            - run: npm ci --ignore-scripts # the Anthropic SDK for agent/answer-requests.mjs
             - name: Verify every 5 minutes for ~5h50m
               run: |
                   END=$(( $(date +%s) + 350 * 60 ))
@@ -36,8 +38,10 @@ jobs:
                     git fetch -q --tags --force origin || true # a build tagged mid-shift must be verifiable too
                     node scripts/verify-runs.mjs --limit 100 || echo "::warning::verify pass failed; retrying in 5 min"
                     node scripts/verify-runs.mjs --backfill --limit 100 || true # stats for runs verified before stats existed
+                    node agent/answer-requests.mjs || echo "::warning::answering requests failed; retrying in 5 min"
                     sleep 300
                   done
               env:
                   SITE: https://bearproof.app
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

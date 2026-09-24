@@ -74,6 +74,21 @@ export function checkRequest(rawTitle, rawDescription) {
     return { ok: true, title, description };
 }
 
+export const REPLY_VERDICTS = new Set(['day', 'slice', 'no']);
+export const REPLY_MAX = 220;
+
+/**
+ * The AI's reply to a request passes the same filters as the request itself: no links, handles, keys, wallets or
+ * pipeline talk, no slurs. Returns the cleaned reply, or null.
+ */
+export function checkReply(raw) {
+    const text = cleanText(raw);
+    if (!text || text.length > REPLY_MAX) return null;
+    if (LINK.test(text) || OFF_LIMITS.test(text) || HATE.test(text)) return null;
+    if (/[1-9A-HJ-NP-Za-km-z]{32,44}/.test(text)) return null; // nothing that looks like an address
+    return text;
+}
+
 /** The exact text a wallet signs to post a request. The server rebuilds it and compares byte for byte. */
 export function requestMessage({
     domain,

@@ -264,6 +264,21 @@
         );
         li.appendChild(el('h3', null, o.title));
         if (o.description) li.appendChild(el('p', null, o.description));
+        if (o.ai && o.ai.verdict) {
+            // The AI's own read of a holder's request, written before anyone votes.
+            const take = el('div', 'ai-take ' + o.ai.verdict);
+            take.appendChild(
+                el(
+                    'span',
+                    'ai-tag',
+                    { day: 'Doable in a day', slice: 'First slice', no: "Won't build" }[
+                        o.ai.verdict
+                    ] || o.ai.verdict
+                )
+            );
+            if (o.ai.reply) take.appendChild(el('p', null, o.ai.reply));
+            li.appendChild(take);
+        }
         const bar = el('div', 'ex-bar');
         const fill = el('i');
         fill.style.width = `${live ? o.share || 0 : 0}%`;

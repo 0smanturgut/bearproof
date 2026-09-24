@@ -61,7 +61,7 @@ async function poll(env, date) {
     const rows =
         (await all(
             env,
-            `SELECT id, wallet, title, description, created_at FROM feature_requests
+            `SELECT id, wallet, title, description, created_at, ai_verdict, ai_reply FROM feature_requests
              WHERE poll_date = ? AND status = 'open' ORDER BY created_at LIMIT ${MAX_REQUESTS_PER_POLL}`,
             date
         )) || [];
@@ -71,7 +71,9 @@ async function poll(env, date) {
         description: r.description,
         source: 'community',
         requestedBy: shortWallet(r.wallet),
-        wallet: r.wallet
+        wallet: r.wallet,
+        // The AI's take, once it has read the request (agent/answer-requests.mjs).
+        ai: r.ai_verdict ? { verdict: r.ai_verdict, reply: r.ai_reply || null } : null
     }));
     return {
         date,

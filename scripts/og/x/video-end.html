@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* End card for the Daily Challenge clip, 1920×1080. */
+            html,
+            body {
+                width: 1920px;
+                height: 1080px;
+            }
+            .c {
+                position: absolute;
+                inset: 0;
+                display: grid;
+                place-content: center;
+                justify-items: center;
+                text-align: center;
+                gap: 26px;
+            }
+            .brand {
+                position: static;
+                font-size: 72px;
+            }
+            .display {
+                font-size: 150px;
+            }
+            .facts {
+                display: flex;
+                gap: 18px;
+                font: 400 44px/1 'Jersey 10';
+            }
+            .facts span {
+                padding: 14px 22px 10px;
+                box-shadow: inset 0 0 0 2px #1d3b30;
+                color: var(--text);
+            }
+            .facts em {
+                font-style: normal;
+                color: var(--gold);
+            }
+            .url {
+                font-size: 34px;
+                color: var(--green);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="c">
+            <div class="brand">BEARPROOF</div>
+            <h1 class="display">TODAY'S <span class="green">DAILY</span></h1>
+            <div class="facts">
+                <span>BEAR TRAP</span><span><em>HIGH VOLATILITY</em></span
+                ><span>RUG LORD AT 4:00</span>
+            </div>
+            <p class="sub">Same seed for everyone. Every run replayed before it can win.</p>
+            <p class="url">bearproof.app · free, no wallet</p>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

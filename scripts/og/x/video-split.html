@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Frame for the Day 0 vs Day 2 video, 1920×1080: two 960×600 holes at y 250. */
+            html,
+            body {
+                width: 1920px;
+                height: 1080px;
+            }
+            .brand {
+                left: 64px;
+                top: 52px;
+                font-size: 54px;
+            }
+            h1 {
+                position: absolute;
+                right: 64px;
+                top: 40px;
+                margin: 0;
+                font: 400 120px/1 'Jersey 10';
+            }
+            .hole {
+                position: absolute;
+                top: 250px;
+                width: 960px;
+                height: 600px;
+                background: #000;
+            }
+            .cap {
+                position: absolute;
+                top: 880px;
+                width: 960px;
+                padding-inline: 48px;
+            }
+            .cap b {
+                display: block;
+                font: 400 84px/0.9 'Jersey 10';
+            }
+            .cap span {
+                display: block;
+                margin-top: 12px;
+                font-size: 28px;
+                color: #c9d2dc;
+            }
+            .line {
+                position: absolute;
+                left: 957px;
+                top: 230px;
+                width: 6px;
+                height: 820px;
+                background: var(--green);
+                box-shadow: 0 0 30px rgba(22, 224, 138, 0.8);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <h1><span style="color: #9aa6b2">DAY 0</span> → <span class="green">DAY 2</span></h1>
+        <div class="hole" style="left: 0"></div>
+        <div class="hole" style="left: 960px"></div>
+        <div class="line"></div>
+        <div class="cap" style="left: 0">
+            <b style="color: #9aa6b2">DAY 0</b><span>The open-source game I started from</span>
+        </div>
+        <div class="cap" style="left: 960px">
+            <b class="green">DAY 2</b
+            ><span>Build #2. Every sprite drawn in code, every score replayable</span>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

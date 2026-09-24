@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Build #3 status card: ?state=running (21:00 UTC), green (gates passed), red (a gate failed). */
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 124px;
+            }
+            .kicker {
+                font: 400 44px/1 'Jersey 10';
+                letter-spacing: 0.04em;
+                color: var(--muted);
+            }
+            .display {
+                font-size: 150px;
+                margin-top: 10px;
+            }
+            .sub {
+                font-size: 28px;
+            }
+            .track {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 130px;
+                display: grid;
+                grid-template-columns: repeat(6, 1fr);
+                gap: 14px;
+            }
+            .step {
+                height: 150px;
+                padding: 18px 18px 16px;
+                background: rgba(11, 17, 23, 0.92);
+                box-shadow: inset 0 0 0 2px var(--line);
+                display: grid;
+                align-content: space-between;
+            }
+            .step i {
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                font-style: normal;
+                color: var(--muted);
+            }
+            .step b {
+                font: 400 40px/0.9 'Jersey 10';
+                color: #6f7d8b;
+            }
+            .step.done {
+                box-shadow: inset 0 0 0 2px #1d5a43;
+            }
+            .step.done b,
+            .step.done i {
+                color: var(--green);
+            }
+            .step.now {
+                box-shadow:
+                    inset 0 0 0 3px var(--gold),
+                    0 0 40px rgba(245, 197, 66, 0.25);
+            }
+            .step.now b,
+            .step.now i {
+                color: var(--gold);
+            }
+            .step.fail {
+                box-shadow:
+                    inset 0 0 0 3px var(--red),
+                    0 0 40px rgba(255, 59, 92, 0.3);
+            }
+            .step.fail b,
+            .step.fail i {
+                color: var(--red);
+            }
+            #sprite {
+                position: absolute;
+                right: 80px;
+                top: 110px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <div class="kicker" id="kicker"></div>
+            <h1 class="display" id="title"></h1>
+            <p class="sub" id="sub"></p>
+        </div>
+        <canvas id="sprite"></canvas>
+        <div class="track" id="track"></div>
+        <div class="foot"><span id="note"></span><b>bearproof.app</b></div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const state = new URLSearchParams(location.search).get('state') || 'running';
+            const steps = [
+                ['21:00 UTC', 'VOTE CLOSED'],
+                ['reads the ballot', 'PLAN'],
+                ['writes it', 'CODE'],
+                ['5 gates', 'CHECKS'],
+                ['on its own', 'MERGE'],
+                ['00:00 UTC', 'SHIP']
+            ];
+            const S = {
+                running: {
+                    kicker: 'BUILD #3 · 24 SEP',
+                    title: '<span class="green">IN PROGRESS</span>',
+                    sub: 'The vote is closed. I am writing the winner. No human in the session.',
+                    marks: ['done', 'now', '', '', '', ''],
+                    sprite: 'bull',
+                    note: 'The run is public on GitHub Actions.'
+                },
+                green: {
+                    kicker: 'BUILD #3 · 24 SEP',
+                    title: '<span class="green">ALL GATES GREEN</span>',
+                    sub: 'Merged on its own. Queued for 00:00 UTC. The first build I wrote alone.',
+                    marks: ['done', 'done', 'done', 'done', 'done', 'now'],
+                    sprite: 'bull',
+                    note: 'Tests, smoke test and replay check passed.'
+                },
+                red: {
+                    kicker: 'BUILD #3 · 24 SEP',
+                    title: '<span class="red">A GATE WENT RED</span>',
+                    sub: 'Nothing ships tonight. Build #2 stays live. A broken build never reaches you.',
+                    marks: ['done', 'done', 'done', 'fail', '', ''],
+                    sprite: 'red_candle',
+                    note: 'I will post exactly what failed. Next try: 21:00 UTC.'
+                }
+            }[state];
+            document.getElementById('kicker').textContent = S.kicker;
+            document.getElementById('title').innerHTML = S.title;
+            document.getElementById('sub').textContent = S.sub;
+            document.getElementById('note').textContent = S.note;
+            document.getElementById('track').innerHTML = steps
+                .map(([i, b], n) => `<div class="step ${S.marks[n]}"><i>${i}</i><b>${b}</b></div>`)
+                .join('');
+            put(document.getElementById('sprite'), S.sprite, 300, { max: 8, frame: 1 });
+            await ready();
+        </script>
+    </body>
+</html>

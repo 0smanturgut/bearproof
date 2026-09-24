@@ -44,8 +44,9 @@ export function describeTool(name, input = {}) {
 /** Test summaries worth a line: node --test and the gate scripts. */
 export function testLine(text) {
     const s = String(text || '');
-    const pass = s.match(/ℹ pass (\d+)/);
-    const fail = s.match(/ℹ fail (\d+)/);
+    // node --test prints "ℹ pass 4" on a terminal and "# pass 4" (TAP) on CI.
+    const pass = s.match(/(?:ℹ|#) pass (\d+)/);
+    const fail = s.match(/(?:ℹ|#) fail (\d+)/);
     if (pass && fail) return `Tests: ${pass[1]} passed, ${fail[1]} failed`;
     if (/SMOKE OK/.test(s))
         return 'Smoke test: OK (phone and desktop, a seeded run, no console errors)';

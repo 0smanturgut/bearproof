@@ -15,7 +15,8 @@ Xvfb :99 -screen 0 "${W}x${H}x24" -nolisten tcp &
 sleep 2
 
 PROFILE=$(mktemp -d)
-google-chrome --kiosk --incognito --no-first-run --no-default-browser-check --noerrdialogs --disable-infobars \
+# Chrome never needs the key, so it doesn't get it.
+env -u STREAM_KEY -u RTMP_URL google-chrome --kiosk --incognito --no-first-run --no-default-browser-check --noerrdialogs --disable-infobars \
     --disable-translate --disable-features=Translate --disable-dev-shm-usage --hide-scrollbars \
     --autoplay-policy=no-user-gesture-required --window-position=0,0 --window-size="${W},${H}" \
     --user-data-dir="$PROFILE" "$PAGE" >/dev/null 2>&1 &

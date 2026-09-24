@@ -65,6 +65,11 @@ export async function send(events) {
         if (data && secretNeedles.some((n) => JSON.stringify(data).includes(n))) data = null;
         out.push({ ts: e.ts ?? Date.now(), type: e.type, text, data });
     }
+    // LIVE_DRY=1 (the key check): print what would be sent instead of sending it.
+    if (process.env.LIVE_DRY && out.length) {
+        for (const e of out) console.error(`live[dry] ${e.type}: ${e.text}`);
+        return;
+    }
     if (!out.length || !site || !token) return;
     try {
         const r = await fetch(`${site}/api/internal/agent/events`, {

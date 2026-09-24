@@ -17,4 +17,6 @@ journalctl -u bearproof-stream -f           # logs (the key is scrubbed)
 1080p: `systemctl edit bearproof-stream`, add `Environment=WIDTH=1920 HEIGHT=1080 BITRATE=6000k`, restart. Stop:
 `systemctl stop bearproof-stream`. Update: `git -C /opt/bearproof pull && systemctl restart bearproof-stream`.
 
+After a page deploy, reload the page without cutting the stream: `DISPLAY=:99 xdotool key F5`.
+
 The stream key lives only in `/etc/bearproof/stream.env` on the server (root-only). Never commit it.

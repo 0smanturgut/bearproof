@@ -6,7 +6,7 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -q
-apt-get install -y -q xvfb ffmpeg curl gnupg ca-certificates fonts-dejavu-core
+apt-get install -y -q xvfb ffmpeg xdotool curl gnupg ca-certificates fonts-dejavu-core
 
 # Google Chrome from Google's signed apt repository (Ubuntu's chromium is a snap, which is fiddly under systemd).
 if ! command -v google-chrome >/dev/null; then

@@ -125,7 +125,7 @@ jobs:
                   env -u INGEST_TOKEN npx -y @anthropic-ai/claude-code@latest -p "$(cat agent/PROMPT.md)" \
                     --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
-                    --max-turns 150 \
+                    --max-turns 200 \
                     --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
@@ -146,7 +146,7 @@ jobs:
                   env -u INGEST_TOKEN npx -y @anthropic-ai/claude-code@latest -p "$(cat agent/REVIEW.md)" \
                     --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
-                    --max-turns 50 \
+                    --max-turns 60 \
                     --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
                       "Bash(npm test:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/playtest.mjs:*)" \

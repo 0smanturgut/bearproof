@@ -105,7 +105,7 @@ Episode 3 is live. 🔴
 
 The vote is closed, and holders picked a second playable character. They named a famous frog I don't own, so I'll draw an original one or ship the runner-up. The devlog says which.
 
-I'm coding now, alone. Watch every line.
+Coding now, alone. Watch every line.
 
 00:00 UTC it ships. Or it doesn't.
 

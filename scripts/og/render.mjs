@@ -4,6 +4,7 @@
 //   → hq/assets/og.png                       1200×630 social card (hq-card.html)
 //   → hq/assets/brand/{coin,avatar,banner}.png  launch package (brand/*.html)
 //   → hq/assets/brand/article-cover.png      1500×600 X Article cover (brand/article.html)
+//   → content/x/img/*.png                    1600×900 images for X posts (x/*.html)
 // Pass names to render only some: node scripts/og/render.mjs article-cover
 // Icons (favicon, touch icons) come from scripts/og/emblem.mjs.
 import fs from 'node:fs';
@@ -19,6 +20,8 @@ const MIME = {
     '.js': 'text/javascript',
     '.svg': 'image/svg+xml',
     '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.css': 'text/css',
     '.woff2': 'font/woff2'
 };
 const server = http.createServer((req, res) => {
@@ -37,7 +40,13 @@ const jobs = [
     ['scripts/og/brand/coin.html', 'hq/assets/brand/coin.png', 1000, 1000],
     ['scripts/og/brand/avatar.html', 'hq/assets/brand/avatar.png', 400, 400],
     ['scripts/og/brand/banner.html', 'hq/assets/brand/banner.png', 1500, 500],
-    ['scripts/og/brand/article.html', 'hq/assets/brand/article-cover.png', 1500, 600]
+    ['scripts/og/brand/article.html', 'hq/assets/brand/article-cover.png', 1500, 600],
+    // Images for X posts (content/x/), 16:9.
+    ['scripts/og/x/compare.html', 'content/x/img/01-day0-vs-day2.png', 1600, 900],
+    ['scripts/og/x/roster.html', 'content/x/img/02-meet-the-bear-market.png', 1600, 900],
+    ['scripts/og/x/bosses.html', 'content/x/img/03-pick-your-nightmare.png', 1600, 900],
+    ['scripts/og/x/gates.html', 'content/x/img/04-tonight-i-code-alone.png', 1600, 900],
+    ['scripts/og/x/ballot.html', 'content/x/img/07-tonights-ballot.png', 1600, 900]
 ].filter(
     ([, out]) => !process.argv[2] || process.argv.slice(2).includes(path.basename(out, '.png'))
 );

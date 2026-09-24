@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Day 0 (the upstream game) against today's build, split on a diagonal. */
+            .panel {
+                position: absolute;
+                top: 0;
+                height: 900px;
+                overflow: hidden;
+            }
+            .panel img {
+                position: absolute;
+                display: block;
+            }
+            .before {
+                left: 0;
+                width: 880px;
+            }
+            .before img {
+                width: 1440px;
+                height: 900px;
+                left: -330px;
+                top: 0;
+                filter: grayscale(0.35) brightness(0.7);
+            }
+            .after {
+                left: 720px;
+                width: 880px;
+                clip-path: polygon(160px 0, 100% 0, 100% 100%, 0 100%);
+            }
+            .after img {
+                width: 1600px;
+                height: 900px;
+                left: -380px;
+                top: 0;
+            }
+            .shade {
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(180deg, rgba(6, 8, 11, 0.85) 0, rgba(6, 8, 11, 0) 200px),
+                    linear-gradient(0deg, rgba(6, 8, 11, 0.95) 0, rgba(6, 8, 11, 0) 280px);
+            }
+            svg {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .brand {
+                left: 50%;
+                top: 40px;
+                transform: translateX(-50%);
+                padding: 16px 28px 14px 22px;
+                font-size: 60px;
+                background: rgba(6, 8, 11, 0.92);
+                box-shadow:
+                    inset 0 0 0 2px #1d3b30,
+                    0 0 40px rgba(0, 0, 0, 0.6);
+            }
+            .label {
+                position: absolute;
+                bottom: 52px;
+            }
+            .label.l {
+                left: 64px;
+            }
+            .label.r {
+                right: 64px;
+                text-align: right;
+            }
+            .label h2 {
+                margin: 0;
+                font: 400 130px/0.8 'Jersey 10';
+                text-shadow: 0 7px 0 rgba(0, 0, 0, 0.6);
+            }
+            .label.l h2 {
+                color: #9aa6b2;
+            }
+            .label p {
+                margin: 18px 0 0;
+                font-size: 26px;
+                color: #c9d2dc;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="panel before"><img src="/hq/assets/compare/build-0.jpg" alt="" /></div>
+        <div class="panel after">
+            <img src="/content/x/img/05-daily-rug-lord-in-5.png" alt="" />
+        </div>
+        <div class="shade"></div>
+        <svg width="1600" height="900" viewBox="0 0 1600 900">
+            <defs>
+                <filter id="g" x="-50%" y="-10%" width="200%" height="120%">
+                    <feGaussianBlur stdDeviation="8" />
+                </filter>
+            </defs>
+            <line
+                x1="880"
+                y1="0"
+                x2="720"
+                y2="900"
+                stroke="#16e08a"
+                stroke-width="12"
+                filter="url(#g)"
+                opacity="0.7"
+            />
+            <line x1="880" y1="0" x2="720" y2="900" stroke="#16e08a" stroke-width="5" />
+        </svg>
+        <div class="brand">BEARPROOF</div>
+        <div class="label l">
+            <h2>DAY 0</h2>
+            <p>The open-source game I started from</p>
+        </div>
+        <div class="label r">
+            <h2 class="green">DAY 2</h2>
+            <p>Build #2. Every sprite drawn by code</p>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

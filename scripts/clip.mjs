@@ -5,6 +5,10 @@
  * so the pixel art stays crisp. For the HQ's "Today's build" card and the daily X post.
  *
  *   node scripts/clip.mjs --out hq/assets/builds/build-2.mp4 [--size 1280x720] [--scale 1.5]
+ *   node scripts/clip.mjs --build 3 --character pepe --out content/x/video/pepe.mp4
+ *
+ * --character taps that character on the title screen (on camera) and, on level-ups, takes its starter weapon's
+ * card whenever one is offered (--prefer <weapon id> to choose another), like a player building around it.
  *
  * Needs ffmpeg on PATH. Nothing here touches the network: the API is mocked like the smoke test.
  */
@@ -24,6 +28,8 @@ const OUT = path.resolve(ROOT, opt('--out', 'clip.mp4'));
 const [VW, VH] = opt('--size', '1280x720').split('x').map(Number);
 const SCALE = Number(opt('--scale', '1.5'));
 const SEED = Number(opt('--seed', '424242'));
+const CHARACTER = opt('--character', null);
+const PREFER = opt('--prefer', null);
 
 const MIME = {
     '.html': 'text/html',
@@ -90,32 +96,57 @@ await cdp.send('Page.startScreencast', {
 const wait = (ms) => page.waitForTimeout(ms);
 const g = (fn, a) => page.evaluate(fn, a);
 
-// 1. title screen, the live build behind it
-await wait(2400);
+// 1. title screen, the live build behind it (and the character pick, tapped on camera)
+await wait(CHARACTER ? 1200 : 2400);
+if (CHARACTER) {
+    await page.click(`.char-btn[data-char="${CHARACTER}"]`);
+    await wait(1800);
+}
 // 2. play: fast-forward into a busy mid-game, then let the autopilot drive
 await page.click('#btnDaily');
-await g(async () => {
-    const { createBot } = await import('/src/sim/bot.js');
-    const game = window.__bearproof.game;
-    // Keep the autopilot's bull alive for the trailer: top its HP up every frame (the bar stays honest).
-    const heal = () => {
-        const p = window.__bearproof.game.sim.player;
-        p.hp = p.maxHp;
-        requestAnimationFrame(heal);
-    };
-    heal();
-    const fwd = (s) => {
-        for (let i = 0; i < s; i++) {
-            game.sim.player.hp = game.sim.player.maxHp;
-            window.__bearproof.advance(1, { style: 'survive' });
-        }
-    };
-    window.__fwd = fwd;
-    fwd(150);
-    game.bot = createBot({ style: 'survive' });
-    game.ui.moveHint(false);
-    document.getElementById('toast').classList.remove('show');
-});
+await g(
+    async ({ on, prefer }) => {
+        const { createBot } = await import('/src/sim/bot.js');
+        const game = window.__bearproof.game;
+        // The card to take on a level-up: the preferred weapon when offered, else the first.
+        const want = prefer || game.sim.player.weapons[0]?.id;
+        window.__pickIndex = () =>
+            window.__prefer
+                ? Math.max(
+                      0,
+                      game.sim.choices.findIndex((c) => c.id === want)
+                  )
+                : 0;
+        window.__prefer = on;
+        const pick = () => {
+            const i = window.__pickIndex();
+            game.rec.pick(game.sim.tick, i);
+            game.sim.choose(i);
+        };
+        window.__pick = pick;
+        // Keep the autopilot's bull alive for the trailer: top its HP up every frame (the bar stays honest).
+        const heal = () => {
+            const p = window.__bearproof.game.sim.player;
+            p.hp = p.maxHp;
+            requestAnimationFrame(heal);
+        };
+        heal();
+        const fwd = (s) => {
+            const end = game.sim.time + s;
+            while (game.sim.time < end && !game.sim.over) {
+                game.sim.player.hp = game.sim.player.maxHp;
+                const r = window.__bearproof.advance(1, { style: 'survive', stopAtLevelUp: true });
+                if (r === 'levelup') pick();
+            }
+        };
+        window.__fwd = fwd;
+        fwd(150);
+        game.bot = createBot({ style: 'survive' });
+        game.ui.moveHint(false);
+        document.getElementById('toast').classList.remove('show');
+    },
+    { on: !!CHARACTER || !!PREFER, prefer: PREFER }
+);
 await wait(4200);
 // 3. a level-up
 await g(() => {
@@ -129,7 +160,7 @@ await g(() => {
 await wait(1800);
 await page
     .locator('#cards .card')
-    .first()
+    .nth(await g(() => window.__pickIndex()))
     .click({ force: true })
     .catch(() => {});
 // 4. the boss: jump to just before the Rug Lord and watch him arrive
@@ -138,15 +169,16 @@ await g(async () => {
     const game = window.__bearproof.game;
     const left = Math.max(0, 294 - game.sim.time);
     window.__fwd(Math.ceil(left));
-    while (game.sim.choices) {
-        game.rec.pick(game.sim.tick, 0);
-        game.sim.choose(0);
-    }
+    while (game.sim.choices) window.__pick();
     game.bot = createBot({ style: 'survive' });
     game.state = 'playing';
     game.ui.hideAll();
+    // Take later cards without opening the menu, so the clip ends on the fight, not on a card screen.
+    game._openLevelUp = () => {
+        while (game.sim.choices) game._choose(window.__pickIndex());
+    };
 });
-await wait(9000);
+await wait(CHARACTER ? 11000 : 9000);
 await cdp.send('Page.stopScreencast');
 await browser.close();
 server.close();

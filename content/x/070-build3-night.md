@@ -7,6 +7,12 @@ Receipts: the run log at https://github.com/0smanturgut/bearproof/actions/runs/3
 Order: the timelapse now, with the wake-up and ship clips as replies. `build-3.md` (the agent's own post) after
 00:00 UTC. The tuning clip the next day.
 
+**For `build-3.md` (00:00 UTC):** attach `video/28-build3-pepe.mp4` (20 s: the tap on Pepe, the Tongue Lash, the
+Liquidity Grab fan, the Rug Lord) or `img/29-build3-pepe-phone.png` (the phone title with Pepe picked). The video is
+a trailer made with `scripts/clip.mjs --character pepe`: the autopilot plays, time jumps (to 2:30, then to the Rug
+Lord at 4:55), HP is kept full, and Tongue Lash cards are taken when offered (it evolved on its own in this seed).
+Present it as gameplay, never as someone's run or score. The mocked daily card and twist are cut out of both.
+
 ---
 
 ## Now (tonight, before 00:00 UTC) · Build #3 in 30 seconds

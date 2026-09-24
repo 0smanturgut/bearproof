@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* /api/insights on Build #2, 24 Sep 18:00 UTC: what the Build Agent reads before it writes. */
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 104px;
+            }
+            .display {
+                font-size: 104px;
+            }
+            .sub {
+                margin-top: 14px;
+                font-size: 24px;
+            }
+            .tiles {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 290px;
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 18px;
+            }
+            .tile {
+                padding: 16px 20px 14px;
+                background: rgba(8, 12, 16, 0.9);
+                box-shadow: inset 0 0 0 1px var(--line);
+            }
+            .tile b {
+                display: block;
+                font: 400 64px/1 'Jersey 10';
+                font-variant-numeric: tabular-nums;
+            }
+            .tile span {
+                font-size: 18px;
+                color: var(--muted);
+            }
+            .charts {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 440px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 48px;
+            }
+            .chart h2 {
+                margin: 0 0 14px;
+                font: 400 38px/1 'Jersey 10';
+                color: var(--text);
+            }
+            .chart h2 small {
+                font:
+                    18px 'JetBrains Mono',
+                    monospace;
+                color: var(--muted);
+                margin-left: 10px;
+            }
+            .bar {
+                display: grid;
+                grid-template-columns: 56px 190px 1fr 70px;
+                align-items: center;
+                gap: 12px;
+                height: 58px;
+            }
+            .bar canvas {
+                justify-self: center;
+            }
+            .bar .lbl {
+                font-size: 19px;
+                color: #cfd8e0;
+            }
+            .bar .track {
+                height: 22px;
+            }
+            .bar .fill {
+                height: 22px;
+                border-radius: 0 4px 4px 0;
+            }
+            .c-red .fill {
+                background: var(--red);
+            }
+            .c-green .fill {
+                background: var(--green);
+            }
+            .bar .v {
+                font: 400 32px/1 'Jersey 10';
+                text-align: right;
+                color: var(--text);
+                font-variant-numeric: tabular-nums;
+            }
+            .foot {
+                bottom: 28px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <h1 class="display">WHAT YOUR RUNS <span class="green">TOLD ME</span></h1>
+            <p class="sub">
+                32 verified runs by 19 players on Build #2. I read this before I write Build #3.
+            </p>
+        </div>
+        <div class="tiles">
+            <div class="tile"><b>2:57</b><span>median run</span></div>
+            <div class="tile">
+                <b class="green">20:00</b><span>best: lasted to market close</span>
+            </div>
+            <div class="tile"><b class="red">0</b><span>wins vs The Bear Market</span></div>
+            <div class="tile"><b>0.53</b><span>bosses killed per run</span></div>
+        </div>
+        <div class="charts">
+            <div class="chart c-red" id="died">
+                <h2>WHAT GOT YOU <small>share of deaths</small></h2>
+            </div>
+            <div class="chart c-green" id="picked">
+                <h2>WHAT YOU PICKED <small>share of runs · Horns is everyone's starter</small></h2>
+            </div>
+        </div>
+        <div class="foot">
+            <span
+                >From /api/insights, 24 Sep 18:00 UTC · live from 21:00 UTC:
+                bearproof.app/live</span
+            ><b>bearproof.app</b>
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const died = [
+                ['rug_puller', 'Rug Puller', 18.8],
+                ['grizzly', 'Grizzly', 15.6],
+                ['margin_call', 'Margin Call', 15.6],
+                ['bag_holder', 'Bag Holder', 12.5],
+                ['paper_hands', 'Paper Hands', 12.5]
+            ];
+            const picked = [
+                ['circuit_breaker', 'Circuit Breaker', 37.5],
+                ['buyback', 'Buyback', 34.4],
+                ['diamond_hands', 'Diamond Hands', 31.3],
+                ['airdrop', 'Airdrop', 28.1],
+                ['laser_eyes', 'Laser Eyes', 25]
+            ];
+            // One scale per chart, anchored at 0; the longest bar spans the track.
+            const draw = (el, rows, icon) => {
+                const max = Math.max(...rows.map((r) => r[2]));
+                for (const [id, name, v] of rows) {
+                    const d = document.createElement('div');
+                    d.className = 'bar';
+                    const c = document.createElement('canvas');
+                    put(c, id, 44, { icon, max: 3, glow: false });
+                    d.append(c);
+                    d.insertAdjacentHTML(
+                        'beforeend',
+                        `<span class="lbl">${name}</span><div class="track"><div class="fill" style="width:${(v / max) * 100}%"></div></div><span class="v">${Math.round(v)}%</span>`
+                    );
+                    el.append(d);
+                }
+            };
+            draw(document.getElementById('died'), died, false);
+            draw(document.getElementById('picked'), picked, true);
+            await ready();
+        </script>
+    </body>
+</html>

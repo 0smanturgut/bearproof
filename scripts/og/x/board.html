@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Today's board, 24 Sep 18:00 UTC, from /api/leaderboard. Every row shown was verified by replay. */
+            .brand {
+                left: 64px;
+                top: 48px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 124px;
+                width: 620px;
+            }
+            .display {
+                font-size: 150px;
+                line-height: 0.84;
+            }
+            .sub {
+                margin-top: 28px;
+                font-size: 26px;
+                line-height: 1.5;
+            }
+            .sub b {
+                color: var(--text);
+                font-weight: 400;
+            }
+            .board {
+                position: absolute;
+                right: 64px;
+                top: 64px;
+                width: 800px;
+                background: #080c10;
+                box-shadow:
+                    inset 0 0 0 2px #1d3b30,
+                    0 30px 90px rgba(0, 0, 0, 0.65);
+            }
+            .bar {
+                display: flex;
+                justify-content: space-between;
+                padding: 16px 24px;
+                border-bottom: 2px solid #1d3b30;
+                font-size: 18px;
+                letter-spacing: 0.1em;
+                color: var(--muted);
+            }
+            .row {
+                display: grid;
+                grid-template-columns: 64px 1fr auto;
+                gap: 8px 18px;
+                align-items: center;
+                padding: 18px 24px;
+                border-bottom: 1px solid var(--line);
+            }
+            .row .rk {
+                font: 400 56px/1 'Jersey 10';
+                color: var(--muted);
+            }
+            .row.top .rk {
+                color: var(--gold);
+            }
+            .row .who b {
+                display: block;
+                font: 400 42px/1 'Jersey 10';
+            }
+            .row .who span {
+                font-size: 17px;
+                color: var(--muted);
+            }
+            .row .sc {
+                text-align: right;
+            }
+            .row .sc b {
+                display: block;
+                font: 400 56px/1 'Jersey 10';
+                font-variant-numeric: tabular-nums;
+            }
+            .row.top .sc b {
+                color: var(--gold);
+            }
+            .chip {
+                display: inline-block;
+                margin-top: 6px;
+                padding: 4px 10px 3px;
+                font-size: 15px;
+                letter-spacing: 0.08em;
+                color: var(--green);
+                box-shadow: inset 0 0 0 1px #1d5a43;
+            }
+            .chip.op {
+                color: var(--muted);
+                box-shadow: inset 0 0 0 1px var(--line);
+            }
+            .note {
+                padding: 16px 24px 20px;
+                font-size: 17px;
+                color: var(--muted);
+            }
+            .prize {
+                position: absolute;
+                left: 64px;
+                bottom: 70px;
+                width: 620px;
+                padding: 18px 22px;
+                font-size: 22px;
+                line-height: 1.45;
+                color: var(--text);
+                box-shadow: inset 0 0 0 2px var(--gold);
+                background: rgba(245, 197, 66, 0.06);
+            }
+            .prize b {
+                display: block;
+                font: 400 38px/1 'Jersey 10';
+                color: var(--gold);
+                margin-bottom: 6px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <h1 class="display">166,051 <span class="red">FELL.</span></h1>
+            <p class="sub">
+                New #1: <b>222,261</b>. Two players lasted until the market closed at 20:00.<br />Nobody
+                has beaten The Bear Market yet.
+            </p>
+        </div>
+        <div class="prize">
+            <b>FIRST $ANSEM PRIZE TONIGHT</b>Board closes 00:00 UTC. The best verified run with a
+            prize address gets paid on-chain.
+        </div>
+        <div class="board">
+            <div class="bar">
+                <span>TODAY'S DAILY · BUILD #2</span><span>24 SEP · 18:00 UTC</span>
+            </div>
+            <div class="row top">
+                <div class="rk">1</div>
+                <div class="who"><b>xxx</b><span>20:00 · 8,790 kills · lv 38</span></div>
+                <div class="sc"><b>222,261</b><span class="chip">✓ REPLAYED</span></div>
+            </div>
+            <div class="row">
+                <div class="rk">2</div>
+                <div class="who"><b>Streak</b><span>20:00 · 6,280 kills · lv 30</span></div>
+                <div class="sc"><b>161,718</b><span class="chip">✓ REPLAYED</span></div>
+            </div>
+            <div class="row">
+                <div class="rk">3</div>
+                <div class="who"><b>Sam</b><span>4:18 · 553 kills · lv 21</span></div>
+                <div class="sc"><b>13,165</b><span class="chip op">OPERATOR · CAN'T WIN</span></div>
+            </div>
+            <div class="row">
+                <div class="rk">4</div>
+                <div class="who"><b>anon-d626</b><span>3:06 · 151 kills · lv 13</span></div>
+                <div class="sc"><b>4,414</b><span class="chip">✓ REPLAYED</span></div>
+            </div>
+            <div class="note">
+                Every score here was re-simulated from its inputs on the exact build it was played
+                on.
+            </div>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

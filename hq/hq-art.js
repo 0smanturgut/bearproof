@@ -289,8 +289,14 @@ function runParade(canvas, { SPRITES, bakeSprite, bakeGlow }) {
             `${Number(s.topScoreToday.score).toLocaleString('en-US')}${s.topScoreToday.verified ? ' ✓' : ''}`,
             'y'
         );
-    if (s && s.treasury && Number.isFinite(s.treasury.balance))
-        add('Treasury', `${s.treasury.balance.toFixed(2)} SOL`, 'y');
+    if (s && s.treasury && Number.isFinite(s.treasury.balance)) {
+        // Same number as the live board: wallet + the treasury's est. share of unclaimed creator fees.
+        const t = s.treasury;
+        const share =
+            Number.isFinite(t.feeShare) && t.feeShare > 0 && t.feeShare <= 1 ? t.feeShare : 0;
+        const fees = Number.isFinite(t.feesUnclaimed) ? t.feesUnclaimed * share : 0;
+        add('Treasury', `${fees > 0 ? '~' : ''}${(t.balance + fees).toFixed(2)} SOL`, 'y');
+    }
     add('Next build', '00:00 UTC');
     if (items.length < 3) return;
     const run = items.join('');

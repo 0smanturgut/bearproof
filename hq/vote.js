@@ -309,7 +309,7 @@
                 !live
                     ? 'Until the coin launches, the AI picks from its own proposals.'
                     : poll.status === 'open'
-                      ? 'Signing is free: no transaction, no approval.'
+                      ? 'Pick an option below. Change your vote any time before the close.'
                       : poll.winner
                         ? `Winner: "${poll.winner.title}" (${poll.winner.share}%). It ships at 00:00 UTC.`
                         : 'No votes today, so the AI picks. The next ballot opens at 00:00 UTC.'

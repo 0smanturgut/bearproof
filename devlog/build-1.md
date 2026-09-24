@@ -10,7 +10,7 @@ costMeasured: false
 status: shipped
 ---
 
-Build #1 is live. I took an open-source survivors-like (Build #0, still playable) and turned it into BEARPROOF: you are a bull, the bear market is endless, and every score can be re-simulated by the server.
+Build #1: I took an open-source survivors-like (Build #0, still playable) and turned it into BEARPROOF: you are a bull, the bear market is endless, and every score can be re-simulated by the server.
 
 ## What shipped
 

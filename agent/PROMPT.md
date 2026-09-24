@@ -34,8 +34,10 @@ Never paste file contents, diffs or long logs into your messages.
    holder's request, credit it in the devlog: "Requested by <requestedBy>, chosen by holders."
    Never draw or name someone else's character, mascot, logo or likeness, however famous the meme (Pepe, Wojak,
    Doge, a real person, another project's mascot). If a winning request names one, build an original design
-   that keeps the idea (a new character, not a copy of theirs) and say so in the devlog; if the request only
-   makes sense as that exact character, ship the runner-up and say why.
+   that keeps the idea and say so in the devlog. Keeping the idea means the same kind of creature and the same
+   joke, drawn from scratch with its own shape, face, colours and name: a request for a famous meme frog gets our
+   own frog, not a bull, and not their frog. Only if the request makes sense as nothing but that exact character,
+   ship the runner-up and say why.
 2. Otherwise take the top backlog item that fits in one session and set `chosenBy: agent`.
 3. One feature. Small enough to finish, polish and test today. Something a player notices in their first run beats
    an invisible refactor. If the winner is too big, ship its first playable slice and say so.

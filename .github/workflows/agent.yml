@@ -88,6 +88,8 @@ jobs:
             - uses: actions/checkout@v4
               if: env.PAUSED != '1'
               with:
+                  # The latest main at 21:00, not the commit the (hours-early) trigger saw.
+                  ref: main
                   fetch-depth: 0
             - uses: actions/setup-node@v4
               if: env.PAUSED != '1'
@@ -121,7 +123,7 @@ jobs:
                   set -o pipefail
                   # The agent never sees INGEST_TOKEN: only the relay, which scrubs secrets from what it sends.
                   env -u INGEST_TOKEN npx -y @anthropic-ai/claude-code@latest -p "$(cat agent/PROMPT.md)" \
-                    --model claude-opus-5 \
+                    --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
                     --max-turns 150 \
                     --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
@@ -142,7 +144,7 @@ jobs:
                   set -o pipefail
                   node agent/live.mjs review "A second, fresh session now reviews the change before anything ships."
                   env -u INGEST_TOKEN npx -y @anthropic-ai/claude-code@latest -p "$(cat agent/REVIEW.md)" \
-                    --model claude-opus-5 \
+                    --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
                     --max-turns 50 \
                     --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
@@ -194,7 +196,7 @@ jobs:
                   git config user.email "agent@bearproof.invalid"
                   git checkout -b "agent/build-$N"
                   git add -A
-                  git commit -m "feat(build-$N): $TITLE" -m "Written by the Build Agent (Claude Code, headless, GitHub Actions: a build pass and a review pass). Run started by: ${{ github.event_name == 'schedule' && 'the daily schedule, which waits for the 21:00 UTC vote close' || 'the operator (manual dispatch)' }}." -m "Build-Mode: agent"
+                  git commit -m "feat(build-$N): $TITLE" -m "Written by the Build Agent (Claude Code, headless, GitHub Actions: a build pass and a review pass). Run started by: ${{ github.event_name == 'schedule' && 'the daily schedule, which waits for the 21:00 UTC vote close' || (inputs.now && 'the operator (manual dispatch, started at once)' || 'a backup dispatch queued early by the operator, because the GitHub schedule runs hours late here; it waited for the 21:00 UTC vote close like the schedule') }}." -m "Build-Mode: agent"
                   git push origin "agent/build-$N"
                   PR=$(gh pr create --base main --head "agent/build-$N" --title "Build #$N: $TITLE" --body-file "devlog/build-$N.md")
                   node agent/live.mjs ship "Pull request opened: Build #$N, \"$TITLE\". CI runs on it now." "{\"pr\":\"$PR\"}"

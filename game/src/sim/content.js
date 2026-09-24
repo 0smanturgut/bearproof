@@ -753,6 +753,31 @@ export function dailyTwistForSeed(seed) {
     return rotation[Math.floor((seed >>> 0) / STAGE_ROTATION.length) % rotation.length];
 }
 
+// ---------------------------------------------------------------- characters
+
+/**
+ * Playable characters. The chosen one is written into the run log (like the twist), so a replay needs nothing
+ * else and the server re-simulates every run with the right character. CHARACTER_IDS is append-only: a
+ * character's index is its byte in the log. The bull is index 0 and the default; unknown ids are the bull.
+ * `starterWeapon` is the weapon a run starts with. Add more fields here as characters need them, and read them in
+ * the Simulation, never in the UI.
+ */
+export const CHARACTER_IDS = ['bull'];
+
+export const CHARACTERS = {
+    bull: {
+        id: 'bull',
+        name: 'The Bull',
+        description: 'Horns first. Survives the bear market out of spite.',
+        starterWeapon: STARTER_WEAPON
+    }
+};
+
+/** Character definition. Unknown ids are the bull. */
+export function characterDef(id) {
+    return CHARACTERS[id] || CHARACTERS.bull;
+}
+
 const MOD_DEFAULTS = { playerSpeedMult: 1, enemyHpMult: 1, coldTickInterval: 0, coldTickDamage: 0 };
 
 export function getStage(id) {

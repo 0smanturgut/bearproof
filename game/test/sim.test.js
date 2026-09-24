@@ -22,7 +22,11 @@ import {
     WEAPONS,
     bossesFor,
     enemyDef,
-    stageForSeed
+    stageForSeed,
+    CHARACTERS,
+    CHARACTER_IDS,
+    characterDef,
+    weaponDef
 } from '../src/sim/content.js';
 
 /** Play a run with the bot, recording it. Switches to a reckless bot after `surviveTicks` so it ends. */
@@ -173,4 +177,83 @@ test('sim: level-up waits for a pick and applies it', () => {
     if (c.kind === 'weapon') assert.ok(sim.player.weapons.some((w) => w.id === c.id));
     if (c.kind === 'passive') assert.ok(sim.player.passives[c.id]);
     assert.equal(sim.step(0), true);
+});
+
+// --- characters in the run log ---------------------------------------------------------------------------------
+
+/** Record a short bot run with a character, then play recklessly until it ends. */
+function recordWith(seed, character, twist = null) {
+    const sim = new Simulation({ seed, twist, character });
+    const rec = new RunRecorder(seed, twist, sim.characterId);
+    const calm = createBot();
+    const reckless = createBot({ style: 'reckless' });
+    while (!sim.over && sim.tick < SIM.MAX_TICKS) {
+        if (sim.choices) {
+            const i = calm.pick(sim);
+            rec.pick(sim.tick, i);
+            sim.choose(i);
+            continue;
+        }
+        const code = (sim.tick < 60 * 30 ? calm : reckless).move(sim);
+        rec.tick(code);
+        sim.step(code);
+        sim.drainEvents();
+    }
+    return { sim, bytes: rec.toBytes() };
+}
+
+test('characters: the bull is the default, index 0, and unknown ids are the bull', () => {
+    assert.equal(CHARACTER_IDS[0], 'bull');
+    for (const id of CHARACTER_IDS) {
+        assert.ok(CHARACTERS[id], id);
+        assert.ok(weaponDef(CHARACTERS[id].starterWeapon), `${id} starts with a real weapon`);
+    }
+    assert.equal(new Simulation({ seed: 3 }).characterId, 'bull');
+    assert.equal(new Simulation({ seed: 3, character: 'nope' }).characterId, 'bull');
+    assert.equal(characterDef('nope').id, 'bull');
+});
+
+test('runlog: the character is written into the log and the replay plays it', () => {
+    // A throwaway second character that starts with another weapon, so a replay with the wrong one can't match.
+    const other = Object.values(WEAPONS).find((w) => w.id !== CHARACTERS.bull.starterWeapon).id;
+    CHARACTER_IDS.push('test_only');
+    CHARACTERS.test_only = { id: 'test_only', name: 'Test', description: '', starterWeapon: other };
+    try {
+        const { sim, bytes } = recordWith(11, 'test_only');
+        assert.equal(sim.summary().character, 'test_only');
+        assert.equal(sim.summary().weapons[0][0], other);
+        assert.equal(bytes[9], CHARACTER_IDS.indexOf('test_only'), 'character byte');
+        const log = decodeRunLog(bytes);
+        assert.equal(log.character, 'test_only');
+        const r = replay(bytes);
+        assert.ok(r.ok, r.error);
+        assert.equal(r.character, 'test_only');
+        assert.equal(r.hash, sim.stateHash());
+        assert.deepEqual(r.summary, sim.summary());
+        // the same inputs with the bull are a different run
+        const asBull = bytes.slice();
+        asBull[9] = 0;
+        const rb = replay(asBull);
+        assert.ok(!rb.ok || rb.hash !== sim.stateHash(), 'the character changes the run');
+        const bad = bytes.slice();
+        bad[9] = 250;
+        assert.throws(() => decodeRunLog(bad), /unknown character/);
+    } finally {
+        CHARACTER_IDS.pop();
+        delete CHARACTERS.test_only;
+    }
+});
+
+test('runlog: version-2 logs (no character byte) decode and replay as the bull', () => {
+    const { sim, bytes } = recordWith(5, 'bull');
+    assert.equal(bytes[2], 3);
+    const v2 = new Uint8Array(bytes.length - 1);
+    v2.set(bytes.subarray(0, 9));
+    v2.set(bytes.subarray(10), 9);
+    v2[2] = 2;
+    const log = decodeRunLog(v2);
+    assert.equal(log.character, 'bull');
+    const r = replay(v2);
+    assert.ok(r.ok, r.error);
+    assert.equal(r.hash, sim.stateHash());
 });

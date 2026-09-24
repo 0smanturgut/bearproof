@@ -3,7 +3,7 @@
  * Playtest: let the autopilot play many seeded runs headlessly and report what happened. The Build Agent runs it
  * before and after its change, so a balance claim in the devlog is a measurement, not a guess.
  *
- *   node game/scripts/playtest.mjs [--runs 40] [--minutes 10] [--twist none|<id>|daily] [--json]
+ *   node game/scripts/playtest.mjs [--runs 40] [--minutes 10] [--twist none|<id>|daily] [--character <id>] [--json]
  *   node game/scripts/playtest.mjs --compare origin/main     same seeds on the ref's sim vs the working tree
  *
  * The autopilot is not a person (it plays a steady 'survive' style), so read changes, not absolutes: if the median
@@ -21,6 +21,7 @@ const opt = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const RUNS = Number(opt('--runs', '40'));
 const MINUTES = Number(opt('--minutes', '10'));
 const TWIST = opt('--twist', 'none');
+const CHARACTER = opt('--character', null); // a CHARACTERS id; an older sim without characters plays the bull
 const COMPARE = opt('--compare', null);
 
 async function loadSim(dir) {
@@ -54,7 +55,7 @@ function play(m, seed) {
             : TWIST === 'none'
               ? null
               : TWIST;
-    const sim = new m.Simulation({ seed, twist });
+    const sim = new m.Simulation({ seed, twist, character: CHARACTER });
     const bot = m.createBot({ style: 'survive', phase: seed % 997 });
     const maxTicks = Math.round((MINUTES * 60) / m.content.SIM.DT);
     while (!sim.over && sim.tick < maxTicks) {

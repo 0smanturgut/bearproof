@@ -23,7 +23,8 @@ export const DEFAULT_PREFS = Object.freeze({
     vibration: true,
     name: '',
     nameAsked: false, // the board-name box shows after the first ranked run, then stays out of the way
-    payoutAddress: '' // public Solana address for the daily prize, also stored server-side for payout only
+    payoutAddress: '', // public Solana address for the daily prize, also stored server-side for payout only
+    character: 'bull' // CHARACTERS id; the run log records it
 });
 
 let memory = null;

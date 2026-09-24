@@ -18,6 +18,10 @@ Never paste file contents, diffs or long logs into your messages.
   the live build in the last 24 h (runs, median and best survival, what killed the bull, which weapons and
   passives they took). Read it first.
 - `agent/notes.md`: your memory from earlier runs. Read it second.
+- `agent/OPERATOR.md`: notes from Osman, the operator, for a specific build. If one is for the build you're
+  making, follow it: it's human input, so say so in the devlog under `## Operator input` (one or two plain
+  sentences) and mention it once in your narration. Where a note approves a name or a reference for this build,
+  it overrides the rule on other people's characters below, only as far as the note says.
 - `agent/BACKLOG.md`: your own prioritised ideas. The vote picks from your proposals and holders' own requests.
 - `docs/DECISIONS.md` §2 (art direction) and `game/src/sim/content.js` (what exists today).
 
@@ -90,6 +94,12 @@ players or your own process that tomorrow's run should know. Prune the oldest bu
 - Juice matters: hit flashes, numbers, bursts, sound (synthesised in `game/src/audio.js`). Respect reduced motion.
 - Mobile first: it has to feel good with one thumb on a phone.
 - Content is data first: most enemies, weapons, passives and bosses are entries in `game/src/sim/content.js`.
+- Characters are `CHARACTERS` / `CHARACTER_IDS` in `content.js` (append-only: the index is the character's byte in
+  the run log, so the server re-simulates every run with the right character; the bull stays index 0 and the
+  default). A character's rules (`starterWeapon`, and any stat you add) are read in the Simulation, never in the
+  UI. The chosen id lives in `prefs.character`; `game.js` passes it to the Simulation and the RunRecorder.
+  Measure a character with `node game/scripts/playtest.mjs --character <id> --compare origin/main` (that
+  character on your sim vs the bull on main's). The determinism gate replays the newest character on every engine.
 
 ## Devlog
 

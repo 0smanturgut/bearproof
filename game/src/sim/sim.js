@@ -2,7 +2,8 @@
  * @module sim/sim
  * @description The deterministic BEARPROOF simulation. No DOM, no audio, no clocks, no Math.random.
  *
- *   const sim = new Simulation({ seed, twist });   // twist: a TWISTS id for the Daily Challenge, else none
+ *   const sim = new Simulation({ seed, twist, character });   // twist: the Daily Challenge's TWISTS id, else none;
+ *                                                             // character: a CHARACTERS id, default the bull
  *   while (!sim.over) {
  *       if (sim.choices) sim.choose(pickIndex);   // level-up: the sim waits until a card is picked
  *       else sim.step(moveCode);                  // one fixed 1/60 s tick
@@ -26,7 +27,8 @@ import {
     stageModifiers,
     twistDef,
     wavesFor,
-    weaponDef
+    weaponDef,
+    characterDef
 } from './content.js';
 import { cos, hypot, sin } from './dmath.js';
 import { Enemy, Player, XpOrb, resetEntityIds } from './entities.js';
@@ -39,12 +41,14 @@ import { Weapon } from './weapons.js';
 export const SIM_VERSION = 2;
 
 export class Simulation {
-    constructor({ seed = 1, stage = null, twist = null } = {}) {
+    constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
         resetEntityIds();
         this.seed = seed >>> 0;
         this.stageId = stage || stageForSeed(this.seed);
         this.twist = twistDef(twist);
         this.twistId = this.twist.id;
+        this.character = characterDef(character);
+        this.characterId = this.character.id;
         this.rng = new Rng(this.seed);
         this.stageMods = stageModifiers(this.stageId);
         this.waves = wavesFor(this.stageId);
@@ -57,7 +61,9 @@ export class Simulation {
         this.player = new Player(0, 0);
         this.player.twistDamageMult = this.twist.playerDamageMult;
         this.player.twistExpMult = this.twist.xpMult;
-        this.player.weapons.push(new Weapon(weaponDef(STARTER_WEAPON)));
+        this.player.weapons.push(
+            new Weapon(weaponDef(this.character.starterWeapon || STARTER_WEAPON))
+        );
         this.enemies = [];
         this.projectiles = [];
         this.enemyProjectiles = [];
@@ -443,6 +449,7 @@ export class Simulation {
             reason: this.endReason,
             stage: this.stageId,
             twist: this.twistId,
+            character: this.characterId,
             weapons: this.player.weapons.map((w) => [w.id, w.level]),
             passives: this.player.passiveOrder.map((id) => [id, this.player.passives[id].count])
         };

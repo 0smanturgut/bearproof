@@ -82,8 +82,10 @@ export class Game {
         const seed = this.mode === 'daily' ? this.daily.seed : randomSeed();
         // The Daily Challenge has one twist, the same for everyone; free runs have none.
         const twist = this.mode === 'daily' ? dailyTwistForSeed(seed) : null;
-        this.sim = new Simulation({ seed, twist });
-        this.rec = new RunRecorder(seed, twist);
+        // The chosen character is part of the run log, so the server re-simulates it too. Autopilot: the bull.
+        const character = this.attract ? null : this.prefs.character || null;
+        this.sim = new Simulation({ seed, twist, character });
+        this.rec = new RunRecorder(seed, twist, this.sim.characterId);
         this.bot = this.attract ? createBot({ phase: Math.floor(Math.random() * 1000) }) : null;
         this.fx.clear();
         this.cam.x = 0;

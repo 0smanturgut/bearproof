@@ -75,14 +75,16 @@ test('twist: changes the run for the same inputs', () => {
 
 test('runlog: version-1 logs (no twist byte) still decode as "none"', () => {
     const { bytes } = play(7, null, 60 * 20);
-    assert.equal(bytes[2], 2);
+    assert.equal(bytes[2], 3);
     assert.equal(bytes[8], 0, 'twist byte 0 = none');
-    const v1 = new Uint8Array(bytes.length - 1);
+    // version 1 = no twist byte and no character byte
+    const v1 = new Uint8Array(bytes.length - 2);
     v1.set(bytes.subarray(0, 8));
-    v1.set(bytes.subarray(9), 8);
+    v1.set(bytes.subarray(10), 8);
     v1[2] = 1;
     const log = decodeRunLog(v1);
     assert.equal(log.twist, 'none');
+    assert.equal(log.character, 'bull');
     assert.equal(log.seed, 7);
     const bad = bytes.slice();
     bad[8] = 250;

@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { Simulation } from '../src/sim/sim.js';
 import { createBot } from '../src/sim/bot.js';
 import { RunRecorder, toBase64Url } from '../src/sim/runlog.js';
-import { dailyTwistForSeed } from '../src/sim/content.js';
+import { CHARACTER_IDS, dailyTwistForSeed } from '../src/sim/content.js';
 import { launch } from '../../scripts/lib/browser.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -44,9 +44,9 @@ function replayInJsc(runs) {
     }
 }
 
-function record(seed, twist = null) {
-    const sim = new Simulation({ seed, twist });
-    const rec = new RunRecorder(seed, twist);
+function record(seed, twist = null, character = null) {
+    const sim = new Simulation({ seed, twist, character });
+    const rec = new RunRecorder(seed, twist, sim.characterId);
     const bot = createBot();
     const reckless = createBot({ style: 'reckless' });
     while (!sim.over) {
@@ -78,10 +78,12 @@ const base = `http://127.0.0.1:${server.address().port}`;
 
 let failed = 0;
 const runs = [];
-// Every other run plays its seed's daily twist, so twisted rules are checked on every engine too.
+// Every other run plays its seed's daily twist, so twisted rules are checked on every engine too. Characters take
+// turns, newest first, so a newly added character is always checked.
 for (let i = 0; i < nSeeds; i++) {
     const seed = (0x9e3779b1 * (i + 1)) >>> 0;
-    runs.push(record(seed, i % 2 ? dailyTwistForSeed(seed) : null));
+    const character = CHARACTER_IDS[CHARACTER_IDS.length - 1 - (i % CHARACTER_IDS.length)];
+    runs.push(record(seed, i % 2 ? dailyTwistForSeed(seed) : null, character));
 }
 console.log(`recorded ${runs.length} runs in Node ${process.version}`);
 

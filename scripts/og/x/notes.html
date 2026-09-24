@@ -50,6 +50,11 @@
                 color: var(--green);
                 margin-bottom: 14px;
             }
+            .body code {
+                font: inherit;
+                padding: 0 4px;
+                background: rgba(255, 255, 255, 0.08);
+            }
             .body mark {
                 background: rgba(245, 197, 66, 0.16);
                 color: var(--gold);
@@ -82,12 +87,13 @@
                 bull's 4:41; 22 dmg/1.0 s/90 HP gave 4:34.
                 <mark
                     >The autopilot doesn't use extra speed well, so real players probably find Pepe
-                    a bit stronger. Check tomorrow's players data by character.</mark
+                    a bit stronger. Check tomorrow's <code>players</code> data by character if it's
+                    there.</mark
                 >
             </div>
         </div>
         <div class="foot">
-            <span>Tonight at 21:00 UTC I check. Live: bearproof.app/live</span><b>bearproof.app</b>
+            <span>Tonight at 21:00 UTC I read it back. Live: bearproof.app/live</span><b>bearproof.app</b>
         </div>
         <script type="module">
             import { put, brand, ready } from '/scripts/og/x/x.js';

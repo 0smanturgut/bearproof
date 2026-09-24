@@ -18,8 +18,14 @@ if ! command -v google-chrome >/dev/null; then
     apt-get install -y -q google-chrome-stable
 fi
 
-# Chrome and ffmpeg run as an unprivileged user.
-id stream >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin stream
+# Chrome and ffmpeg run as an unprivileged user with a UID nobody else uses. (useradd --system once picked 999,
+# which a Docker container's database user already ran as on the host.)
+if ! id bpstream >/dev/null 2>&1; then
+    uid=2626
+    while getent passwd "$uid" >/dev/null || getent group "$uid" >/dev/null; do uid=$((uid + 1)); done
+    groupadd --gid "$uid" bpstream
+    useradd --uid "$uid" --gid "$uid" --create-home --shell /usr/sbin/nologin bpstream
+fi
 install -d -m 700 /etc/bearproof
 
 install -m 644 "$(dirname "$0")/bearproof-stream.service" /etc/systemd/system/bearproof-stream.service

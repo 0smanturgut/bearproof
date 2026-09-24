@@ -4,13 +4,16 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-User=stream
+User=bpstream
 EnvironmentFile=/etc/bearproof/stream.env
 # WIDTH/HEIGHT/FPS/BITRATE can be overridden here, e.g. Environment=WIDTH=1920 HEIGHT=1080 (4+ vCPU)
 ExecStart=/bin/bash /opt/bearproof/ops/stream/stream.sh
 Restart=always
 RestartSec=10
 KillMode=control-group
+# Its own /tmp (Chrome's profile), wiped on every restart; a leak can't take the server down.
+PrivateTmp=yes
+MemoryMax=3G
 
 [Install]
 WantedBy=multi-user.target

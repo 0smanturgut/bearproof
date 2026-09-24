@@ -18,7 +18,13 @@ import { loadPrefs, savePrefs } from './prefs.js';
 import { bakeSprite } from './art/sprites.js';
 import * as api from './api.js';
 import { createBot } from './sim/bot.js';
-import { TWISTS, dailyTwistForSeed } from './sim/content.js';
+import {
+    CHARACTERS,
+    CHARACTER_IDS,
+    TWISTS,
+    characterDef,
+    dailyTwistForSeed
+} from './sim/content.js';
 
 const params = new URLSearchParams(location.search);
 const attract = params.has('attract');
@@ -120,7 +126,8 @@ async function boot() {
     $('btnSettingsBack').addEventListener('click', () => ui.show(back));
 
     game.startBackdrop(); // the title screen floats over the live build, played by the autopilot
-    animateTitleBull($('titleBull'));
+    setupCharacterPick(prefs, persist);
+    animateTitleBull($('titleBull'), () => characterDef(prefs.character).sprite || 'bull');
 
     // Today's challenge (or the one in the URL). The game is fully playable without it.
     const d = await api.getDaily(challenge || undefined);
@@ -156,14 +163,61 @@ async function boot() {
     }
 }
 
-function animateTitleBull(canvas) {
+/**
+ * The character select on the title screen: one button per CHARACTERS entry, one tap, saved in prefs. The
+ * Simulation reads the character's rules; this only shows them.
+ */
+function setupCharacterPick(prefs, persist) {
+    const root = $('charPick');
+    if (!CHARACTERS[prefs.character]) prefs.character = 'bull';
+    const buttons = CHARACTER_IDS.map((id) => {
+        const c = CHARACTERS[id];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'char-btn';
+        b.setAttribute('role', 'radio');
+        b.dataset.char = id;
+        const cv = document.createElement('canvas');
+        cv.className = 'char-face';
+        cv.setAttribute('aria-hidden', 'true');
+        const frames = bakeSprite(c.sprite || 'bull', 2);
+        if (frames?.[0]) {
+            cv.width = frames[0].width;
+            cv.height = frames[0].height;
+            cv.getContext('2d').drawImage(frames[0], 0, 0);
+        }
+        const text = document.createElement('span');
+        text.className = 'char-text';
+        const name = document.createElement('b');
+        name.textContent = c.name.replace(/^The /, '').toUpperCase();
+        const sub = document.createElement('small');
+        sub.textContent = c.description;
+        text.append(name, sub);
+        b.append(cv, text);
+        b.addEventListener('click', () => {
+            prefs.character = id;
+            persist();
+            sync();
+        });
+        root.append(b);
+        return b;
+    });
+    const sync = () => {
+        for (const b of buttons)
+            b.setAttribute('aria-checked', String(b.dataset.char === prefs.character));
+        $('tagline').textContent = characterDef(prefs.character).tagline;
+    };
+    sync();
+}
+
+function animateTitleBull(canvas, spriteId) {
     const ctx = canvas.getContext('2d');
-    const frames = bakeSprite('bull', 5);
-    if (!frames || !frames.length) return;
+    if (!bakeSprite('bull', 5)) return;
     const t0 = performance.now();
     const draw = (now) => {
         if (canvas.offsetParent === null) return requestAnimationFrame(draw);
         const t = Math.max(0, now - t0) / 1000;
+        const frames = bakeSprite(spriteId(), 5) || bakeSprite('bull', 5);
         const img = frames[Math.floor(t * 10) % frames.length];
         ctx.imageSmoothingEnabled = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);

@@ -19,6 +19,24 @@ export function horns() {
     return s.render();
 }
 
+/** Tongue Lash: a frog's mouth corner, a pink tongue shooting up-right through two red candles. */
+export function tongue() {
+    const s = S();
+    s.auto('m', { R: 1.6, grad: 0.3 });
+    s.ellipse(3.2, 11, 3.4, 2.8, M.frog, { g: 'm' });
+    s.circle(2.6, 8, 1.8, M.frog, { g: 'm' });
+    s.px(2, 8, C.eyeWhite).px(3, 8, C.pupil);
+    s.line(1, 12, 5.5, 10.8, M.lip, { lum: 0.4, w: 1 });
+    s.line(6.8, 5.5, 6.8, 10.5, M.bearDark, { w: 0.8 });
+    s.box(5.8, 6.3, 2.2, 3.6, M.bear, { r: 0.5, bevel: 0.8 });
+    s.line(9.8, 2.5, 9.8, 7.5, M.bearDark, { w: 0.8 });
+    s.box(8.8, 3.2, 2.2, 3.6, M.bear, { r: 0.5, bevel: 0.8 });
+    s.capsule(5, 10.5, 11.5, 3.5, 0.55, 0.65, M.tongue, { shade: 'flat', lum: 0.6 });
+    s.circle(12, 3, 1.6, M.tongue, { bias: 0.1 });
+    s.px(11, 2, '#FFD8E4');
+    return s.render();
+}
+
 export function greenCandle() {
     const s = S();
     s.line(7, 0.5, 7, 3, M.bull, { lum: 0.7, w: 1.2 });

@@ -1,0 +1,17 @@
+[
+    {
+        "id": "rug-lord-phase-2",
+        "title": "Rug Lord, phase two",
+        "description": "Below half HP the Rug Lord pulls the rug: the floor slides and his rug pullers dash twice as often."
+    },
+    {
+        "id": "whale-event",
+        "title": "Whale sighting",
+        "description": "Once per run a whale crosses the chart and drops a shower of XP candles. Chase it or stay safe."
+    },
+    {
+        "id": "copium",
+        "title": "Copium",
+        "description": "Hopium evolves at level 5 into Copium: the aura also slows every bear inside it."
+    }
+]

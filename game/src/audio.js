@@ -127,6 +127,10 @@ export class AudioEngine {
     shoot() {
         this.tone({ freq: 780, dur: 0.04, type: 'triangle', volume: 0.08, sweep: -200 });
     }
+    /** Tongue Lash: a quick wet "thwip", rising. */
+    tongue() {
+        this.tone({ freq: 260, dur: 0.07, type: 'sine', volume: 0.14, sweep: 520 });
+    }
     explosion() {
         this.tone({ noise: true, dur: 0.25, volume: 0.22, release: 0.15 });
     }

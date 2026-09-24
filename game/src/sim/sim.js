@@ -59,6 +59,10 @@ export class Simulation {
         this.tick = 0;
         this.time = 0;
         this.player = new Player(0, 0);
+        if (this.character.maxHp) {
+            this.player.baseMaxHp = this.player.maxHp = this.player.hp = this.character.maxHp;
+        }
+        this.player.characterSpeedMult = this.character.speedMult || 1;
         this.player.twistDamageMult = this.twist.playerDamageMult;
         this.player.twistExpMult = this.twist.xpMult;
         this.player.weapons.push(
@@ -368,6 +372,7 @@ export class Simulation {
         const live = [];
         const maxed = [];
         for (const def of Object.values(WEAPONS)) {
+            if (def.character && def.character !== this.characterId) continue; // another character's signature
             const w = p.weapons.find((x) => x.id === def.id);
             if (w) {
                 if (w.level < SIM.WEAPON_MAX_LEVEL) {

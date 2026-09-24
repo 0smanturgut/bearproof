@@ -282,7 +282,7 @@ export class Renderer {
                 float ? 0.6 : 1
             );
         }
-        const bullDef = SPRITES.bull;
+        const bullDef = SPRITES[this._playerSprite(sim)];
         this._shadow(X(p.x), Y(p.y) + (bullDef.h * k) / 2 - 3 * k, bullDef.w * k * 0.8);
 
         const drawList = list.slice();
@@ -290,7 +290,7 @@ export class Renderer {
         drawList.sort((a, b) => a.y - b.y);
         const glows = [];
         for (const e of drawList) {
-            if (e === p) this._drawBull(p, X(p.x), Y(p.y), t, dt, fx, glows);
+            if (e === p) this._drawBull(p, X(p.x), Y(p.y), t, dt, fx, glows, sim);
             else this._drawEnemy(e, X(e.x), Y(e.y), t, glows);
         }
         // forget enemies we no longer see
@@ -336,15 +336,22 @@ export class Renderer {
 
     // ---------------------------------------------------------------- creatures
 
-    _drawBull(p, sx, sy, t, dt, fx, glows) {
-        const def = SPRITES.bull;
+    /** The sprite of the character this run plays (the bull unless the run says otherwise). */
+    _playerSprite(sim) {
+        const id = sim.character?.sprite;
+        return id && SPRITES[id] ? id : 'bull';
+    }
+
+    _drawBull(p, sx, sy, t, dt, fx, glows, sim) {
+        const id = this._playerSprite(sim);
+        const def = SPRITES[id];
         const n = def.frames.length;
         const frame = p.moving ? Math.floor(t * (def.fps || 10)) % n : 0;
         const hurt = p.invincible && p.invincibleTimer > 0.42;
         const blink = p.invincible && !hurt && Math.floor(t * 18) % 2 === 0;
         // idle breathing
         const breathe = p.moving ? 1 : 1 + Math.sin(t * 3) * 0.02;
-        this._blit('bull', sx, sy, {
+        this._blit(id, sx, sy, {
             frame,
             flip: p.facing < 0,
             tint: hurt ? '#FFFFFF' : null,
@@ -357,8 +364,8 @@ export class Renderer {
             this.dustAt = t;
             fx.dust(p.x - p.facing * 12, p.y + 22, p.facing);
         }
+        if (def.glowFrames) glows.push([id, sx, sy, frame, p.facing < 0, 0.8]);
         void dt;
-        void glows;
     }
 
     _drawEnemy(e, sx, sy, t, glows) {

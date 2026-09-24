@@ -26,6 +26,7 @@ const make =
 const SPRITE_GENS = {
     // player and brand
     bull: make(creatures.bull, 4, { fps: 11 }),
+    pepe: make(creatures.pepe, 4, { fps: 9 }),
     emblem: make(creatures.emblemSmall),
     emblem_large: make(creatures.emblemLarge),
     // enemies
@@ -70,6 +71,7 @@ const ICON_GENS = {
     circuit_breaker: make(icons.circuitBreaker),
     buyback: make(icons.buyback),
     dead_cat_bounce: make(icons.deadCatBounce),
+    tongue: make(icons.tongue),
     thick_skin: make(icons.thickSkin),
     dca: make(icons.dca),
     cold_wallet: make(icons.coldWallet),
@@ -101,7 +103,7 @@ export const SPRITES = lazyTable(SPRITE_GENS);
 export const ICONS = lazyTable(ICON_GENS);
 
 export const SPRITE_GROUPS = {
-    player: ['bull'],
+    player: ['bull', 'pepe'],
     brand: ['emblem', 'emblem_large'],
     enemies: [
         'red_candle',
@@ -142,7 +144,8 @@ export const ICON_GROUPS = {
         'hopium',
         'circuit_breaker',
         'buyback',
-        'dead_cat_bounce'
+        'dead_cat_bounce',
+        'tongue'
     ],
     passives: [
         'thick_skin',

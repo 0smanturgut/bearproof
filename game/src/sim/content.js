@@ -195,6 +195,23 @@ export const WEAPONS = {
         evolveName: 'Double Bounce',
         evolveDescription: 'Throws faster.',
         evolveCooldownMult: 0.95
+    },
+    // Pepe's signature weapon. `character` limits a weapon to that character's level-up cards.
+    TONGUE: {
+        id: 'tongue',
+        name: 'Tongue Lash',
+        icon: 'tongue',
+        description: 'Lashes at the nearest bear and hits every bear in the line.',
+        type: 'tongue',
+        character: 'pepe',
+        baseDamage: 22,
+        baseCooldown: 1.0,
+        baseRange: 230,
+        width: 16,
+        evolveLevel: 5,
+        evolveName: 'Liquidity Grab',
+        evolveDescription: 'Three tongues in a fan.',
+        evolveFan: 3
     }
 };
 
@@ -759,17 +776,30 @@ export function dailyTwistForSeed(seed) {
  * Playable characters. The chosen one is written into the run log (like the twist), so a replay needs nothing
  * else and the server re-simulates every run with the right character. CHARACTER_IDS is append-only: a
  * character's index is its byte in the log. The bull is index 0 and the default; unknown ids are the bull.
- * `starterWeapon` is the weapon a run starts with. Add more fields here as characters need them, and read them in
- * the Simulation, never in the UI.
+ * `starterWeapon` is the weapon a run starts with; `maxHp` and `speedMult` default to SIM.PLAYER_HP and 1. Add
+ * more fields here as characters need them, and read them in the Simulation, never in the UI (`sprite` and
+ * `tagline` are display only).
  */
-export const CHARACTER_IDS = ['bull'];
+export const CHARACTER_IDS = ['bull', 'pepe'];
 
 export const CHARACTERS = {
     bull: {
         id: 'bull',
         name: 'The Bull',
-        description: 'Horns first. Survives the bear market out of spite.',
+        sprite: 'bull',
+        tagline: 'You are a bull. The bear market is endless.',
+        description: 'Horns · 100 HP',
         starterWeapon: STARTER_WEAPON
+    },
+    pepe: {
+        id: 'pepe',
+        name: 'Pepe',
+        sprite: 'pepe',
+        tagline: 'You are a frog. The bear market is endless. Comfy.',
+        description: 'Tongue · 90 HP · fast',
+        starterWeapon: 'tongue',
+        maxHp: 90,
+        speedMult: 1.1
     }
 };
 

@@ -156,6 +156,133 @@ export function bull(f) {
     return s.render();
 }
 
+// ---------------------------------------------------------------- pepe
+
+/**
+ * 32×28 Pepe: our own frog, sitting at ease, three-quarter view facing right. Two bulging eyes under heavy,
+ * half-closed lids, a wide smug mouth with brick-red lips, a pale belly and a gold candle charm on a chain.
+ * Frames 0-3: a hop (crouch, launch, airborne, land). Frame 0 is also the idle sit.
+ */
+export function pepe(f) {
+    const s = new PixelSprite(32, 28);
+    const b = [0, -2, -4, -1][f % 4]; // body height over the ground
+    const kick = [0, 2, 3, 1][f % 4]; // back feet push out behind while airborne
+    s.auto('body', { R: 3.2, grad: 0.3 });
+    s.auto('head', { R: 2.6, grad: 0.26 });
+    s.auto('legs', { R: 1.6, grad: 0.15 });
+    s.auto('far', { R: 1.4, grad: 0.1 });
+    s.auto('eyeF', { R: 1.6, grad: 0.2 });
+    s.auto('eyeN', { R: 1.8, grad: 0.2 });
+    // far back leg and far arm, darker, behind everything
+    s.ellipse(9.5, 20 + b, 5.2, 3.6, M.frog, { g: 'far', bias: -0.12 });
+    s.capsule(8, 22 + b, 5 - kick, 25 + Math.min(0, b + 1), 1.6, 1.2, M.frog, {
+        g: 'far',
+        bias: -0.12
+    });
+    s.capsule(22, 16 + b, 24, 24 + b * 0.5, 1.4, 1.1, M.frog, { g: 'far', bias: -0.14 });
+    // the body: a relaxed pear, belly out
+    s.ellipse(14, 17.5 + b, 8.2, 6.8, M.frog, { g: 'body', bias: -0.04 });
+    s.ellipse(17.5, 19 + b, 4.6, 4.8, M.frogBelly, { g: 'body', clip: true, bias: 0.05 });
+    // near back leg: a big folded haunch and a long foot
+    s.ellipse(10.5, 21 + b, 5.6, 4.2, M.frog, { g: 'legs', bias: -0.02 });
+    s.capsule(9, 24 + b, 13 - kick * 1.5, 25.5 + Math.min(0, b + 2), 1.5, 1.1, M.frog, {
+        g: 'legs'
+    });
+    s.box(12 - kick * 1.5, 24.6 + Math.min(0, b + 2), 4.5, 1.6, M.frogBelly, {
+        shade: 'flat',
+        lum: 0.45
+    });
+    // head: wide and flat-topped, thrust forward
+    s.ellipse(20.5, 11.5 + b, 9.4, 5.6, M.frog, { g: 'head' });
+    s.ellipse(22, 14.2 + b, 7.4, 2.8, M.frogBelly, { g: 'head', clip: true, bias: -0.02 });
+    // eyes: bulbs on top of the head, the near one bigger
+    const eye = (cx, cy, r, g) => {
+        s.circle(cx, cy + b, r, M.frog, { g });
+        s.ellipse(cx + 0.4, cy + 0.4 + b, r - 1, r - 1.3, M.paper, { g, clip: true, bias: 0.25 });
+    };
+    eye(17.5, 6.5, 3.6, 'eyeF');
+    eye(24.5, 6.8, 4.2, 'eyeN');
+    // heavy lids over the top half of each eye: the smug, half-asleep look
+    const ey = Math.round(6.8 + b);
+    s.pxs(
+        [
+            [16, ey - 1],
+            [17, ey - 1],
+            [18, ey - 1],
+            [19, ey - 1]
+        ],
+        '#2F7A2E'
+    );
+    s.pxs(
+        [
+            [22, ey - 1],
+            [23, ey - 1],
+            [24, ey - 1],
+            [25, ey - 1],
+            [26, ey - 1]
+        ],
+        '#2F7A2E'
+    );
+    s.pxs(
+        [
+            [16, ey - 2],
+            [17, ey - 2],
+            [18, ey - 2],
+            [22, ey - 2],
+            [23, ey - 2],
+            [24, ey - 2],
+            [25, ey - 2]
+        ],
+        '#4FAA3E'
+    );
+    s.pxs(
+        [
+            [16, ey],
+            [17, ey],
+            [18, ey],
+            [19, ey],
+            [22, ey],
+            [23, ey],
+            [24, ey],
+            [25, ey],
+            [26, ey]
+        ],
+        '#1C4A1E'
+    );
+    // pupils, glancing sideways at the chart
+    s.px(19, ey + 1, C.pupil).px(19, ey + 2, C.pupil);
+    s.px(26, ey + 1, C.pupil)
+        .px(26, ey + 2, C.pupil)
+        .px(25, ey + 1, C.pupil);
+    s.px(25, ey + 2, '#F4F7FA');
+    // the mouth: one long smug line with a lower lip, the back corner curled up
+    const my = Math.round(13 + b);
+    s.capsule(16.5, my + 1, 27, my + 0.8, 0.7, 0.8, M.lip, { g: 'lip', shade: 'flat', lum: 0.55 });
+    for (let x = 16; x <= 28; x++) s.px(x, my, '#1A0605');
+    s.px(15, my - 1, '#1A0605').px(14, my - 2, '#1A0605');
+    // nostrils
+    s.px(27, 9 + b, '#0C2210').px(29, 9 + b, '#0C2210');
+    // near arm, resting on the belly-side knee, three-fingered hand
+    s.capsule(18, 17 + b, 20.5, 23.5 + b * 0.5, 1.6, 1.3, M.frog, { g: 'legs' });
+    s.patch(19, Math.round(24 + b * 0.5), ['ABA'], { A: '#86D25E', B: '#4FAA3E' });
+    // our own detail: a gold chain with a little green-candle charm
+    const cy = Math.round(16 + b);
+    s.pxs(
+        [
+            [14, cy - 1],
+            [15, cy],
+            [16, cy],
+            [17, cy],
+            [18, cy - 1]
+        ],
+        C.gold
+    );
+    s.px(16, cy + 1, '#FFE9A8')
+        .px(16, cy + 2, C.green, { glow: C.green })
+        .px(16, cy + 3, C.green, { glow: C.green });
+    return s.render();
+}
+
 // ---------------------------------------------------------------- enemies
 
 /** 14×22 hopping red candle with an angry face. */

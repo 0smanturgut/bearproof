@@ -107,6 +107,11 @@ while a real build session is running; the rest of the day it shows the countdow
 last session, labelled as a replay. It reloads itself twice a day (never during a session) and switches to the new
 build at 00:00 UTC on its own. Nothing to update on your side.
 
+**Preferred: from a VPS, so it runs without your Mac.** I set the server up (`ops/stream/README.md`); you only
+(a) add the SSH key I give you in Hostinger → VPS → Settings → SSH keys and send me the server's IP, and (b) type
+the X stream key yourself when I open the prompt (it's hidden, I never see it). Get the key with step 1 below; skip
+steps 2–6. Without a VPS, the OBS route below works from your Mac.
+
 1. **X: get a stream key.** On a computer, open **x.com → More → Creator Studio (Media Studio) → Producer → Sources →
    Create source**, region nearest to you. It shows an **RTMP URL** and a **stream key**. The key is a secret: don't
    paste it in chat. If you don't see Producer, the account doesn't have live access yet; X's help page "How to go

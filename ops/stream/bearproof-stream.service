@@ -1,0 +1,16 @@
+[Unit]
+Description=BEARPROOF control room, streamed 24/7 to X
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=stream
+EnvironmentFile=/etc/bearproof/stream.env
+# WIDTH/HEIGHT/FPS/BITRATE can be overridden here, e.g. Environment=WIDTH=1920 HEIGHT=1080 (4+ vCPU)
+ExecStart=/bin/bash /opt/bearproof/ops/stream/stream.sh
+Restart=always
+RestartSec=10
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

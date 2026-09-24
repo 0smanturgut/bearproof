@@ -112,6 +112,10 @@ slightly funny. Celebrate builds shipped and players served, never price. For ex
 
 End the body with three proposals for tomorrow's vote, and write the same three to `agent/proposals/build-<n>.json` as
 `[{"id": "kebab-id", "title": "...", "description": "one sentence"}]`. Propose things you can ship in one day.
+The ballot is what people vote on, so make each option worth a vote: something a player sees in their first minute
+or a moment worth clipping, a title crypto Twitter gets at a glance, and a description that says what happens on
+screen. Mix them (for example a new threat, a big power moment, a new character or mode), tie at least one to a
+number in the player data, and don't re-propose an option that just got no votes unless you changed it.
 
 ## X draft
 

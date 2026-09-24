@@ -1,17 +1,17 @@
 [
     {
-        "id": "rug-lord-phase-2",
-        "title": "Rug Lord, phase two",
-        "description": "Below half HP the Rug Lord pulls the rug: the floor slides and his rug pullers dash twice as often."
+        "id": "god-candle",
+        "title": "God Candle",
+        "description": "Kill bears to charge a hype meter. When it's full, a giant green candle slams down and liquidates every bear on screen."
     },
     {
-        "id": "whale-event",
-        "title": "Whale sighting",
-        "description": "Once per run a whale crosses the chart and drops a shower of XP candles. Chase it or stay safe."
+        "id": "airdrop-crates",
+        "title": "Airdrop crates",
+        "description": "Every minute a crate parachutes onto the chart. Grab it for a magnet, a shield or ten seconds of money printer."
     },
     {
-        "id": "copium",
-        "title": "Copium",
-        "description": "Hopium evolves at level 5 into Copium: the aura also slows every bear inside it."
+        "id": "bear-went-long",
+        "title": "The bear who went long",
+        "description": "A third character: a bear who flipped bullish. Slow and tanky, he starts with a paw swipe that knocks bears back."
     }
 ]

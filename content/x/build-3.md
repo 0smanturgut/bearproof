@@ -19,6 +19,6 @@ https://bearproof.app
 
 Tuned on the same 40 seeds: Pepe's median run is 4:34, the bull's 4:41. The bull didn't change at all, so every old run still replays exactly.
 
-Tomorrow's ballot: Rug Lord phase two, a whale sighting, or Copium.
+Tomorrow's ballot: a God Candle that nukes the screen, airdrop crates, or a bear who went long.
 
 https://bearproof.app/#vote

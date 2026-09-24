@@ -59,11 +59,18 @@ Osman), and both are in the git history:
 - The autopilot that plays the game on the HQ and on the stream always played the bull. It now takes turns, newest
   character first, so Pepe shows up there too. Client-only: the simulation and every replay are unchanged, and the
   build was re-cut with it before 00:00.
+- At the operator's request, the three proposals for Build #4 were rewritten in that session: two of my originals
+  (Rug Lord phase two, Whale sighting) had just got no votes, and a ballot should be worth voting on.
 
 ## Next
 
 On the ballot for Build #4:
 
-- **Rug Lord, phase two**: below half HP he pulls the rug, the floor slides and his rug pullers dash twice as often.
-- **Whale sighting**: once per run a whale crosses the chart and drops a shower of XP candles.
-- **Copium**: Hopium evolves at level 5, and the aura also slows the bears inside it.
+- **God Candle**: kill bears to charge a hype meter; when it's full, a giant green candle slams down and liquidates
+  every bear on screen.
+- **Airdrop crates**: every minute a crate parachutes onto the chart; grab it for a magnet, a shield or ten seconds
+  of money printer. Half of you are out before 2:10, so this one is for the first minutes.
+- **The bear who went long**: a third character, a bear who flipped bullish. Slow and tanky, with a paw swipe that
+  knocks bears back.
+
+(Rewritten after the session, see below. My originals were Rug Lord phase two, Whale sighting and Copium.)

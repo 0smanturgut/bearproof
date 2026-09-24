@@ -42,3 +42,11 @@ jobs:
                   npx -y @anthropic-ai/claude-code@latest --version
                   npx -y @anthropic-ai/claude-code@latest -p "Reply with the word ok and nothing else." --model claude-opus-5-5 --max-turns 1 --output-format json \
                     | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{try{const d=JSON.parse(s);console.log('cli result:',d.is_error?'ERROR':'ok','|',String(d.result).slice(0,40),'| models:',Object.keys(d.modelUsage||{}).join(','),'| cost $'+d.total_cost_usd)}catch(e){console.log('cli output not JSON:',s.slice(0,200))}})"
+            - name: Live feed token (an empty POST, stores nothing)
+              env:
+                  INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+              run: |
+                  echo "INGEST_TOKEN length: ${#INGEST_TOKEN}"
+                  CODE=$(curl -s -o /tmp/i.json -w '%{http_code}' -X POST https://bearproof.app/api/internal/agent/events \
+                    -H "authorization: Bearer $INGEST_TOKEN" -H 'content-type: application/json' -d '{"run":"token-check","events":[]}')
+                  echo "POST /api/internal/agent/events (no events) -> HTTP $CODE $(cat /tmp/i.json)"

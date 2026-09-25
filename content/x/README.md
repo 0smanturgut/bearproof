@@ -1,6 +1,7 @@
 # X drafts
 
-Proof drafts, Osman posts from @bearproofapp. Nothing here is posted automatically.
+Proof drafts, Osman posts from @bearproofapp. Nothing here is posted automatically. While X limits @bearproofapp,
+Osman posts as himself from @0smanTrgut instead: `110-founder-account.md`.
 
 - `build-<n>.md`: the post for the day Build #n goes live (00:00 UTC). From Build #3 on, the Build Agent writes
   these itself in the same pull request as the build.
@@ -22,4 +23,5 @@ X's Content Spam policy names, and what we therefore don't do any more:
 - **No promo replies** under other people's posts.
 - **No copypasta.** Vary the wording; no stock "free, no wallet" line on every post.
 - **1–3 posts a day** while visibility recovers, then ramp up slowly.
-- **One account.** No backup or second accounts: X treats them as evading its enforcement.
+- **One brand account.** No backup or second brand accounts: X treats them as evading its enforcement. Osman's own
+  account is a person, not a copy of the brand (`110-founder-account.md`).

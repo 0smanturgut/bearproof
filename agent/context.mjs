@@ -12,7 +12,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The checkout it runs in (the workflow runs a trusted copy of this script from outside the repo).
+const ROOT = process.cwd();
 const args = process.argv.slice(2);
 const site = args.includes('--site') ? args[args.indexOf('--site') + 1] : process.env.SITE || '';
 

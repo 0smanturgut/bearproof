@@ -117,13 +117,18 @@ export async function activity(env) {
             tx: l.tx_signature || null
         });
     }
-    for (const w of winners || [])
+    for (const w of winners || []) {
+        // Shown when it was sent (the ledger's send row), not when the winner was picked.
+        const sent = (ledger || []).find((l) =>
+            new RegExp(`prize:${w.date}:(send|sol-fallback)$`).test(l.memo || '')
+        );
         items.push({
-            ts: w.created_at,
+            ts: sent ? sent.ts : w.created_at,
             kind: 'prize',
             text: `Prize paid for ${w.date}: ${w.payout_token === 'SOL' ? `${sol(w.payout_amount)} SOL` : `${ansem(w.payout_amount)} $${w.payout_token || 'ANSEM'}`} to the verified #1.`,
             tx: w.payout_tx || null
         });
+    }
     items.sort((a, b) => b.ts - a.ts);
     return json(
         {

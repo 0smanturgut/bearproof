@@ -114,38 +114,32 @@ X is limiting this account's posts while it's reviewed. Until that's fixed, my h
 
 The builds don't stop. Build #4 ships at 00:00 UTC, and Build #5 starts at 21:00 UTC, live as always.
 
-### ~23:00 UTC · a question for ClawPump and its founder, with a poll
+### ~23:15 UTC · what the AI did tonight, and a question for ClawPump and its founder
 
-ClawPump replied to us four times and @ConejoCapital (its founder) liked our posts, so both mentions are welcome
-ones. One tagged post a day at most, unless they answer. Poll: `Stop Loss`, `Whale Dump`, `Short Squeeze`, open 22
-hours (until the 21:00 UTC vote close). The options are `agent/proposals/build-4.json`, the Build #5 ballot.
+Osman's call: show what the project does, no poll. ClawPump replied to us four times and @ConejoCapital (its
+founder) liked our posts, so both mentions are welcome ones; the question sits above the fold. One tagged post a day
+at most, unless they answer.
 
-A question for @clawpumptech and @ConejoCapital, because ClawPump has been in our replies since day one:
+**Video:** `video/39-build4-timelapse.mp4`: tonight's stream recording, 21:00–21:16 UTC at 60× (keyframes only), cut
+before the preview panel showed a 404 (`/b/4/` wasn't deployed yet at 21:16), then the Build #4 card. The post says
+it's sped up.
 
-Saturday at 21:00 UTC, BEARPROOF's AI builds its next update, live. It proposed three features. Which one would you pick?
+Question for @clawpumptech and @ConejoCapital: BEARPROOF's AI already does this on its own every night. What should it be allowed to do next?
 
-• Stop Loss: drop under 25% HP and you blink out of the crowd, knocking back every bear around you. Its answer to rug pullers, the top killer on Build #3.
-• Whale Dump: at 3:00 a wall of red candles sweeps across the chart. Find the gap.
-• Short Squeeze: catch the golden short seller and a shockwave squeezes every bear on screen.
+Tonight at 21:00 UTC the holder vote closed and it went to work: it read the vote and the player data, planned, wrote the code, playtested it on 40 seeded runs, had a second AI session review it, and opened a pull request that merged itself once every check was green.
 
-Holders make the real call on the site. This poll is just for fun.
+16 minutes, sped up 60× here. $4.20 of compute. It ships at 00:00 UTC.
 
-### ~23:30 UTC · Build #4 ships itself at 00:00 UTC
+You've been in our replies since day one, so the first question is yours.
+
+### After 00:30 UTC · reply under it, once `/play` opens Build #4
 
 **Video:** `video/38-build4-crates.mp4`. `build-4` is tagged and `/b/4/` is served; the Worker switches `/play` to it
 at 00:00 UTC.
 
-At 00:00 UTC, Build #4 of BEARPROOF ships itself. No human presses deploy.
+It's live: airdrop crates. One parachutes in at 0:40 and every minute after, with a magnet, an 8-second shield or the Money Printer inside.
 
-The AI wrote it earlier tonight: 16 minutes from the 21:00 UTC vote close to the merge, $4.20 of compute, all 170 tests green.
-
-It's airdrop crates. At 0:40, and every minute after, one parachutes in near you: a magnet for every candle on the map, an 8-second shield, or the Money Printer, double fire rate for 10 seconds.
-
-Why the shield blocks everything: rug pullers ended 23.6% of runs on Build #3, more than twice anything else. It read the player data first, then built.
-
-### After 00:30 UTC · reply under the post above, once `/play` opens Build #4
-
-It's live. Today's Daily Challenge runs on Build #4, and the vote for Build #5 is open until 21:00 UTC. That's when the AI starts again, and you can watch every step.
+Today's Daily Challenge runs on Build #4, and the vote for Build #5 is open until 21:00 UTC. That's when the AI starts again.
 
 ## 26 Sep, first post of the day · the AI tuning Pepe
 

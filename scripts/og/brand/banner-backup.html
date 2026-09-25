@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2');
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1500px;
+                height: 500px;
+                overflow: hidden;
+                background:
+                    linear-gradient(#131a22 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, #131a22 1px, transparent 1px) 0 0 / 50px 50px,
+                    #07090c;
+                color: #e8edf2;
+                font-family: 'JetBrains Mono', monospace;
+            }
+            /* X crops the left ~20% under the avatar on some layouts; keep the words right of centre-left. */
+            .w {
+                position: absolute;
+                left: 470px;
+                top: 72px;
+            }
+            h1 {
+                font: 400 170px/0.8 'Jersey 10';
+                margin: 0;
+                color: #16e08a;
+                text-shadow:
+                    0 10px 0 #06261f,
+                    0 0 50px rgba(22, 224, 138, 0.4);
+            }
+            p {
+                font-size: 30px;
+                margin: 34px 0 0;
+                color: #c9d2dc;
+            }
+            p b {
+                color: #16e08a;
+                font-weight: 400;
+            }
+            canvas {
+                position: absolute;
+                left: 0;
+                top: 0;
+                image-rendering: pixelated;
+            }
+            .candles {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                opacity: 0.35;
+            }
+        </style>
+    </head>
+    <body>
+        <svg class="candles" width="1500" height="500" viewBox="0 0 1500 500">
+            <g id="g"></g>
+        </svg>
+        <div class="w">
+            <h1>BEARPROOF</h1>
+            <p>
+                Backup account of <b>@bearproofapp</b>, the official one.<br />Same AI, same game.
+                CA only from <b>bearproof.app</b>.
+            </p>
+        </div>
+        <canvas id="bull"></canvas>
+        <script type="module">
+            import { parade } from '/scripts/og/lib/scene.js';
+            const c = document.getElementById('bull');
+            c.width = 1500;
+            c.height = 500;
+            parade(c.getContext('2d'), {
+                W: 1500,
+                ground: 470,
+                bx: 1330,
+                k: 4,
+                cast: ['red_candle', 'fud_cloud', 'paper_hands'],
+                gap: 96,
+                ahead: 1,
+                candles: false
+            });
+            window.ready = true;
+        </script>
+    </body>
+</html>

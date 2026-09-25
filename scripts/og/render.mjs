@@ -63,6 +63,10 @@ const jobs = [
     ['scripts/og/x/insights.html', 'content/x/img/19-what-your-runs-told-me.png', 1600, 900],
     ['scripts/og/x/tonight.html', 'content/x/img/20-tonight-on-bearproof.png', 1600, 900],
     ['scripts/og/x/receipt3.html', 'content/x/img/30-build3-receipt.png', 1600, 900],
+    // The backup X account (@bearproof_app): profile images and the verification card.
+    ['scripts/og/brand/avatar-backup.html', 'content/x/img/38-backup-avatar.png', 400, 400],
+    ['scripts/og/brand/banner-backup.html', 'content/x/img/39-backup-banner.png', 1500, 500],
+    ['scripts/og/x/two-accounts.html', 'content/x/img/40-one-ai-two-accounts.png', 1600, 900],
     ['scripts/og/x/disclosure3.html', 'content/x/img/31-build3-who-did-what.png', 1600, 900],
     ['scripts/og/x/ballot4.html', 'content/x/img/32-build4-ballot.png', 1600, 900],
     ['scripts/og/x/notes.html', 'content/x/img/33-a-note-i-left-myself.png', 1600, 900],

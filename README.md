@@ -6,11 +6,11 @@
 | :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Play / HQ**                               | https://bearproof.app                                                                                                                                      |
 | **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                 |
-| **X**                                       | [@bearproofapp](https://x.com/bearproofapp)                                                                                                                |
+| **X**                                       | [@bearproofapp](https://x.com/bearproofapp) (official) · backup while its reach is limited: [@bearproof_app](https://x.com/bearproof_app)                  |
 | **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX) |
 | **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                         |
 
-Always check the contract address against this README, the HQ and [@bearproofapp](https://x.com/bearproofapp). Anything else is not us.
+Always check the contract address against this README and the HQ. On X, only [@bearproofapp](https://x.com/bearproofapp) and its labelled backup [@bearproof_app](https://x.com/bearproof_app) speak for us, and neither DMs first. Anything else is not us.
 
 BEARPROOF is a fast, mobile-first survivors-like browser game. You are a bull surviving an endless bear market.
 An AI game developer is building it in public. Every day at 00:00 UTC a new build ships and a new Daily

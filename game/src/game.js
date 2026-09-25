@@ -6,7 +6,7 @@
  */
 
 import { Simulation } from './sim/sim.js';
-import { BOSSES, ENEMIES, SIM } from './sim/content.js';
+import { BOSSES, CRATE_LOOT, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
 import { CHARACTER_IDS, TWISTS, dailyTwistForSeed } from './sim/content.js';
@@ -378,6 +378,43 @@ export class Game {
                     break;
                 case 'cold':
                     fx.number(e.x, e.y - 34, `-${e.v} COLD`, 'hurt');
+                    break;
+                case 'crateDrop':
+                    this._sfx('airdrop', 0);
+                    if (!this.attract) this.ui.toast('AIRDROP INCOMING', 'bull', 1400);
+                    break;
+                case 'crateLand':
+                    fx.burst(e.x, e.y + 8, 'rgba(160,150,140,', 6, 90, 9, 'smoke');
+                    fx.ring(e.x, e.y, 8, 50, 0.3, '22,224,138', 3);
+                    fx.addShake(0.15);
+                    this._sfx('thud', 0);
+                    break;
+                case 'crate': {
+                    const loot = CRATE_LOOT[e.id];
+                    const rgb =
+                        e.id === 'shield'
+                            ? '70,184,240'
+                            : e.id === 'printer'
+                              ? '255,197,61'
+                              : '22,224,138';
+                    const hex =
+                        e.id === 'shield' ? '#9BE2FF' : e.id === 'printer' ? '#FFE08A' : '#7BF5A6';
+                    fx.shatter(e.x, e.y, 'supply_crate');
+                    fx.burst(e.x, e.y, '#C88645', 10, 200, 3.5);
+                    fx.burst(p.x, p.y, hex, 22, 320, 3, 'spark');
+                    fx.ring(p.x, p.y, 10, 150, 0.45, rgb, 6, true);
+                    fx.addFlash(rgb, 0.25, 2.5);
+                    fx.number(p.x, p.y - 40, loot.name.toUpperCase(), 'info');
+                    this._sfx('crate', 0);
+                    if (!this.attract) {
+                        this.ui.toast(loot.toast, 'gold', 1800);
+                        this.haptics.levelUp();
+                    }
+                    break;
+                }
+                case 'crateGone':
+                    fx.burst(e.x, e.y, 'rgba(255,59,92,', 6, 70, 10, 'smoke');
+                    fx.number(e.x, e.y - 20, 'LOOTED BY BEARS', 'info');
                     break;
                 case 'wave':
                     if (!this.attract && this.sim.tick > 60)

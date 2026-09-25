@@ -35,8 +35,49 @@ export const SIM = Object.freeze({
     PASSIVE_MAX_STACK: 5,
     SCORE_PER_SECOND: 10,
     BOSS_SCORE_MULT: 5,
-    WIN_BONUS: 25000
+    WIN_BONUS: 25000,
+    // Airdrop crates: the first at 0:40, then one a minute. Each lands on screen (inside ~260 px of the bull,
+    // the half-width of a phone's view), floats down, then waits a while before the bears loot it.
+    CRATE_FIRST: 40,
+    CRATE_EVERY: 60,
+    CRATE_DIST_MIN: 170,
+    CRATE_DIST_MAX: 240,
+    CRATE_FALL: 2,
+    CRATE_LIFE: 25,
+    CRATE_PICKUP: 30
 });
+
+// ---------------------------------------------------------------- airdrop crates
+
+/**
+ * What an airdrop crate holds. A crate's loot is rolled when it drops, never the same as the one before.
+ * `duration` is in seconds; `cooldownMult` scales every weapon's cooldown while the printer runs.
+ */
+export const CRATE_LOOT_IDS = ['magnet', 'shield', 'printer'];
+
+export const CRATE_LOOT = {
+    magnet: {
+        id: 'magnet',
+        name: 'Magnet',
+        toast: 'MAGNET: EVERY CANDLE IS YOURS',
+        description: 'Every candle on the chart flies to you.'
+    },
+    shield: {
+        id: 'shield',
+        name: 'Shield',
+        toast: 'SHIELD: 8 S UNREKTABLE',
+        description: '8 s of no damage.',
+        duration: 8
+    },
+    printer: {
+        id: 'printer',
+        name: 'Money Printer',
+        toast: 'MONEY PRINTER GO BRRR',
+        description: '10 s of weapons firing twice as fast.',
+        duration: 10,
+        cooldownMult: 0.5
+    }
+};
 
 // ---------------------------------------------------------------------------
 // Weapons. Scaling is uniform: damage +20%/level, cooldown x0.92/level, range +10%/level.

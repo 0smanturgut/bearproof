@@ -48,8 +48,16 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
                         fy += (dy * 1.5) / (d2 + 30);
                     }
                 }
+                // Airdrop crates beat candles: head for the nearest one unless it's a mob scene.
+                const crate = nearest(sim.crates || [], p, 520);
                 const orb = nearest(sim.xp, p, 420);
-                if (orb && crowd < 3) {
+                if (crate && crowd < 2) {
+                    const dx = crate.x - p.x;
+                    const dy = crate.y - p.y;
+                    const d = Math.hypot(dx, dy) || 1;
+                    fx += (dx / d) * 0.02;
+                    fy += (dy / d) * 0.02;
+                } else if (orb && crowd < 3) {
                     const dx = orb.x - p.x;
                     const dy = orb.y - p.y;
                     const d = Math.hypot(dx, dy) || 1;

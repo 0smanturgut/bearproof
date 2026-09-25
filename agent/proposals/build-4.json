@@ -1,0 +1,17 @@
+[
+    {
+        "id": "stop-loss",
+        "title": "Stop Loss",
+        "description": "Rug pullers took 23.6% of your runs: a new passive that blinks you out of the crowd and knocks back every bear around you when you drop under 25% HP, once a minute."
+    },
+    {
+        "id": "whale-dump",
+        "title": "Whale Dump",
+        "description": "At 3:00 a whale surfaces off screen, a warning arrow flashes, and a wall of red candles sweeps across the chart: find the gap or get dumped on."
+    },
+    {
+        "id": "short-squeeze",
+        "title": "Short Squeeze",
+        "description": "Once a run a golden short seller bear runs across the chart with a bag; catch him before he escapes and a gold shockwave squeezes every bear on screen."
+    }
+]

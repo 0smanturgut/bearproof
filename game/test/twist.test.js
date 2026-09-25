@@ -89,5 +89,5 @@ test('runlog: version-1 logs (no twist byte) still decode as "none"', () => {
     const bad = bytes.slice();
     bad[8] = 250;
     assert.throws(() => decodeRunLog(bad), /unknown twist/);
-    assert.equal(SIM_VERSION, 3);
+    assert.equal(SIM_VERSION, 4);
 });

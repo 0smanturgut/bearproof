@@ -1,39 +1,35 @@
-# Build #3 plan: Pepe, the second character, and a character select
+# Build #4 plan: Airdrop crates
 
 ## Feature
 
-Holders' request (100% of the vote, requested by 3hup…f7Q8): a character select and a second character, Pepe.
-Osman's operator note for Build #3 approves the name "Pepe" for our own frog, drawn from scratch.
+Holders' vote (100%, my own proposal): supply crates parachute onto the chart.
 
-- **Pepe** (`CHARACTER_IDS[1] = 'pepe'`): an original pixel frog (green, big round eyes, wide smug mouth,
-  relaxed sitting pose that hops when it moves). Own details: a gold candle-wick pendant and a pink tongue tip.
-- **Starter weapon: Tongue Lash** (new `tongue` weapon type). Every cooldown it lashes at the nearest bear and hits
-  every bear along the line, out to long range. Long and narrow, where the bull's Horns are short and wide.
-  Evolves at level 5 into **Liquidity Grab**: three tongues in a fan. Pepe only.
-- **Plays differently**: Pepe is quicker (+10% move speed) and squishier (90 max HP instead of 100). Both are
-  character fields read by the Simulation.
-- **Character select** on the start screen: two buttons (bull / Pepe), one tap, saved in `prefs.character`.
-  The hero sprite and tagline change with the pick. The bull stays the default.
+- The first crate drops at 0:40, then one every 60 s. It lands on screen 170–240 px from the bull (inside the view
+  on a phone and on a desktop), floats down for 2 s, then sits for 25 s before the bears loot it.
+- Walk into it and it pops open. It's a mystery crate, one of three (never the same twice in a row):
+    - **Magnet**: every XP candle on the chart flies to you.
+    - **Shield**: 8 s of no damage, drawn as a bubble around you.
+    - **Money Printer**: 10 s of weapons firing twice as fast.
+- Loot is data in `content.js` (`CRATE_LOOT`, timing in `SIM`). Randomness from `sim.rng`, so `SIM_VERSION` 3 → 4.
 
 ## Why today
 
-It won the vote with 100%, and the operator approved it. Player data: the median run on Build #2 was 2:10 and
-paper hands + rug pullers made up 31% of deaths, mostly early crowds. A long piercing lash that cuts a lane through
-a crowd is a real alternative opening to the Horns.
+Holders voted 100% for it. Build #3 players: median run 4:10 (250 s), and rug pullers alone took 23.6% of runs.
+A crate at 0:40 and every minute lands 3 to 4 crates in a median run: a shield to get through a rug pull, a
+printer to clear a crowd.
 
 ## Files
 
-- `game/src/sim/content.js`: `TONGUE` weapon, `pepe` character (`starterWeapon`, `maxHp`, `speedMult`, `sprite`).
-- `game/src/sim/weapons.js`: the `tongue` fire strategy.
-- `game/src/sim/sim.js` + `entities.js`: apply the character's HP and speed. The Tongue Lash is Pepe's
-  signature weapon (only offered to Pepe), so every bull run replays bit-identically and `SIM_VERSION` stays 2;
-  the playtest compare for the bull must come out identical to prove it.
-- `game/src/art/creatures.js` (pepe), `icons.js` (tongue icon), `sprites.js` (register).
-- `game/src/render.js`: draw the chosen character's sprite. `game/src/game.js`: tongue fx + sound.
-- `game/index.html`, `game/styles.css`, `game/src/main.js`: character select.
-- `game/test/pepe.test.js`: character stats, tongue hits along a line, not off-line, evolution fans, replay.
+- `game/src/sim/content.js`: `SIM.CRATE_*`, `CRATE_LOOT`, `CRATE_LOOT_IDS`.
+- `game/src/sim/entities.js`: `SupplyCrate`, player `shieldTimer`/`printerTimer`, orb vacuum.
+- `game/src/sim/sim.js`: schedule, spawn, open, events; `SIM_VERSION` 4.
+- `game/src/sim/bot.js`: the autopilot grabs crates like a player would.
+- `game/src/art/items.js`, `sprites.js`: `supply_crate` + `supply_chute` sprites. `game/test/art.test.js` list.
+- `game/src/render.js`: crate, chute, landing marker, shield bubble, printer glow.
+- `game/src/game.js`, `audio.js`: toasts, bursts, sound.
+- `game/test/crates.test.js`; `game/test/twist.test.js` version pin 3 → 4.
 
 ## Test
 
-`npm run check`, `node --test game/test/art.test.js`, playtest `--compare origin/main` for the bull and
-`--character pepe`, smoke shots (phone + desktop title), determinism on chromium.
+Unit tests for the schedule, placement, each loot, no repeat, expiry, replay. `npm run check`, playtest compare,
+smoke shots, determinism on chromium.

@@ -114,7 +114,7 @@ X is limiting this account's posts while it's reviewed. Until that's fixed, my h
 
 The builds don't stop. Build #4 ships at 00:00 UTC, and Build #5 starts at 21:00 UTC, live as always.
 
-### ~23:15 UTC · what the AI did tonight, and a question for ClawPump and its founder
+### 00:30 UTC (scheduled) · what the AI did tonight, and a question for ClawPump and its founder
 
 Osman's call: show what the project does, no poll. ClawPump replied to us four times and @ConejoCapital (its
 founder) liked our posts, so both mentions are welcome ones; the question sits above the fold. One tagged post a day
@@ -128,16 +128,16 @@ Question for @clawpumptech and @ConejoCapital: BEARPROOF's AI already does this 
 
 Tonight at 21:00 UTC the holder vote closed and it went to work: it read the vote and the player data, planned, wrote the code, playtested it on 40 seeded runs, had a second AI session review it, and opened a pull request that merged itself once every check was green.
 
-16 minutes, sped up 60× here. $4.20 of compute. It ships at 00:00 UTC.
+16 minutes, sped up 60× here. $4.20 of compute. It went live at 00:00 UTC.
 
 You've been in our replies since day one, so the first question is yours.
 
-### After 00:30 UTC · reply under it, once `/play` opens Build #4
+### ~00:45 UTC · reply under it
 
 **Video:** `video/38-build4-crates.mp4`. `build-4` is tagged and `/b/4/` is served; the Worker switches `/play` to it
 at 00:00 UTC.
 
-It's live: airdrop crates. One parachutes in at 0:40 and every minute after, with a magnet, an 8-second shield or the Money Printer inside.
+What it built: airdrop crates. One parachutes in at 0:40 and every minute after, with a magnet, an 8-second shield or the Money Printer inside.
 
 Today's Daily Challenge runs on Build #4, and the vote for Build #5 is open until 21:00 UTC. That's when the AI starts again.
 

@@ -1,0 +1,76 @@
+name: Build Agent sandbox check
+
+# Runs Claude Code exactly as the Build Agent does (same CLI, model, sandbox settings, tool rules) on a short
+# scripted task, and checks: the gates still run inside the sandbox, nothing it starts can reach the network or
+# see the secrets, and it can't write outside its paths. Costs a few cents. Never prints a secret.
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+            - run: npm ci
+            - run: npx playwright install --with-deps chromium
+            - name: Sandbox dependencies
+              run: bash agent/sandbox-setup.sh
+            - name: Claude Code in the sandbox, scripted
+              env:
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+                  CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
+              run: |
+                  set -o pipefail
+                  node agent/sandbox-settings.mjs > "$RUNNER_TEMP/agent-settings.json"
+                  cat > "$RUNNER_TEMP/probe-prompt.md" <<'P'
+                  You are testing a sandbox. Do these steps in order, one tool call each, and don't try workarounds:
+                  1. Run: npm test
+                  2. Run: node game/scripts/smoke.mjs --out /tmp/shots
+                  3. Run: node game/scripts/determinism.mjs --engines chromium --seeds 1
+                  4. Run: node game/scripts/playtest.mjs --runs 4
+                  5. Write the file game/test/zz-probe.test.js with exactly this content:
+                     import test from 'node:test';
+                     test('probe', async () => {
+                         let net = 'blocked';
+                         try { const r = await fetch('https://example.com', { signal: AbortSignal.timeout(6000) }); net = 'open ' + r.status; } catch (e) { net = 'blocked (' + (e.cause?.code || e.name) + ')'; }
+                         console.log('PROBE network: ' + net);
+                         console.log('PROBE key in env: ' + ('ANTHROPIC_API_KEY' in process.env));
+                     });
+                  6. Run: node --test game/test/zz-probe.test.js
+                  7. Write the file scripts/zz-probe.txt with the text "x".
+                  8. Write the file node_modules/zz-probe.txt with the text "x".
+                  9. Run: node --test game/test/zz-probe.test.js --test-reporter=spec
+                  Finish with one line per step: "STEP <n>: ok" or "STEP <n>: failed, <one short reason>".
+                  P
+                  npx -y @anthropic-ai/claude-code@latest -p "$(cat "$RUNNER_TEMP/probe-prompt.md")" \
+                    --model claude-opus-5-5 --settings "$RUNNER_TEMP/agent-settings.json" \
+                    --output-format stream-json --verbose --max-turns 30 \
+                    --allowedTools "Read" "Glob" "Grep" \
+                      "Edit(game/**)" "Write(game/**)" "Edit(devlog/**)" "Write(devlog/**)" \
+                      "Edit(agent/plan.md)" "Write(agent/plan.md)" "Edit(agent/notes.md)" "Write(agent/notes.md)" \
+                      "Write(agent/proposals/**)" "Write(content/x/**)" "Edit(content/x/**)" \
+                      "Bash(npm test:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
+                      "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
+                      "Bash(node game/scripts/playtest.mjs:*)" "Bash(node --test:*)" \
+                    --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
+                    > "$RUNNER_TEMP/probe.jsonl"
+                  node -e "
+                    const lines = require('fs').readFileSync(process.argv[1], 'utf8').split('\n').filter(Boolean).map(l => { try { return JSON.parse(l) } catch { return null } }).filter(Boolean);
+                    const res = lines.find(m => m.type === 'result');
+                    console.log('result:', res && (res.is_error ? 'ERROR' : 'ok'), 'turns', res && res.num_turns, 'cost \$' + (res && res.total_cost_usd));
+                    for (const m of lines) if (m.type === 'user') for (const b of m.message?.content || []) if (b.type === 'tool_result') {
+                      const t = Array.isArray(b.content) ? b.content.map(c => c.text || '').join('\n') : String(b.content || '');
+                      for (const l of t.split('\n')) if (/PROBE |SMOKE (OK|FAILED)|all engines match|MISMATCH|^# (pass|fail) |playtest:|denied|not allowed|permission|sandbox|EACCES|Read-only/i.test(l)) console.log('  tool:', l.slice(0, 200));
+                    }
+                    console.log('final:', String(res && res.result).slice(-900));
+                  " "$RUNNER_TEMP/probe.jsonl"
+                  echo "== files that must not exist:"; ls scripts/zz-probe.txt node_modules/zz-probe.txt 2>&1 | sed 's/^/  /'

@@ -8,7 +8,10 @@ second brand account is not an option (X treats it as evading its enforcement), 
   never as BEARPROOF's account, never a copy of an @bearproofapp text. Drafts come from a bootstrap session, like
   everything in this folder; Osman reviews and posts them.
 - **@bearproofapp stays the official account**: the hackathon registration, the coin's X link, the 24/7 stream. It
-  isn't deleted or renamed, and it stays quiet while the case runs. The Build Agent's `build-<n>.md` drafts wait.
+  isn't deleted or renamed. While X limits it, it posts once a day and nothing else: the Build Agent's own
+  `build-<n>.md` post, after 00:00 UTC, without its reply. No replies, no mentions, at most one link, never a copy of
+  an @0smanTrgut text. That keeps the official record going and shows X ordinary use. Once a friend's account can
+  see its posts again, it ramps back up slowly.
 - **Volume: Osman's call, 10–15 posts a day** (reach matters during judging). It ramps: 6–8 on the first day, about
   10 on the second, 10–15 after that, with roughly half of them replies in real conversations. What got
   @bearproofapp limited was the pattern, not the count, so the rest of `README.md` holds: one or two links a day, only

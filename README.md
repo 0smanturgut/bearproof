@@ -7,6 +7,7 @@
 | **Play / HQ**                               | https://bearproof.app                                                                                                                                      |
 | **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                 |
 | **X**                                       | [@bearproofapp](https://x.com/bearproofapp)                                                                                                                |
+| **Operator**                                | Osman Turgut · [@0smanTrgut](https://x.com/0smanTrgut) on X                                                                                                |
 | **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX) |
 | **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                         |
 
@@ -42,7 +43,7 @@ tests, ships and writes a devlog. Every step and every cost is public.
 ## Who does what (kept true, always)
 
 - **The AI** writes the game code, content and devlog.
-- **Osman (the operator)** set up the accounts, pays for infrastructure and has an emergency revert switch. He does
+- **Osman Turgut (the operator, [@0smanTrgut](https://x.com/0smanTrgut) on X)** set up the accounts, pays for infrastructure and has an emergency revert switch. He does
   not write the daily features. Any code he does write is labelled `Build-Mode: human`.
 - **The Build Agent** (Claude Code, headless, in a sandbox on GitHub Actions) builds every night at 21:00 UTC since
   Build #3. Its merges carry `Build-Mode: agent`.

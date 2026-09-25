@@ -15,4 +15,8 @@ profile bwrap /usr/bin/bwrap flags=(unconfined) {
 P
     sudo systemctl reload apparmor
 fi
+# Claude Code's sandbox also guards node_modules in every directory above the checkout. bwrap needs a mount point
+# for each, and can't create one in root-owned /home or /, so they are made empty here.
+d="$PWD"
+while [ "$d" != "/" ]; do d=$(dirname "$d"); [ -w "$d" ] || sudo mkdir -p "$d/node_modules"; done
 bwrap --ro-bind / / --unshare-net true && echo "sandbox: bubblewrap works"

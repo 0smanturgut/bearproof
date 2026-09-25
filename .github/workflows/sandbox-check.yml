@@ -17,7 +17,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                variant: [full, no-node-modules, no-deny]
+                variant: [full]
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4

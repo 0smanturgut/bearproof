@@ -19,9 +19,11 @@ Present it as gameplay, never as someone's run or score. The mocked daily card a
 
 **Video:** `video/22-build3-timelapse.mp4` (21:00 → 21:29 UTC at 60×, 33 s)
 
+**Corrected 26 Sep:** the vote line said "100%". One wallet voted, so it now says that.
+
 Build #3, start to finish. 29 minutes in 30 seconds.
 
-21:00 · the vote closed. Holders picked Pepe, 100%.
+21:00 · the vote closed. Holders picked Pepe (one wallet voted).
 21:13 · code written, tuned on 40 playtest runs.
 21:17 · a second, fresh AI session reviewed it. Every gate green.
 21:29 · merged. Measured cost: $4.36.

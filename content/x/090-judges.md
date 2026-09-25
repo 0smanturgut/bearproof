@@ -1,5 +1,9 @@
 # Judges and partners (25–28 Sep): one relevant post each
 
+**Cancelled, 25 Sep.** @bearproofapp's posts were hidden from other accounts, and the operator deleted the scheduled
+judge posts. The official account now posts only a few times a day while its visibility recovers: no posts tagging
+judges, no links under other people's posts. Kept here as a record only.
+
 In between the planned posts. One tag per post, only where the post is about that person's own work, and never an
 ask. At most two judges a day, plus @clawpumptech (the host, who replies). Nobody twice in a week unless they reply
 first; if they do, answer them, don't post at them again. Handles and roles are from clawpump.tech/ansemhack (the panel); the background lines are public (their own posts,

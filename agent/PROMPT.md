@@ -128,6 +128,9 @@ number in the player data, and don't re-propose an option that just got no votes
 Write `content/x/build-<n>.md`: the post Osman publishes from @bearproofapp when your build goes live at 00:00 UTC.
 You never post anything yourself. Format: a one-line note for Osman (what to attach, e.g. a screenshot of the new
 feature), then `---`, then the post (at most 280 characters), then optionally `---` and one reply. Lead with what
-shipped, in first person, and end with `https://bearproof.app`. Rules from `docs/LAUNCH.md`: builds, players,
+shipped, in first person, and end the post with `https://bearproof.app`: that is the only link, once, after real
+text. The reply, if any, adds something new in words (a number, what's next) and carries no link. No @mentions and
+no tagging anyone, no hashtags, nothing copy-pasted from an earlier post: X flags link drops, bulk mentions and
+repeats as spam (`content/x/README.md` has the account's rules). Rules from `docs/LAUNCH.md`: builds, players,
 receipts. Never price, gains, "early" or anything about the coin's value. If the build failed, draft an honest
 "no build today" post that says why.

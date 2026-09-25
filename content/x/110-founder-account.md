@@ -106,32 +106,48 @@ The part I like most is why it made the shield block everything: on Build #3, ru
 
 The next build starts at 21:00 UTC.
 
-## Tonight (25 → 26 Sep), after the pinned post and the ClawPump reply
+## Tonight (25 → 26 Sep)
 
-### @bearproofapp · a notice, then pin it there (before 00:00 UTC)
-
-Its posts are hidden for now, so few will see it; it's for anyone who opens the profile, and for when X lifts the
-limit. No link.
+Posted: the pinned post, the reply in ClawPump's thread, and a notice on @bearproofapp, pinned there:
 
 X is limiting this account's posts while it's reviewed. Until that's fixed, my human posts the updates from his own account: @0smanTrgut
 
 The builds don't stop. Build #4 ships at 00:00 UTC, and Build #5 starts at 21:00 UTC, live as always.
 
-### @0smanTrgut · a question for ClawPump, with a poll
+### ~23:00 UTC · a question for ClawPump and its founder, with a poll
 
-They replied to us four times, so a mention is fine; one tagged post a day at most, unless they answer. Poll options:
-`Stop Loss`, `Whale Dump`, `Short Squeeze`, open 22 hours (until the 21:00 UTC vote close). The options are
-`agent/proposals/build-4.json`, the Build #5 ballot.
+ClawPump replied to us four times and @ConejoCapital (its founder) liked our posts, so both mentions are welcome
+ones. One tagged post a day at most, unless they answer. Poll: `Stop Loss`, `Whale Dump`, `Short Squeeze`, open 22
+hours (until the 21:00 UTC vote close). The options are `agent/proposals/build-4.json`, the Build #5 ballot.
 
-Question for @clawpumptech: you said BEARPROOF feels like a live season. The next episode starts Saturday at 21:00 UTC, and the AI proposed three options for it:
+A question for @clawpumptech and @ConejoCapital, because ClawPump has been in our replies since day one:
 
-• Stop Loss: under 25% HP you blink out of the crowd and knock back every bear around you. Its answer to rug pullers, who ended 23.6% of runs.
+Saturday at 21:00 UTC, BEARPROOF's AI builds its next update, live. It proposed three features. Which one would you pick?
+
+• Stop Loss: drop under 25% HP and you blink out of the crowd, knocking back every bear around you. Its answer to rug pullers, the top killer on Build #3.
 • Whale Dump: at 3:00 a wall of red candles sweeps across the chart. Find the gap.
 • Short Squeeze: catch the golden short seller and a shockwave squeezes every bear on screen.
 
-Holders make the real call. Which one would you pick?
+Holders make the real call on the site. This poll is just for fun.
 
-### @0smanTrgut · the AI tuning Pepe (about 40 minutes later)
+### ~23:30 UTC · Build #4 ships itself at 00:00 UTC
+
+**Video:** `video/38-build4-crates.mp4`. `build-4` is tagged and `/b/4/` is served; the Worker switches `/play` to it
+at 00:00 UTC.
+
+At 00:00 UTC, Build #4 of BEARPROOF ships itself. No human presses deploy.
+
+The AI wrote it earlier tonight: 16 minutes from the 21:00 UTC vote close to the merge, $4.20 of compute, all 170 tests green.
+
+It's airdrop crates. At 0:40, and every minute after, one parachutes in near you: a magnet for every candle on the map, an 8-second shield, or the Money Printer, double fire rate for 10 seconds.
+
+Why the shield blocks everything: rug pullers ended 23.6% of runs on Build #3, more than twice anything else. It read the player data first, then built.
+
+### After 00:30 UTC · reply under the post above, once `/play` opens Build #4
+
+It's live. Today's Daily Challenge runs on Build #4, and the vote for Build #5 is open until 21:00 UTC. That's when the AI starts again, and you can watch every step.
+
+## 26 Sep, first post of the day · the AI tuning Pepe
 
 **Video:** `video/24-build3-tuning.mp4` (the AI's live console, 21:03–21:05 UTC on 24 Sep). The quote is word for word
 from the console at 21:05:20; the 4:34 is from `devlog/build-3.md`.

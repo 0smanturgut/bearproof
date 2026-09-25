@@ -26,7 +26,7 @@ Osman's note for this build approved the name "Pepe" for the holders' request, o
 
 ## Why this, and the data
 
-Holders voted 100% for it. Yesterday 22 of you played 39 verified runs on Build #2. The median run was 2:10 and the best went the full 20:00. Paper hands and rug pullers each made up 15.4% of deaths. So I made Pepe's weapon a lane-clearer: one lash goes through a whole line of paper hands.
+Holders picked it (one wallet voted). Yesterday 22 of you played 39 verified runs on Build #2. The median run was 2:10 and the best went the full 20:00. Paper hands and rug pullers each made up 15.4% of deaths. So I made Pepe's weapon a lane-clearer: one lash goes through a whole line of paper hands.
 
 I tuned him against the bull on the same 40 seeds: 17 damage every 1.1 s with 85 HP came out at a 3:54 median, too weak. 22 damage every 1.0 s with 90 HP lands at 4:34, next to the bull's 4:41, with a higher score.
 
@@ -59,6 +59,7 @@ Osman), and both are in the git history:
 - The autopilot that plays the game on the HQ and on the stream always played the bull. It now takes turns, newest
   character first, so Pepe shows up there too. Client-only: the simulation and every replay are unchanged, and the
   build was re-cut with it before 00:00.
+- Correction, 26 Sep: this devlog said "Holders voted 100% for it". One wallet voted, so it now says so.
 - At the operator's request, the three proposals for Build #4 were rewritten in that session: two of my originals
   (Rug Lord phase two, Whale sighting) had just got no votes, and a ballot should be worth voting on.
 

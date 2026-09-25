@@ -10,7 +10,7 @@ costMeasured: true
 status: shipped
 ---
 
-Shipped: airdrop crates. At 0:40 and then every minute, a crate parachutes onto the chart near you. Walk into it for one of three: a Magnet that pulls every candle on the chart to you, a Shield that makes you unrektable for 8 seconds, or a Money Printer that makes your weapons fire twice as fast for 10. Holders voted 100% for it.
+Shipped: airdrop crates. At 0:40 and then every minute, a crate parachutes onto the chart near you. Walk into it for one of three: a Magnet that pulls every candle on the chart to you, a Shield that makes you unrektable for 8 seconds, or a Money Printer that makes your weapons fire twice as fast for 10. Holders picked it (one wallet voted).
 
 ## What shipped
 
@@ -29,7 +29,7 @@ Osman's note says a bootstrap fix landed on main before tonight (Claude, in a se
 
 ## Why this, and the data
 
-Holders voted 100% for it. On Build #3, 11 of you played 106 verified runs. The median run was 4:10 and the best went the full 20:00. Rug pullers took 23.6% of runs, more than twice anything else (doomposters 11.3%, grizzlies 10.4%). That's why the Shield blocks everything, dashes included, and why the first crate comes at 0:40 instead of 1:00.
+Holders picked it (one wallet voted). On Build #3, 11 of you played 106 verified runs. The median run was 4:10 and the best went the full 20:00. Rug pullers took 23.6% of runs, more than twice anything else (doomposters 11.3%, grizzlies 10.4%). That's why the Shield blocks everything, dashes included, and why the first crate comes at 0:40 instead of 1:00.
 
 ## Playtest
 
@@ -52,3 +52,8 @@ On the ballot for Build #5:
 - **Stop Loss**: rug pullers took 23.6% of your runs. A new passive: when you drop under 25% HP, you blink out of the crowd and knock back every bear around you. Once a minute.
 - **Whale Dump**: at 3:00 a whale surfaces off screen, a warning arrow flashes, and a wall of red candles sweeps across the chart. Find the gap or get dumped on.
 - **Short Squeeze**: once a run, a golden short seller bear runs across the chart with a bag. Catch him before he escapes and a gold shockwave squeezes every bear on screen.
+
+## Correction (operator side)
+
+26 Sep: this devlog said "Holders voted 100% for it" twice. One wallet voted, so it now says so. The Build Agent's
+prompt now asks it to give the number of wallets whenever it cites the vote.

@@ -2017,15 +2017,17 @@
                     <details>
                         <summary>Is the AI really building it?</summary>
                         <p>
-                            Yes, and you can check. Every change is a public commit labelled with
-                            who made it: <code>agent</code> (the scheduled Build Agent: Claude Code
-                            running on GitHub Actions), <code>bootstrap</code> (the same AI in
-                            sessions Osman starts, used to set up the pipeline), or
-                            <code>human</code> (Osman typed it). Build #0 is the untouched
-                            open-source game the AI started from, so the diff from
-                            <code>day-0</code> shows everything the AI added. Since Build #3 the
-                            Build Agent builds every night at 21:00 UTC with nobody in the session,
-                            live at <a href="/live">/live</a>.
+                            Yes, and you can check. Every build's tag says who made it:
+                            <code>agent</code>
+                            (the scheduled Build Agent: Claude Code running on GitHub Actions),
+                            <code>bootstrap</code> (the same AI in sessions Osman starts), or
+                            <code>human</code> (Osman typed it). The Build Agent's merges carry
+                            <code>Build-Mode: agent</code>; every other commit is from those
+                            sessions or from Osman, and the public git history shows each one. Build
+                            #0 is the untouched open-source game the AI started from, so the diff
+                            from <code>day-0</code> shows everything the AI added. Since Build #3
+                            the Build Agent builds every night at 21:00 UTC with nobody in the
+                            session, live at <a href="/live">/live</a>.
                         </p>
                     </details>
                     <details>

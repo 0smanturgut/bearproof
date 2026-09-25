@@ -84,7 +84,14 @@ const out = {
               topScoreToday: stats.topScoreToday?.score ?? null
           }
         : null,
-    vote: vote?.winner ? { winner: option(vote.winner), runnerUp: option(vote.runnerUp) } : null,
+    // voters: how many wallets voted. A share alone overstates a small vote (100% of one wallet).
+    vote: vote?.winner
+        ? {
+              winner: option(vote.winner),
+              runnerUp: option(vote.runnerUp),
+              voters: vote.voters ?? null
+          }
+        : null,
     players: insights && insights.runs > 0 ? insights : null,
     recentDevlogs: recent
 };

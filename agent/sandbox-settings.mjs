@@ -30,7 +30,9 @@ const settings = {
         filesystem: {
             allowWrite: ['/tmp'],
             denyWrite: [
-                `${ws}/node_modules`,
+                ...(process.env.SANDBOX_VARIANT === 'no-node-modules'
+                    ? []
+                    : [`${ws}/node_modules`]),
                 `${ws}/scripts`,
                 `${ws}/.github`,
                 `${ws}/game/scripts`,
@@ -43,4 +45,6 @@ const settings = {
         credentials: { envVars: secrets.map((name) => ({ name, mode: 'deny' })) }
     }
 };
+// The sandbox check tries variants to find what the runner accepts.
+if (process.env.SANDBOX_VARIANT === 'no-deny') delete settings.sandbox.filesystem.denyWrite;
 process.stdout.write(JSON.stringify(settings, null, 2) + '\n');

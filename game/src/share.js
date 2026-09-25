@@ -5,7 +5,7 @@
  */
 
 import { fmtNum, fmtTime } from './format.js';
-import { TWISTS } from './sim/content.js';
+import { TWISTS, characterDef } from './sim/content.js';
 
 export function shareText({ summary, mode, date, build, origin, runId }) {
     const twist = mode === 'daily' && TWISTS[summary.twist] && summary.twist !== 'none';
@@ -13,9 +13,10 @@ export function shareText({ summary, mode, date, build, origin, runId }) {
         mode === 'daily'
             ? `BEARPROOF · Daily ${date}${twist ? ` · ${TWISTS[summary.twist].name}` : ''}`
             : 'BEARPROOF · Free run';
+    const face = characterDef(summary.character).emoji || '🐂';
     const line = summary.won
-        ? `🐂 I ended the bear market in ${fmtTime(summary.timeMs)}`
-        : `🐂 I survived ${fmtTime(summary.timeMs)} of the bear market`;
+        ? `${face} I ended the bear market in ${fmtTime(summary.timeMs)}`
+        : `${face} I survived ${fmtTime(summary.timeMs)} of the bear market`;
     const stats = `Score ${fmtNum(summary.score)} · ${fmtNum(summary.kills)} bears · Lv ${summary.level}`;
     const who = `Build #${build} · a game an AI builds every day`;
     // A submitted run links to its own page, which unfurls as a share card with the score.

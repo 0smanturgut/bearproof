@@ -45,3 +45,20 @@ test('card: huge scores shrink to fit instead of overflowing', () => {
     assert.doesNotThrow(() => drawCard({ ...run, score: 9_999_999_999 }));
     assert.ok(measure('9,999,999,999', 7) <= 760);
 });
+
+test('card: draws the run character, read from the log header (format 3+), the bull otherwise', async () => {
+    const { characterOf } = await import('../src/lib/character.js');
+    // 'B' 'R', format 3, sim 3, seed (4 bytes), twist 0, character 1
+    assert.equal(characterOf('4252030301020304' + '00' + '01'), 'pepe');
+    assert.equal(characterOf('4252030301020304' + '00' + '00'), 'bull');
+    assert.equal(
+        characterOf('4252020201020304' + '00' + '01'),
+        'bull',
+        'format 2 has no character byte'
+    );
+    assert.equal(characterOf('4252030301020304' + '00' + 'ff'), 'bull', 'unknown index');
+    assert.equal(characterOf(null), 'bull');
+    const bull = await drawCard(run).png();
+    const pepe = await drawCard({ ...run, character: 'pepe' }).png();
+    assert.notDeepEqual(Buffer.from(pepe), Buffer.from(bull));
+});

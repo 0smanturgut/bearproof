@@ -6,6 +6,7 @@
  */
 
 import { BUILDS } from '../manifest.js';
+import { characterOf } from '../lib/character.js';
 import { all, first, getOrCreateDaily } from '../lib/db.js';
 import { isDateKey, utcDate } from '../lib/daily.js';
 import { clientIp, ipKey, underLimit, verifyTurnstile } from '../lib/guard.js';
@@ -254,7 +255,7 @@ export async function loadRun(id, env) {
         env,
         `SELECT runs.id, runs.player_id, runs.mode, runs.challenge_date, runs.build, runs.stage,
             runs.claimed_score, runs.claimed_time_ms, runs.claimed_level, runs.claimed_kills, runs.status,
-            runs.created_at, players.name
+            runs.created_at, players.name, hex(substr(runs.input_log, 1, 10)) AS head
         FROM runs LEFT JOIN players ON players.id = runs.player_id WHERE runs.id = ?`,
         id
     );
@@ -273,6 +274,7 @@ export async function loadRun(id, env) {
         level: r.claimed_level,
         kills: r.claimed_kills,
         status: r.status,
+        character: characterOf(r.head),
         createdAt: new Date(r.created_at).toISOString()
     };
 }

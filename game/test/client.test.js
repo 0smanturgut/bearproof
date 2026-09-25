@@ -29,6 +29,16 @@ test('names are cleaned like the server does', () => {
     assert.equal(cleanName(null), '');
 });
 
+test("share text leads with the run's character", () => {
+    const summary = { score: 10, kills: 1, level: 1, timeMs: 1000, won: false };
+    const base = { mode: 'free', build: 3, origin: 'https://x.test' };
+    assert.match(
+        shareText({ ...base, summary: { ...summary, character: 'pepe' } }).text,
+        /\n🐸 I survived/
+    );
+    assert.match(shareText({ ...base, summary }).text, /\n🐂 I survived/);
+});
+
 test('share text is short, specific and links the challenge', () => {
     const summary = { score: 12480, kills: 812, level: 14, timeMs: 252000, won: false };
     const { text, url } = shareText({

@@ -101,10 +101,10 @@ export function drawCard(run) {
     const [line, hue] = statusLine(run);
     text(r, line, X, 462, 3, hue);
 
-    // the bull, big, on the right
-    const bull = SPRITES.bull;
+    // the run's character (the bull, or whoever they picked), big, on the right
+    const hero = SPRITES[run.character] || SPRITES.bull;
     const bs = 8;
-    sprite(r, bull, CARD_W - 40 - bull.w * bs, 130, bs);
+    sprite(r, hero, CARD_W - 40 - hero.w * bs, 130, bs);
 
     // footer watermark
     r.rect(0, CARD_H - 72, CARD_W, 72, PAL.panel);

@@ -61,7 +61,8 @@ export async function runPage(id, env, origin) {
         .replace(/^./, (c) =>
             c.toUpperCase()
         )} in ${what}. A game an AI builds every day. Free, no wallet.`;
-    const img = `${origin}/og/run/${run.id}.png?v=${run.status}`;
+    // v: the status, plus the card's own version (2: the run's character), so a redrawn card isn't served stale.
+    const img = `${origin}/og/run/${run.id}.png?v=${run.status}-2`;
     const playHref = daily && run.challengeDate === today ? `/play?challenge=${today}` : '/play';
     const playLabel =
         daily && run.challengeDate === today ? 'Beat it today' : "Play today's challenge";

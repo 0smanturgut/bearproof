@@ -795,6 +795,7 @@ export const CHARACTERS = {
         name: 'The Bull',
         sprite: 'bull',
         tagline: 'You are a bull. The bear market is endless.',
+        emoji: '🐂',
         description: 'Horns · 100 HP',
         starterWeapon: STARTER_WEAPON
     },
@@ -803,6 +804,7 @@ export const CHARACTERS = {
         name: 'Pepe',
         sprite: 'pepe',
         tagline: 'You are a frog. The bear market is endless. Comfy.',
+        emoji: '🐸',
         description: 'Tongue · 90 HP · fast',
         starterWeapon: 'tongue',
         maxHp: 90,

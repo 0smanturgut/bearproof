@@ -22,3 +22,12 @@ builds are kept as a record.
   run log is outside the Build Agent's paths; say so in the devlog's operator input.
 - Quality over size: if the whole thing doesn't fit tonight, ship a Pepe that looks and plays great and a simple
   select, and say what's next.
+
+## Build #4 (2026-09-26)
+
+- A bootstrap fix landed on main before tonight's session (Claude, started by the operator), because players said
+  the first bears took about 10 seconds to arrive. Bears now spawn just past the edge of the view (700 instead of
+  900), and at 0.5 s an "opening bell" ring of six first-wave bears closes in. Measured on 40 seeds, standing
+  still: the first bear is on screen at 0.6 s on a phone and 0.7 s on a desktop (was 7.0 s and 6.4 s) and reaches
+  the bull at 5.2 s (was 11.1 s); over 200 autopilot runs the median went 3:58 → 3:49. `SIM_VERSION` is now 3.
+  Say so in one or two sentences in the devlog's operator input. Your `--compare origin/main` already includes it.

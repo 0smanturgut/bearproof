@@ -37,8 +37,9 @@ import { Rng } from './rng.js';
 import { SpatialHash } from './spatial.js';
 import { Weapon } from './weapons.js';
 
-/** Bump when a change alters simulation results for the same inputs. 2: daily twists. */
-export const SIM_VERSION = 2;
+/** Bump when a change alters simulation results for the same inputs. 2: daily twists. 3: closer spawns and the
+ * opening-bell ring. */
+export const SIM_VERSION = 3;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -283,6 +284,24 @@ export class Simulation {
 
     _spawn(dt) {
         const wave = this.wave;
+        if (this.tick === SIM.OPENING_TICK) {
+            // Evenly spaced from a random start, so the first seconds always have bears walking in.
+            const a0 = this.rng.angle();
+            for (let i = 0; i < SIM.OPENING_RING; i++) {
+                const a = a0 + (i * 2 * Math.PI) / SIM.OPENING_RING;
+                const id = pickWeighted(wave.pool, this.stageId, () => this.rng.next());
+                this.enemies.push(
+                    new Enemy(
+                        this.player.x + cos(a) * SIM.OPENING_RADIUS,
+                        this.player.y + sin(a) * SIM.OPENING_RADIUS,
+                        enemyDef(id),
+                        this.hpMult,
+                        this.enemyDmgMult,
+                        this
+                    )
+                );
+            }
+        }
         const max = Math.min(SIM.MAX_ENEMIES, 20 + Math.floor(this.time / 10));
         const interval =
             Math.max(0.2, 1.2 - this.time / 200) / ((wave.spawnMult || 1) * this.twist.spawnMult);
@@ -313,7 +332,7 @@ export class Simulation {
             if (this.time >= b.spawnAt && !this.bossSpawned.has(b.slot)) {
                 this.bossSpawned.add(b.slot);
                 const a = this.rng.angle();
-                const d = SIM.SPAWN_RADIUS * 0.8;
+                const d = SIM.BOSS_SPAWN_RADIUS;
                 const boss = new Enemy(
                     this.player.x + cos(a) * d,
                     this.player.y + sin(a) * d,

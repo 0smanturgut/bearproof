@@ -257,3 +257,23 @@ test('runlog: version-2 logs (no character byte) decode and replay as the bull',
     assert.ok(r.ok, r.error);
     assert.equal(r.hash, sim.stateHash());
 });
+
+test('opening bell: a ring of bears at 0.5 s, just off screen, so a run never starts empty', () => {
+    const sim = new Simulation({ seed: 42 });
+    while (sim.tick < SIM.OPENING_TICK) sim.step(0);
+    const ring = sim.enemies.filter(
+        (e) => Math.abs(Math.hypot(e.x - sim.player.x, e.y - sim.player.y) - SIM.OPENING_RADIUS) < 1
+    );
+    assert.equal(ring.length, SIM.OPENING_RING);
+    // Past the edge of a desktop view (~550 x 360 half-extents) but close enough to arrive in seconds.
+    assert.ok(SIM.OPENING_RADIUS > 550 && SIM.OPENING_RADIUS < SIM.SPAWN_RADIUS);
+    let seen = null;
+    while (sim.tick < 60 * 3 && seen === null) {
+        sim.step(0);
+        sim.drainEvents();
+        const p = sim.player;
+        if (sim.enemies.some((e) => Math.abs(e.x - p.x) < 550 && Math.abs(e.y - p.y) < 360))
+            seen = sim.time;
+    }
+    assert.ok(seen !== null && seen < 3, `a bear is on a desktop screen within 3 s (${seen})`);
+});

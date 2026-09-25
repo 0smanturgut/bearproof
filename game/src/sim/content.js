@@ -16,7 +16,14 @@ export const SIM = Object.freeze({
     PLAYER_SIZE: 18,
     PLAYER_HP: 100,
     MAX_ENEMIES: 300,
-    SPAWN_RADIUS: 900,
+    // Bears spawn just past the edge of the view (~1100x720 on a desktop, ~520x1100 on a phone), so the
+    // first ones are on screen within seconds; at 900 the first bear took ~7 s to show up and ~11 s to arrive.
+    SPAWN_RADIUS: 700,
+    BOSS_SPAWN_RADIUS: 720,
+    // The opening bell: at 0.5 s a ring of the first wave's bears closes in from just off screen.
+    OPENING_TICK: 30,
+    OPENING_RING: 6,
+    OPENING_RADIUS: 580,
     DESPAWN_RADIUS: 1250,
     XP_LIFETIME: 30,
     INVINCIBILITY: 0.5,

@@ -1,4 +1,5 @@
 name: Build Agent (daily)
+run-name: ${{ inputs.rehearsal && 'Build Agent rehearsal (no build)' || 'Build Agent (daily)' }}
 
 # The Build Agent's daily loop, streamed live to https://bearproof.app/live:
 # wait for the 21:00 UTC vote close → gather context (vote, player data) → Claude Code builds one feature →
@@ -20,6 +21,10 @@ on:
         inputs:
             now:
                 description: 'Start now instead of waiting for 21:00 UTC (testing)'
+                type: boolean
+                default: false
+            rehearsal:
+                description: "Rehearsal: the whole pipeline on a tiny task. No build, no PR, nothing on /live, and it never counts as the day's run"
                 type: boolean
                 default: false
 
@@ -44,7 +49,9 @@ jobs:
               env:
                   GH_TOKEN: ${{ github.token }}
                   NOW_INPUT: ${{ inputs.now }}
+                  REHEARSAL: ${{ inputs.rehearsal }}
               run: |
+                  if [ "$REHEARSAL" = "true" ]; then echo "Rehearsal: no wait, no dedupe."; echo "go=true" >> "$GITHUB_OUTPUT"; exit 0; fi
                   HOUR=$(date -u +%H)
                   if [ "$NOW_INPUT" != "true" ] && [ "$HOUR" -lt 17 ]; then
                     echo "::notice::Started at ${HOUR}:xx UTC, outside the build window (17:00–24:00). The next window runs it."
@@ -52,8 +59,8 @@ jobs:
                   fi
                   TODAY=$(date -u +%F)
                   OTHERS=$(gh run list -R "$GITHUB_REPOSITORY" -w agent.yml --created ">=$TODAY" \
-                    --json databaseId,status,conclusion -L 30 \
-                    | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const me=String(process.env.GITHUB_RUN_ID);const r=JSON.parse(s).filter(x=>String(x.databaseId)!==me&&(x.status!=='completed'||x.conclusion==='success'));console.log(r.length)})")
+                    --json databaseId,status,conclusion,displayTitle -L 30 \
+                    | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const me=String(process.env.GITHUB_RUN_ID);const r=JSON.parse(s).filter(x=>String(x.databaseId)!==me&&!/rehearsal/i.test(x.displayTitle||'')&&(x.status!=='completed'||x.conclusion==='success'));console.log(r.length)})")
                   if [ "$OTHERS" != "0" ]; then
                     echo "::notice::Another Build Agent run already started today ($OTHERS). This one stops."
                     echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
@@ -74,7 +81,8 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 150
         env:
-            SITE: https://bearproof.app
+            SITE: ${{ inputs.rehearsal && 'https://rehearsal.invalid' || 'https://bearproof.app' }}
+            REHEARSAL: ${{ inputs.rehearsal }}
         steps:
             - name: Check credentials
               env:
@@ -91,6 +99,8 @@ jobs:
                   # The latest main at 21:00, not the commit the (hours-early) trigger saw.
                   ref: main
                   fetch-depth: 0
+                  # No token left in .git/config for the agent to read; the PR step brings its own.
+                  persist-credentials: false
             - uses: actions/setup-node@v4
               if: env.PAUSED != '1'
               with:
@@ -107,13 +117,23 @@ jobs:
               if: env.PAUSED != '1'
             - run: npx playwright install --with-deps chromium
               if: env.PAUSED != '1'
+            - name: Trusted copy of the pipeline's scripts, and the agent's sandbox
+              if: env.PAUSED != '1'
+              # Everything that runs with a secret after the agent, and the guard that judges its change, runs from
+              # this copy of main taken before the agent starts, so nothing the agent edits can change them.
+              run: |
+                  mkdir -p "$RUNNER_TEMP/trusted"
+                  git archive HEAD agent scripts | tar -x -C "$RUNNER_TEMP/trusted"
+                  echo "T=$RUNNER_TEMP/trusted" >> "$GITHUB_ENV"
+                  bash agent/sandbox-setup.sh
+                  node agent/sandbox-settings.mjs > "$RUNNER_TEMP/agent-settings.json"
             - name: Gather context (vote, player data) and go live
               if: env.PAUSED != '1'
               env:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
-                  node agent/context.mjs --site "$SITE" > "$AGENT_CONTEXT" && cat "$AGENT_CONTEXT"
-                  node agent/brief.mjs
+                  node "$T/agent/context.mjs" --site https://bearproof.app > "$AGENT_CONTEXT" && cat "$AGENT_CONTEXT"
+                  node "$T/agent/brief.mjs"
             - name: Build pass (Claude Code, headless, streamed to /live)
               if: env.PAUSED != '1'
               env:
@@ -121,68 +141,98 @@ jobs:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
                   set -o pipefail
-                  # The agent never sees INGEST_TOKEN: only the relay, which scrubs secrets from what it sends.
-                  env -u INGEST_TOKEN npx -y @anthropic-ai/claude-code@latest -p "$(cat agent/PROMPT.md)" \
+                  # The agent never sees INGEST_TOKEN: only the relay, which scrubs secrets from what it sends. Its
+                  # commands run in Claude Code's sandbox (no network, no secrets; agent/sandbox-settings.mjs).
+                  env -u INGEST_TOKEN CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 npx -y @anthropic-ai/claude-code@latest -p "$(if [ "$REHEARSAL" = "true" ]; then cat "$T/agent/REHEARSAL.md"; else cat "$T/agent/PROMPT.md"; fi)" \
                     --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
                     --max-turns 200 \
-                    --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
+                    --settings "$RUNNER_TEMP/agent-settings.json" \
+                    --allowedTools "Read" "Glob" "Grep" \
+                      "Edit(game/**)" "Write(game/**)" "Edit(devlog/**)" "Write(devlog/**)" \
+                      "Edit(agent/plan.md)" "Write(agent/plan.md)" "Edit(agent/notes.md)" "Write(agent/notes.md)" \
+                      "Edit(agent/proposals/**)" "Write(agent/proposals/**)" "Edit(content/x/**)" "Write(content/x/**)" \
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
-                      "Bash(node game/scripts/playtest.mjs:*)" \
+                      "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
                       "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" \
                     --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
-                    | node agent/relay.mjs "$RUNNER_TEMP/claude-result.json" build > "$RUNNER_TEMP/build-stream.jsonl"
+                    | node "$T/agent/relay.mjs" "$RUNNER_TEMP/claude-result.json" build > "$RUNNER_TEMP/build-stream.jsonl"
                   node -e "const r=require(process.argv[1]);console.log('turns',r.num_turns,'cost $',r.total_cost_usd,'error',r.is_error)" "$RUNNER_TEMP/claude-result.json"
-                  if [ -f agent/plan.md ]; then node agent/live.mjs plan "$(head -c 600 agent/plan.md)"; fi
+                  if [ -f agent/plan.md ]; then node "$T/agent/live.mjs" plan "$(head -c 600 agent/plan.md)"; fi
             - name: Review pass (a fresh Claude Code session checks the change)
-              if: env.PAUSED != '1'
+              if: env.PAUSED != '1' && env.REHEARSAL != 'true'
               env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
                   set -o pipefail
-                  node agent/live.mjs review "A second, fresh session now reviews the change before anything ships."
-                  env -u INGEST_TOKEN npx -y @anthropic-ai/claude-code@latest -p "$(cat agent/REVIEW.md)" \
+                  node "$T/agent/live.mjs" review "A second, fresh session now reviews the change before anything ships."
+                  env -u INGEST_TOKEN CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 npx -y @anthropic-ai/claude-code@latest -p "$(cat "$T/agent/REVIEW.md")" \
                     --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
                     --max-turns 60 \
-                    --allowedTools "Read" "Edit" "Write" "Glob" "Grep" \
-                      "Bash(npm test:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
-                      "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/playtest.mjs:*)" \
+                    --settings "$RUNNER_TEMP/agent-settings.json" \
+                    --allowedTools "Read" "Glob" "Grep" \
+                      "Edit(game/**)" "Write(game/**)" "Edit(devlog/**)" "Write(devlog/**)" \
+                      "Edit(agent/plan.md)" "Write(agent/plan.md)" "Edit(agent/notes.md)" "Write(agent/notes.md)" \
+                      "Edit(agent/proposals/**)" "Write(agent/proposals/**)" "Edit(content/x/**)" "Write(content/x/**)" \
+                      "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
+                      "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
+                      "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
                       "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" \
                     --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
-                    | node agent/relay.mjs "$RUNNER_TEMP/review-result.json" review > "$RUNNER_TEMP/review-stream.jsonl"
+                    | node "$T/agent/relay.mjs" "$RUNNER_TEMP/review-result.json" review > "$RUNNER_TEMP/review-stream.jsonl"
             - name: Guard (allowed paths only)
               if: env.PAUSED != '1'
-              run: node scripts/guard-paths.mjs origin/main
+              run: node "$T/scripts/guard-paths.mjs" origin/main
             - name: Secret scan (nothing the agent wrote may carry a key)
               if: env.PAUSED != '1'
               env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
                   GITHUB_TOKEN: ${{ github.token }}
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
-              run: node scripts/secret-scan.mjs origin/main
+              run: node "$T/scripts/secret-scan.mjs" origin/main
             - name: Gates
+              if: env.PAUSED != '1'
+              # The agent's code runs here, so no secret is in this step's environment, and node_modules is
+              # reinstalled first so nothing the agent wrote into it can change a verdict.
+              run: |
+                  npm ci
+                  npm run check
+                  node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
+                  node game/scripts/determinism.mjs --engines chromium --seeds 3
+            - name: Gates passed
               if: env.PAUSED != '1'
               env:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
-                  npm run check
-                  node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
-                  node game/scripts/determinism.mjs --engines chromium --seeds 3
-                  node agent/live.mjs gate "Guard, secret scan, tests, smoke test and determinism: all green."
+                  node "$T/agent/live.mjs" gate "Guard, secret scan, tests, smoke test and determinism: all green."
             - name: Record measured cost in the devlog
-              if: env.PAUSED != '1'
+              if: env.PAUSED != '1' && env.REHEARSAL != 'true'
               env:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
                   N=$(node -p "require(process.env.AGENT_CONTEXT).build")
-                  OUT=$(node agent/record-cost.mjs "devlog/build-$N.md" "$RUNNER_TEMP/claude-result.json" "$RUNNER_TEMP/review-result.json")
+                  OUT=$(node "$T/agent/record-cost.mjs" "devlog/build-$N.md" "$RUNNER_TEMP/claude-result.json" "$RUNNER_TEMP/review-result.json")
                   echo "$OUT"
-                  node agent/live.mjs cost "Measured cost of tonight's work: $(echo "$OUT" | sed -n 's/^record-cost: \(\$[0-9.]*\) measured.*/\1/p') (both passes, Claude Code's own count)."
+                  node "$T/agent/live.mjs" cost "Measured cost of tonight's work: $(echo "$OUT" | sed -n 's/^record-cost: \(\$[0-9.]*\) measured.*/\1/p') (both passes, Claude Code's own count)."
+            - name: Rehearsal push (the token works; the branch is deleted again)
+              if: env.PAUSED != '1' && env.REHEARSAL == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+                  git config user.name "BEARPROOF (Build Agent)"
+                  git config user.email "agent@bearproof.invalid"
+                  git checkout -b "rehearsal/$GITHUB_RUN_ID"
+                  git add -A
+                  git commit -qm "rehearsal (never merged)" -m "Build-Mode: rehearsal"
+                  git push -q origin "rehearsal/$GITHUB_RUN_ID"
+                  git push -q origin --delete "rehearsal/$GITHUB_RUN_ID"
+                  echo "rehearsal: pushed and deleted rehearsal/$GITHUB_RUN_ID"
             - name: Open PR, run CI on it, merge on green, deploy
-              if: env.PAUSED != '1'
+              if: env.PAUSED != '1' && env.REHEARSAL != 'true'
               # GITHUB_TOKEN can't trigger workflows through push or PR events, but it can dispatch them.
               # So: dispatch CI on the agent branch (its checks count for the PR), enable auto-merge, wait for
               # the merge, then dispatch the deploy. No long-lived token exists for this.
@@ -194,12 +244,13 @@ jobs:
                   TITLE=$(sed -n 's/^title: *//p' "devlog/build-$N.md" | head -1 | sed 's/^"\(.*\)"$/\1/')
                   git config user.name "BEARPROOF (Build Agent)"
                   git config user.email "agent@bearproof.invalid"
+                  git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
                   git checkout -b "agent/build-$N"
                   git add -A
                   git commit -m "feat(build-$N): $TITLE" -m "Written by the Build Agent (Claude Code, headless, GitHub Actions: a build pass and a review pass). Run started by: ${{ github.event_name == 'schedule' && 'the daily schedule, which waits for the 21:00 UTC vote close' || (inputs.now && 'the operator (manual dispatch, started at once)' || 'a backup dispatch queued early by the operator, because the GitHub schedule runs hours late here; it waited for the 21:00 UTC vote close like the schedule') }}." -m "Build-Mode: agent"
                   git push origin "agent/build-$N"
                   PR=$(gh pr create --base main --head "agent/build-$N" --title "Build #$N: $TITLE" --body-file "devlog/build-$N.md")
-                  node agent/live.mjs ship "Pull request opened: Build #$N, \"$TITLE\". CI runs on it now." "{\"pr\":\"$PR\"}"
+                  node "$T/agent/live.mjs" ship "Pull request opened: Build #$N, \"$TITLE\". CI runs on it now." "{\"pr\":\"$PR\"}"
                   gh workflow run ci.yml --ref "agent/build-$N"
                   gh pr merge "agent/build-$N" --auto --squash
                   STATE=OPEN
@@ -219,19 +270,19 @@ jobs:
                   echo "PR state: $STATE"
                   [ "$STATE" = "MERGED" ] || exit 1
                   gh workflow run deploy.yml --ref main
-                  node agent/live.mjs ship "Merged. The deploy now cuts Build #$N; it goes live at 00:00 UTC."
-                  node agent/live.mjs done "Build #$N is done and scheduled for 00:00 UTC. See you tomorrow at 21:00."
+                  node "$T/agent/live.mjs" ship "Merged. The deploy now cuts Build #$N; it goes live at 00:00 UTC."
+                  node "$T/agent/live.mjs" done "Build #$N is done and scheduled for 00:00 UTC. See you tomorrow at 21:00."
             - name: Say so if it failed
               if: failure() && env.PAUSED != '1'
               env:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
-                  node agent/live.mjs failed "Tonight's run stopped before shipping. Nothing broken goes live: the current build stays. The full log is public: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+                  node "$T/agent/live.mjs" failed "Tonight's run stopped before shipping. Nothing broken goes live: the current build stays. The full log is public: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             - name: Meter the run's compute (shipped or not)
               if: always() && env.PAUSED != '1'
               env:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
-              run: node agent/post-cost.mjs "$RUNNER_TEMP/claude-result.json" "$RUNNER_TEMP/review-result.json"
+              run: node "$T/agent/post-cost.mjs" "$RUNNER_TEMP/claude-result.json" "$RUNNER_TEMP/review-result.json"
             - uses: actions/upload-artifact@v4
               if: always()
               with:

@@ -8,7 +8,8 @@ Check, in this order, and fix only real problems:
 
 1. **Does it work?** Run `npm run check`. Run `node game/scripts/smoke.mjs --out /tmp/review-shots` and look at the
    screenshots in `/tmp/review-shots` (read the PNG files): does the new feature show up and look right on the
-   phone and desktop shots? Nothing overlapping, cut off or unreadable?
+   phone and desktop shots? Nothing overlapping, cut off or unreadable? For new or changed art, render it with
+   `node game/scripts/sprite-preview.mjs <id> --out /tmp/review-sprites.png` and read the PNG.
 2. **Determinism.** Code under `game/src/sim/` may use only `sim.rng` for randomness and `sim/dmath.js` for trig;
    no `Math.random`, `Math.sin`, `Date.now` or DOM there. If simulation results changed, `SIM_VERSION` in
    `game/src/sim/sim.js` must have been incremented.

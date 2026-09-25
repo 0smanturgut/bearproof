@@ -57,7 +57,13 @@ Write `agent/plan.md` before you code: the feature, why it wins today, the files
   yours, played by the autopilot) and put its `playtest:` line in the devlog under `## Playtest`. If a change makes
   runs much easier or harder than you meant, tune it and measure again.
 - Look at it: run `node game/scripts/smoke.mjs --out /tmp/shots` and read the PNGs in `/tmp/shots`. Check your feature
-  on the phone and desktop shots before you call it done.
+  on the phone and desktop shots before you call it done. For art, `node game/scripts/sprite-preview.mjs <id> ...
+[--out /tmp/sprites.png]` renders sprites (every frame) or `icon:<id>` big on dark and light backgrounds; read the
+  PNG and iterate until it looks right.
+- Your sandbox: your shell commands have no network and see none of the run's secrets; they can write in the repo
+  (not `node_modules`, `scripts`, `agent`, CI) and in `/tmp`. You edit files only with Edit/Write, and only on your
+  allowed paths. There is no `rm`: don't create scratch files in the repo, put them in `/tmp`. Don't look for ways
+  around any of this; the pipeline fails the run if something lands outside your paths.
 
 ## Remember
 

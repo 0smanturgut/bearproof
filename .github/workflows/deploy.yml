@@ -25,12 +25,13 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         timeout-minutes: 30
+        # The Cloudflare token lives only in the steps that need it: the gates run code the Build Agent wrote.
         env:
-            CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-            CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
             SITE: https://bearproof.app
         steps:
             - name: Check credentials
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
               run: |
                   if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
                     echo "::notice::CLOUDFLARE_API_TOKEN is not set: deploys run from the operator's machine until it is."
@@ -40,6 +41,8 @@ jobs:
               with:
                   ref: main # a tag push still deploys the current Worker and HQ, never an older commit
                   fetch-depth: 0
+                  # The gates run the Build Agent's code: no token in .git/config. The cut step brings its own.
+                  persist-credentials: false
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
@@ -53,7 +56,10 @@ jobs:
                   node game/scripts/determinism.mjs --engines chromium --seeds 3
             - name: Cut the Build Agent's build (next 00:00 UTC)
               if: env.PAUSED != '1'
+              env:
+                  GH_TOKEN: ${{ github.token }}
               run: |
+                  git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
                   git config user.name "release-bot"
                   git config user.email "release@bearproof.invalid"
                   # An agent merge anywhere since the last build tag, not only at HEAD: another push can land on
@@ -68,6 +74,9 @@ jobs:
             - run: npm run build
               if: env.PAUSED != '1'
             - run: npx wrangler deploy
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
               if: env.PAUSED != '1'
             - name: Live check
               if: env.PAUSED != '1'

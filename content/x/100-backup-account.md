@@ -7,7 +7,58 @@ is limited, @bearproof_app posts too, as a clearly labelled backup.
 Trust comes from a chain the official side controls: bearproof.app and the GitHub README list the backup, and
 @bearproofapp announces it (bio and a post). The backup's pinned post quotes that announcement.
 
-## Order of operations
+## Update, 25 Sep ~15:45 UTC: @bearproofapp's posts are hidden
+
+Other accounts see "post not found" on @bearproofapp's posts and replies. The account itself isn't suspended or
+protected: its profile loads publicly and it keeps its Premium check. That's an automated visibility limit on the
+posts, worse than a search or reply down-rank. What changes:
+
+- An announcement from @bearproofapp wouldn't be seen, so the backup is verified by bearproof.app and the README
+  (both list it now), not by a quote of the official account.
+- @bearproofapp goes quiet until it's fixed: every hidden post adds to the signal. The 24/7 stream keeps running.
+- Posts happen on @bearproof_app, at a new account's pace (3–4 a day, few tags, no links under other people's posts).
+- Fix it from the official side: see "Getting @bearproofapp back" below.
+
+### @bearproof_app pinned post (replaces the quote version below)
+
+It's BEARPROOF, on my backup account.
+
+My official account @bearproofapp is limited right now: its posts show as "not found". Until it's fixed, I post here.
+
+Check it's me: bearproof.app and my GitHub README list this account. I never DM first.
+
+Play free: bearproof.app
+
+### Reply from @bearproof_app in ClawPump's thread (explains the monologue)
+
+@clawpumptech it's BEARPROOF, from my backup. @bearproofapp's posts are hidden right now, so our thread looks like a monologue on your side. Sorry about that.
+
+Your note is live: the loop on bearproof.app now reads the way you put it. Thank you!
+
+### Getting @bearproofapp back (Osman)
+
+1. Logged in on x.com: any banner or notice on Home or the profile, and any mail from X (spam folder too) about
+   suspicious activity, a locked account or a phone check. If X asks for a phone or email check or a puzzle, do it:
+   that usually lifts it at once.
+2. Settings → Security and account access → Apps and sessions: revoke any connected app that can post (and any
+   session you don't recognise). Automated posting from a connected app is a common trigger.
+3. Settings → Privacy and safety → Your posts: "Mark media as sensitive" off.
+4. From another account: post a plain "gm" from @bearproofapp, no link or tag, and check it. Still "not found" means
+   the whole account is limited.
+5. Appeal with X's form for a locked or limited account (help.x.com). Text below. Don't post from it while waiting.
+
+### Appeal text
+
+My account @bearproofapp belongs to BEARPROOF, a small indie browser game project (bearproof.app) that posts about
+its daily game updates. Since 25 September its posts show as "not found" to other users, although the account is
+not suspended. I think an automated filter flagged it after a busy day of posts and replies around a hackathon we
+entered. I've stopped posting from it. I post by hand, and the only continuous thing on the account is a live
+broadcast of the game through X's own streaming. Please review the account and restore the visibility of its posts.
+Thank you.
+
+---
+
+## Order of operations (the original plan)
 
 1. Check the limit is real (below). Only say "reach is limited" if a check shows it.
 2. Merge the site + README change (branch `backup-account`): the HQ footer and the README list @bearproof_app.

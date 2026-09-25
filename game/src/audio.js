@@ -162,6 +162,21 @@ export class AudioEngine {
         setTimeout(() => this.tone({ freq: 360, dur: 0.12, type: 'square', volume: 0.2 }), 140);
         setTimeout(() => this.tone({ freq: 240, dur: 0.2, type: 'square', volume: 0.22 }), 280);
     }
+    /** An airdrop crate on its way: a falling whistle. */
+    airdrop() {
+        this.tone({ freq: 1500, dur: 0.6, type: 'sine', volume: 0.08, sweep: -900 });
+    }
+    /** A crate hits the ground. */
+    thud() {
+        this.tone({ freq: 140, dur: 0.12, type: 'triangle', volume: 0.22, sweep: -70 });
+        this.tone({ noise: true, dur: 0.08, volume: 0.1, release: 0.06 });
+    }
+    /** A crate pops open: a register "ka-ching". */
+    crate() {
+        this.tone({ freq: 1320, dur: 0.05, type: 'square', volume: 0.12 });
+        setTimeout(() => this.tone({ freq: 1760, dur: 0.16, type: 'square', volume: 0.14 }), 60);
+        setTimeout(() => this.tone({ freq: 2640, dur: 0.2, type: 'triangle', volume: 0.1 }), 130);
+    }
     achievement() {
         this.tone({ freq: 880, dur: 0.08, type: 'triangle', volume: 0.18 });
         setTimeout(() => this.tone({ freq: 1174, dur: 0.1, type: 'triangle', volume: 0.2 }), 70);

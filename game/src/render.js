@@ -8,6 +8,7 @@
 
 import { SPRITES, bakeGlow, bakeSprite } from './art/sprites.js';
 import { THEMES } from './art/stages.js';
+import { SIM } from './sim/content.js';
 
 const ART_UNIT = 2; // world units per art pixel
 // Visible world area: ~1100×720 units on a desktop, zooming in to ~520×1100 on a phone so sprites stay
@@ -267,6 +268,12 @@ export class Renderer {
             });
         }
 
+        // --- airdrop crates on the ground: landing markers and landed crates (falling ones fly above the crowd)
+        for (const c of sim.crates) {
+            if (!visible(c.x, c.y, 60)) continue;
+            this._drawCrateGround(c, X(c.x), Y(c.y), t);
+        }
+
         // --- creatures: shadows first, then back-to-front by y (the bull sorts in with the bears)
         const list = [];
         for (const e of sim.enemies) if (e.hp > 0 && visible(e.x, e.y, e.size + 80)) list.push(e);
@@ -313,6 +320,11 @@ export class Renderer {
             this._blit('fud_bolt', X(b.x), Y(b.y), { frame: Math.floor(t * 12) });
             glows.push(['fud_bolt', X(b.x), Y(b.y), Math.floor(t * 12), false, 1]);
         }
+        for (const c of sim.crates) {
+            if (c.landed || !visible(c.x, c.y, 300)) continue;
+            this._drawCrateFalling(c, X(c.x), Y(c.y), t, fx.calm, glows);
+        }
+        this._drawLoot(p, X(p.x), Y(p.y), t);
 
         // --- bloom pass: everything that glows, in one additive batch
         ctx.globalCompositeOperation = 'lighter';
@@ -443,6 +455,98 @@ export class Renderer {
             ctx.fillRect(sx - w / 2 - 1, y - 1, w + 2, h + 2);
             ctx.fillStyle = '#FF3B5C';
             ctx.fillRect(sx - w / 2, y, w * Math.max(0, e.hp / e.maxHp), h);
+        }
+    }
+
+    // ---------------------------------------------------------------- airdrop crates
+
+    /** A falling crate's landing ring, or a landed crate with a green beacon (blinking when it's about to go). */
+    _drawCrateGround(c, sx, sy, t) {
+        const ctx = this.ctx;
+        const s = this.s;
+        if (!c.landed) {
+            const k = 1 - c.fall / SIM.CRATE_FALL;
+            ctx.strokeStyle = `rgba(22,224,138,${0.35 + 0.35 * k})`;
+            ctx.lineWidth = Math.max(1, s * 2);
+            ctx.setLineDash([5 * this.dpr, 6 * this.dpr]);
+            ctx.lineDashOffset = -t * 30;
+            ctx.beginPath();
+            ctx.ellipse(sx, sy, 30 * s, 12 * s, 0, 0, TAU);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            this._shadow(sx, sy + 8 * s, 44 * s * (0.3 + 0.7 * k), 0.3 + 0.7 * k);
+            return;
+        }
+        if (c.life < 5 && Math.floor(t * 8) % 2) return;
+        const pulse = 0.5 + 0.5 * Math.sin(t * 4);
+        ctx.globalCompositeOperation = 'lighter';
+        const beam = ctx.createLinearGradient(0, sy - 150 * s, 0, sy);
+        beam.addColorStop(0, 'rgba(22,224,138,0)');
+        beam.addColorStop(1, `rgba(22,224,138,${0.22 + 0.12 * pulse})`);
+        ctx.fillStyle = beam;
+        ctx.fillRect(sx - 7 * s, sy - 150 * s, 14 * s, 150 * s);
+        const r = 44 * s;
+        ctx.globalAlpha = 0.45 + 0.2 * pulse;
+        ctx.drawImage(this._blob('22,224,138'), sx - r, sy - r * 0.5, r * 2, r);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+        this._shadow(sx, sy + 8 * s, 44 * s);
+        this._blit('supply_crate', sx, sy - 6 * s, { frame: Math.floor(t * 4) });
+    }
+
+    /** A crate on its way down under a swaying green parachute. */
+    _drawCrateFalling(c, sx, sy, t, calm, glows) {
+        const s = this.s;
+        const k = c.fall / SIM.CRATE_FALL; // 1 = just dropped, 0 = touching down
+        const y = sy - 6 * s - k * k * 260 * s;
+        const sway = calm ? 0 : Math.sin(t * 2.4 + c.x * 0.01) * 0.14 * k;
+        const x = sx + sway * 40 * s;
+        const crate = SPRITES.supply_crate;
+        const chute = SPRITES.supply_chute;
+        const drop = (crate.h / 2 + chute.h / 2 - 2) * this.k;
+        this._blit('supply_chute', x + Math.sin(sway) * drop, y - Math.cos(sway) * drop, {
+            frame: Math.floor(t * 3),
+            rot: sway
+        });
+        this._blit('supply_crate', x, y, { frame: Math.floor(t * 4), rot: sway });
+        glows.push(['supply_crate', x, y, Math.floor(t * 4), false, 0.8]);
+    }
+
+    /** Crate loot on the bull: a shield bubble, or the money printer's spinning gold ring. */
+    _drawLoot(p, sx, sy, t) {
+        const ctx = this.ctx;
+        const s = this.s;
+        if (p.shieldTimer > 0 && !(p.shieldTimer < 1.5 && Math.floor(t * 10) % 2)) {
+            const r = (p.size + 16 + Math.sin(t * 5) * 1.5) * s;
+            ctx.globalCompositeOperation = 'lighter';
+            const g = ctx.createRadialGradient(sx, sy, r * 0.55, sx, sy, r);
+            g.addColorStop(0, 'rgba(70,184,240,0)');
+            g.addColorStop(1, 'rgba(70,184,240,0.3)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(sx, sy, r, 0, TAU);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(155,226,255,0.8)';
+            ctx.lineWidth = Math.max(1, s * 2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(232,250,255,0.85)';
+            const hx = sx - r * 0.45;
+            const hy = sy - r * 0.55;
+            ctx.fillRect(Math.round(hx), Math.round(hy), Math.max(2, 3 * s), Math.max(2, 3 * s));
+            ctx.globalCompositeOperation = 'source-over';
+        }
+        if (p.printerTimer > 0 && !(p.printerTimer < 1.5 && Math.floor(t * 10) % 2)) {
+            const r = (p.size + 22) * s;
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.strokeStyle = 'rgba(255,197,61,0.75)';
+            ctx.lineWidth = Math.max(1, s * 2.5);
+            ctx.setLineDash([3 * this.dpr, 7 * this.dpr]);
+            ctx.lineDashOffset = -t * 90;
+            ctx.beginPath();
+            ctx.arc(sx, sy, r, 0, TAU);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalCompositeOperation = 'source-over';
         }
     }
 

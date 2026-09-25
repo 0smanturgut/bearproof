@@ -36,10 +36,18 @@ export class Player {
         this.facing = 1;
         this.moving = false;
         this.unhitTimer = 0;
+        // Airdrop crate loot: seconds left on the shield and the money printer.
+        this.shieldTimer = 0;
+        this.printerTimer = 0;
+        this.printerMult = 1;
     }
 
     get invincible() {
         return this.invincibleTimer > 0;
+    }
+
+    get shielded() {
+        return this.shieldTimer > 0;
     }
 
     update(dt, sim, mx, my) {
@@ -57,6 +65,8 @@ export class Player {
         for (const w of this.weapons) w.update(dt, this, sim);
 
         if (this.invincibleTimer > 0) this.invincibleTimer -= dt;
+        if (this.shieldTimer > 0) this.shieldTimer -= dt;
+        if (this.printerTimer > 0) this.printerTimer -= dt;
         const regen = this._sum('hpRegen');
         if (regen) this.heal(regen * dt);
         this.unhitTimer += dt;
@@ -100,7 +110,8 @@ export class Player {
         return this._mult('areaMult');
     }
     getCooldownMult() {
-        return Math.max(0.2, this._mult('cooldownMult'));
+        const printer = this.printerTimer > 0 ? this.printerMult : 1;
+        return Math.max(0.2, this._mult('cooldownMult')) * printer;
     }
     getSpeedMult() {
         return this._mult('speedMult') * (this.characterSpeedMult || 1);
@@ -142,7 +153,7 @@ export class Player {
     }
 
     takeDamage(damage, sim) {
-        if (this.invincibleTimer > 0 || this.dead) return;
+        if (this.invincibleTimer > 0 || this.shieldTimer > 0 || this.dead) return;
         const dodge = this.getDodgeChance();
         if (dodge > 0 && sim.rng.next() < dodge) {
             sim.emit({ t: 'dodge', x: this.x, y: this.y });
@@ -479,6 +490,7 @@ export class XpOrb {
         this.life = SIM.XP_LIFETIME;
         this.speed = 0;
         this.dead = false;
+        this.vacuum = false; // pulled in from anywhere by a Magnet crate
     }
     update(dt, sim) {
         this.life -= dt;
@@ -495,10 +507,45 @@ export class XpOrb {
             this.dead = true;
             return;
         }
-        if (d < p.getMagnetRange()) {
+        if (this.vacuum) {
+            this.speed = Math.min(this.speed + 1400 * dt, 1100);
+            this.x += (dx / d) * this.speed * dt;
+            this.y += (dy / d) * this.speed * dt;
+        } else if (d < p.getMagnetRange()) {
             this.speed = Math.min(this.speed + 600 * dt, 560);
             this.x += (dx / d) * this.speed * dt;
             this.y += (dy / d) * this.speed * dt;
+        }
+    }
+}
+
+/** An airdrop crate: floats down for SIM.CRATE_FALL seconds, then waits SIM.CRATE_LIFE for the bull. */
+export class SupplyCrate {
+    constructor(x, y, loot) {
+        this.x = x;
+        this.y = y;
+        this.loot = loot;
+        this.fall = SIM.CRATE_FALL;
+        this.life = SIM.CRATE_LIFE;
+        this.dead = false;
+    }
+    get landed() {
+        return this.fall <= 0;
+    }
+    update(dt, sim) {
+        if (this.fall > 0) {
+            this.fall -= dt;
+            if (this.fall <= 0) sim.emit({ t: 'crateLand', x: this.x, y: this.y });
+            return;
+        }
+        this.life -= dt;
+        const p = sim.player;
+        if (hypot(p.x - this.x, p.y - this.y) < SIM.CRATE_PICKUP + p.size) {
+            sim.openCrate(this);
+            this.dead = true;
+        } else if (this.life <= 0) {
+            sim.emit({ t: 'crateGone', x: this.x, y: this.y });
+            this.dead = true;
         }
     }
 }

@@ -99,6 +99,64 @@ export function airdrop() {
     return s.render();
 }
 
+/** 18×17 supply crate (the airdrop crates you grab): wood, metal posts, a glowing green "?" plate. */
+export function supplyCrate(f) {
+    const s = new PixelSprite(18, 17);
+    const on = f % 2 === 0;
+    s.box(1, 1, 16, 5, M.wood, { r: 0.5, bevel: 1, lum: 0.9 });
+    s.box(1, 5, 16, 11.5, M.wood, { r: 0.5, bevel: 2, lum: 0.62 });
+    for (const y of [8, 12]) s.line(3, y, 15, y, M.wood, { lum: 0.3 });
+    s.box(0.5, 4.5, 3, 12, M.metal, { r: 0.5, bevel: 1, lum: 0.6 });
+    s.box(14.5, 4.5, 3, 12, M.metal, { r: 0.5, bevel: 1, lum: 0.5 });
+    s.line(1, 1.5, 17, 1.5, M.metal, { lum: 0.8 });
+    s.box(5, 6.5, 8, 8.5, M.cloth, { r: 0.5, shade: 'flat', lum: 0.15 });
+    const q = on ? '#7BF5A6' : '#16E08A';
+    s.patch(
+        7,
+        7.5,
+        ['.XX.', 'X..X', '...X', '..X.', '....', '..X.'],
+        { X: q },
+        { glow: '#16E08A' }
+    );
+    // rivets and a glint that walks along the lid
+    for (const [x, y] of [
+        [2, 6],
+        [2, 14],
+        [16, 6],
+        [16, 14]
+    ])
+        s.px(x, y, '#E3E8EE');
+    s.px(4 + (f % 4) * 3, 2, '#FFF6D6', { glow: '#FFE08A' });
+    return s.render();
+}
+
+/** 24×15 supply parachute: a green-and-white canopy with four lines down to the crate. Billows. */
+export function supplyChute(f) {
+    const s = new PixelSprite(24, 15);
+    const h = f % 2 ? 8 : 7.4;
+    s.ellipse(12, 8, 11.5, h, M.paper, { g: 'chute' });
+    s.auto('chute', { R: 2, grad: 0.3 });
+    s.cutBox(0, 8, 24, 7);
+    // scalloped hem: every other gore dips a pixel lower
+    for (const x of [2, 3, 10, 11, 12, 13, 20, 21]) s.px(x, 8, '#AEB5C0');
+    for (let x = 0; x < 24; x++) {
+        if (Math.floor((x + 2) / 4) % 2) continue;
+        for (let y = 0; y < 8; y++) {
+            const ex = (x + 0.5 - 12) / 11.5;
+            const ey = (y + 0.5 - 8) / h;
+            if (ex * ex + ey * ey < 0.8) s.px(x, y, y < 3 ? '#7BF5A6' : C.green);
+        }
+    }
+    for (const [x0, x1] of [
+        [1.5, 10.5],
+        [7.5, 11.5],
+        [16.5, 12.5],
+        [22.5, 13.5]
+    ])
+        s.line(x0, 8.5, x1, 14.5, M.paper, { lum: 0.45, bare: true });
+    return s.render();
+}
+
 /** 14×12 limit order: a gold order ticket. */
 export function limitOrder(f) {
     const s = new PixelSprite(14, 12);

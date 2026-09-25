@@ -16,6 +16,8 @@
  */
 
 import {
+    CRATE_LOOT,
+    CRATE_LOOT_IDS,
     PASSIVES,
     SIM,
     STARTER_WEAPON,
@@ -31,15 +33,15 @@ import {
     characterDef
 } from './content.js';
 import { cos, hypot, sin } from './dmath.js';
-import { Enemy, Player, XpOrb, resetEntityIds } from './entities.js';
+import { Enemy, Player, SupplyCrate, XpOrb, resetEntityIds } from './entities.js';
 import { MOVE_TABLE, isValidCode } from './input-codes.js';
 import { Rng } from './rng.js';
 import { SpatialHash } from './spatial.js';
 import { Weapon } from './weapons.js';
 
 /** Bump when a change alters simulation results for the same inputs. 2: daily twists. 3: closer spawns and the
- * opening-bell ring. */
-export const SIM_VERSION = 3;
+ * opening-bell ring. 4: airdrop crates. */
+export const SIM_VERSION = 4;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -74,6 +76,9 @@ export class Simulation {
         this.enemyProjectiles = [];
         this.mines = [];
         this.xp = [];
+        this.crates = [];
+        this.nextCrateAt = SIM.CRATE_FIRST;
+        this.lastLoot = null;
         this.delayed = [];
         this.spatial = new SpatialHash(64);
 
@@ -88,7 +93,14 @@ export class Simulation {
         this.over = false;
         this.won = false;
         this.endReason = null;
-        this.stats = { kills: 0, score: 0, bossKills: 0, damageTaken: 0, damageDealt: 0 };
+        this.stats = {
+            kills: 0,
+            score: 0,
+            bossKills: 0,
+            damageTaken: 0,
+            damageDealt: 0,
+            crates: 0
+        };
         this.events = [];
     }
 
@@ -135,6 +147,8 @@ export class Simulation {
         this._runDelayed(dt);
         this._cullDead();
         this._updateList(this.xp, dt);
+        this._updateList(this.crates, dt);
+        this._dropCrate();
         this._spawn(dt);
         if (p.dead) return this._end('liquidated');
 
@@ -345,6 +359,43 @@ export class Simulation {
                 this.emit({ t: 'boss', id: b.id, name: b.name, tagline: b.tagline });
             }
         }
+    }
+
+    // --- Airdrop crates ------------------------------------------------------
+
+    /** On schedule, drop a crate on screen near the bull. Its loot never repeats the previous crate's. */
+    _dropCrate() {
+        if (this.time < this.nextCrateAt) return;
+        this.nextCrateAt += SIM.CRATE_EVERY;
+        const a = this.rng.angle();
+        const dist =
+            SIM.CRATE_DIST_MIN + this.rng.next() * (SIM.CRATE_DIST_MAX - SIM.CRATE_DIST_MIN);
+        const pool = CRATE_LOOT_IDS.filter((id) => id !== this.lastLoot);
+        const loot = pool[this.rng.int(pool.length)];
+        this.lastLoot = loot;
+        const crate = new SupplyCrate(
+            this.player.x + cos(a) * dist,
+            this.player.y + sin(a) * dist,
+            loot
+        );
+        this.crates.push(crate);
+        this.emit({ t: 'crateDrop', x: crate.x, y: crate.y });
+    }
+
+    /** The bull reached a landed crate: apply its loot. */
+    openCrate(crate) {
+        const def = CRATE_LOOT[crate.loot];
+        const p = this.player;
+        if (def.id === 'magnet') {
+            for (const o of this.xp) o.vacuum = true;
+        } else if (def.id === 'shield') {
+            p.shieldTimer = def.duration;
+        } else if (def.id === 'printer') {
+            p.printerTimer = def.duration;
+            p.printerMult = def.cooldownMult;
+        }
+        this.stats.crates++;
+        this.emit({ t: 'crate', id: def.id, name: def.name, x: crate.x, y: crate.y });
     }
 
     bossAbility(boss) {

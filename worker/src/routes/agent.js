@@ -3,6 +3,7 @@
  *
  *   POST /api/internal/agent/events  { run, build, events: [{ ts, type, text, data? }] }   Bearer INGEST_TOKEN
  *   GET  /api/agent/live[?run=<id>]  the latest (or a given) agent run: status and its events, for /live
+ *   POST /api/internal/agent/cost    { run, build, usd, detail? }   the run's measured compute, Bearer INGEST_TOKEN
  *
  * Events come from the GitHub Actions run (agent/live.mjs, agent/relay.mjs), which strips anything that looks
  * like a secret before it sends. Here they are length-capped and stored as plain text; the page renders them
@@ -114,4 +115,30 @@ function safeParse(s) {
     } catch {
         return null;
     }
+}
+
+/**
+ * POST /api/internal/agent/cost { run, build, usd, detail? }   Bearer INGEST_TOKEN
+ * The measured Claude cost of one Build Agent run (Claude Code's own count, both passes), shipped or not. It is
+ * what "Spent on compute" on the HQ adds up. One row per GitHub run; a repeat overwrites it.
+ */
+export async function postComputeCost(request, env) {
+    if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
+    const { data, error: bad } = await readJson(request, 4096);
+    if (bad) return bad;
+    const run = String(data?.run ?? '');
+    if (!RUN.test(run)) return error(400, 'invalid_field', 'Bad run id.', { field: 'run' });
+    const usd = Number(data?.usd);
+    if (!Number.isFinite(usd) || usd < 0 || usd > 500)
+        return error(400, 'invalid_field', 'Bad usd.', { field: 'usd' });
+    const build = Number.isSafeInteger(data?.build) ? data.build : null;
+    const detail = typeof data?.detail === 'string' ? data.detail.slice(0, 300) : null;
+    await env.DB.prepare(
+        `INSERT INTO compute_costs (id, build, ts, provider, usd, measured, detail)
+         VALUES (?1, ?2, ?3, 'anthropic', ?4, 1, ?5)
+         ON CONFLICT(id) DO UPDATE SET usd = excluded.usd, build = excluded.build, detail = excluded.detail`
+    )
+        .bind(`gh-${run}`, build, Date.now(), usd, detail)
+        .run();
+    return json({ ok: true });
 }

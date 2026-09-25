@@ -297,7 +297,8 @@ function renderStats(s) {
 
     if (s.computeSpentUsd && s.computeSpentUsd.meteredRuns > 0) {
         setV('sSpent', usd(s.computeSpentUsd.measured), '');
-        setN('sSpentN', 'measured, ' + s.computeSpentUsd.meteredRuns + ' agent runs');
+        const n = s.computeSpentUsd.meteredRuns;
+        setN('sSpentN', 'measured, ' + n + ' agent run' + (n === 1 ? '' : 's'));
     } else {
         setV('sSpent', '—', 'empty');
         setN('sSpentN', 'metering starts with the Build Agent');

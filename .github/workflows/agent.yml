@@ -227,6 +227,11 @@ jobs:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
                   node agent/live.mjs failed "Tonight's run stopped before shipping. Nothing broken goes live: the current build stays. The full log is public: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            - name: Meter the run's compute (shipped or not)
+              if: always() && env.PAUSED != '1'
+              env:
+                  INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+              run: node agent/post-cost.mjs "$RUNNER_TEMP/claude-result.json" "$RUNNER_TEMP/review-result.json"
             - uses: actions/upload-artifact@v4
               if: always()
               with:

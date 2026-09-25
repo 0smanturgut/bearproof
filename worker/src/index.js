@@ -20,7 +20,7 @@ import {
     unstatedRuns,
     verdict
 } from './routes/internal.js';
-import { agentLive, postAgentEvents } from './routes/agent.js';
+import { agentLive, postAgentEvents, postComputeCost } from './routes/agent.js';
 import { insights } from './routes/insights.js';
 import { activity } from './routes/activity.js';
 import { castVote, getVote, postRequest, voteResult } from './routes/vote.js';
@@ -244,6 +244,7 @@ export default {
                 if (pathname === '/api/internal/payout/selftest')
                     return payoutSelftest(request, env);
                 if (pathname === '/api/internal/agent/events') return postAgentEvents(request, env);
+                if (pathname === '/api/internal/agent/cost') return postComputeCost(request, env);
                 const m = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/verdict$/);
                 if (m) return verdict(request, env, m[1]);
                 const st = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/stats$/);

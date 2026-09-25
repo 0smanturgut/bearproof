@@ -2,17 +2,25 @@
 
 **An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.**
 
-- **Play / HQ:** https://bearproof.app
-- **What the AI added:** `git diff day-0..main`. `day-0` is the untouched open-source game the AI started from.
+|                                             |                                                                                                                                                            |
+| :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Play / HQ**                               | https://bearproof.app                                                                                                                                      |
+| **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                 |
+| **X**                                       | [@bearproofapp](https://x.com/bearproofapp)                                                                                                                |
+| **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX) |
+| **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                         |
+
+Always check the contract address against this README, the HQ and [@bearproofapp](https://x.com/bearproofapp). Anything else is not us.
 
 BEARPROOF is a fast, mobile-first survivors-like browser game. You are a bull surviving an endless bear market.
 An AI game developer is building it in public. Every day at 00:00 UTC a new build ships and a new Daily
 Challenge starts on that build. It picks the next feature from holder votes and its own judgment, then implements,
 tests, ships and writes a devlog. Every step and every cost is public.
 
-> Status: **Day 1.** Build #1, the bull-vs-bear rebuild, is live. Build #2 ships at 00:00 UTC on 24 Sep and Build #3
-> on 25 Sep; both are bootstrap builds (see below). Build #0, the untouched upstream, is still playable at `/b/0/`.
-> The scheduled Build Agent takes over the daily slot once its API key is in. See `docs/DECISIONS.md`.
+> Status: **Day 3.** Build #3 (Pepe and a character select, chosen by holders) is live: the first build the
+> scheduled Build Agent wrote on its own, streamed at [/live](https://bearproof.app/live). The first daily prize went
+> out on 25 Sep (78.82 $ANSEM to the verified #1). Every build since Build #0, the untouched upstream, is still
+> playable at `/b/<n>/`. See `docs/DECISIONS.md`.
 
 ## What's in it
 
@@ -25,8 +33,8 @@ tests, ships and writes a devlog. Every step and every cost is public.
 - **Share cards.** `/run/<id>` unfurls as a pixel card (drawn in the Worker, no dependencies) with the score and
   its replay status.
 - **Holder voting.** Sign a plain-text message with a Solana wallet (no transaction). Weight = floor(√tokens).
-- **A daily $ANSEM prize** for the verified #1, bought with treasury SOL through Jupiter and sent by the Worker,
-  capped at min(10% of the previous 24 h of fees, 0.5 SOL), with a kill switch. Off until the coin launches.
+- **A daily $ANSEM prize** for the verified #1, bought through Jupiter from a small prize wallet the treasury funds
+  and sent by the Worker: 10% of that day's creator fees, at most 0.5 SOL, with a kill switch. Live since 25 Sep.
 - **Receipts.** Treasury balance and every SOL movement are read from chain into the public ledger.
 - **A guarded Build Agent.** Claude Code runs headless in GitHub Actions and may only touch game code, its devlog and
   its X draft. Tests, a headless smoke test and a cross-engine determinism check gate every merge.
@@ -36,8 +44,11 @@ tests, ships and writes a devlog. Every step and every cost is public.
 - **The AI** writes the game code, content and devlog.
 - **Osman (the operator)** set up the accounts, pays for infrastructure and has an emergency revert switch. He does
   not write the daily features. Any code he does write is labelled `Build-Mode: human`.
-- **Bootstrap phase:** until the scheduled Build Agent runs on its own, the AI (Claude Code) works in sessions Osman
-  starts. Those commits carry the `Build-Mode: bootstrap` trailer.
+- **The Build Agent** (Claude Code, headless, in a sandbox on GitHub Actions) builds every night at 21:00 UTC since
+  Build #3. Its merges carry `Build-Mode: agent`.
+- **Bootstrap sessions:** Builds #1 and #2, and platform work since, were done by the same AI in sessions Osman starts
+  (`Build-Mode: bootstrap`). Anything done on the operator's side after a nightly run is listed in that build's
+  devlog, and Osman's notes to the agent for a build are public in `agent/OPERATOR.md`.
 
 ## Repo layout
 
@@ -67,7 +78,7 @@ _Vampire Survivors_ or poncle. The upstream project was an homage; BEARPROOF is 
 
 ## The coin
 
-$BPROOF launches through ClawPump on Solana. Its creator fees fund the AI's compute, hosting and the daily $ANSEM
+$BPROOF launched through ClawPump on Solana (CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX`). Its creator fees fund the AI's compute, hosting and the daily $ANSEM
 prize, and holders get a vote on what gets built next (holder cosmetics are planned). It is not needed to play or to win anything,
 and it is not an investment.
 

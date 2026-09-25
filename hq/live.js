@@ -395,41 +395,56 @@
     }
     function loadInsights() {
         return getJSON('/api/insights?hours=24').then(function (d) {
-            if (!d || !d.runs) {
-                $('knowsNote').textContent =
-                    'No verified runs in the last 24 hours yet. Play one and I will know more tomorrow.';
-                return;
-            }
-            $('kRuns').textContent = String(d.runs);
-            $('kPlayers').textContent = d.players + ' player' + (d.players === 1 ? '' : 's');
-            $('kMedian').textContent = mss(d.survivalSec.median);
-            $('kBest').textContent = 'best ' + mss(d.survivalSec.best);
-            var death = d.diedTo && d.diedTo[0];
-            $('kDeath').textContent = death ? nice(death.id) : '—';
-            $('kDeathN').textContent = death ? death.share + '% of deaths' : '';
-            var pick = (d.weapons || []).find(function (w) {
-                return w.id !== 'horns';
-            });
-            $('kPick').textContent = pick ? nice(pick.id) : '—';
-            $('kPickN').textContent = pick ? pick.share + '% of runs' : '';
-            $('knowsNote').textContent =
-                d.runs < 5
-                    ? 'Only ' +
-                      d.runs +
-                      ' verified run' +
-                      (d.runs === 1 ? '' : 's') +
-                      ' in the last 24 hours. Every run you play sharpens what I build next.'
-                    : 'Half of you are liquidated before ' +
-                      mss(d.survivalSec.median) +
-                      (death
-                          ? '. The ' +
-                            nice(death.id) +
-                            ' gets you most often (' +
-                            death.share +
-                            '%)'
-                          : '') +
-                      '. I read this before I decide what to build tonight.';
+            // Right after 00:00 the new build has no runs yet: show the previous build's day, labelled.
+            if (d && d.runs < 5 && d.build > 1)
+                return getJSON('/api/insights?hours=24&build=' + (d.build - 1)).then(
+                    function (prev) {
+                        showInsights(prev && prev.runs > (d.runs || 0) ? prev : d);
+                    }
+                );
+            showInsights(d);
         });
+    }
+    function showInsights(d) {
+        $('knowsWin').textContent =
+            d && d.build ? 'Build #' + d.build + ' · last 24 h' : 'last 24 h';
+        if (!d || !d.runs) {
+            ['kRuns', 'kMedian', 'kDeath', 'kPick'].forEach(function (id) {
+                $(id).textContent = '—';
+            });
+            ['kPlayers', 'kBest', 'kDeathN', 'kPickN'].forEach(function (id) {
+                $(id).textContent = '';
+            });
+            $('knowsNote').textContent =
+                'No verified runs on this build yet. Play one and I will know more before tonight.';
+            return;
+        }
+        $('kRuns').textContent = String(d.runs);
+        $('kPlayers').textContent = d.players + ' player' + (d.players === 1 ? '' : 's');
+        $('kMedian').textContent = mss(d.survivalSec.median);
+        $('kBest').textContent = 'best ' + mss(d.survivalSec.best);
+        var death = d.diedTo && d.diedTo[0];
+        $('kDeath').textContent = death ? nice(death.id) : '—';
+        $('kDeathN').textContent = death ? death.share + '% of deaths' : '';
+        // Starter weapons are in every run, so the top pick is the best of the rest.
+        var pick = (d.weapons || []).find(function (w) {
+            return w.id !== 'horns' && w.id !== 'tongue';
+        });
+        $('kPick').textContent = pick ? nice(pick.id) : '—';
+        $('kPickN').textContent = pick ? pick.share + '% of runs' : '';
+        $('knowsNote').textContent =
+            d.runs < 5
+                ? 'Only ' +
+                  d.runs +
+                  ' verified run' +
+                  (d.runs === 1 ? '' : 's') +
+                  ' in the last 24 hours. Every run you play sharpens what I build next.'
+                : 'Half of you are liquidated before ' +
+                  mss(d.survivalSec.median) +
+                  (death
+                      ? '. The ' + nice(death.id) + ' gets you most often (' + death.share + '%)'
+                      : '') +
+                  '. I read this before I decide what to build tonight.';
     }
     function loadBallot() {
         return getJSON('/api/vote').then(function (v) {

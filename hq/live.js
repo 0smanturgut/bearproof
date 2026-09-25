@@ -53,7 +53,8 @@
         );
     };
     var mss = function (sec) {
-        return Math.floor(sec / 60) + ':' + pad(Math.round(sec % 60));
+        var s = Math.round(sec);
+        return Math.floor(s / 60) + ':' + pad(s % 60);
     };
     var nice = function (id) {
         return String(id || '').replace(/_/g, ' ');

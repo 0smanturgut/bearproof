@@ -38,7 +38,7 @@ export async function activity(env) {
         ),
         all(
             env,
-            'SELECT ts, direction, category, amount_lamports, memo, tx_signature FROM ledger WHERE ts >= ? ORDER BY ts DESC LIMIT 12',
+            'SELECT ts, direction, category, amount_lamports, token_mint, token_amount, memo, tx_signature FROM ledger WHERE ts >= ? ORDER BY ts DESC LIMIT 12',
             since
         ),
         all(
@@ -86,7 +86,27 @@ export async function activity(env) {
                 text: `My take on "${q.title}": ${{ day: 'doable in a day', slice: 'a first slice', no: "won't build" }[q.ai_verdict]}.${q.ai_reply ? ` ${q.ai_reply}` : ''}`
             });
     }
-    for (const l of ledger || [])
+    const sol = (lamports) => ((Number(lamports) || 0) / 1e9).toFixed(3);
+    // $ANSEM has 6 decimals; amounts are stored raw.
+    const ansem = (raw) =>
+        (Number(raw) / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 });
+    for (const l of ledger || []) {
+        if (l.category === 'prize') {
+            const day =
+                (String(l.memo || '').match(/prize:(\d{4}-\d{2}-\d{2})/) || [])[1] || 'the day';
+            if (/:send$/.test(l.memo || '')) continue; // the prize line below says it
+            items.push({
+                ts: l.ts,
+                kind: 'ledger',
+                text: /:buy$/.test(l.memo || '')
+                    ? `Prize wallet bought ${ansem(l.token_amount)} $ANSEM with ${sol(l.amount_lamports)} SOL for the ${day} winner.`
+                    : /sol-fallback/.test(l.memo || '')
+                      ? `Prize wallet paid ${sol(l.amount_lamports)} SOL to the ${day} winner (the $ANSEM swap failed twice).`
+                      : `Prize wallet out: ${sol(l.amount_lamports)} SOL, ${l.memo || 'prize'}.`,
+                tx: l.tx_signature || null
+            });
+            continue;
+        }
         items.push({
             ts: l.ts,
             kind: l.category === 'creator_fees' ? 'fees' : 'ledger',
@@ -96,11 +116,12 @@ export async function activity(env) {
                     : `Treasury ${l.direction === 'in' ? 'in' : 'out'}: ${((l.amount_lamports || 0) / 1e9).toFixed(3)} SOL, ${l.memo || l.category}.`,
             tx: l.tx_signature || null
         });
+    }
     for (const w of winners || [])
         items.push({
             ts: w.created_at,
             kind: 'prize',
-            text: `Prize paid for ${w.date}: ${w.payout_token === 'SOL' ? `${(Number(w.payout_amount) / 1e9).toFixed(3)} SOL` : `${fmt(Number(w.payout_amount) / 1e6)} $${w.payout_token || 'ANSEM'}`} to the verified #1.`,
+            text: `Prize paid for ${w.date}: ${w.payout_token === 'SOL' ? `${sol(w.payout_amount)} SOL` : `${ansem(w.payout_amount)} $${w.payout_token || 'ANSEM'}`} to the verified #1.`,
             tx: w.payout_tx || null
         });
     items.sort((a, b) => b.ts - a.ts);

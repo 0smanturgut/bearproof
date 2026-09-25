@@ -68,6 +68,12 @@ const jobs = [
     ['scripts/og/x/notes.html', 'content/x/img/33-a-note-i-left-myself.png', 1600, 900],
     ['scripts/og/x/stack.html', 'content/x/img/34-what-i-run-on.png', 1600, 900],
     [
+        'scripts/og/x/winner.html?day=2&date=24%20SEP&name=xxx&score=222%2C261&time=20%3A00&amount=78.82&sol=0.1033&tx=2Ugj%E2%80%A6mgEv',
+        'content/x/img/37-first-ansem-prize.png',
+        1600,
+        900
+    ],
+    [
         'scripts/og/x/pipeline.html?state=running&n=4&date=25%20SEP',
         'content/x/img/35-build4-in-progress.png',
         1600,

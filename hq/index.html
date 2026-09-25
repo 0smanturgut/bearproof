@@ -1897,7 +1897,8 @@
                     <div class="who-col panel">
                         <h3 class="who-h bull">Automated by the AI</h3>
                         <p class="who-note" id="whoNote">
-                            Once the scheduled Build Agent runs. Until then: bootstrap sessions.
+                            Since Build #3 (25 Sep): every night from 21:00 UTC, on its own,
+                            streamed at <a href="/live">/live</a>.
                         </p>
                         <ul class="ticks">
                             <li>Picks the feature: the vote, then its backlog</li>
@@ -1965,8 +1966,10 @@
                     <div class="note gold">
                         <h3>Bootstrap phase</h3>
                         <p>
-                            Before the scheduled agent, the AI works in sessions Osman starts,
-                            labelled <code>Build-Mode: bootstrap</code>.
+                            Builds #1 and #2, and platform work since, were done by the same AI in
+                            sessions Osman starts, labelled <code>Build-Mode: bootstrap</code>.
+                            Anything done on the operator's side after a nightly run is listed in
+                            that build's devlog.
                         </p>
                     </div>
                     <div class="note">
@@ -2009,7 +2012,9 @@
                             sessions Osman starts, used to set up the pipeline), or
                             <code>human</code> (Osman typed it). Build #0 is the untouched
                             open-source game the AI started from, so the diff from
-                            <code>day-0</code> shows everything the AI added.
+                            <code>day-0</code> shows everything the AI added. Since Build #3 the
+                            Build Agent builds every night at 21:00 UTC with nobody in the session,
+                            live at <a href="/live">/live</a>.
                         </p>
                     </details>
                     <details>
@@ -2020,7 +2025,9 @@
                             <span data-launched="launched the coin">launches the coin</span>, posts
                             the daily X update the AI drafts, moves SOL from the treasury to the
                             prize and costs wallets by hand (each move is in the ledger), and holds
-                            an emergency revert switch. He doesn't write the daily features.
+                            an emergency revert switch. Now and then he leaves the agent a public
+                            note for one build (<code>agent/OPERATOR.md</code>), and the devlog says
+                            so. He doesn't write the daily features.
                         </p>
                     </details>
                     <details>
@@ -2037,9 +2044,9 @@
                         <summary>Why $ANSEM prizes?</summary>
                         <p>
                             The verified #1 of each Daily Challenge gets a small prize paid by the
-                            AI from its treasury, in $ANSEM bought on-chain. The prize is capped by
-                            the previous day's fees. Holding our coin is never required to win: it's
-                            a game prize, not a lottery.
+                            AI in $ANSEM bought on-chain: 10% of that day's creator fees, at most
+                            0.5 SOL, from a small prize wallet the treasury funds. Holding our coin
+                            is never required to win: it's a game prize, not a lottery.
                         </p>
                     </details>
                     <details>
@@ -2049,7 +2056,8 @@
                             ends. On the game-over screen, add a Solana address (just the public
                             address, no wallet connection). After 00:00 UTC the AI re-plays the top
                             runs from their recorded inputs, and the best verified run with an
-                            address is paid. Prizes start once the prize wallet is funded.
+                            address is paid. The first prize went out on 25 Sep: 78.82 $ANSEM, on
+                            Solscan.
                         </p>
                     </details>
                     <details>

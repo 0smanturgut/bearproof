@@ -72,6 +72,9 @@ const isNum = (n) => typeof n === 'number' && Number.isFinite(n);
 const pad2 = (n) => String(n).padStart(2, '0');
 const usd = (n) => '$' + Number(n).toFixed(2);
 const fmtInt = (n) => (isNum(n) ? Math.round(n).toLocaleString('en-US') : '—');
+/** A raw $ANSEM amount (6 decimals) as people read it: 78.82, 1,250. */
+const ansemAmount = (raw) =>
+    (Number(raw) / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
 function toMs(t) {
     if (isNum(t)) return t < 1e12 ? t * 1000 : t;
@@ -288,7 +291,7 @@ function renderStats(s) {
             setV('sTreasury', (bal + fees).toFixed(fees + bal < 10 ? 3 : 2) + ' SOL', 'bull');
             setN(
                 'sTreasuryN',
-                fees > 0
+                fees >= 0.001
                     ? `incl. ~${fees.toFixed(3)} SOL of unclaimed creator fees (est. ${Math.round(share * 100)}% share)`
                     : 'on-chain balance'
             );
@@ -1473,7 +1476,7 @@ async function loadWinners() {
         const amount =
             paid.token === 'SOL'
                 ? `${(Number(paid.amountRaw) / 1e9).toFixed(3)} SOL`
-                : `${fmtInt(Math.round(Number(paid.amountRaw) / 1e6))} $${paid.token || 'ANSEM'}`;
+                : `${ansemAmount(paid.amountRaw)} $${paid.token || 'ANSEM'}`;
         banner.textContent = '';
         banner.append(
             h('span', { class: 'paid-k' }, 'Prize paid'),
@@ -1495,7 +1498,13 @@ async function loadWinners() {
                 ? h(
                       'span',
                       { class: 'w-what paid' },
-                      `Paid in $${r.token || 'ANSEM'}`,
+                      r.amountRaw
+                          ? `Paid ${
+                                r.token === 'SOL'
+                                    ? `${(Number(r.amountRaw) / 1e9).toFixed(3)} SOL`
+                                    : `${ansemAmount(r.amountRaw)} $${r.token || 'ANSEM'}`
+                            }`
+                          : `Paid in $${r.token || 'ANSEM'}`,
                       r.tx
                           ? h(
                                 'a',

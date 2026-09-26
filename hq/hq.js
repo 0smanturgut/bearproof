@@ -1455,36 +1455,138 @@ function emptyBoard(pinned) {
     );
 }
 
-/** The prize rules, live or not, and the last winners with their payouts. */
+const tokenAmount = (raw, token) =>
+    token === 'SOL'
+        ? `${(Number(raw) / 1e9).toFixed(3)} SOL`
+        : `${ansemAmount(raw)} $${token || 'ANSEM'}`;
+const solscanLink = (tx, label = ' · Solscan ↗') =>
+    h('a', { href: `https://solscan.io/tx/${tx}`, rel: 'noopener', target: '_blank' }, label);
+const sol3 = (x) => `${Number(x).toLocaleString('en-US', { maximumFractionDigits: 3 })} SOL`;
+
+/** Today's Daily Pot, when holders voted it in: the pot so far, the places it pays, the AI's bounty. */
+function renderPot(pot) {
+    let el = $('#potLine');
+    if (!el) {
+        el = h('div', { id: 'potLine', class: 'pot-line' });
+        $('#prizeText').after(el);
+    }
+    el.textContent = '';
+    el.hidden = !pot || (pot.status !== 'on' && pot.status !== 'next');
+    if (el.hidden) return;
+    if (pot.status === 'next') {
+        el.append(
+            h('span', { class: 'pot-k' }, 'Daily Pot'),
+            h('span', null, `Voted in by holders. Starts with the ${pot.from} challenge.`)
+        );
+        return;
+    }
+    el.append(
+        h('span', { class: 'pot-k' }, 'Today’s pot'),
+        h(
+            'span',
+            null,
+            pot.measured
+                ? `${sol3(pot.potSol)} so far (measured on-chain) · top ${pot.places || 0} paid at this size`
+                : 'Fees for today are not measured yet'
+        )
+    );
+    if (pot.bounty)
+        el.append(
+            h('span', { class: 'pot-k' }, 'Bounty'),
+            h(
+                'span',
+                null,
+                `${pot.bounty.name}: ${pot.bounty.text} · ${sol3(pot.bountySol)} · ${
+                    pot.bounty.cleared === null
+                        ? 'checking runs'
+                        : `${pot.bounty.cleared} cleared so far`
+                }`
+            )
+        );
+}
+
+/** The full rules, folded (the Daily Pot's, or the next policy's when one is voted in). */
+function renderRules(details) {
+    let el = $('#prizeRules');
+    if (!el) {
+        el = h(
+            'details',
+            { id: 'prizeRules', class: 'prize-rules' },
+            h('summary', null, 'Full rules')
+        );
+        el.append(h('ul'));
+        $('.prize-how').after(el);
+    }
+    el.hidden = !Array.isArray(details) || !details.length;
+    const ul = el.querySelector('ul');
+    ul.textContent = '';
+    for (const d of details || []) ul.append(h('li', null, d));
+}
+
+/** One paid Daily Pot recipient: "#1 name" or "Bounty · name", the amount and its transaction. */
+function payoutLine(p) {
+    return h(
+        'li',
+        null,
+        h(
+            'span',
+            { class: 'w-who' },
+            `${p.kind === 'place' ? `#${p.place}` : 'Bounty'} · ${p.name}`
+        ),
+        p.status === 'sent'
+            ? h(
+                  'span',
+                  { class: 'w-what paid' },
+                  tokenAmount(p.amountRaw, p.token),
+                  solscanLink(p.tx)
+              )
+            : h('span', { class: 'w-what' }, p.status === 'failed' ? 'Transfer failed' : 'Sending…')
+    );
+}
+
+/** The prize rules, live or not, today's Daily Pot, and the last payouts. */
 async function loadWinners() {
-    const w = await getJSON('/api/winners');
+    const [w, pot] = await Promise.all([getJSON('/api/winners'), getJSON('/api/pot')]);
     if (!w) return;
     const live = w.status === 'live';
+    const rule = w.rule || {};
+    const isPot = rule.policy === 'daily-pot';
     const flag = $('#prizeFlag');
     flag.textContent = live
-        ? 'Live'
+        ? isPot
+            ? 'Live · Daily Pot'
+            : 'Live'
         : w.status === 'wallet_pending'
           ? 'Starts when the prize wallet is funded'
           : 'Starts with the coin';
     flag.className = 'flag ' + (live ? 'gold' : 'dim');
+    if (rule.text)
+        $('#prizeText').textContent = rule.next
+            ? `${rule.text} Holders voted in the Daily Pot: it takes over from the ${rule.next.from} challenge.`
+            : rule.text;
+    const how = $('.prize-how');
+    if (how && how.lastElementChild)
+        how.lastElementChild.textContent = isPot
+            ? 'The top of the board and everyone who clears the bounty are paid after 00:10 UTC'
+            : 'The verified #1 is paid after 00:00 UTC';
+    renderRules(isPot ? rule.details : rule.next && rule.next.details);
+    renderPot(pot);
+
     const list = $('#winners');
     const rows = Array.isArray(w.winners) ? w.winners.slice(0, 5) : [];
-    // The newest paid prize, big, for a day and a half: the AI paying a player on-chain is the proof.
+    // The newest paid prize, big, for a day and a half: the AI paying players on-chain is the proof.
     const paid = rows.find((r) => r.status === 'paid' && r.tx);
     const banner = $('#paidBanner');
     if (paid && Date.now() - Date.parse(`${paid.date}T00:00:00Z`) < 60 * 3600000) {
-        const amount =
-            paid.token === 'SOL'
-                ? `${(Number(paid.amountRaw) / 1e9).toFixed(3)} SOL`
-                : `${ansemAmount(paid.amountRaw)} $${paid.token || 'ANSEM'}`;
+        const sent = (paid.payouts || []).filter((p) => p.status === 'sent');
+        const text =
+            paid.policy === 'daily-pot'
+                ? `The AI paid ${sent.length} player${sent.length === 1 ? '' : 's'} for ${paid.date}: ${tokenAmount(paid.amountRaw, paid.token)} on-chain.`
+                : `The AI paid ${paid.name}, the verified #1 of ${paid.date}, ${tokenAmount(paid.amountRaw, paid.token)} on-chain.`;
         banner.textContent = '';
         banner.append(
             h('span', { class: 'paid-k' }, 'Prize paid'),
-            h(
-                'span',
-                { class: 'paid-t' },
-                `The AI paid ${paid.name}, the verified #1 of ${paid.date}, ${amount} on-chain.`
-            ),
+            h('span', { class: 'paid-t' }, text),
             h('span', { class: 'paid-go' }, 'Solscan ↗')
         );
         banner.href = `https://solscan.io/tx/${paid.tx}`;
@@ -1492,30 +1594,45 @@ async function loadWinners() {
     }
     list.textContent = '';
     list.hidden = !rows.length;
+    let expanded = false;
     for (const r of rows) {
+        if (r.policy === 'daily-pot') {
+            const payouts = r.payouts || [];
+            const places = payouts.filter((p) => p.kind === 'place').length;
+            const bounty = payouts.length - places;
+            const who = payouts.length
+                ? `${r.date} · ${places} place${places === 1 ? '' : 's'}${bounty ? ` + ${bounty} bounty` : ''}`
+                : `${r.date} · Daily Pot`;
+            const what =
+                r.status === 'paid'
+                    ? h(
+                          'span',
+                          { class: 'w-what paid' },
+                          `Paid ${tokenAmount(r.amountRaw, r.token)}`
+                      )
+                    : h(
+                          'span',
+                          { class: 'w-what' },
+                          r.why || (r.status === 'pending' ? 'Payout in progress' : 'No prize paid')
+                      );
+            const li = h('li', null, h('span', { class: 'w-who' }, who), what);
+            // The newest Daily Pot day lists every recipient with its transaction.
+            if (payouts.length && !expanded) {
+                expanded = true;
+                li.append(h('ul', { class: 'w-pay' }, ...payouts.map(payoutLine)));
+            }
+            list.append(li);
+            continue;
+        }
         const what =
             r.status === 'paid'
                 ? h(
                       'span',
                       { class: 'w-what paid' },
                       r.amountRaw
-                          ? `Paid ${
-                                r.token === 'SOL'
-                                    ? `${(Number(r.amountRaw) / 1e9).toFixed(3)} SOL`
-                                    : `${ansemAmount(r.amountRaw)} $${r.token || 'ANSEM'}`
-                            }`
+                          ? `Paid ${tokenAmount(r.amountRaw, r.token)}`
                           : `Paid in $${r.token || 'ANSEM'}`,
-                      r.tx
-                          ? h(
-                                'a',
-                                {
-                                    href: `https://solscan.io/tx/${r.tx}`,
-                                    rel: 'noopener',
-                                    target: '_blank'
-                                },
-                                ' · Solscan ↗'
-                            )
-                          : null
+                      r.tx ? solscanLink(r.tx) : null
                   )
                 : h(
                       'span',

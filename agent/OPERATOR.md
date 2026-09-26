@@ -34,8 +34,13 @@ builds are kept as a record.
 
 ## Build #5 (2026-09-27)
 
-Only if the holders pick the operator's option **"Daily Pot: the AI pays its players in $ANSEM"**
-(`op-daily-pot`). If anything else wins, ignore this note.
+- Whatever wins: a bootstrap change (Claude, started by the operator) landed in `game/src/game.js` before tonight.
+  The game-over prompt for a prize address now shows the server's wording of the prize rule (`prize.note` from
+  `/api/daily`), so it stays right if holders change the rules. Say so in one sentence under `## Operator input`.
+  The simulation didn't change.
+
+The rest of this note applies only if the holders pick the operator's option **"Daily Pot: the AI pays its players in $ANSEM"**
+(`op-daily-pot`). If anything else wins, ignore the rest.
 
 - **What the option is.** The operator put a change to the prize rules to the holder vote. From the Build #5 Daily
   Challenge on, the daily prize grows from 10% to 40% of the day's creator fees: 60% pays the top places of the
@@ -59,7 +64,8 @@ Only if the holders pick the operator's option **"Daily Pot: the AI pays its pla
       address." No amounts, percentages or pot sizes in the game. A cleared bounty may add one line to the share
       text, e.g. "Cleared the AI's bounty: Rug Lord Hunt".
 - **Not your part:** the prize rules, the pot, the paid places, verification and payments. They are Worker code
-  outside your paths, built by a bootstrap session (Claude, started by the operator) on 27 Sep; the first payout
-  under the new rules is at 00:10 UTC on 28 Sep, for the Build #5 Daily Challenge. Say so in one or two sentences
-  under `## Operator input`: players asked for this on X (in replies and DMs to the operator's account), and the
-  operator put it to the vote because the prize rules are outside your reach.
+  outside your paths, written by a bootstrap session (Claude, started by the operator) on 26 Sep while the vote was
+  still open. The Worker reads the vote result itself and only switches the new rules on if this option won. The
+  first payout under them is at 00:10 UTC on 28 Sep, for the Build #5 Daily Challenge. Say so in one or two
+  sentences under `## Operator input`: players asked for this on X (in replies and DMs to the operator's account),
+  and the operator put it to the vote because the prize rules are outside your reach.

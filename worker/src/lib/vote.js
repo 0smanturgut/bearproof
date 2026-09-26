@@ -31,6 +31,21 @@ export function base58Decode(s) {
     return Uint8Array.from(bytes);
 }
 
+export function base58Encode(bytes) {
+    let n = 0n;
+    for (const b of bytes) n = (n << 8n) | BigInt(b);
+    let out = '';
+    while (n > 0n) {
+        out = B58[Number(n % 58n)] + out;
+        n /= 58n;
+    }
+    for (const b of bytes) {
+        if (b !== 0) break;
+        out = '1' + out;
+    }
+    return out;
+}
+
 export function isWallet(s) {
     const b = base58Decode(s);
     return !!b && b.length === 32;

@@ -60,13 +60,13 @@ async function poll(env, date) {
         description: p.description,
         source: 'agent'
     }));
-    const rows =
-        (await all(
-            env,
-            `SELECT id, wallet, title, description, created_at, ai_verdict, ai_reply FROM feature_requests
-             WHERE poll_date = ? AND status = 'open' ORDER BY created_at LIMIT ${MAX_REQUESTS_PER_POLL}`,
-            date
-        )) || [];
+    const read = await all(
+        env,
+        `SELECT id, wallet, title, description, created_at, ai_verdict, ai_reply FROM feature_requests
+         WHERE poll_date = ? AND status = 'open' ORDER BY created_at LIMIT ${MAX_REQUESTS_PER_POLL}`,
+        date
+    );
+    const rows = read || [];
     const requests = rows.map((r) => ({
         id: r.id,
         title: r.title,
@@ -83,9 +83,22 @@ async function poll(env, date) {
         fromBuild: live.n,
         options: [...proposals, ...operatorOptions(OPERATOR_OPTIONS, date), ...requests],
         requestCount: requests.length,
+        requestsRead: read !== null,
         open,
         close
     };
+}
+
+/**
+ * The winner of a poll by the same tally the Build Agent reads (null with no votes), or undefined when the
+ * ballot or the votes can't be read. The cron uses it to learn whether holders voted the Daily Pot in.
+ */
+export async function pollWinner(env, date) {
+    const p = await poll(env, date);
+    if (!p || !p.requestsRead) return undefined;
+    const rows = await all(env, 'SELECT proposal_id, weight FROM votes WHERE poll_date = ?', date);
+    if (!rows) return undefined;
+    return tally(p.options, rows).winner;
 }
 
 /** An option as the public sees it (the requester's full wallet stays out of the ballot). */

@@ -35,6 +35,8 @@ import { twistFor } from './lib/twists.js';
 import { TWIST_BUILDS } from './generated/twists.js';
 import { setPayoutAddress } from './routes/payout.js';
 import { winners } from './routes/winners.js';
+import { pot } from './routes/pot.js';
+import { dailyPotFrom } from './dailypot.js';
 import { scheduled } from './cron.js';
 
 // Until 26 Sep, browsers that cached build files "immutable" before D47 get their HTTP cache for this site
@@ -74,6 +76,8 @@ async function daily(request, env) {
     const prizeLive =
         !!(env.TOKEN_MINT && env.PRIZE_WALLET) &&
         (await env.CONFIG.get('payouts_enabled').catch(() => null)) === 'true';
+    // The game shows this note at game over, so the server words the prize rules for the challenge's day.
+    const potFrom = prizeLive ? await dailyPotFrom(env, now).catch(() => null) : null;
     const endsAt = nextUtcMidnight(Date.parse(`${date}T00:00:00Z`));
     return json(
         {
@@ -90,8 +94,11 @@ async function daily(request, env) {
             prize: {
                 token: 'ANSEM',
                 status: prizeLive ? 'live' : 'not_live',
+                ...(potFrom && date >= potFrom ? { policy: 'daily-pot' } : {}),
                 note: prizeLive
-                    ? 'The verified #1 with a payout address is paid in $ANSEM after 00:00 UTC.'
+                    ? potFrom && date >= potFrom
+                        ? 'Today’s top verified runs and everyone who clears the AI’s bounty are paid in $ANSEM after 00:10 UTC.'
+                        : 'The verified #1 with a payout address is paid in $ANSEM after 00:00 UTC.'
                     : env.TOKEN_MINT
                       ? 'The coin is live. Daily $ANSEM prizes start when the prize wallet is funded.'
                       : 'Prizes start after the coin launches.'
@@ -226,6 +233,8 @@ export default {
                         return edgeCached(request, ctx, 60, () => insights(request, env));
                     case '/api/winners':
                         return edgeCached(request, ctx, 60, () => winners(env));
+                    case '/api/pot':
+                        return edgeCached(request, ctx, 60, () => pot(env));
                 }
                 if (pathname.startsWith('/api/run/'))
                     return getRun(pathname.slice('/api/run/'.length), env);

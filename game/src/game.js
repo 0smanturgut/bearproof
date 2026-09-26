@@ -505,11 +505,11 @@ export class Game {
 
     _askPayout() {
         const prize = this.daily?.prize;
-        // The server words the not-yet-live state (coin not out, or prize wallet not funded yet).
+        // The server words the prize rules (they change when holders vote on them) and the not-yet-live state.
         this.ui.askPayout(
             this.prefs.payoutAddress || '',
             prize?.status === 'live'
-                ? 'Today’s verified #1 wins the daily prize in $ANSEM. Add your Solana address:'
+                ? `${prize.note || 'Today’s verified #1 wins the daily prize in $ANSEM.'} Add your Solana address:`
                 : `${prize?.note || 'The daily $ANSEM prize is not live yet.'} Add your Solana address to be eligible:`,
             (addr) => this._savePayout(addr)
         );

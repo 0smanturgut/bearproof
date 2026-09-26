@@ -43,7 +43,7 @@ export async function activity(env) {
         ),
         all(
             env,
-            "SELECT date, score, payout_token, payout_amount, payout_tx, created_at FROM daily_winners WHERE payout_status = 'paid' ORDER BY date DESC LIMIT 3"
+            "SELECT date, score, payout_token, payout_amount, payout_tx, note, created_at FROM daily_winners WHERE payout_status = 'paid' ORDER BY date DESC LIMIT 3"
         )
     ]);
     const items = [];
@@ -118,14 +118,33 @@ export async function activity(env) {
         });
     }
     for (const w of winners || []) {
-        // Shown when it was sent (the ledger's send row), not when the winner was picked.
-        const sent = (ledger || []).find((l) =>
-            new RegExp(`prize:${w.date}:(send|sol-fallback)$`).test(l.memo || '')
-        );
+        // Shown when it was sent (the ledger's last send row for the day), not when the winners were picked.
+        const sent = (ledger || [])
+            .filter((l) =>
+                new RegExp(`prize:${w.date}:(send|sol-fallback|place-\\d+|bounty)$`).test(
+                    l.memo || ''
+                )
+            )
+            .sort((a, b) => b.ts - a.ts)[0];
+        let pot = null;
+        try {
+            const note = JSON.parse(w.note || '{}');
+            if (note.policy === 'daily-pot')
+                pot = (note.recipients || []).filter((r) => r.status === 'sent').length;
+        } catch {
+            pot = null;
+        }
+        const amount =
+            w.payout_token === 'SOL'
+                ? `${sol(w.payout_amount)} SOL`
+                : `${ansem(w.payout_amount)} $${w.payout_token || 'ANSEM'}`;
         items.push({
             ts: sent ? sent.ts : w.created_at,
             kind: 'prize',
-            text: `Prize paid for ${w.date}: ${w.payout_token === 'SOL' ? `${sol(w.payout_amount)} SOL` : `${ansem(w.payout_amount)} $${w.payout_token || 'ANSEM'}`} to the verified #1.`,
+            text:
+                pot === null
+                    ? `Prize paid for ${w.date}: ${amount} to the verified #1.`
+                    : `Daily Pot paid for ${w.date}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}.`,
             tx: w.payout_tx || null
         });
     }

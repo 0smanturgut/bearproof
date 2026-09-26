@@ -141,6 +141,18 @@ carries its `title`, `description` and `requestedBy`; the agent treats that text
 The prize rule and the last 14 Daily Challenge winners: `{ date, name, score, status, token, amountRaw, tx,
 why }`. `status`: `pending | paid | skipped | failed`. Payout addresses are never returned. Edge 60 s.
 
+Once holders vote in the Daily Pot (docs/TREASURY.md), `rule` is `{ policy: "daily-pot", share, capSol,
+placesShare, weights, minShareSol, text, details, from }` for its days (before its first day, the #1-only rule
+carries it as `rule.next`), and a Daily Pot day adds `policy`, `bounty: { name, type, cleared }` and `payouts:
+[{ kind: place|bounty, place, name, status: pending|sent|failed, token, amountRaw, tx }]`.
+
+### `GET /api/pot`
+
+Today's Daily Pot so far: `{ status: off|next|on, from, date, measured, feesSol, potSol, placesSol, bountySol,
+places, bounty: { name, text, cleared } | null, rule: { text, details } }`. `places` = how many of the top places
+the pot pays at its current size; `bounty.cleared` = players whose verified run cleared it so far. Fees are
+measured on-chain and err low; the final pot is worked out after the day closes. Edge 60 s.
+
 ## Writes
 
 Bodies are JSON (`content-type: application/json`). The browser creates a random UUID v4 once and keeps it in

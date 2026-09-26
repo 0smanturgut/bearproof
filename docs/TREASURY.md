@@ -32,13 +32,55 @@ before launch. We keep ClawPump's default, the agent wallet, for three reasons:
 
 - **Daily prize** = min(10% of the previous 24 h creator fees, **0.5 SOL** equivalent). Below 0.01 SOL, it rolls over to
   the next day.
-- **Prize wallet ceiling**: 1.5 SOL (3 days of the cap). The top-up step never sends more than that.
+- **Prize wallet ceiling**: 1.5 SOL (3 days of the cap) under the #1-only rule, **2.5 SOL** under the Daily
+  Pot (below). The operator's top-up never goes over it.
 - **Kill switch**: `payouts_enabled=false` in the CONFIG KV stops every payout at once.
 - **Winner rules**: only a **verified** run (re-simulated server-side from its input log, with a matching score) and only
   a player who **opted in** with a Solana address can win. Holding the coin is never required. If the #1 has no address,
   the prize goes to the next verified player who has one, and the ledger says so.
 - **$ANSEM** (mint `9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump`, Token-2022). Each prize is bought with SOL through
   Jupiter at payout time. If the swap fails twice, the prize is paid in SOL and the ledger says so.
+
+## The Daily Pot (on the 26 Sep holder ballot)
+
+Players asked on X to pay more than the day's #1, and the prize rules are outside the Build Agent's reach, so the
+operator put this rule change to the holder vote (ballot option `op-daily-pot`, poll of 26 Sep, D58). The code
+(`worker/src/lib/pot.js`, `worker/src/dailypot.js`) was written while the vote was open and switches itself on from
+the result: 5 minutes after that poll closes (21:05 UTC, so a vote cast in its last second counts), the Worker reads
+the winner with the same tally the Build Agent reads. If it is the Daily Pot, it pays every Daily Challenge from
+27 Sep on; otherwise the #1-only rule above stays. The decision is kept in CONFIG `pot:from` (a date, or `no`).
+While it can't be read, no day from 27 Sep on is settled at all, so a day is never settled under the wrong rule.
+
+- **Pot** = min(40% of the day's treasury fees, **1 SOL**), measured the same way as above.
+- **Places**: 60% of the pot, plus the places rollover, pays the best verified runs of the day, one place per
+  Solana address, weighted 30/20/14/10/8/6/4/3/3/2 over as many of the top 10 places as keep every share at
+  **0.01 SOL** or more.
+- **Bounty**: 40% of the pot, plus the bounty rollover, is shared equally by every player whose verified Daily
+  Challenge run cleared the bounty the AI set for that build (`game/bounty.json`, from the menu in
+  `worker/src/lib/bounty.js`: survive, level, kills, bosses, win), one share per address and at most 25 shares.
+  If the shares would be under 0.01 SOL, fewer are paid, best score first. The AI picks the challenge; what it pays
+  and to whom is this Worker's code, which the AI can't edit.
+- **Rollovers**: a part nobody could be paid rolls to the next day, capped at **0.5 SOL** each (places, bounty);
+  anything over the cap stays in the treasury. They are kept with each settled day in D1 (`rollover.out` in its
+  note), so settling a day and using its rollover are one write. On the first Daily Pot day, the #1-only rule's
+  own rollover, if any, joins the places.
+- **Eligibility** is the same as above: verified, bot check passed, a Solana address left, never the operator. If
+  the operator list (`prize:excluded_players`) can't be read, nobody is paid in that run.
+- **When**: after 00:10 UTC, once the verifier has re-played every run of the day. If some runs are still unverified
+  12 hours after the challenge closed, the day is settled without them, and the record says how many.
+- **Payout**: one SOL → $ANSEM swap for the whole day, then one transfer per recipient, each with a ledger row
+  (`bearproof:prize:<date>:buy`, `:place-<n>`, `:bounty`). What the swap bought is read from the swap transaction
+  itself, and split in proportion. The swap and every transfer are signed and their signature saved before they are
+  sent, and the cron's lock on the day is checked on every save, so after a crash or a slow run nothing is bought or
+  paid twice. A signature that can't be found is only given up (and a new transfer signed) when two runs 15 minutes
+  apart agree, and only on an RPC that keeps transaction history (Helius); otherwise it is left for the operator.
+  Two failed swaps: paid in SOL, and the ledger says so. Network fees and new token-account rent come on top, from
+  the prize wallet.
+- **Short wallet**: if the prize wallet can't cover a day (the pot plus 0.01 SOL and 0.0025 SOL per recipient), the
+  payout waits for the operator's top-up; the HQ says so. A day can need up to 2 SOL (1 SOL pot and two 0.5 SOL
+  rollovers) plus fees, so the operator keeps the wallet at no more than **2.5 SOL**.
+- **A share that can't be sent** after three failed transfers, or 72 hours, is marked failed on the HQ. Its $ANSEM
+  stays in the prize wallet, and the operator sends it by hand (a transfer labelled `operator` on the ledger).
 
 ## What is automated, and what isn't (kept true)
 

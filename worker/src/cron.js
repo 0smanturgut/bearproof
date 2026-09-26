@@ -15,6 +15,7 @@ import { all, first } from './lib/db.js';
 import { utcDate } from './lib/daily.js';
 import { LAMPORTS, pickWinner, prizeAmount } from './lib/prize.js';
 import { snapshotBalances, syncLedger } from './lib/treasury.js';
+import { POT_FIRST_DATE, advancePot, claimDayPot, dailyPotFrom } from './dailypot.js';
 import {
     connection,
     mintInfo,
@@ -50,7 +51,7 @@ async function snapshotFees(env, today) {
  * difference of two daily earnings snapshots. Without one: the day's accrual in the pump.fun creator vault times
  * the agent's share (CREATOR_FEE_SHARE), or failing that, the day's ledger inflows labelled creator fees.
  */
-async function fees24h(env, date) {
+export async function fees24h(env, date) {
     if (!env.CLAWPUMP_AGENT_ID) {
         if (!env.TREASURY_WALLET) return null;
         // Preferred: the day's accrual in the creator vault, times the agent's share (an on-chain measurement).
@@ -99,13 +100,16 @@ async function setWinner(env, date, fields) {
         .run();
 }
 
-/** Player ids that can't win prizes (the operator's own browsers). */
+/**
+ * Player ids that can't win prizes (the operator's own browsers). Fails closed: if the list can't be read, this
+ * throws and nobody is paid in that run, rather than paying the operator.
+ */
 export async function excludedPlayers(env) {
-    try {
-        return new Set(JSON.parse((await env.CONFIG.get('prize:excluded_players')) || '[]'));
-    } catch {
-        return new Set();
-    }
+    const raw = await env.CONFIG.get('prize:excluded_players');
+    if (raw === null) return new Set();
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) throw new Error('prize:excluded_players is not a list');
+    return new Set(list);
 }
 
 /** Pick and record yesterday's winner (idempotent: the row is the claim). */
@@ -293,24 +297,56 @@ export async function scheduled(event, env, ctx) {
     if (!live) return;
     {
         const yesterday = utcDate(now - DAY);
-        if (now - Date.parse(`${today}T00:00:00Z`) > 10 * 60000) await claimDay(env, yesterday);
+        if (now - Date.parse(`${today}T00:00:00Z`) > 10 * 60000) {
+            // The Daily Pot pays the days from the one after the holder vote that chose it; earlier days,
+            // and every day if it wasn't chosen, keep the #1-only rule. Settling a day is final, so when the
+            // rule for it can't be known right now, it waits for the next run instead of guessing.
+            try {
+                const from = await dailyPotFrom(env, now);
+                if (from && yesterday >= from)
+                    await claimDayPot(env, yesterday, {
+                        fees: await fees24h(env, yesterday),
+                        excluded: await excludedPlayers(env),
+                        now
+                    });
+                else if (from !== undefined || yesterday < POT_FIRST_DATE)
+                    await claimDay(env, yesterday);
+                else
+                    console.warn(
+                        '[cron] prize rule for',
+                        yesterday,
+                        'unknown this run; settling later'
+                    );
+            } catch (err) {
+                console.warn('[cron] settle', yesterday, err?.message || err);
+            }
+        }
+        // One deadline for the whole run, well inside the lock, so the next run never meets this one mid-payout.
+        const deadline = Date.now() + 8 * 60000;
         const pending =
             (await all(
                 env,
-                "SELECT * FROM daily_winners WHERE payout_status = 'pending' ORDER BY date LIMIT 3"
+                "SELECT * FROM daily_winners WHERE payout_status = 'pending' ORDER BY date LIMIT 10"
             )) || [];
         for (const row of pending) {
-            // Atomic claim: only one run may move this day's money at a time.
+            if (Date.now() > deadline) break;
+            // Atomic claim: only one run may move this day's money at a time. The lock's value is this run's token.
+            const lock = Date.now() + 14 * 60000;
             const claim = await env.DB.prepare(
                 'UPDATE daily_winners SET lock_until = ?1 WHERE date = ?2 AND (lock_until IS NULL OR lock_until < ?3)'
             )
-                .bind(now + 10 * 60000, row.date, now)
+                .bind(lock, row.date, Date.now())
                 .run();
             if (!claim.meta?.changes) continue;
+            const pot = JSON.parse(row.note || '{}').policy === 'daily-pot';
             try {
-                await advancePayout(env, row);
+                if (pot) await advancePot(env, row, { lock, deadline });
+                else await advancePayout(env, row);
             } catch (err) {
                 console.error('[cron] payout', row.date, err?.message || err);
+                // A Daily Pot row keeps its own record (transfer signatures included): never overwrite it with
+                // the copy read before the lock. It simply tries again next run.
+                if (pot) continue;
                 const note = JSON.parse(row.note || '{}');
                 note.attempts = (note.attempts || 0) + 1;
                 note.lastError = String(err?.message || err).slice(0, 200);
@@ -322,7 +358,12 @@ export async function scheduled(event, env, ctx) {
                         : { note: JSON.stringify(note) }
                 );
             } finally {
-                await setWinner(env, row.date, { lock_until: null });
+                // Only this run's own lock: if it ran late and another run took over, that lock stays.
+                await env.DB.prepare(
+                    'UPDATE daily_winners SET lock_until = NULL WHERE date = ?1 AND lock_until = ?2'
+                )
+                    .bind(row.date, lock)
+                    .run();
             }
         }
     }

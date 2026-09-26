@@ -85,6 +85,21 @@ test("operator options: labelled 'operator', only for their poll date, malformed
                 { id: 'req-0123456789', title: 'Looks like a holder id', description: '' },
                 { id: 'op-long', title: 'x'.repeat(61), description: '' },
                 { id: 'op-desc', title: 'Too much text', description: 'y'.repeat(241) },
+                {
+                    id: 'op-origin',
+                    title: 'With its story',
+                    description: 'Details.',
+                    origin: 'Asked on X',
+                    note: 'Players asked. A human put it to the vote.',
+                    why: 'kept in git, not served'
+                },
+                {
+                    id: 'op-bad-origin',
+                    title: 'Origin too long',
+                    description: '',
+                    origin: 'z'.repeat(25)
+                },
+                { id: 'op-bad-note', title: 'Note not text', description: '', note: 42 },
                 null
             ]
         }
@@ -95,6 +110,14 @@ test("operator options: labelled 'operator', only for their poll date, malformed
             title: 'Daily Pot title',
             description: 'Details.',
             source: 'operator'
+        },
+        {
+            id: 'op-origin',
+            title: 'With its story',
+            description: 'Details.',
+            source: 'operator',
+            origin: 'Asked on X',
+            note: 'Players asked. A human put it to the vote.'
         }
     ]);
     assert.deepEqual(operatorOptions(file, '2026-09-27'), []);

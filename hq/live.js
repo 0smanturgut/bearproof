@@ -466,7 +466,7 @@
                     o.source === 'community'
                         ? 'Holder'
                         : o.source === 'operator'
-                          ? 'Operator'
+                          ? o.origin || 'Operator'
                           : 'AI';
                 name.append(src, o.title);
                 var share = document.createElement('b');

@@ -61,4 +61,5 @@ Only if the holders pick the operator's option **"Daily Pot: the AI pays its pla
 - **Not your part:** the prize rules, the pot, the paid places, verification and payments. They are Worker code
   outside your paths, built by a bootstrap session (Claude, started by the operator) on 27 Sep; the first payout
   under the new rules is at 00:10 UTC on 28 Sep, for the Build #5 Daily Challenge. Say so in one or two sentences
-  under `## Operator input`, and that the operator put the option on the ballot.
+  under `## Operator input`: players asked for this on X (in replies and DMs to the operator's account), and the
+  operator put it to the vote because the prize rules are outside your reach.

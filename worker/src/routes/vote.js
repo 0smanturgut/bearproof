@@ -190,7 +190,8 @@ export async function voteResult(request, env) {
             description: o.description,
             share: o.share,
             source: o.source,
-            ...(o.source === 'community' ? { requestedBy: o.requestedBy } : {})
+            ...(o.source === 'community' ? { requestedBy: o.requestedBy } : {}),
+            ...(o.source === 'operator' ? { origin: o.origin ?? null, note: o.note ?? null } : {})
         };
     return json({
         pollDate: date,

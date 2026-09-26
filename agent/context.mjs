@@ -69,6 +69,8 @@ function option(o) {
         return {
             ...base,
             description: String(o.description || '').slice(0, 240),
+            origin: o.origin || null,
+            note: o.note || null,
             operatorNote: 'agent/OPERATOR.md'
         };
     if (o.source !== 'community') return base;

@@ -1,11 +1,14 @@
 {
-    "about": "Ballot options the operator (a human) puts to the holder vote, by poll date. They show on the ballot labelled 'Operator', next to the AI's proposals and holders' requests. The Build Agent can't edit this file.",
+    "about": "Ballot options the operator (a human) puts to the holder vote, by poll date. They show on the ballot next to the AI's proposals and holders' requests, stamped with `origin` (where the idea came from; 'Operator · human' if none) and with `note`, which says who put it there and why. `why` is the record behind `origin` and isn't served. The Build Agent can't edit this file.",
     "polls": {
         "2026-09-26": [
             {
                 "id": "op-daily-pot",
+                "origin": "Asked on X",
+                "why": "Players asked for rewards for playing, several times in replies to our posts and in DMs to the operator's X account (not linked).",
                 "title": "Daily Pot: the AI pays its players in $ANSEM",
-                "description": "Prizes grow from 10% to 40% of each day's creator fees. 60% pays the Daily top 10 (as many places as the pot covers), 40% is shared by everyone who clears the bounty the AI sets in each build. Free to play, no coin needed to win."
+                "description": "Prizes grow from 10% to 40% of each day's creator fees. 60% pays the Daily top 10 (as many places as the pot covers), 40% is shared by everyone who clears the bounty the AI sets in each build. Free to play, no coin needed to win.",
+                "note": "Players asked for this on X. Prize rules are outside the AI's reach by design, so Osman put it to the vote. If it wins, the AI builds the bounty into the game."
             }
         ]
     }

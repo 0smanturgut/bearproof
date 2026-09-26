@@ -263,7 +263,7 @@
                 o.source === 'community'
                     ? `Holder · ${o.requestedBy || ''}`
                     : o.source === 'operator'
-                      ? 'Operator · human'
+                      ? o.origin || 'Operator · human'
                       : 'AI proposal'
             )
         );
@@ -271,11 +271,7 @@
         if (o.description) li.appendChild(el('p', null, o.description));
         if (o.source === 'operator')
             li.appendChild(
-                el(
-                    'p',
-                    'op-note',
-                    'Put on the ballot by Osman, the operator. If it wins, the AI builds the bounty into the game. The prize code stays out of its reach.'
-                )
+                el('p', 'op-note', o.note || 'Put on the ballot by Osman, the operator.')
             );
         if (o.ai && o.ai.verdict) {
             // The AI's own read of a holder's request, written before anyone votes.

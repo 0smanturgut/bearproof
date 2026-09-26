@@ -1858,6 +1858,63 @@ code {
     background: var(--info);
     box-shadow: 0 0 10px rgba(70, 200, 255, 0.4);
 }
+.vote-list .vote-card.player .ex-stamp {
+    color: var(--gold);
+    max-width: 260px;
+}
+.ideas .flag {
+    color: var(--bull);
+}
+.ideas-ts:empty {
+    display: none;
+}
+.ideas-hint {
+    margin: 0;
+    color: var(--gold);
+}
+.ideas-feed {
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line-2);
+}
+.ideas-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 12px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.ideas-list {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+.ideas-list li {
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text-2);
+    background: rgba(0, 0, 0, 0.25);
+    border-left: 2px solid var(--line-2);
+    overflow-wrap: anywhere;
+}
+.ideas-list li.ideas-empty {
+    color: var(--muted);
+    border-left-color: transparent;
+}
+.ideas-list time {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--muted);
+}
 .vote-list .vote-card .op-note {
     margin-top: 10px;
     border-left: 2px solid var(--info);

@@ -255,7 +255,12 @@
 
     function card(o, live) {
         const human = o.source === 'community' || o.source === 'operator';
-        const li = el('li', 'ex vote-card' + (human ? ` ${o.source}` : ''));
+        // An AI proposal the AI took from the ideas box (worker: from === 'player').
+        const player = !human && o.from === 'player';
+        const li = el(
+            'li',
+            'ex vote-card' + (human ? ` ${o.source}` : '') + (player ? ' player' : '')
+        );
         li.appendChild(
             el(
                 'span',
@@ -264,7 +269,9 @@
                     ? `Holder · ${o.requestedBy || ''}`
                     : o.source === 'operator'
                       ? o.origin || 'Operator · human'
-                      : 'AI proposal'
+                      : player
+                        ? 'Suggested by a player'
+                        : 'AI proposal'
             )
         );
         li.appendChild(el('h3', null, o.title));

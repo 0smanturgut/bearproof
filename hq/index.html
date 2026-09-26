@@ -1016,6 +1016,7 @@
         <script type="module" src="/hq.js"></script>
         <script type="module" src="/hq-art.js"></script>
         <script defer src="/vote.js"></script>
+        <script defer src="/ideas.js"></script>
     </head>
     <body>
         <a class="skip" href="#main">Skip to content</a>
@@ -1279,8 +1280,8 @@
                     ></canvas>
                 </div>
                 <p class="lede">
-                    The AI proposes three features a day. Holders can add their own. The most-voted
-                    one ships next, whoever wrote it.
+                    The AI proposes three features a day, after reading everyone's ideas. Holders
+                    can add their own. The most-voted one ships next, whoever wrote it.
                 </p>
                 <div class="vote">
                     <div class="vote-state panel">
@@ -1402,6 +1403,43 @@
                                 </div>
                             </div>
                             <p class="vote-status" id="reqStatus" aria-live="polite"></p>
+                        </form>
+                        <form class="req panel ideas" id="ideaForm" novalidate hidden>
+                            <div class="req-h">
+                                <h3>Ideas box</h3>
+                                <span class="flag" id="ideaFlag">Anyone · no wallet</span>
+                            </div>
+                            <p class="req-need">
+                                Anyone can suggest, no wallet · the AI reads them every night before
+                                it writes the next ballot · holders still decide by vote
+                            </p>
+                            <div class="req-fields">
+                                <label for="ideaText">Your idea</label>
+                                <textarea
+                                    id="ideaText"
+                                    name="text"
+                                    maxlength="200"
+                                    rows="2"
+                                    placeholder="e.g. A boss that shorts the chart and makes the candles fall"
+                                ></textarea>
+                                <div class="ideas-ts" id="ideaTs"></div>
+                                <p class="fine ideas-hint" id="ideaTsHint" hidden>
+                                    One quick check: tap the box above.
+                                </p>
+                                <div class="req-foot">
+                                    <span class="req-count" id="ideaCount">0 / 200</span>
+                                    <button class="btn btn-go" type="submit" id="ideaSubmit">
+                                        Send idea
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="vote-status" id="ideaStatus" aria-live="polite"></p>
+                            <div class="ideas-feed">
+                                <div class="ideas-head">
+                                    <span>Latest ideas</span><span id="ideaMeta"></span>
+                                </div>
+                                <ul class="ideas-list" id="ideaList"></ul>
+                            </div>
                         </form>
                     </div>
                 </div>

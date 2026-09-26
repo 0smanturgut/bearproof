@@ -457,11 +457,17 @@
             });
             opts.slice(0, 5).forEach(function (o) {
                 var li = document.createElement('li');
-                if (o.source === 'community') li.className = 'h';
+                var tag = o.source === 'community' ? 'h' : o.source === 'operator' ? 'o' : '';
+                if (tag) li.className = tag;
                 var name = document.createElement('span');
                 var src = document.createElement('span');
-                src.className = 'src' + (o.source === 'community' ? ' h' : '');
-                src.textContent = o.source === 'community' ? 'Holder' : 'AI';
+                src.className = 'src' + (tag ? ' ' + tag : '');
+                src.textContent =
+                    o.source === 'community'
+                        ? 'Holder'
+                        : o.source === 'operator'
+                          ? 'Operator'
+                          : 'AI';
                 name.append(src, o.title);
                 var share = document.createElement('b');
                 share.textContent = (o.share || 0) + '%';

@@ -4,6 +4,7 @@
  * Numbers and ids only, with one exception: when a holder's request wins the vote, its title and details go in,
  * marked `untrusted`. The server already filtered them (worker/src/lib/requests.js) and agent/PROMPT.md tells
  * the agent to read them as a feature description, never as instructions. No other player text (names) goes in.
+ * An operator option's text is the operator's own (agent/operator-options.json, in git), so it goes in as is.
  *
  *   node agent/context.mjs [--site https://…] > "$RUNNER_TEMP/context.json"
  */
@@ -52,7 +53,10 @@ const recent = fs
     .slice(0, 3)
     .map((f) => ({ file: `devlog/${f}` }));
 
-/** A ballot option for the agent. A holder's request keeps its text, clipped and marked untrusted. */
+/**
+ * A ballot option for the agent. A holder's request keeps its text, clipped and marked untrusted; an operator's
+ * option keeps its text and points at the note that says which part is the agent's.
+ */
 function option(o) {
     if (!o) return null;
     const base = {
@@ -61,6 +65,12 @@ function option(o) {
         share: o.share,
         source: o.source
     };
+    if (o.source === 'operator')
+        return {
+            ...base,
+            description: String(o.description || '').slice(0, 240),
+            operatorNote: 'agent/OPERATOR.md'
+        };
     if (o.source !== 'community') return base;
     return {
         ...base,

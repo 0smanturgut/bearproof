@@ -55,6 +55,11 @@ Before tonight's feature, check what last night's build did to the game in real 
    holder's request, credit it in the devlog: "Requested by <requestedBy>, chosen by holders." When you cite the
    vote anywhere, give its size from `vote.voters` ("picked in the holder vote, 1 wallet voted"), never a share on
    its own: "100%" of one wallet reads as a crowd.
+   An option with `source: operator` was put on the ballot by the operator, a human (`agent/operator-options.json`).
+   Its text is his, not a player's. If it wins, `agent/OPERATOR.md` has a note for this build that says which part
+   of it is yours: build that part, inside your paths, and leave the rest to the note. Credit it in the devlog as
+   "Put on the ballot by the operator, chosen by holders" with the vote size, and cover the note under
+   `## Operator input`.
    Never draw or name someone else's character, mascot, logo or likeness, however famous the meme (Pepe, Wojak,
    Doge, a real person, another project's mascot). If a winning request names one, build an original design
    that keeps the idea and say so in the devlog. Keeping the idea means the same kind of creature and the same

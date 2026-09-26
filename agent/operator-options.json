@@ -1,0 +1,12 @@
+{
+    "about": "Ballot options the operator (a human) puts to the holder vote, by poll date. They show on the ballot labelled 'Operator', next to the AI's proposals and holders' requests. The Build Agent can't edit this file.",
+    "polls": {
+        "2026-09-26": [
+            {
+                "id": "op-daily-pot",
+                "title": "Daily Pot: the AI pays its players in $ANSEM",
+                "description": "Prizes grow from 10% to 40% of each day's creator fees. 60% pays the Daily top 10 (as many places as the pot covers), 40% is shared by everyone who clears the bounty the AI sets in each build. Free to play, no coin needed to win."
+            }
+        ]
+    }
+}

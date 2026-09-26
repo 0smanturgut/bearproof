@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, sign } from 'node:crypto';
 import { base58 } from '../../scripts/new-wallet.mjs';
+import { readFileSync } from 'node:fs';
 import {
     base58Decode,
     isWallet,
+    operatorOptions,
     pollWindow,
     tally,
     verifySignature,
@@ -73,4 +75,47 @@ test('tally shares and winner; poll closes 21:00 UTC', () => {
     assert.equal(tally(props, []).winner, null);
     const w = pollWindow('2026-09-24');
     assert.equal(new Date(w.close).toISOString(), '2026-09-24T21:00:00.000Z');
+});
+
+test("operator options: labelled 'operator', only for their poll date, malformed ones dropped", () => {
+    const file = {
+        polls: {
+            '2026-09-26': [
+                { id: 'op-daily-pot', title: 'Daily Pot title', description: 'Details.' },
+                { id: 'req-0123456789', title: 'Looks like a holder id', description: '' },
+                { id: 'op-long', title: 'x'.repeat(61), description: '' },
+                { id: 'op-desc', title: 'Too much text', description: 'y'.repeat(241) },
+                null
+            ]
+        }
+    };
+    assert.deepEqual(operatorOptions(file, '2026-09-26'), [
+        {
+            id: 'op-daily-pot',
+            title: 'Daily Pot title',
+            description: 'Details.',
+            source: 'operator'
+        }
+    ]);
+    assert.deepEqual(operatorOptions(file, '2026-09-27'), []);
+    assert.deepEqual(operatorOptions(null, '2026-09-26'), []);
+});
+
+test('agent/operator-options.json: every entry is a valid, uniquely named operator option', () => {
+    const file = JSON.parse(
+        readFileSync(new URL('../../agent/operator-options.json', import.meta.url), 'utf8')
+    );
+    const ids = new Set();
+    for (const [date, list] of Object.entries(file.polls)) {
+        assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
+        assert.equal(
+            operatorOptions(file, date).length,
+            list.length,
+            `${date}: an entry was dropped`
+        );
+        for (const o of list) {
+            assert.ok(!ids.has(o.id), `${o.id} is used twice`);
+            ids.add(o.id);
+        }
+    }
 });

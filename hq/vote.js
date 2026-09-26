@@ -254,16 +254,29 @@
     }
 
     function card(o, live) {
-        const li = el('li', 'ex vote-card' + (o.source === 'community' ? ' community' : ''));
+        const human = o.source === 'community' || o.source === 'operator';
+        const li = el('li', 'ex vote-card' + (human ? ` ${o.source}` : ''));
         li.appendChild(
             el(
                 'span',
                 'ex-stamp',
-                o.source === 'community' ? `Holder · ${o.requestedBy || ''}` : 'AI proposal'
+                o.source === 'community'
+                    ? `Holder · ${o.requestedBy || ''}`
+                    : o.source === 'operator'
+                      ? 'Operator · human'
+                      : 'AI proposal'
             )
         );
         li.appendChild(el('h3', null, o.title));
         if (o.description) li.appendChild(el('p', null, o.description));
+        if (o.source === 'operator')
+            li.appendChild(
+                el(
+                    'p',
+                    'op-note',
+                    'Put on the ballot by Osman, the operator. If it wins, the AI builds the bounty into the game. The prize code stays out of its reach.'
+                )
+            );
         if (o.ai && o.ai.verdict) {
             // The AI's own read of a holder's request, written before anyone votes.
             const take = el('div', 'ai-take ' + o.ai.verdict);
@@ -351,10 +364,11 @@
             list.appendChild(li);
         }
         const community = poll.proposals.filter((o) => o.source === 'community').length;
+        const operator = poll.proposals.filter((o) => o.source === 'operator').length;
         $('#ballotMeta').textContent = [
             `Build #${poll.forBuild}`,
             poll.proposals.length
-                ? `${poll.proposals.length - community} AI · ${community} holder`
+                ? `${poll.proposals.length - community - operator} AI · ${operator ? `${operator} operator · ` : ''}${community} holder`
                 : null,
             live ? `${fmt(poll.voters)} voter${poll.voters === 1 ? '' : 's'}` : null
         ]

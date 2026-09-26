@@ -9,7 +9,7 @@
  *
  * Rules (public): one vote per wallet per poll, changeable until close; weight = floor(sqrt(tokens held)) at
  * the time of the vote; at least MIN_TOKENS_TO_VOTE tokens; the poll closes at 21:00 UTC. Any option can win,
- * the AI's or a holder's.
+ * the AI's, the operator's (agent/operator-options.json, labelled on the ballot) or a holder's.
  */
 
 import { PublicKey } from '@solana/web3.js';
@@ -39,12 +39,14 @@ import {
 import {
     MIN_TOKENS_TO_VOTE,
     isWallet,
+    operatorOptions,
     pollWindow,
     tally,
     verifySignature,
     voteMessage,
     voteWeight
 } from '../lib/vote.js';
+import OPERATOR_OPTIONS from '../../../agent/operator-options.json';
 
 async function poll(env, date) {
     const { open, close } = pollWindow(date);
@@ -79,7 +81,7 @@ async function poll(env, date) {
         date,
         forBuild: live.n + 1,
         fromBuild: live.n,
-        options: [...proposals, ...requests],
+        options: [...proposals, ...operatorOptions(OPERATOR_OPTIONS, date), ...requests],
         requestCount: requests.length,
         open,
         close

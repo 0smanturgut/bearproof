@@ -124,7 +124,8 @@ Newest 100 ledger rows plus the public wallets. An empty list is a real answer.
 
 ### `GET /api/vote`
 
-Tomorrow's ballot: the AI's three proposals (`source: "agent"`) and holders' requests (`source: "community"`,
+Tomorrow's ballot: the AI's three proposals (`source: "agent"`), any option the operator put on it
+(`source: "operator"`, from `agent/operator-options.json`) and holders' requests (`source: "community"`,
 with `requestedBy` = shortened wallet), each with `weight`, `voters` and `share`. `status`:
 `not_live | open | closed` (closes 21:00 UTC). `requests` = `{ status: not_live|open|full|closed, closesAt,
 minTokens, maxPerPoll, count, titleMax, descriptionMax }` (requests close at 18:00 UTC). Edge 10 s.

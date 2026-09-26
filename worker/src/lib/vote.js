@@ -75,6 +75,28 @@ export async function verifySignature(wallet, message, signatureB58) {
     }
 }
 
+export const OPERATOR_OPTION_ID = /^op-[a-z0-9-]{2,40}$/;
+
+/**
+ * The operator's ballot options for a poll date, from agent/operator-options.json. They are a human's
+ * proposals, so they carry `source: 'operator'` and the ballot labels them. Malformed entries are dropped.
+ */
+export function operatorOptions(file, date) {
+    const list = file?.polls?.[date];
+    if (!Array.isArray(list)) return [];
+    return list
+        .filter(
+            (o) =>
+                OPERATOR_OPTION_ID.test(o?.id) &&
+                typeof o.title === 'string' &&
+                o.title.length >= 6 &&
+                o.title.length <= 60 &&
+                typeof o.description === 'string' &&
+                o.description.length <= 240
+        )
+        .map((o) => ({ id: o.id, title: o.title, description: o.description, source: 'operator' }));
+}
+
 /** Tally rows [{proposal_id, weight}] into shares for the proposals, in proposal order. */
 export function tally(proposals, rows) {
     const byId = new Map(proposals.map((p) => [p.id, { ...p, weight: 0, voters: 0 }]));

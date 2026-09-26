@@ -8,3 +8,10 @@ LICENSE
 docs/upstream/
 CLAUDE.md
 .claude/
+# Mount points Claude Code's sandbox creates at the repo root while the Build Agent runs (protected paths)
+.mcp.json
+.bashrc
+.bash_profile
+.zshrc
+.profile
+.gitconfig

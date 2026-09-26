@@ -53,3 +53,11 @@ worker/src/generated/
 
 # Videos for X posts: made locally, kept out of the public repo history (big binaries)
 content/x/video/
+
+# Mount points Claude Code's sandbox creates at the repo root while the Build Agent runs (protected paths)
+.mcp.json
+.bashrc
+.bash_profile
+.zshrc
+.profile
+.gitconfig

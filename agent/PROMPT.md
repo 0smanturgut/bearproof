@@ -13,7 +13,8 @@ Never paste file contents, diffs or long logs into your messages.
 
 ## Inputs
 
-- `$AGENT_CONTEXT` (a JSON file path in the environment): today's day number, the build number you are making,
+- `$AGENT_CONTEXT` (a JSON file; open it with the Read tool at `/home/runner/work/_temp/context.json`, your shell may
+  not see the variable): today's day number, the build number you are making,
   the winning holder vote (if any), live stats, your last devlogs, and `players`: what verified players did on
   the live build in the last 24 h (runs, median and best survival, what killed the bull, which weapons and
   passives they took). Read it first.

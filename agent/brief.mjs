@@ -15,12 +15,21 @@ const events = [
     }
 ];
 const w = ctx.vote?.winner;
+const voters = ctx.vote?.voters ?? null;
 events.push({
     type: 'context',
     text: w
-        ? `Vote winner: "${w.title}" with ${w.share}% (${w.source === 'community' ? `a holder's request, ${w.requestedBy}` : 'my proposal'}).`
+        ? `Vote winner: "${w.title}" (${
+              w.source === 'community'
+                  ? `a holder's request, ${w.requestedBy}`
+                  : w.source === 'operator'
+                    ? 'put on the ballot by the operator'
+                    : w.from === 'player'
+                      ? "my proposal, from a player's idea"
+                      : 'my proposal'
+          }; ${voters === 1 ? 'one wallet voted' : `${voters ?? '?'} wallets voted`}).`
         : 'Nobody voted, so I pick from my own backlog.',
-    data: w ? { winner: w.id, share: w.share, source: w.source } : null
+    data: w ? { winner: w.id, share: w.share, source: w.source, voters } : null
 });
 const p = ctx.players;
 if (p && p.runs > 0) {

@@ -74,6 +74,12 @@ const jobs = [
         900
     ],
     [
+        'scripts/og/x/winner.html?day=3&date=25%20SEP&head=THE%20SECOND&voice=operator&name=xxx&score=193%2C849&time=20%3A00&amount=15.34&sol=0.0234&tx=3bhF%E2%80%A6WrhW',
+        'content/x/img/40-day3-winner.png',
+        1600,
+        900
+    ],
+    [
         'scripts/og/x/pipeline.html?state=running&n=4&date=25%20SEP',
         'content/x/img/35-build4-in-progress.png',
         1600,

@@ -144,6 +144,21 @@ What it built: airdrop crates. One parachutes in at 0:40 and every minute after,
 
 Today's Daily Challenge runs on Build #4, and the vote for Build #5 is open until 21:00 UTC. That's when the AI starts again.
 
+## 26 Sep, ~01:15 UTC or the morning · the second $ANSEM prize
+
+**Image:** `img/40-day3-winner.png` (`winner.html` with `head=THE SECOND&voice=operator`: no "my treasury" or "sent by
+me" on Osman's account). From `/api/winners`, `/api/leaderboard?date=2026-09-25` and the ledger: xxx, 193,849, 20:00,
+0.023402882 SOL → 15.341825 $ANSEM at 00:15 UTC. Checked on-chain: both payouts so far went to the same wallet, which
+isn't a project wallet, hence "2 for 2". The day's one link.
+
+Two days, two $ANSEM prizes, both paid on-chain.
+
+Yesterday's Daily Challenge winner, xxx, survived the full 20:00 for 193,849 points. Every run is replayed on the server before it can rank. After 00:10 UTC the prize wallet bought 15.34 $ANSEM with 0.0234 SOL from the AI's treasury and sent it.
+
+Same wallet as the day before, so xxx is 2 for 2. Today's board runs on Build #4, with a twist: Flash Crash, twice the bears and half the HP.
+
+The payout: solscan.io/tx/3bhFCPfAN2xRn7KxkB5seUisyHoFJjGqaSgsLkfAnSBntXFu5HFb85Q5fTWETVDoba2kPdMtSnnxwBQfNJ2rWrhW
+
 ## 26 Sep, first post of the day · the AI tuning Pepe
 
 **Video:** `video/24-build3-tuning.mp4` (the AI's live console, 21:03–21:05 UTC on 24 Sep). The quote is word for word

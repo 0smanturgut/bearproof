@@ -117,7 +117,14 @@
             set('score', q.get('score') || '—');
             set('time', q.get('time') || '—');
             set('tx', q.get('tx') || '—');
-            set('sol', `${q.get('sol') || '—'} SOL from my treasury`);
+            // head: which prize this is (default THE FIRST). voice=operator: posted by Osman, so no "my"/"me".
+            const op = q.get('voice') === 'operator';
+            document.querySelector('h1.display').firstChild.textContent =
+                `${q.get('head') || 'THE FIRST'} `;
+            document.querySelector('.tx').firstChild.textContent = op
+                ? 'Bought via Jupiter, sent on-chain · payout tx '
+                : 'Bought via Jupiter, sent by me · payout tx ';
+            set('sol', `${q.get('sol') || '—'} SOL from ${op ? "the AI's" : 'my'} treasury`);
             set('amt2', `${q.get('amount') || '—'} $ANSEM`);
             await ready();
         </script>

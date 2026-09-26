@@ -1741,6 +1741,7 @@ const CATEGORY = {
     prize: 'Daily prize',
     sweep: 'Sweep',
     launch: 'Launch',
+    marketing: 'Marketing',
     other: 'Other'
 };
 

@@ -5,6 +5,7 @@
 
 import { all } from '../lib/db.js';
 import { error, json } from '../lib/http.js';
+import { applyNotes } from '../lib/ledger-notes.js';
 
 // Rows store raw token units. $ANSEM has 6 decimals (read from its mint); other tokens stay raw.
 const ANSEM_DECIMALS = 6;
@@ -32,26 +33,28 @@ export async function ledger(env) {
                 prize: env.PRIZE_WALLET || null,
                 costs: env.COSTS_WALLET || null
             },
-            entries: rows.map((r) => ({
-                ts: new Date(r.ts).toISOString(),
-                direction: r.direction,
-                category: r.category,
-                amountSol: r.amount_lamports === null ? null : r.amount_lamports / 1e9,
-                tokenMint: r.token_mint,
-                tokenAmount:
-                    r.token_mint && r.token_mint === env.ANSEM_MINT
-                        ? tokenUi(r.token_amount, ANSEM_DECIMALS)
-                        : r.token_amount,
-                tokenAmountRaw: r.token_amount,
-                usdEstimate: r.usd_estimate,
-                memo: r.memo,
-                tx: r.tx_signature,
-                solscan: r.tx_signature
-                    ? `https://solscan.io/tx/${encodeURIComponent(r.tx_signature)}`
-                    : null,
-                source: r.source,
-                measured: r.measured === 1
-            })),
+            entries: applyNotes(
+                rows.map((r) => ({
+                    ts: new Date(r.ts).toISOString(),
+                    direction: r.direction,
+                    category: r.category,
+                    amountSol: r.amount_lamports === null ? null : r.amount_lamports / 1e9,
+                    tokenMint: r.token_mint,
+                    tokenAmount:
+                        r.token_mint && r.token_mint === env.ANSEM_MINT
+                            ? tokenUi(r.token_amount, ANSEM_DECIMALS)
+                            : r.token_amount,
+                    tokenAmountRaw: r.token_amount,
+                    usdEstimate: r.usd_estimate,
+                    memo: r.memo,
+                    tx: r.tx_signature,
+                    solscan: r.tx_signature
+                        ? `https://solscan.io/tx/${encodeURIComponent(r.tx_signature)}`
+                        : null,
+                    source: r.source,
+                    measured: r.measured === 1
+                }))
+            ),
             generatedAt: new Date().toISOString()
         },
         { maxAge: 30 }

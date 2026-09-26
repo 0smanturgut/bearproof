@@ -8,6 +8,7 @@ import { all } from '../lib/db.js';
 import { displayName } from '../lib/runs.js';
 import { json } from '../lib/http.js';
 import { shortWallet } from '../lib/requests.js';
+import { LEDGER_NOTES } from '../lib/ledger-notes.js';
 
 const DAY = 86400000;
 const fmt = (n) => Math.round(Number(n) || 0).toLocaleString('en-US');
@@ -91,6 +92,16 @@ export async function activity(env) {
     const ansem = (raw) =>
         (Number(raw) / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 });
     for (const l of ledger || []) {
+        const note = LEDGER_NOTES.relabel[l.tx_signature];
+        if (note) {
+            items.push({
+                ts: l.ts,
+                kind: 'ledger',
+                text: `Treasury out: ${sol(l.amount_lamports)} SOL, ${note.memo}.`,
+                tx: l.tx_signature
+            });
+            continue;
+        }
         if (l.category === 'prize') {
             const day =
                 (String(l.memo || '').match(/prize:(\d{4}-\d{2}-\d{2})/) || [])[1] || 'the day';
@@ -116,6 +127,16 @@ export async function activity(env) {
                     : `Treasury ${l.direction === 'in' ? 'in' : 'out'}: ${((l.amount_lamports || 0) / 1e9).toFixed(3)} SOL, ${l.memo || l.category}.`,
             tx: l.tx_signature || null
         });
+    }
+    for (const x of LEDGER_NOTES.extra) {
+        const ts = Date.parse(x.ts);
+        if (ts >= since)
+            items.push({
+                ts,
+                kind: 'ledger',
+                text: `Costs wallet out: ${x.amountSol} SOL, ${x.memo}.`,
+                tx: x.tx
+            });
     }
     for (const w of winners || []) {
         // Shown when it was sent (the ledger's last send row for the day), not when the winners were picked.

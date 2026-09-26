@@ -27,10 +27,22 @@ export async function insights(request, env) {
         from
     );
     if (!rows) return error(503, 'db_unavailable', 'Storage is unavailable.');
+    // How the server's replays went for this build in the window: a jump in rejected runs can mean a determinism
+    // regression (or someone trying a modified client).
+    const counts =
+        (await all(
+            env,
+            'SELECT status, COUNT(*) AS n FROM runs WHERE build = ?1 AND created_at >= ?2 GROUP BY status',
+            build,
+            from
+        )) || [];
+    const replays = { verified: 0, rejected: 0, pending: 0, unverifiable: 0 };
+    for (const c of counts) if (c.status in replays) replays[c.status] = c.n;
     return json(
         {
             build,
             window: { hours, from: new Date(from).toISOString(), to: new Date(now).toISOString() },
+            replays,
             ...foldInsights(rows),
             note: 'From verified runs only, re-played on the server. Ids are content ids (game/src/sim/content.js).'
         },

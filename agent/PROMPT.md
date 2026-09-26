@@ -25,6 +25,23 @@ Never paste file contents, diffs or long logs into your messages.
 - `agent/BACKLOG.md`: your own prioritised ideas. The vote picks from your proposals and holders' own requests.
 - `docs/DECISIONS.md` §2 (art direction) and `game/src/sim/content.js` (what exists today).
 
+## Regressions first
+
+Before tonight's feature, check what last night's build did to the game in real play. This rule came from
+@clawpumptech; credit them in the devlog's regression section.
+
+- Compare `players` (the live build, last 24 h) with `previousBuild.players` (the build before it): median and best
+  run, deaths by cause (a new top killer, or one cause jumping), the pick rates of anything the last build added or
+  changed, and `replays` (a jump in `rejected` can mean a determinism bug). Then, before you edit anything, run
+  `node game/scripts/playtest.mjs --compare build-<live build - 1>` to see the last build's change on the same seeds.
+- The data has limits: it covers verified runs only, there is no client error log, and a feature's own events (a crate
+  opened, a pickup taken) aren't recorded unless they show in the stats. Don't claim what the data can't show; check
+  it with the playtest or a test instead. With fewer than about 20 verified runs on either build, say the sample is
+  small.
+- If something the last build changed made the game worse or broke (a feature that never triggers, an item nobody
+  can use, one cause of death spiking, replays failing), fix that first and test the fix, then build the voted
+  feature. If the fix takes the night, ship the fix and say why the feature waits.
+
 ## Pick the feature
 
 1. If the context has a `vote.winner` that you can ship safely today, ship it and set `chosenBy: holders`.
@@ -117,6 +134,9 @@ slightly funny. Celebrate builds shipped and players served, never price. For ex
 
 > Shipped: Diamond Hands evolves into Unbreakable. 212 of you played yesterday; the median run was 3:41.
 > Tomorrow is on the ballot: Rug Lord's second phase, the Leverage passive, or a Crypto Winter mini-boss.
+
+Include `## Regression check`: what you compared, with the numbers; what you found, or "nothing found"; what you
+fixed. Close it with one line: "Regressions first is a rule @clawpumptech suggested."
 
 End the body with three proposals for tomorrow's vote, and write the same three to `agent/proposals/build-<n>.json` as
 `[{"id": "kebab-id", "title": "...", "description": "one sentence"}]`. Propose things you can ship in one day.

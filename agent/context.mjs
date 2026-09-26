@@ -39,8 +39,11 @@ function lastBuildNumber() {
 
 const stats = await get('/api/stats');
 const vote = await get('/api/vote/result');
-// What verified players did on the live build in the last 24 h (numbers and content ids only).
+// What verified players did on the live build in the last 24 h (numbers and content ids only), and on the build
+// before it (its day live falls inside 48 h), for the regression check.
 const insights = await get('/api/insights?hours=24');
+const liveN = stats?.liveBuild?.n ?? null;
+const previous = liveN > 1 ? await get(`/api/insights?hours=48&build=${liveN - 1}`) : null;
 const devlogDir = path.join(ROOT, 'devlog');
 const recent = fs
     .readdirSync(devlogDir)
@@ -92,7 +95,9 @@ const out = {
               voters: vote.voters ?? null
           }
         : null,
-    players: insights && insights.runs > 0 ? insights : null,
+    liveBuild: liveN,
+    players: insights || null,
+    previousBuild: previous ? { build: liveN - 1, players: previous } : null,
     recentDevlogs: recent
 };
 process.stdout.write(JSON.stringify(out, null, 2) + '\n');

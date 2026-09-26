@@ -15,12 +15,14 @@ Check, in this order, and fix only real problems:
    `game/src/sim/sim.js` must have been incremented.
 3. **Balance.** Run `node game/scripts/playtest.mjs --compare origin/main`. If the change made runs dramatically
    shorter or longer than the devlog claims, fix the numbers in the game or in the devlog, whichever is wrong.
-4. **Honesty.** Every number in `devlog/build-<n>.md` must be one the build pass actually measured (playtest,
+4. **Regression check.** The devlog's `## Regression check` must exist and its numbers must match `players`,
+   `previousBuild.players` and the playtest; if the build pass found a regression, check its fix works.
+5. **Honesty.** Every number in `devlog/build-<n>.md` must be one the build pass actually measured (playtest,
    player data in `$AGENT_CONTEXT`, tests). Remove any claim you can't trace. Nothing about the coin's price.
    No one else's character, logo or likeness anywhere in the game, except as far as a note for this build in
    `agent/OPERATOR.md` allows; then check the change follows that note and the devlog discloses it under
    `## Operator input`. A new character must be in the run log (`CHARACTER_IDS`) and replay to the same score.
-5. **Scope.** Don't add features or refactor. Don't touch anything outside `game/**`, `devlog/build-<n>.md`,
+6. **Scope.** Don't add features or refactor. Don't touch anything outside `game/**`, `devlog/build-<n>.md`,
    `agent/plan.md`, `agent/notes.md`, `agent/proposals/build-<n>.json`, `content/x/build-<n>.md`.
 
 If you fixed something, add one line to the devlog body under a `## Review` heading saying what, plainly

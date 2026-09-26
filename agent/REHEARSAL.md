@@ -4,7 +4,9 @@ This is a rehearsal of the Build Agent pipeline, not a build. Nobody will answer
 step at a time, then stop:
 
 1. Read the JSON file named in `$AGENT_CONTEXT` (use the Read tool on `/home/runner/work/_temp/context.json`) and
-   say in one sentence what the build number and the vote winner are.
+   say in one sentence what the build number and the vote winner are. Then, from `players`, `previousBuild` and
+   their `replays`, write the three to five lines of the regression check you would put in tonight's devlog (numbers
+   only from the file; say so if a sample is small). Don't change any code for it.
 2. Run `npm test`.
 3. Run `node game/scripts/smoke.mjs --out /tmp/shots` and read `/tmp/shots/phone-1-title.png`.
 4. Run `node game/scripts/determinism.mjs --engines chromium --seeds 1`.

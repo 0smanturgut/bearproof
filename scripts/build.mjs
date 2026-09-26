@@ -89,7 +89,13 @@ function collectBuilds() {
         if (!Array.isArray(list) || list.some((p) => !/^[a-z0-9-]{2,48}$/.test(p.id) || !p.title)) {
             throw new Error(`${f}: expected [{id (kebab-case), title, description}]`);
         }
-        b.proposals = list.map(({ id, title, description = '' }) => ({ id, title, description }));
+        // from: 'player' when the idea came from the ideas box (the ballot says "Suggested by a player").
+        b.proposals = list.map(({ id, title, description = '', from }) => ({
+            id,
+            title,
+            description,
+            ...(from === 'player' ? { from } : {})
+        }));
     }
     for (const n of manifest.revoked || []) {
         const b = out.find((x) => x.n === n);

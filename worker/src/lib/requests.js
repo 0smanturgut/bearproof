@@ -34,6 +34,15 @@ export function cleanText(raw) {
         .trim();
 }
 
+/** The filters for any player-written text: no links or handles, nothing off limits, no hate. Null when clean. */
+export function textProblem(text) {
+    if (LINK.test(text)) return 'No links or handles. Describe it in words.';
+    if (OFF_LIMITS.test(text))
+        return 'Ideas are changes to the game. Keys, wallets, payouts and the build pipeline are off limits.';
+    if (HATE.test(text)) return 'Not in this box.';
+    return null;
+}
+
 /**
  * Validate a request's text. Returns { ok: true, title, description } or { ok: false, field, message }.
  */

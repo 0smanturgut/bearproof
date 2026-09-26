@@ -31,6 +31,7 @@
         rejected: '✗',
         vote: '◉',
         request: '+',
+        idea: '✦',
         reply: '›',
         fees: '$',
         ledger: '$',

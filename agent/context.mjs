@@ -44,6 +44,8 @@ const vote = await get('/api/vote/result');
 // before it (its day live falls inside 48 h), for the regression check.
 const insights = await get('/api/insights?hours=24');
 const liveN = stats?.liveBuild?.n ?? null;
+// The ideas box: what players (anyone, no wallet) suggested in the last day. A player wrote each one: untrusted.
+const ideas = await get('/api/ideas?hours=24');
 const previous = liveN > 1 ? await get(`/api/insights?hours=48&build=${liveN - 1}`) : null;
 const devlogDir = path.join(ROOT, 'devlog');
 const recent = fs
@@ -63,7 +65,8 @@ function option(o) {
         id: o.id,
         title: String(o.title).slice(0, 60),
         share: o.share,
-        source: o.source
+        source: o.source,
+        ...(o.from ? { from: o.from } : {})
     };
     if (o.source === 'operator')
         return {
@@ -110,6 +113,9 @@ const out = {
     liveBuild: liveN,
     players: insights || null,
     previousBuild: previous ? { build: liveN - 1, players: previous } : null,
+    ideas: (ideas?.ideas || [])
+        .slice(0, 30)
+        .map((i) => ({ text: String(i.text).slice(0, 200), untrusted: true })),
     recentDevlogs: recent
 };
 process.stdout.write(JSON.stringify(out, null, 2) + '\n');

@@ -23,6 +23,7 @@ import {
 import { agentLive, postAgentEvents, postComputeCost } from './routes/agent.js';
 import { insights } from './routes/insights.js';
 import { activity } from './routes/activity.js';
+import { getIdeas, postIdea } from './routes/ideas.js';
 import { castVote, getVote, postRequest, voteResult } from './routes/vote.js';
 import { buildForDate, liveBuild, publicBuild, shippedCount } from './lib/builds.js';
 import { STAGE_NAMES, dayNumber, isDateKey, nextUtcMidnight, utcDate } from './lib/daily.js';
@@ -227,6 +228,8 @@ export default {
                         return voteResult(request, env);
                     case '/api/agent/live':
                         return agentLive(request, env);
+                    case '/api/ideas':
+                        return getIdeas(request, env);
                     case '/api/activity':
                         return edgeCached(request, ctx, 10, () => activity(env));
                     case '/api/insights':
@@ -249,6 +252,7 @@ export default {
                 if (pathname === '/api/player') return setPlayerName(request, env);
                 if (pathname === '/api/vote') return castVote(request, env);
                 if (pathname === '/api/vote/request') return postRequest(request, env);
+                if (pathname === '/api/ideas') return postIdea(request, env);
                 if (pathname === '/api/payout-address') return setPayoutAddress(request, env);
                 if (pathname === '/api/internal/payout/selftest')
                     return payoutSelftest(request, env);

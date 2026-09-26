@@ -58,7 +58,8 @@ async function poll(env, date) {
         id: p.id,
         title: p.title,
         description: p.description,
-        source: 'agent'
+        source: 'agent',
+        ...(p.from === 'player' ? { from: 'player' } : {})
     }));
     const read = await all(
         env,
@@ -203,6 +204,7 @@ export async function voteResult(request, env) {
             description: o.description,
             share: o.share,
             source: o.source,
+            ...(o.from ? { from: o.from } : {}),
             ...(o.source === 'community' ? { requestedBy: o.requestedBy } : {}),
             ...(o.source === 'operator' ? { origin: o.origin ?? null, note: o.note ?? null } : {})
         };

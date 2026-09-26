@@ -15,7 +15,7 @@ const fmt = (n) => Math.round(Number(n) || 0).toLocaleString('en-US');
 
 export async function activity(env) {
     const since = Date.now() - 2 * DAY;
-    const [runs, votes, requests, ledger, winners] = await Promise.all([
+    const [runs, votes, requests, ledger, winners, ideas] = await Promise.all([
         all(
             env,
             `SELECT r.id, r.mode, r.claimed_score, r.claimed_time_ms, r.status, r.created_at, r.verified_at,
@@ -45,6 +45,11 @@ export async function activity(env) {
         all(
             env,
             "SELECT date, score, payout_token, payout_amount, payout_tx, note, created_at FROM daily_winners WHERE payout_status = 'paid' ORDER BY date DESC LIMIT 3"
+        ),
+        all(
+            env,
+            'SELECT ts, text FROM ideas WHERE hidden = 0 AND ts >= ? ORDER BY ts DESC LIMIT 12',
+            since
         )
     ]);
     const items = [];
@@ -128,6 +133,8 @@ export async function activity(env) {
             tx: l.tx_signature || null
         });
     }
+    for (const i of ideas || [])
+        items.push({ ts: i.ts, kind: 'idea', text: `A player dropped an idea: "${i.text}"` });
     for (const x of LEDGER_NOTES.extra) {
         const ts = Date.parse(x.ts);
         if (ts >= since)

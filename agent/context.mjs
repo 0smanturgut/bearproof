@@ -45,7 +45,7 @@ const vote = await get('/api/vote/result');
 const insights = await get('/api/insights?hours=24');
 const liveN = stats?.liveBuild?.n ?? null;
 // The ideas box: what players (anyone, no wallet) suggested in the last day. A player wrote each one: untrusted.
-const ideas = await get('/api/ideas?hours=24');
+const ideas = await get('/api/ideas?hours=24&limit=100');
 const previous = liveN > 1 ? await get(`/api/insights?hours=48&build=${liveN - 1}`) : null;
 const devlogDir = path.join(ROOT, 'devlog');
 const recent = fs
@@ -113,8 +113,9 @@ const out = {
     liveBuild: liveN,
     players: insights || null,
     previousBuild: previous ? { build: liveN - 1, players: previous } : null,
+    // Every idea of the day (the box takes at most 100), so "the AI reads them all" is simply true.
     ideas: (ideas?.ideas || [])
-        .slice(0, 30)
+        .slice(0, 100)
         .map((i) => ({ text: String(i.text).slice(0, 200), untrusted: true })),
     recentDevlogs: recent
 };

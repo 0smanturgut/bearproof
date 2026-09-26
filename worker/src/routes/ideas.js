@@ -3,7 +3,7 @@
  * writes the next ballot, and holders still decide by vote.
  *
  *   POST /api/ideas   { text, turnstileToken }   8–200 chars, 3 per IP per UTC day, 100 per UTC day
- *   GET  /api/ideas[?hours=24]                    the latest 50 visible ideas, newest first
+ *   GET  /api/ideas[?hours=24][&limit=50]         the latest visible ideas, newest first (limit up to the daily cap)
  *
  * The text is a player's and untrusted: the same filters as holder requests, shown with textContent, and handed to
  * the agent marked untrusted.
@@ -87,10 +87,13 @@ export async function getIdeas(request, env) {
     const params = new URL(request.url).searchParams;
     const hours = Math.min(24 * 14, Math.max(0, Number(params.get('hours')) || 0));
     const since = hours ? Date.now() - hours * 3600000 : 0;
+    // The page shows the latest few; the Build Agent asks for the whole day, up to the daily cap.
+    const limit = Math.min(IDEAS_PER_DAY, Math.max(1, Number(params.get('limit')) || 50));
     const rows = await all(
         env,
-        'SELECT id, ts, text FROM ideas WHERE hidden = 0 AND ts >= ?1 ORDER BY ts DESC LIMIT 50',
-        since
+        'SELECT id, ts, text FROM ideas WHERE hidden = 0 AND ts >= ?1 ORDER BY ts DESC LIMIT ?2',
+        since,
+        limit
     );
     if (!rows) return error(503, 'db_unavailable', 'Storage is unavailable. Try again shortly.');
     const today = await first(

@@ -32,8 +32,9 @@ before launch. We keep ClawPump's default, the agent wallet, for three reasons:
 
 - **Daily prize** = min(10% of the previous 24 h creator fees, **0.5 SOL** equivalent). Below 0.01 SOL, it rolls over to
   the next day.
-- **Prize wallet ceiling**: 1.5 SOL (3 days of the cap) under the #1-only rule, **2.5 SOL** under the Daily
-  Pot (below). The operator's top-up never goes over it.
+- **Prize wallet ceiling**: at most **1.5 SOL** at any time. It is a hot wallet, so it holds only a few days of
+  prizes: under the Daily Pot (below) the operator tops it up to about three days of the current pot, which the HQ
+  shows live.
 - **Kill switch**: `payouts_enabled=false` in the CONFIG KV stops every payout at once.
 - **Winner rules**: only a **verified** run (re-simulated server-side from its input log, with a matching score) and only
   a player who **opted in** with a Solana address can win. Holding the coin is never required. If the #1 has no address,
@@ -77,8 +78,10 @@ While it can't be read, no day from 27 Sep on is settled at all, so a day is nev
   Two failed swaps: paid in SOL, and the ledger says so. Network fees and new token-account rent come on top, from
   the prize wallet.
 - **Short wallet**: if the prize wallet can't cover a day (the pot plus 0.01 SOL and 0.0025 SOL per recipient), the
-  payout waits for the operator's top-up; the HQ says so. A day can need up to 2 SOL (1 SOL pot and two 0.5 SOL
-  rollovers) plus fees, so the operator keeps the wallet at no more than **2.5 SOL**.
+  payout waits for the operator's top-up and the HQ says so; nothing is lost. The pot is 40% of fees that already
+  came in, so it is small when fees are small (0.09 SOL for 25 Sep, 0.41 SOL for launch day). The 1 SOL cap only
+  bites above 2.5 SOL of fees in a day. If a single day ever needs more than the 1.5 SOL ceiling (only after very
+  high fees plus rollovers), the operator tops up exactly what that payout needs.
 - **A share that can't be sent** after three failed transfers, or 72 hours, is marked failed on the HQ. Its $ANSEM
   stays in the prize wallet, and the operator sends it by hand (a transfer labelled `operator` on the ledger).
 

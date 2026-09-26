@@ -18,6 +18,7 @@ import { loadPrefs, savePrefs } from './prefs.js';
 import { bakeSprite } from './art/sprites.js';
 import * as api from './api.js';
 import { createBot } from './sim/bot.js';
+import { bountyText, readBounty } from './bounty.js';
 import {
     CHARACTERS,
     CHARACTER_IDS,
@@ -130,7 +131,10 @@ async function boot() {
     animateTitleBull($('titleBull'), () => characterDef(prefs.character).sprite || 'bull');
 
     // Today's challenge (or the one in the URL). The game is fully playable without it.
-    const d = await api.getDaily(challenge || undefined);
+    const [d, rawBounty] = await Promise.all([
+        api.getDaily(challenge || undefined),
+        api.getBounty()
+    ]);
     const onThisBuild = d.ok && String(d.data?.build) === String(build.n);
     if (d.ok && d.data?.seed && !onThisBuild) {
         // Today's board is pinned to the build that was live at 00:00 UTC. Say so instead of pretending.
@@ -142,6 +146,9 @@ async function boot() {
         game.daily = d.data;
         const tw = TWISTS[dailyTwistForSeed(d.data.seed)];
         ui.setDailyTwist(`Today's twist: ${tw.name}. ${tw.description}`);
+        // The bounty belongs to this build, so it's shown only when today's board runs on it.
+        game.bounty = readBounty(rawBounty);
+        if (game.bounty) ui.setDailyBounty(game.bounty.name, bountyText(game.bounty));
         const tick = () => {
             const left = Date.parse(d.data.endsAt) - Date.now();
             if (left <= 0)

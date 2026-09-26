@@ -1,35 +1,43 @@
-# Build #4 plan: Airdrop crates
+# Build #5 plan: the AI's bounty ("Triple Top")
 
 ## Feature
 
-Holders' vote (100%, my own proposal): supply crates parachute onto the chart.
+Holders picked the operator's option `op-daily-pot` (1 wallet voted). Osman's note for Build #5 says my part is the
+bounty, in the game. The prize rules, pot, payouts and verification are Worker code outside my paths.
 
-- The first crate drops at 0:40, then one every 60 s. It lands on screen 170–240 px from the bull (inside the view
-  on a phone and on a desktop), floats down for 2 s, then sits for 25 s before the bears loot it.
-- Walk into it and it pops open. It's a mystery crate, one of three (never the same twice in a row):
-    - **Magnet**: every XP candle on the chart flies to you.
-    - **Shield**: 8 s of no damage, drawn as a bubble around you.
-    - **Money Printer**: 10 s of weapons firing twice as fast.
-- Loot is data in `content.js` (`CRATE_LOOT`, timing in `SIM`). Randomness from `sim.rng`, so `SIM_VERSION` 3 → 4.
+- `game/bounty.json`: `{ "type": "bosses", "bosses": 3, "name": "Triple Top" }`. Condition text, as
+  `bountyText` words it: "Defeat 3 bosses".
+- Title screen, inside the Daily Challenge card: the bounty name, the condition, "Daily Challenge runs only", and
+  the money line word for word: "Clear it to share today's bounty in $ANSEM."
+- HUD during a Daily run only: a small chip under the timer ("BOUNTY 1/3 BOSSES"), turning green when cleared,
+  plus a "BOUNTY CLEARED" toast the moment it clears. Nothing over the play area.
+- End screen: a receipt row "BOUNTY": cleared or missed. After a cleared, rankable Daily run, the exact line
+  "Bounty cleared. Paid after 00:10 UTC if the run verifies and you left a Solana address."
+- Share text: one extra line on a cleared Daily run, "Cleared the AI's bounty: Triple Top".
+- No simulation change: the bounty only reads `sim.summary()` fields. No `SIM_VERSION` bump.
 
-## Why today
+## Why this bounty
 
-Holders voted 100% for it. Build #3 players: median run 4:10 (250 s), and rug pullers alone took 23.6% of runs.
-A crate at 0:40 and every minute lands 3 to 4 crates in a median run: a shield to get through a rug pull, a
-printer to clear a crowd.
+Build #4 players: 66 verified runs, 1.33 boss kills per run, median 8:30, p75 11:50, 3 wins. Bosses arrive at 5:00,
+7:30 and 10:00 on every stage (Bear Trap earlier), with the final at 12:00. Three boss kills means beating
+Liquidation (or the Long Winter), so a run has to reach about 10:30 and kill all three. That's well above the
+average run, and a good run can do it. "Win" (3 of 66 runs) is too rare; "Survive to 10:00" would be cleared by
+most regulars.
 
 ## Files
 
-- `game/src/sim/content.js`: `SIM.CRATE_*`, `CRATE_LOOT`, `CRATE_LOOT_IDS`.
-- `game/src/sim/entities.js`: `SupplyCrate`, player `shieldTimer`/`printerTimer`, orb vacuum.
-- `game/src/sim/sim.js`: schedule, spawn, open, events; `SIM_VERSION` 4.
-- `game/src/sim/bot.js`: the autopilot grabs crates like a player would.
-- `game/src/art/items.js`, `sprites.js`: `supply_crate` + `supply_chute` sprites. `game/test/art.test.js` list.
-- `game/src/render.js`: crate, chute, landing marker, shield bubble, printer glow.
-- `game/src/game.js`, `audio.js`: toasts, bursts, sound.
-- `game/test/crates.test.js`; `game/test/twist.test.js` version pin 3 → 4.
+- `game/bounty.json` (new).
+- `game/src/bounty.js` (new, pure): menu copy, `readBounty`, `bountyText`, `clearsBounty(summary)`,
+  `bountyProgress`.
+- `game/src/api.js`: `getBounty()` loads `./bounty.json`.
+- `game/src/main.js`: load it, show it on the Daily card.
+- `game/src/game.js`: HUD tracking, the toast, end screen, share line.
+- `game/src/ui.js`, `game/index.html`, `game/styles.css`: the card line, the HUD chip, the receipt row.
+- `game/src/share.js`: the optional bounty line.
+- `game/test/bounty.test.js`: validate `game/bounty.json` with the Worker's `checkBounty`, compare my check with
+  `clearsBounty` on runs mapped the way the verifier's `runStats` maps them, including real simulated runs.
 
 ## Test
 
-Unit tests for the schedule, placement, each loot, no repeat, expiry, replay. `npm run check`, playtest compare,
-smoke shots, determinism on chromium.
+Unit tests above. `npm run check`, smoke shots (title card, HUD during a daily), playtest compare (should be
+identical: no sim change), determinism on chromium.

@@ -30,6 +30,12 @@ export async function buildInfo() {
     return r.ok && r.data ? r.data : { n: 'dev', commit: 'working-tree' };
 }
 
+/** This build's bounty file (`game/bounty.json`), raw; null when the build has none. */
+export async function getBounty() {
+    const r = await call('./bounty.json', { timeout: 3000 });
+    return r.ok ? r.data : null;
+}
+
 export function getDaily(date) {
     return call(`/api/daily${date ? `?date=${encodeURIComponent(date)}` : ''}`);
 }

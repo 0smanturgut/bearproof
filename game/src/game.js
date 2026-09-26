@@ -30,6 +30,7 @@ import {
 import * as api from './api.js';
 import { cleanName, playerId, savePrefs } from './prefs.js';
 import { turnstileToken } from './turnstile.js';
+import { bountyProgress, bountyText, clearsBounty } from './bounty.js';
 
 const STEP = SIM.DT;
 const MAX_STEPS_PER_FRAME = 5;
@@ -54,6 +55,7 @@ export class Game {
         this.last = 0;
         this.clock = 0;
         this.daily = null;
+        this.bounty = null; // this build's bounty (bounty.js readBounty); only Daily Challenge runs count
         this.mode = 'free';
         this.rec = null;
         this.bot = null;
@@ -99,6 +101,8 @@ export class Game {
         this.startedAt = performance.now();
         this.submitted = false;
         this._bossIntro = null;
+        this._bountyDone = false;
+        this._bountyToastAt = 0;
         this._runId++;
         this.ui.resetHud();
         this.ui.hideAll();
@@ -193,8 +197,37 @@ export class Game {
         this.cam.x += (p.x + lead.x - this.cam.x) * follow;
         this.cam.y += (p.y + lead.y - this.cam.y) * follow;
         this.renderer.draw(this.sim, this.fx, this.cam, this.clock);
-        if (this.state !== 'title') this.ui.updateHud(this.sim);
+        if (this.state !== 'title') {
+            this.ui.updateHud(this.sim);
+            this._bountyHud();
+        }
         requestAnimationFrame((t) => this._frame(t));
+    }
+
+    /** The bounty, only in a Daily Challenge run: progress in the HUD, and a moment when it clears. */
+    _bountyHud() {
+        const b = this.mode === 'daily' && !this.attract ? this.bounty : null;
+        if (!b) return this.ui.hudBounty(null);
+        const s = this.sim;
+        const progress = bountyProgress(b, {
+            timeMs: s.timeMs,
+            level: s.player.level,
+            kills: s.stats.kills,
+            bossKills: s.stats.bossKills,
+            won: s.won
+        });
+        this.ui.hudBounty(progress);
+        if (progress.done && !this._bountyDone) {
+            this._bountyDone = true;
+            // After the boss's REKT toast and any level-up card: the kill usually brings both.
+            this._bountyToastAt = this.clock + 1.3;
+        }
+        if (this._bountyToastAt && this.clock >= this._bountyToastAt && this.state === 'playing') {
+            this._bountyToastAt = 0;
+            this.ui.toast(`BOUNTY CLEARED: ${b.name.toUpperCase()}`, 'bull', 2200);
+            this._sfx('levelUp', 0);
+            this.haptics.levelUp();
+        }
     }
 
     _padButton(b) {
@@ -468,8 +501,25 @@ export class Game {
             ? `You ended the bear market in ${fmtTime(summary.timeMs)}.`
             : `Your bull run lasted ${fmtTime(summary.timeMs)}.`;
         const buildLine = `${this.mode === 'daily' ? `Daily Challenge ${this.daily.date}` : 'Free run'} · Build #${this.build.n}`;
-        setTimeout(() => this.ui.showOver({ summary, title, sub, buildLine }), 700);
+        const bounty = this._bountyResult(summary);
+        this.lastRun.bountyCleared = !!bounty?.done;
+        setTimeout(() => this.ui.showOver({ summary, title, sub, buildLine, bounty }), 700);
         setTimeout(() => this._maybeSubmit(), 750);
+    }
+
+    /** The receipt's bounty row for a finished Daily run, or null (free run, no bounty). */
+    _bountyResult(summary) {
+        const b = this.bounty;
+        if (!b || this.mode !== 'daily') return null;
+        const done = clearsBounty(b, summary);
+        if (!done) return { done, value: 'MISSED', note: `${b.name}: ${bountyText(b)}.` };
+        return {
+            done,
+            value: 'CLEARED',
+            note: this._rankable()
+                ? 'Bounty cleared. Paid after 00:10 UTC if the run verifies and you left a Solana address.'
+                : null
+        };
     }
 
     _rankable() {
@@ -617,7 +667,8 @@ export class Game {
             date: run.date,
             build: this.build.n,
             origin: location.origin,
-            runId: run.id
+            runId: run.id,
+            bounty: run.bountyCleared ? this.bounty.name : null
         });
         const native = canNativeShare();
         if (!refresh && native && matchMedia('(pointer: coarse)').matches) {

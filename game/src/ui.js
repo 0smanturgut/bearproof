@@ -322,6 +322,41 @@ export class UI {
         el.hidden = !text;
     }
 
+    /** The AI's bounty on the Daily card: its name and the condition, or hidden (null). */
+    setDailyBounty(name, condition) {
+        $('dailyBounty').hidden = !name;
+        $('bountyName').textContent = name || '';
+        $('bountyCond').textContent = condition || '';
+    }
+
+    /** The HUD bounty chip during a Daily run; `progress` from bountyProgress(), or null to hide it. */
+    hudBounty(progress) {
+        const el = $('hBounty');
+        el.hidden = !progress;
+        if (!progress || el.textContent === progress.text) return;
+        el.textContent = progress.text;
+        const pop = progress.done && !el.classList.contains('done');
+        el.classList.toggle('done', progress.done);
+        if (pop) {
+            el.classList.remove('pop');
+            void el.offsetWidth;
+            el.classList.add('pop');
+        }
+    }
+
+    /** The bounty row on the receipt and its note; null hides both. */
+    overBounty(info) {
+        const row = $('overBountyRow');
+        const note = $('overBountyNote');
+        row.hidden = !info;
+        note.hidden = !info?.note;
+        if (!info) return;
+        row.classList.toggle('done', info.done);
+        $('overBounty').textContent = info.value;
+        note.textContent = info.note || '';
+        note.className = `bounty-note ${info.done ? 'good' : ''}`;
+    }
+
     setDailySub(text) {
         $('dailySub').textContent = text;
     }
@@ -346,6 +381,7 @@ export class UI {
         $('payoutSaved').hidden = true;
         $('nameForm').hidden = true;
         $('turnstileHint').hidden = true;
+        this.overBounty(info.bounty || null);
         this.overNote('');
         this.show('screenOver');
         this.announce(`${title}. Score ${fmtNum(summary.score)}.`);

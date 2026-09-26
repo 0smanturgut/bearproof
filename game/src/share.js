@@ -7,7 +7,8 @@
 import { fmtNum, fmtTime } from './format.js';
 import { TWISTS, characterDef } from './sim/content.js';
 
-export function shareText({ summary, mode, date, build, origin, runId }) {
+/** `bounty`: the bounty's name when this Daily run cleared it, which adds one line. */
+export function shareText({ summary, mode, date, build, origin, runId, bounty = null }) {
     const twist = mode === 'daily' && TWISTS[summary.twist] && summary.twist !== 'none';
     const head =
         mode === 'daily'
@@ -23,7 +24,10 @@ export function shareText({ summary, mode, date, build, origin, runId }) {
     const url = runId
         ? `${origin}/run/${runId}`
         : `${origin}/play${mode === 'daily' ? `?challenge=${date}` : ''}`;
-    return { text: [head, line, stats, who].join('\n'), url };
+    const lines = [head, line, stats];
+    if (bounty && mode === 'daily') lines.push(`Cleared the AI's bounty: ${bounty}`);
+    lines.push(who);
+    return { text: lines.join('\n'), url };
 }
 
 /** X's post composer, prefilled. The /run/<id> link unfurls as the run's card. */

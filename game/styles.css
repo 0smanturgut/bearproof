@@ -1076,6 +1076,86 @@ body.on-title .title-veil {
     background: rgba(255, 197, 61, 0.07);
     box-shadow: inset 3px 0 0 var(--gold);
 }
+.daily-bounty {
+    padding: 7px 10px 6px;
+    text-align: left;
+    background: rgba(70, 184, 240, 0.08);
+    box-shadow: inset 3px 0 0 var(--info);
+}
+.daily-bounty p {
+    margin: 0;
+}
+.bounty-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+    font-size: 12px;
+    line-height: 1.35;
+}
+.bounty-lab {
+    font: 700 9px/1 var(--mono);
+    letter-spacing: 0.16em;
+    color: var(--info);
+}
+.bounty-head b {
+    font: 400 20px/0.9 var(--display);
+    letter-spacing: 0.02em;
+    color: var(--text);
+}
+.bounty-cond {
+    color: #9be2ff;
+}
+.bounty-money {
+    margin-top: 3px !important;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--text-2);
+}
+.bounty-only {
+    color: var(--muted);
+}
+.hud-bounty {
+    width: max-content;
+    margin: 4px auto 0;
+    padding: 3px 8px 2px;
+    font: 700 9px/1 var(--mono);
+    letter-spacing: 0.14em;
+    color: #9be2ff;
+    background: rgba(70, 184, 240, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(70, 184, 240, 0.35);
+}
+.hud-bounty.done {
+    color: var(--bull);
+    background: rgba(22, 224, 138, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(22, 224, 138, 0.45);
+}
+.hud-bounty.pop {
+    animation: bounty-pop 0.5s ease-out;
+}
+@keyframes bounty-pop {
+    0% {
+        transform: scale(1.5);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+.receipt-rows .bounty-row dd {
+    color: #9be2ff;
+}
+.receipt-rows .bounty-row.done dd {
+    color: var(--bull);
+}
+.bounty-note {
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text-2);
+}
+.bounty-note.good {
+    color: var(--bull);
+}
 .title-row {
     display: flex;
     flex-wrap: wrap;
@@ -1801,6 +1881,13 @@ body.attract .hint-move {
     .loadout {
         top: calc(66px + var(--safe-t));
         left: calc(8px + var(--safe-l));
+    }
+    /* The loadout reaches the middle on a phone: the bounty chip goes under the score instead. */
+    .hud-bounty {
+        position: absolute;
+        top: calc(66px + var(--safe-t));
+        right: calc(8px + var(--safe-r));
+        margin: 0;
     }
     .slot {
         width: 32px;

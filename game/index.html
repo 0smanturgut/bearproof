@@ -63,6 +63,7 @@
                 <div class="hud-mid">
                     <div id="hTime" class="hud-time">00:00</div>
                     <div id="hWave" class="hud-wave"></div>
+                    <div id="hBounty" class="hud-bounty" hidden></div>
                 </div>
                 <div class="hud-right">
                     <div class="hud-score"><small>SCORE</small><b id="hScore">0</b></div>
@@ -133,6 +134,16 @@
                         <span id="todayTop" class="today-top"></span>
                     </div>
                     <p id="dailyTwist" class="daily-twist" hidden></p>
+                    <div id="dailyBounty" class="daily-bounty" hidden>
+                        <p class="bounty-head">
+                            <span class="bounty-lab">AI BOUNTY</span>
+                            <b id="bountyName"></b><span id="bountyCond" class="bounty-cond"></span>
+                        </p>
+                        <p class="bounty-money">
+                            Clear it to share today's bounty in $ANSEM.
+                            <span class="bounty-only">Daily Challenge runs only.</span>
+                        </p>
+                    </div>
                     <button id="btnDaily" class="btn btn-primary btn-big">
                         <span>PLAY NOW ▸</span>
                         <small id="dailySub">Same market for everyone</small>
@@ -219,7 +230,12 @@
                             <dt>LEVEL</dt>
                             <dd id="overLevel">1</dd>
                         </div>
+                        <div id="overBountyRow" class="bounty-row" hidden>
+                            <dt>BOUNTY</dt>
+                            <dd id="overBounty"></dd>
+                        </div>
                     </dl>
+                    <p id="overBountyNote" class="bounty-note" hidden></p>
                     <div class="over-rank" id="overRank"></div>
                 </div>
                 <div id="turnstile" class="turnstile-box"></div>
@@ -256,8 +272,8 @@
                         <button type="submit" class="btn btn-primary">SAVE</button>
                     </div>
                     <small id="payoutNote"
-                        >Only used to pay you if your run is the verified #1. A public address,
-                        never a private key or seed phrase.</small
+                        >Only used to pay you a daily prize. A public address, never a private key
+                        or seed phrase.</small
                     >
                 </form>
                 <p id="payoutSaved" class="payout-saved" hidden>

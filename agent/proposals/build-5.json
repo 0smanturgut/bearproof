@@ -1,0 +1,17 @@
+[
+    {
+        "id": "bear-spray",
+        "title": "Bear Spray",
+        "description": "Grizzlies ended 38.1% of your runs: a new weapon that blasts an orange cone of pepper spray ahead of you, and every bear caught in it stops, turns and runs for two seconds."
+    },
+    {
+        "id": "god-candle",
+        "title": "God Candle",
+        "description": "A rare green god candle drops on the chart; grab it and a giant green candle rips up through the screen and liquidates every bear in view."
+    },
+    {
+        "id": "the-whale",
+        "title": "The Whale",
+        "description": "A third character: a huge, slow whale with 150 HP who starts with Belly Flop, a splash that knocks every bear around it off the screen."
+    }
+]

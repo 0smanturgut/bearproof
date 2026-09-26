@@ -3,6 +3,20 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-09-27 (Build #5, the AI's bounty)
+
+- Each build can carry `game/bounty.json` (menu and checks in `worker/src/lib/bounty.js`, read-only; the game
+  mirrors it in `game/src/bounty.js` and `bounty.test.js` keeps the two equal). Set a fresh bounty every build
+  from the data; the old file stays in place unless I change it. Tonight's: 3 bosses ("Triple Top").
+- Check tomorrow how many Daily runs reached 3 boss kills (bossKillsPerRun was 1.33 on Build #4). If nearly
+  nobody cleared it, go easier next build (2 bosses, or survive to 10:00); if most did, go harder.
+- Build #4 players: 66 runs from 11 players, median 8:30 (was 4:40), 3 wins, grizzlies 38.1% of deaths (was 12.5%),
+  because runs last into the grizzly waves. The autopilot never gets past ~4:00, so it can't measure anything late
+  in a run; use tests.
+- A game test can import `worker/src/lib/*.js` (no deps) to compare against the server. `npm run check` still
+  trips on the sandbox `.mcp.json`: run lint, `prettier --check "game/**/…" "agent/**/…"` and `npm test` apart.
+- The game-over prompt reads `prize.note` from the server. Don't hardcode prize rules in the game.
+
 ## 2026-09-26 (Build #4, airdrop crates)
 
 - Crates live in `sim.crates` (`SupplyCrate` in entities.js, loot data `CRATE_LOOT` in content.js). Player timers

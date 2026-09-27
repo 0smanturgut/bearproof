@@ -545,7 +545,8 @@ body {
 .bossbar {
     position: absolute;
     z-index: 4;
-    top: calc(78px + var(--safe-t));
+    /* below the wave label and the Daily's bounty chip */
+    top: calc(96px + var(--safe-t));
     left: 50%;
     transform: translateX(-50%);
     width: min(520px, 62vw);

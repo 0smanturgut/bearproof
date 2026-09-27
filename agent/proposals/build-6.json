@@ -1,0 +1,17 @@
+[
+    {
+        "id": "stop-loss",
+        "title": "Stop Loss",
+        "description": "A new weapon that drops steel jaws where you stand: the first grizzly to step in is stuck for 3 seconds and takes a big hit."
+    },
+    {
+        "id": "short-squeeze",
+        "title": "Short Squeeze",
+        "description": "Get surrounded by 30 bears and the bull squeezes: a green shockwave throws every bear on screen off it."
+    },
+    {
+        "id": "paper-hands-panic",
+        "title": "Paper Hands Panic",
+        "description": "Every so often a crowd of paper hands panic-sells in a line across the screen, and you dodge the stampede."
+    }
+]

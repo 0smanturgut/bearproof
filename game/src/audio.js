@@ -177,6 +177,15 @@ export class AudioEngine {
         setTimeout(() => this.tone({ freq: 1760, dur: 0.16, type: 'square', volume: 0.14 }), 60);
         setTimeout(() => this.tone({ freq: 2640, dur: 0.2, type: 'triangle', volume: 0.1 }), 130);
     }
+    /** Rug Lord grips the rug: a low rising rumble. */
+    rugWarn() {
+        this.tone({ freq: 70, dur: 0.5, type: 'sawtooth', volume: 0.14, sweep: 60 });
+    }
+    /** The rug is yanked: a cloth "fwip" of noise over a falling sweep. */
+    rugPull() {
+        this.tone({ noise: true, dur: 0.22, volume: 0.2, release: 0.12 });
+        this.tone({ freq: 900, dur: 0.3, type: 'triangle', volume: 0.12, sweep: -700 });
+    }
     achievement() {
         this.tone({ freq: 880, dur: 0.08, type: 'triangle', volume: 0.18 });
         setTimeout(() => this.tone({ freq: 1174, dur: 0.1, type: 'triangle', volume: 0.2 }), 70);

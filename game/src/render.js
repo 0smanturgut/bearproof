@@ -274,6 +274,9 @@ export class Renderer {
             this._drawCrateGround(c, X(c.x), Y(c.y), t);
         }
 
+        // --- Rug Lord's second phase: a red glow under him, and the rug under the bull while he pulls it
+        for (const e of sim.enemies) if (e.enraged && e.hp > 0) this._drawRug(e, p, X, Y, t, fx);
+
         // --- creatures: shadows first, then back-to-front by y (the bull sorts in with the bears)
         const list = [];
         for (const e of sim.enemies) if (e.hp > 0 && visible(e.x, e.y, e.size + 80)) list.push(e);
@@ -510,6 +513,35 @@ export class Renderer {
         });
         this._blit('supply_crate', x, y, { frame: Math.floor(t * 4), rot: sway });
         glows.push(['supply_crate', x, y, Math.floor(t * 4), false, 0.8]);
+    }
+
+    /** Enraged Rug Lord: a pulsing red glow under him; during a warning the rug blinks under the bull, during a
+     * pull it scrolls toward him and kicks up dust. */
+    _drawRug(lord, p, X, Y, t, fx) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const k = this.k;
+        const r = (lord.size * 2.4 + Math.sin(t * 8) * 6) * s;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.45;
+        ctx.drawImage(this._blob('255,59,92'), X(lord.x) - r, Y(lord.y) - r, r * 2, r * 2);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+        if (lord.rugWarn <= 0 && lord.rugPull <= 0) return;
+        const pulling = lord.rugPull > 0;
+        const x = X(p.x);
+        const y = Y(p.y) + 12 * k;
+        this._blit('rug', x, y, {
+            frame: pulling && !fx.calm ? Math.floor(t * 16) : 0,
+            alpha: pulling ? 1 : Math.floor(t * 12) % 2 ? 0.4 : 0.9,
+            rot: lord.rugAngle,
+            sx: 1.5,
+            sy: 1.5
+        });
+        if (pulling && t - (this.rugDustAt || 0) > 0.06) {
+            this.rugDustAt = t;
+            fx.dust(p.x, p.y + 22, Math.cos(lord.rugAngle) >= 0 ? 1 : -1);
+        }
     }
 
     /** Crate loot on the bull: a shield bubble, or the money printer's spinning gold ring. */

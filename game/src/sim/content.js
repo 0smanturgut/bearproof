@@ -522,7 +522,10 @@ export const BOSSES = {
         summon: 'rug_puller',
         summonCount: 3,
         abilityCooldown: 6,
-        spawnAt: 300
+        spawnAt: 300,
+        // Second phase: below `at` of his HP he pulls the rug. Every `every` s: `warn` s of warning, then the
+        // floor slides the bull toward him at `speed` px/s for `pull` s.
+        phase2: { at: 0.5, every: 5, warn: 0.8, pull: 1.6, speed: 110 }
     },
     CAPITULATION: {
         id: 'capitulation',

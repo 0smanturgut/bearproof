@@ -409,6 +409,27 @@ export class Game {
                 case 'charge':
                     fx.addShake(0.3);
                     break;
+                case 'rugPhase':
+                    fx.ring(e.x, e.y, 20, 240, 0.6, '255,59,92', 8, true);
+                    fx.burst(e.x, e.y, '#FFC53D', 24, 320, 3, 'spark');
+                    fx.addShake(0.8);
+                    fx.addFlash('255,59,92', 0.35, 1.6);
+                    this._sfx('bossSpawn', 0);
+                    if (!this.attract) {
+                        this.ui.toast(`${e.name.toUpperCase()} IS PULLING THE RUG`, 'bear', 2200);
+                        this.haptics.bossSpawn();
+                    }
+                    break;
+                case 'rugWarn':
+                    fx.number(e.x, e.y - 44, 'RUG PULL!', 'info');
+                    this._sfx('rugWarn', 0);
+                    break;
+                case 'rugPull':
+                    fx.burst(e.x, e.y + 20, 'rgba(160,140,110,', 8, 120, 9, 'dust');
+                    fx.addShake(0.45);
+                    this._sfx('rugPull', 0);
+                    if (!this.attract) this.haptics.hurt();
+                    break;
                 case 'cold':
                     fx.number(e.x, e.y - 34, `-${e.v} COLD`, 'hurt');
                     break;

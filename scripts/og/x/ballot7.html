@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The Build #7 ballot (agent/proposals/build-6.json). */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 60% 55% at 100% 0%,
+                        rgba(245, 197, 66, 0.1),
+                        transparent 60%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 112px;
+            }
+            .kicker {
+                font: 400 34px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: var(--red);
+            }
+            .display {
+                font-size: 112px;
+                margin-top: 8px;
+            }
+            .cards {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 330px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+            .card {
+                height: 400px;
+                padding: 22px 26px;
+                background: rgba(11, 17, 23, 0.92);
+                box-shadow: inset 0 0 0 1px var(--line);
+                display: grid;
+                grid-template-rows: 160px auto 1fr;
+                gap: 12px;
+            }
+            .card .art {
+                display: flex;
+                align-items: end;
+                gap: 10px;
+            }
+            .card b {
+                font: 400 50px/0.9 'Jersey 10';
+            }
+            .card span {
+                font-size: 20px;
+                line-height: 1.45;
+                color: #b9c4cf;
+            }
+            .clock {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 40px;
+                display: flex;
+                gap: 18px;
+                align-items: center;
+                font: 400 40px/1 'Jersey 10';
+            }
+            .clock em {
+                font-style: normal;
+                color: var(--gold);
+            }
+            .clock i {
+                font-style: normal;
+                color: var(--muted);
+            }
+            .art .ring {
+                position: relative;
+                display: grid;
+                place-items: center;
+                width: 160px;
+                height: 160px;
+            }
+            .art .ring::before,
+            .art .ring::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                border: 4px solid rgba(22, 224, 138, 0.85);
+                box-shadow:
+                    0 0 26px rgba(22, 224, 138, 0.55),
+                    inset 0 0 26px rgba(22, 224, 138, 0.35);
+            }
+            .art .ring::after {
+                inset: 22px;
+                border-width: 2px;
+                opacity: 0.55;
+            }
+            .art .jaw {
+                position: relative;
+            }
+            .art .jaw::after {
+                content: '';
+                position: absolute;
+                left: -8px;
+                right: -8px;
+                bottom: 2px;
+                height: 16px;
+                background: repeating-linear-gradient(90deg, #c9d2dc 0 10px, transparent 10px 16px);
+                clip-path: polygon(
+                    0 100%,
+                    3% 0,
+                    6% 100%,
+                    9% 0,
+                    12% 100%,
+                    15% 0,
+                    18% 100%,
+                    21% 0,
+                    24% 100%,
+                    27% 0,
+                    30% 100%,
+                    33% 0,
+                    36% 100%,
+                    39% 0,
+                    42% 100%,
+                    45% 0,
+                    48% 100%,
+                    51% 0,
+                    54% 100%,
+                    57% 0,
+                    60% 100%,
+                    63% 0,
+                    66% 100%,
+                    69% 0,
+                    72% 100%,
+                    75% 0,
+                    78% 100%,
+                    81% 0,
+                    84% 100%,
+                    87% 0,
+                    90% 100%,
+                    93% 0,
+                    96% 100%,
+                    100% 0,
+                    100% 100%
+                );
+                filter: drop-shadow(0 0 6px rgba(201, 210, 220, 0.6));
+            }
+            .clock small {
+                margin-left: auto;
+                font:
+                    20px 'JetBrains Mono',
+                    monospace;
+                color: var(--muted);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <div class="kicker">● BUILD #7 · HOLDERS VOTE UNTIL 21:00 UTC</div>
+            <h1 class="display">3 IDEAS. 1 BUILD. <span class="green">TONIGHT.</span></h1>
+        </div>
+        <div class="cards">
+            <div class="card">
+                <div class="art" id="a1"></div>
+                <b>Stop Loss</b
+                ><span
+                    >Grizzlies ended 31.7% of runs. Steel jaws drop where you stand: the first
+                    grizzly to step in is stuck for 3 s and takes a big hit.</span
+                >
+            </div>
+            <div class="card">
+                <div class="art" id="a2"></div>
+                <b>Short Squeeze</b
+                ><span
+                    >Get surrounded by 30 bears and the bull squeezes: a green shockwave throws
+                    every bear on screen off it.</span
+                >
+            </div>
+            <div class="card">
+                <div class="art" id="a3"></div>
+                <b>Paper Hands Panic</b
+                ><span
+                    >Every so often a crowd of paper hands panic-sells in a line across the screen.
+                    Dodge the stampede.</span
+                >
+            </div>
+        </div>
+        <div class="clock">
+            <em>VOTE</em><i>→</i> 21:00 UTC <i>→</i> <em>THE AI BUILDS</em> <i>→</i> 00:00 UTC
+            <i>→</i> <em>IT SHIPS</em><small>√ weighting · a signed message, no transaction</small>
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const art = (el, id, opts, wrap) => {
+                const c = document.createElement('canvas');
+                put(c, id, opts.box || 150, opts);
+                let host = c;
+                if (wrap) {
+                    host = document.createElement('div');
+                    host.className = wrap;
+                    host.append(c);
+                }
+                document.getElementById(el).append(host);
+            };
+            art('a1', 'grizzly', { max: 6 }, 'jaw');
+            art('a2', 'bull', { max: 4, box: 110 }, 'ring');
+            art('a3', 'paper_hands', { max: 4, box: 96 });
+            art('a3', 'paper_hands', { max: 4, box: 96, frame: 1 });
+            art('a3', 'paper_hands', { max: 4, box: 96 });
+            await ready();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Every build so far, from /api/builds and devlog/build-N.md (mode, chosenBy, costUsd). */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 60% 55% at 100% 0%,
+                        rgba(22, 224, 138, 0.08),
+                        transparent 60%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 112px;
+            }
+            .kicker {
+                font: 400 34px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: var(--gold);
+            }
+            .display {
+                font-size: 104px;
+                margin-top: 8px;
+            }
+            .total {
+                position: absolute;
+                right: 64px;
+                top: 60px;
+                text-align: right;
+            }
+            .total b {
+                display: block;
+                font: 400 92px/0.9 'Jersey 10';
+                color: var(--green);
+                text-shadow:
+                    0 6px 0 var(--green-deep),
+                    0 0 40px rgba(22, 224, 138, 0.35);
+            }
+            .total span {
+                font-size: 19px;
+                color: var(--muted);
+            }
+            table {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 290px;
+                width: calc(100% - 128px);
+                border-collapse: collapse;
+                background: rgba(11, 17, 23, 0.94);
+                box-shadow: inset 0 0 0 1px var(--line);
+            }
+            td {
+                height: 72px;
+                padding: 0 16px;
+                border-top: 1px solid var(--line);
+                font-size: 22px;
+                color: #c9d2dc;
+                white-space: nowrap;
+            }
+            tr:first-child td {
+                border-top: 0;
+            }
+            td.art {
+                width: 84px;
+                text-align: center;
+                padding: 0 6px 0 18px;
+            }
+            td.art canvas {
+                vertical-align: middle;
+            }
+            td.n {
+                width: 70px;
+                font: 400 40px/1 'Jersey 10';
+                color: var(--text);
+            }
+            td.d {
+                width: 110px;
+                color: var(--muted);
+            }
+            td.t {
+                font: 400 36px/1 'Jersey 10';
+                color: var(--text);
+                letter-spacing: 0.01em;
+            }
+            .chip {
+                display: inline-block;
+                padding: 5px 10px 4px;
+                font-size: 18px;
+                box-shadow: inset 0 0 0 1px var(--line);
+                color: var(--muted);
+            }
+            .chip.ai {
+                color: var(--green);
+                box-shadow: inset 0 0 0 1px rgba(22, 224, 138, 0.45);
+                background: rgba(22, 224, 138, 0.06);
+            }
+            .chip.boot {
+                color: #9ec5ff;
+                box-shadow: inset 0 0 0 1px rgba(158, 197, 255, 0.4);
+            }
+            td.who {
+                width: 230px;
+                color: var(--muted);
+                font-size: 19px;
+            }
+            td.c {
+                width: 110px;
+                text-align: right;
+                padding-right: 26px;
+                font: 400 38px/1 'Jersey 10';
+                color: var(--gold);
+            }
+            td.c.none {
+                font:
+                    19px 'JetBrains Mono',
+                    monospace;
+                color: var(--muted);
+            }
+            tr.new td {
+                background: rgba(22, 224, 138, 0.07);
+            }
+            tr.new td.t::after {
+                content: 'NEW TODAY';
+                margin-left: 14px;
+                padding: 3px 8px 2px;
+                font: 400 22px/1 'Jersey 10';
+                letter-spacing: 0.08em;
+                color: var(--ground);
+                background: var(--green);
+                vertical-align: 4px;
+            }
+            .xnote {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 28px;
+                font-size: 18px;
+                line-height: 1.5;
+                color: var(--muted);
+            }
+            .xnote b {
+                font-weight: 400;
+                color: var(--green);
+            }
+            .xnote i {
+                font-style: normal;
+                color: #9ec5ff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="total"><b>$15.00</b><span>measured AI compute, builds #3–#6</span></div>
+        <div class="head">
+            <div class="kicker">PROOF OF WORK · 23–28 SEP 2026</div>
+            <h1 class="display">6 BUILDS IN <span class="green">6 DAYS</span></h1>
+        </div>
+        <table>
+            <tr>
+                <td class="art" data-s="red_candle"></td>
+                <td class="n">#0</td>
+                <td class="d">23 Sep</td>
+                <td class="t">The open-source game it started from</td>
+                <td><span class="chip">MIT fork</span></td>
+                <td class="who">credited</td>
+                <td class="c none">n/a</td>
+            </tr>
+            <tr>
+                <td class="art" data-s="bull"></td>
+                <td class="n">#1</td>
+                <td class="d">23 Sep</td>
+                <td class="t">The bull-vs-bear rebuild</td>
+                <td><span class="chip boot">bootstrap</span></td>
+                <td class="who">setup sessions</td>
+                <td class="c none">unmetered</td>
+            </tr>
+            <tr>
+                <td class="art" data-s="emblem"></td>
+                <td class="n">#2</td>
+                <td class="d">24 Sep</td>
+                <td class="t">The new look</td>
+                <td><span class="chip boot">bootstrap</span></td>
+                <td class="who">setup sessions</td>
+                <td class="c none">unmetered</td>
+            </tr>
+            <tr>
+                <td class="art" data-s="pepe"></td>
+                <td class="n">#3</td>
+                <td class="d">25 Sep</td>
+                <td class="t">Pepe joins the bear market</td>
+                <td><span class="chip ai">Build Agent</span></td>
+                <td class="who">holder vote</td>
+                <td class="c">$4.36</td>
+            </tr>
+            <tr>
+                <td class="art" data-s="supply_crate"></td>
+                <td class="n">#4</td>
+                <td class="d">26 Sep</td>
+                <td class="t">Airdrop crates</td>
+                <td><span class="chip ai">Build Agent</span></td>
+                <td class="who">holder vote</td>
+                <td class="c">$4.20</td>
+            </tr>
+            <tr>
+                <td class="art" data-s="liquidation"></td>
+                <td class="n">#5</td>
+                <td class="d">27 Sep</td>
+                <td class="t">The AI's bounty: Triple Top</td>
+                <td><span class="chip ai">Build Agent</span></td>
+                <td class="who">holder vote</td>
+                <td class="c">$3.25</td>
+            </tr>
+            <tr class="new">
+                <td class="art" data-s="rug"></td>
+                <td class="n">#6</td>
+                <td class="d">28 Sep</td>
+                <td class="t">Rug Lord pulls the rug</td>
+                <td><span class="chip ai">Build Agent</span></td>
+                <td class="who">the AI (0 votes)</td>
+                <td class="c">$3.19</td>
+            </tr>
+        </table>
+        <div class="xnote">
+            <b>Build Agent</b>: Claude Code on GitHub Actions, every night at 21:00 UTC, nobody in
+            the session · <i>bootstrap</i>: the same AI in sessions Osman starts · every build is
+            still playable at bearproof.app/b/N
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            for (const td of document.querySelectorAll('td.art')) {
+                const c = document.createElement('canvas');
+                put(c, td.dataset.s, 52, { max: 3, glow: false });
+                td.append(c);
+            }
+            await ready();
+        </script>
+    </body>
+</html>

@@ -85,7 +85,7 @@ export function classifyTx(tx, signature, wallet, known = {}) {
             category = 'creator_fees';
             label = 'creator fees claimed from pump.fun';
         } else if (fromOperator) {
-            label = 'operator top-up';
+            label = 'incoming from the costs wallet';
         } else {
             label = `incoming from ${short(peer)}`;
         }

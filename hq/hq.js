@@ -1933,7 +1933,7 @@ function renderCoin(s) {
     const fine = $('#howFine');
     if (fine)
         fine.textContent =
-            'Compute and hosting are billed to Osman, and the treasury pays them back on-chain to the costs wallet with a memo per day. The ledger shows every payment.';
+            'Compute and hosting are billed off-chain, and the treasury pays them back on-chain to the costs wallet. The ledger shows every payment.';
 }
 
 // ---------------------------------------------------------------------------------------------

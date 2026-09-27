@@ -51,10 +51,10 @@ test('inflow from an unknown wallet is never labelled as fees', () => {
     assert.match(r.memo, /incoming from Rand…1111/);
 });
 
-test('operator top-up from the costs wallet', () => {
+test('an inflow from the costs wallet is labelled as such', () => {
     const r = classifyTx(tx({ from: COSTS, to: T, lamports: 3e7 }), 's', T, known);
     assert.equal(r.category, 'other');
-    assert.equal(r.memo, 'operator top-up');
+    assert.equal(r.memo, 'incoming from the costs wallet');
 });
 
 test('outflows: prize top-up, compute and hosting reimbursements, launch', () => {

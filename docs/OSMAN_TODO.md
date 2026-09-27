@@ -67,9 +67,8 @@ Wired into the site and checked on chain:
   launch buy of 24,845,152 BPROOF (2.48%), which the treasury holds.
 - ClawPump has no agent id for a single agent, so fees are measured from chain instead.
 
-Done since: the prize wallet `GD9HPVpLqDxYfgf9ZNQDN3WwCfZips7tVCHAhMcchRo5` exists (its key is a Worker secret),
-`5Em3PQ…ZVv3` is labelled as your wallet (operator funding; costs are paid back to it), and the coin-live and Build #2
-posts are out.
+Done since: the prize wallet `GD9HPVpLqDxYfgf9ZNQDN3WwCfZips7tVCHAhMcchRo5` exists (its key is a Worker secret), and
+the coin-live and Build #2 posts are out.
 
 Still needed from you:
 

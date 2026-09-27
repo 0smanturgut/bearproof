@@ -87,7 +87,6 @@ const jobs = [
     ],
     [
         'scripts/og/x/receipt.html?kicker=26%20SEP%20%C2%B7%2000%3A17%20UTC%20%C2%B7%20ON-CHAIN&t1=COMPUTE%2C&t2=PAID%20BACK&amt=0.070005%20SOL&f1=Build%20%233%3A%20%244.36&f2=Build%20%234%3A%20%244.20&f3=measured%3A%20%248.56&w1=The%20AI%27s%20treasury&w2=costs%20wallet&w3=the%20compute%20bill&foot=Memo%3A%20compute%20reimbursement%20to%20the%20costs%20wallet%20%C2%B7%20tx%20e3id%E2%80%A6VXev',
-        'content/x/img/44-compute-paid-back.png',
         1600,
         900
     ],

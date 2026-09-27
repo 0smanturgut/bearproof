@@ -2,16 +2,16 @@
 
 **An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.**
 
-|                                             |                                                                                                                                                            |
-| :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Play / HQ**                               | https://bearproof.app                                                                                                                                      |
-| **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                 |
-| **X**                                       | [@bearproofapp](https://x.com/bearproofapp)                                                                                                                |
-| **Operator**                                | Osman Turgut · [@0smanTrgut](https://x.com/0smanTrgut) on X                                                                                                |
-| **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX) |
-| **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                         |
+|                                             |                                                                                                                                                                  |
+| :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Play / HQ**                               | https://bearproof.app                                                                                                                                            |
+| **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                       |
+| **X**                                       | [@bearproofapp](https://x.com/bearproofapp) is suspended by X (27 Sep). Until it's back, updates come from the operator, [@0smanTrgut](https://x.com/0smanTrgut) |
+| **Operator**                                | Osman Turgut · [@0smanTrgut](https://x.com/0smanTrgut) on X                                                                                                      |
+| **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX)       |
+| **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                               |
 
-Always check the contract address against this README, the HQ and [@bearproofapp](https://x.com/bearproofapp). Anything else is not us.
+Always check the contract address against this README and the HQ (bearproof.app). Anything else is not us.
 
 BEARPROOF is a fast, mobile-first survivors-like browser game. You are a bull surviving an endless bear market.
 An AI game developer is building it in public. Every day at 00:00 UTC a new build ships and a new Daily

@@ -19,6 +19,13 @@ import {
 } from '../lib/pot.js';
 import { PRIZE_CAP_LAMPORTS, PRIZE_MIN_LAMPORTS, PRIZE_PCT } from '../lib/prize.js';
 
+/** Why a higher run wasn't paid, in words. */
+const PASSED_OVER = {
+    'bot check not passed': 'submitted without passing the bot check',
+    'no payout address': 'left no payout address',
+    'operator run, not prize-eligible': "the operator's own run"
+};
+
 const WHY = {
     'no eligible winner': 'No verified run with a passed bot check and a payout address.',
     'fees not measured yet': 'No creator fees measured for that day yet.',
@@ -30,7 +37,7 @@ const ONE_RULE = {
     share: PRIZE_PCT,
     capSol: PRIZE_CAP_LAMPORTS / 1e9,
     minSol: PRIZE_MIN_LAMPORTS / 1e9,
-    text: `The verified #1 of each Daily Challenge who left a Solana address is paid ${PRIZE_PCT * 100}% of that day's creator fees (at most ${PRIZE_CAP_LAMPORTS / 1e9} SOL), bought as $ANSEM, after 00:10 UTC. Holding the coin is never required.`
+    text: `The best verified run of each Daily Challenge that passed the bot check and left a Solana address is paid ${PRIZE_PCT * 100}% of that day's creator fees (at most ${PRIZE_CAP_LAMPORTS / 1e9} SOL), bought as $ANSEM, after 00:10 UTC. Holding the coin is never required.`
 };
 
 const POT_RULE = {
@@ -144,11 +151,21 @@ export async function winners(env) {
                     };
                 const why =
                     note.why || (r.payout_status === 'skipped' ? note.policy : null) || null;
+                // When the top of the board wasn't eligible, the payout says so (the rule: say who and why).
+                const passedOver = (Array.isArray(note.skipped) ? note.skipped : []).map((s) => ({
+                    runId: s.runId,
+                    why: PASSED_OVER[s.why] || s.why
+                }));
                 return {
                     ...base,
                     amountRaw: r.payout_status === 'paid' ? r.payout_amount : null,
                     tx: r.payout_tx || null,
-                    why: why ? WHY[why] || why : null
+                    why: why
+                        ? WHY[why] || why
+                        : passedOver.length
+                          ? `Paid to the best eligible run. Passed over above it: ${passedOver.map((p) => p.why).join('; ')}.`
+                          : null,
+                    ...(passedOver.length ? { passedOver } : {})
                 };
             })
         },

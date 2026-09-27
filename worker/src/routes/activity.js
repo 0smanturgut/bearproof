@@ -155,8 +155,10 @@ export async function activity(env) {
             )
             .sort((a, b) => b.ts - a.ts)[0];
         let pot = null;
+        let passedOver = [];
         try {
             const note = JSON.parse(w.note || '{}');
+            passedOver = Array.isArray(note.skipped) ? note.skipped : [];
             if (note.policy === 'daily-pot')
                 pot = (note.recipients || []).filter((r) => r.status === 'sent').length;
         } catch {
@@ -171,7 +173,9 @@ export async function activity(env) {
             kind: 'prize',
             text:
                 pot === null
-                    ? `Prize paid for ${w.date}: ${amount} to the verified #1.`
+                    ? passedOver.length
+                        ? `Prize paid for ${w.date}: ${amount} to the best eligible run. ${passedOver.length === 1 ? 'The run above it was' : `The ${passedOver.length} runs above it were`} passed over (${[...new Set(passedOver.map((s) => s.why))].join('; ')}).`
+                        : `Prize paid for ${w.date}: ${amount} to the verified #1.`
                     : `Daily Pot paid for ${w.date}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}.`,
             tx: w.payout_tx || null
         });

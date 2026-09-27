@@ -1582,7 +1582,9 @@ async function loadWinners() {
         const text =
             paid.policy === 'daily-pot'
                 ? `The AI paid ${sent.length} player${sent.length === 1 ? '' : 's'} for ${paid.date}: ${tokenAmount(paid.amountRaw, paid.token)} on-chain.`
-                : `The AI paid ${paid.name}, the verified #1 of ${paid.date}, ${tokenAmount(paid.amountRaw, paid.token)} on-chain.`;
+                : paid.passedOver && paid.passedOver.length
+                  ? `The AI paid ${paid.name}, the best eligible run of ${paid.date}, ${tokenAmount(paid.amountRaw, paid.token)} on-chain. ${paid.why || ''}`.trim()
+                  : `The AI paid ${paid.name}, the verified #1 of ${paid.date}, ${tokenAmount(paid.amountRaw, paid.token)} on-chain.`;
         banner.textContent = '';
         banner.append(
             h('span', { class: 'paid-k' }, 'Prize paid'),

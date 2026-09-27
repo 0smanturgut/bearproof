@@ -1815,11 +1815,11 @@ function end(ctx, env, s, lt) {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
     const m = M(env);
-    const px = P ? 210 : 290;
-    const ly = P ? H * 0.42 : H * 0.47;
+    const px = P ? 210 : 270;
+    const ly = P ? H * 0.42 : H * 0.43;
     // bull on top of the logo
     const k = ease.outBack(prog(lt, 0.05, 0.4), 1.6);
-    const scale = P ? 8 : 8;
+    const scale = P ? 8 : 7;
     ctx.save();
     ctx.translate(W / 2, ly - px * 0.8);
     ctx.scale(k, k);
@@ -1854,8 +1854,8 @@ function end(ctx, env, s, lt) {
     // "Are you bearproof?"
     const q1 = 'ARE YOU ';
     const q2 = 'BEARPROOF?';
-    const qpx = P ? 84 : 96;
-    const qy = ly + (P ? 120 : 140);
+    const qpx = P ? 84 : 92;
+    const qy = ly + (P ? 120 : 130);
     const w1 = measure(ctx, q1, 'display', qpx);
     const w2 = measure(ctx, q2, 'display', qpx);
     slamText(ctx, env, lt, 2 * BEAT, q1, W / 2 - (w1 + w2) / 2, qy, {
@@ -1874,9 +1874,9 @@ function end(ctx, env, s, lt) {
     // call to action
     const cst = slam(lt, 4 * BEAT, 0.2);
     if (cst.on) {
-        const bw = P ? 700 : 620;
-        const bh = P ? 124 : 112;
-        const by = qy + (P ? 190 : 150);
+        const bw = P ? 700 : 600;
+        const bh = P ? 124 : 106;
+        const by = qy + (P ? 190 : 142);
         ctx.save();
         ctx.globalAlpha = cst.alpha;
         ctx.translate(W / 2, by);
@@ -1884,7 +1884,7 @@ function end(ctx, env, s, lt) {
         ctx.translate(-W / 2, -by);
         button(ctx, 'PLAY FREE ▸', W / 2, by, bw, bh, { px: bh * 0.66 });
         ctx.restore();
-        text(ctx, 'bearproof.app', W / 2, by + bh / 2 + (P ? 90 : 84), {
+        text(ctx, 'bearproof.app', W / 2, by + bh / 2 + (P ? 90 : 78), {
             kind: 'monoBold',
             px: P ? 46 : 46,
             color: C.text,
@@ -1892,7 +1892,7 @@ function end(ctx, env, s, lt) {
             alpha: cst.alpha,
             tracking: 2
         });
-        text(ctx, 'No wallet. No signup. On your phone.', W / 2, by + bh / 2 + (P ? 140 : 130), {
+        text(ctx, 'No wallet. No signup. On your phone.', W / 2, by + bh / 2 + (P ? 140 : 120), {
             kind: 'mono',
             px: P ? 28 : 28,
             color: C.text2,
@@ -1902,16 +1902,19 @@ function end(ctx, env, s, lt) {
     }
     const fst = slam(lt, 5 * BEAT, 0.3);
     if (fst.on) {
-        const foot = `$BPROOF on Solana · a new build every day at 00:00 UTC · built in public by an AI`;
-        const fy = P ? H - 190 : H - 92;
-        wrap(ctx, foot, W - 2 * m, 'monoBold', P ? 20 : 20).forEach((ln, i) =>
+        const foot = P
+            ? ['$BPROOF on Solana · a new build every day at 00:00 UTC', 'built in public by an AI']
+            : ['$BPROOF on Solana · a new build every day at 00:00 UTC · built in public by an AI'];
+        const fy = P ? H - 200 : H - 92;
+        foot.forEach((ln, i) =>
             text(ctx, ln, W / 2, fy + i * 30, {
                 kind: 'monoBold',
                 px: 20,
                 color: C.muted,
                 align: 'center',
                 tracking: 1,
-                alpha: fst.alpha
+                alpha: fst.alpha,
+                maxW: W - 2 * m
             })
         );
         const small = `Real footage from each shipped build, played by the game's own autopilot (kept alive for the camera). Build #0 is ricardo-foundry/canvas-vampire-survivors (MIT). Music and sound made in code. Numbers as of ${dayMon(D.fetchedAt)} ${D.fetchedAt.slice(11, 16)} UTC.`;

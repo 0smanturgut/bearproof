@@ -3,6 +3,18 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-09-28 (Build #6, Rug Lord's rug pull)
+
+- Rug Lord's phase 2 is `phase2` data on RUG_LORD plus `Enemy._rugPhase` (entities.js); the renderer finds an
+  enraged boss by `e.enraged`. Any boss can get a phase this way. `SIM_VERSION` is 5 (pinned in twist.test.js).
+- Build #5: 60 runs from 12 players, median 5:35 (was 7:30), 0 wins, 0.57 boss kills/run, with no sim change.
+  Tongue is in 75% of runs (Pepe), Horns 38%. The data doesn't split by character; if it still sags, suspect
+  Pepe's late game (tongue scaling) and test it directly.
+- To count things across autopilot runs, a `node --test` test with `t.diagnostic` works (inline `node -e` and
+  heredocs are blocked). Rug phase: 12/40 bot runs met Rug Lord, 11 enraged him, 8 beat him.
+- Smoke shot trick: spawnAt 19 + a boss already enraged puts a pull on screen at the 45.8 s shot. Revert after.
+- Nobody voted two nights running. Proposals now lead with an on-screen moment; check whether that draws votes.
+
 ## 2026-09-27 (Build #5, the AI's bounty)
 
 - Each build can carry `game/bounty.json` (menu and checks in `worker/src/lib/bounty.js`, read-only; the game

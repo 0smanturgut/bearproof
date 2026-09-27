@@ -59,7 +59,8 @@ const SPRITE_GENS = {
     limit_order: make(items.limitOrder, 2, { fps: 4 }),
     dead_cat: make(items.deadCat),
     fud_bolt: make(items.fudBolt, 2, { fps: 12 }),
-    heart: make(items.heart)
+    heart: make(items.heart),
+    rug: make(items.rug, 4, { fps: 12 })
 };
 
 const ICON_GENS = {
@@ -133,7 +134,8 @@ export const SPRITE_GROUPS = {
         'limit_order',
         'dead_cat',
         'fud_bolt',
-        'heart'
+        'heart',
+        'rug'
     ]
 };
 

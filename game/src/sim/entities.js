@@ -210,6 +210,12 @@ export class Enemy {
         this.cloneTimer = def.cloneCooldown ? def.cloneCooldown * (0.6 + rng.next() * 0.8) : 0;
         this.slowTimer = 0;
         this.slowPct = 0;
+        // Rug Lord's second phase: enraged once, then a warning and a pull in turn (seconds left on each).
+        this.enraged = false;
+        this.rugTimer = 0;
+        this.rugWarn = 0;
+        this.rugPull = 0;
+        this.rugAngle = 0;
     }
 
     update(dt, sim) {
@@ -319,6 +325,36 @@ export class Enemy {
                 this.abilityTimer = def.abilityCooldown || 5;
                 sim.bossAbility(this);
             }
+            if (def.phase2) this._rugPhase(dt, sim);
+        }
+    }
+
+    /** Below `phase2.at` of his HP: every few seconds a warning, then the floor slides the bull toward him. */
+    _rugPhase(dt, sim) {
+        const ph = this.def.phase2;
+        const p = sim.player;
+        if (!this.enraged) {
+            if (this.hp > this.maxHp * ph.at) return;
+            this.enraged = true;
+            this.rugTimer = 0;
+            sim.emit({ t: 'rugPhase', id: this.id, name: this.def.name, x: this.x, y: this.y });
+        }
+        this.rugTimer -= dt;
+        if (this.rugPull > 0) {
+            p.x += cos(this.rugAngle) * ph.speed * dt;
+            p.y += sin(this.rugAngle) * ph.speed * dt;
+            this.rugPull -= dt;
+        } else if (this.rugWarn > 0) {
+            this.rugWarn -= dt;
+            if (this.rugWarn <= 0) {
+                this.rugPull = ph.pull;
+                sim.emit({ t: 'rugPull', x: p.x, y: p.y, angle: this.rugAngle });
+            }
+        } else if (this.rugTimer <= 0) {
+            this.rugTimer = ph.every;
+            this.rugWarn = ph.warn;
+            this.rugAngle = atan2(this.y - p.y, this.x - p.x);
+            sim.emit({ t: 'rugWarn', x: p.x, y: p.y, angle: this.rugAngle });
         }
     }
 

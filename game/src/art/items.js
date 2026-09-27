@@ -244,6 +244,52 @@ export function fudBolt(f) {
     return s.render();
 }
 
+/**
+ * 44×20 Rug Lord's rug, seen from above, in the rug pullers' colours: red field, gold border, fringe at both
+ * ends. The gold chevrons point along +x (the way it slides; the renderer rotates it) and scroll 2 px a frame.
+ */
+export function rug(f) {
+    const s = new PixelSprite(44, 20);
+    const shift = (f % 4) * 2;
+    for (let y = 2; y <= 17; y++)
+        for (let x = 2; x <= 41; x++) {
+            const edge = x === 2 || x === 41 || y === 2 || y === 17;
+            const inner = (x === 4 || x === 39) && y >= 4 && y <= 15;
+            const innerH = (y === 4 || y === 15) && x >= 4 && x <= 39;
+            let c;
+            if (edge) c = '#FFC53D';
+            else if (inner || innerH) c = '#C28100';
+            else if (x < 4 || x > 39 || y < 4 || y > 15) c = '#6E0F2A';
+            else c = y === 5 ? '#FF3B5C' : y === 14 ? '#962038' : '#B81E40';
+            s.px(x, y, c);
+        }
+    // chevrons down the middle, two pixels thick, scrolling toward +x
+    for (let y = 6; y <= 13; y++) {
+        const d = Math.round(Math.abs(y - 9.5) - 0.5);
+        for (let x = 5; x <= 38; x++) {
+            const u = (((x - shift - (4 - d)) % 8) + 8) % 8;
+            if (u < 2) s.px(x, y, u ? '#FFE08A' : '#FFC53D');
+        }
+    }
+    // gold studs in the corners of the field
+    for (const [x, y] of [
+        [6, 6],
+        [37, 6],
+        [6, 13],
+        [37, 13]
+    ])
+        s.px(x, y, '#FFF6D6');
+    // fringe: tassels on every other row, the trailing ones flap
+    for (let y = 3; y <= 16; y += 2) {
+        const flap = (y + f) % 2;
+        s.px(1, y, '#FFE08A');
+        if (flap) s.px(0, y, '#C28100');
+        s.px(42, y, '#FFE08A');
+        s.px(43, y, '#C28100');
+    }
+    return s.render();
+}
+
 /** 9×8 heart (healing). */
 export function heart() {
     const s = new PixelSprite(9, 8);

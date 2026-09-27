@@ -1,43 +1,34 @@
-# Build #5 plan: the AI's bounty ("Triple Top")
+# Build #6 plan: Rug Lord's second phase
+
+## Regression check first
+
+Build #5 didn't change the simulation (bounty only). Live data: median 5:35 (was 7:30 on Build #4), wins 4 → 0,
+boss kills per run 1.24 → 0.57, rejected replays 6 → 0. Tongue (Pepe's starter) is in 75% of runs, Horns fell
+84% → 38%, so most runs moved to Pepe. `playtest --compare build-4` is identical (3:41 → 3:41), and Pepe on the
+autopilot matches the bull (3:41). Nothing in the code to fix; report it honestly with the limits.
 
 ## Feature
 
-Holders picked the operator's option `op-daily-pot` (1 wallet voted). Osman's note for Build #5 says my part is the
-bounty, in the game. The prize rules, pot, payouts and verification are Worker code outside my paths.
+No vote today, so the top backlog item: **Rug Lord's second phase**. Below 50% HP he pulls the rug:
 
-- `game/bounty.json`: `{ "type": "bosses", "bosses": 3, "name": "Triple Top" }`. Condition text, as
-  `bountyText` words it: "Defeat 3 bosses".
-- Title screen, inside the Daily Challenge card: the bounty name, the condition, "Daily Challenge runs only", and
-  the money line word for word: "Clear it to share today's bounty in $ANSEM."
-- HUD during a Daily run only: a small chip under the timer ("BOUNTY 1/3 BOSSES"), turning green when cleared,
-  plus a "BOUNTY CLEARED" toast the moment it clears. Nothing over the play area.
-- End screen: a receipt row "BOUNTY": cleared or missed. After a cleared, rankable Daily run, the exact line
-  "Bounty cleared. Paid after 00:10 UTC if the run verifies and you left a Solana address."
-- Share text: one extra line on a cleared Daily run, "Cleared the AI's bounty: Triple Top".
-- No simulation change: the bounty only reads `sim.summary()` fields. No `SIM_VERSION` bump.
-
-## Why this bounty
-
-Build #4 players: 66 verified runs, 1.33 boss kills per run, median 8:30, p75 11:50, 3 wins. Bosses arrive at 5:00,
-7:30 and 10:00 on every stage (Bear Trap earlier), with the final at 12:00. Three boss kills means beating
-Liquidation (or the Long Winter), so a run has to reach about 10:30 and kill all three. That's well above the
-average run, and a good run can do it. "Win" (3 of 66 runs) is too rare; "Survive to 10:00" would be cleared by
-most regulars.
+- He enrages once (toast, shake, red flash): "RUG LORD IS PULLING THE RUG".
+- Every 5 s: a 0.8 s warning (the rug appears under the bull, pointing at him), then a 1.6 s pull that slides the
+  bull toward him at 110 px/s (130 was tried: running away barely gained ground). The bull runs at 240, so running away still gains on a boss walking at 80.
+- Direction is fixed when the warning starts (no rng), stops the moment he dies.
+- Rug Lord is the first boss (5:00, 4:00 on Bear Trap) and ends 21.7% of runs via his rug pullers; the backlog
+  item is the one players meet first as a boss.
 
 ## Files
 
-- `game/bounty.json` (new).
-- `game/src/bounty.js` (new, pure): menu copy, `readBounty`, `bountyText`, `clearsBounty(summary)`,
-  `bountyProgress`.
-- `game/src/api.js`: `getBounty()` loads `./bounty.json`.
-- `game/src/main.js`: load it, show it on the Daily card.
-- `game/src/game.js`: HUD tracking, the toast, end screen, share line.
-- `game/src/ui.js`, `game/index.html`, `game/styles.css`: the card line, the HUD chip, the receipt row.
-- `game/src/share.js`: the optional bounty line.
-- `game/test/bounty.test.js`: validate `game/bounty.json` with the Worker's `checkBounty`, compare my check with
-  `clearsBounty` on runs mapped the way the verifier's `runStats` maps them, including real simulated runs.
+- `game/src/sim/content.js`: `phase2` data on RUG_LORD.
+- `game/src/sim/entities.js`: the phase logic on the boss Enemy.
+- `game/src/sim/sim.js`: `SIM_VERSION` 4 → 5; `game/test/twist.test.js` pin.
+- `game/src/art/items.js`, `game/src/art/sprites.js`: a scrolling rug sprite.
+- `game/src/render.js`: draw the rug under the bull during warning and pull.
+- `game/src/game.js`, `game/src/audio.js`: toast, shake, whoosh, haptics.
+- `game/test/rug.test.js`: phase trigger, warning, pull distance, escape, stops on death.
 
 ## Test
 
-Unit tests above. `npm run check`, smoke shots (title card, HUD during a daily), playtest compare (should be
-identical: no sim change), determinism on chromium.
+Unit tests on the boss directly, `playtest --compare origin/main`, smoke screenshots (temporarily force the rug
+on screen at the smoke shot), sprite preview, determinism gate.

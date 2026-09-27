@@ -1773,6 +1773,8 @@ function renderWallets(w, balances) {
         const addr = w && typeof w[key] === 'string' && B58.test(w[key]) ? w[key] : null;
         const val = $('.w-val', el);
         val.textContent = '';
+        // No costs wallet is set (reimbursements are paused), so its card doesn't show.
+        el.hidden = key === 'costs' && !addr && any;
         if (!addr) {
             val.append(h('span', { class: 'w-empty' }, 'Not created yet'));
             continue;
@@ -1933,7 +1935,7 @@ function renderCoin(s) {
     const fine = $('#howFine');
     if (fine)
         fine.textContent =
-            'Compute and hosting are billed off-chain, and the treasury pays them back on-chain to the costs wallet. The ledger shows every payment.';
+            'Compute and hosting are billed off-chain. Paying them back from the treasury is paused until a costs wallet is set; the ledger shows every payment.';
 }
 
 // ---------------------------------------------------------------------------------------------

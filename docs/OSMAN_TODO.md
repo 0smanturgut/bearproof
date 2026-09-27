@@ -92,9 +92,9 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
 
 - **Prize wallet top-up.** When the HQ shows the prize wallet under 0.5 SOL, send from the agent wallet to the prize
   wallet in the ClawPump dashboard. Never more than 1.5 SOL in total there.
-- **Cost reimbursement** (weekly is fine). Send the measured compute plus hosting from the agent wallet to your costs
-  wallet. If the dashboard lets you add a memo, use `bearproof:costs:<YYYY-MM-DD> compute` (or `hosting`); without
-  one, sends to the costs wallet are labelled compute. The ledger picks them up automatically.
+- **Cost reimbursement: paused.** No costs wallet is set since 27 Sep. To restart it, send me the public address of
+  the wallet reimbursements should go to and add it to the ClawPump whitelist; don't send reimbursements anywhere
+  until then.
 - **Posts.** Publish `content/x/build-<n>.md` after each 00:00 UTC release. The agent drafts them; you post.
 
 ## 9. 24/7 live stream of the control room on X (optional, ≈20 min)

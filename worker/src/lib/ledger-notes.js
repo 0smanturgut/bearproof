@@ -7,7 +7,14 @@
  */
 export const LEDGER_NOTES = {
     // signature -> { category, memo }
-    relabel: {},
+    relabel: {
+        // 27 Sep 19:38 UTC, 2 SOL from the treasury to 28Rp…NeE4, sent by the operator in the ClawPump dashboard.
+        '4FfCJ9zTZRRYfhkJHvFM99TyN6pvzh4mbeMA8QCHeqr5N4wVeLaFmgJ9DccFN73a8uzgVj2PYfukvdPY36Y9PEfF':
+            {
+                category: 'marketing',
+                memo: 'paid promotion: the operator paid @Mihawk_Research for a sponsored post about BEARPROOF on X (labelled 28 Sep)'
+            }
+    },
     // [{ tx, ts (ISO), direction, amountSol, category, memo }]
     extra: []
 };

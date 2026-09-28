@@ -24,7 +24,9 @@ Trades on pump.fun ─► creator fees (75% to the agent, 25% to ClawPump)
 The fee payout wallet is **fixed forever** when the token is created (ClawPump `payoutWallet`), so it has to be decided
 before launch. We keep ClawPump's default, the agent wallet, for three reasons:
 
-1. The whitelist means the treasury can only send to the prize and costs wallets, even if an API key leaks.
+1. ClawPump's tools send only to whitelisted addresses, even if an API key leaks. The operator manages that list in
+   the dashboard, and it isn't limited to the prize and costs wallets: on 27 Sep he paid a promoter from the treasury
+   (see Ledger notes).
 2. It is the agent's identity on ClawPump, which is what the hackathon is about.
 3. The key isn't sitting on one of our servers.
 
@@ -92,6 +94,7 @@ While it can't be read, no day from 27 Sep on is settled at all, so a day is nev
 | Fees → treasury                         | ClawPump, hourly                                                                              | `chain`            |
 | Treasury → prize wallet (daily top-up)  | **Operator**, in the ClawPump dashboard, until an automated `agent_send` path proves reliable | `operator`         |
 | Treasury → costs wallet (reimbursement) | **Operator**, same                                                                            | `operator`         |
+| Treasury → anyone else                  | **Operator**, same; the purpose goes in the ledger notes below                                | `operator`         |
 | Winner verification + payout            | Worker cron after 00:00 UTC                                                                   | `agent`            |
 | Ledger rows                             | Worker cron from Solana RPC, one row per treasury transaction with a Solscan link             | `chain`            |
 
@@ -103,6 +106,16 @@ through PublicNode's free RPC (`api.mainnet-beta.solana.com` refuses requests fr
 
 We only claim "the AI pays for its own compute" for the amounts that were actually reimbursed on-chain, and each one
 links to its transaction.
+
+## Ledger notes
+
+A treasury send to an address the ledger doesn't know shows up as "outgoing to …". Its purpose is added by
+signature in `worker/src/lib/ledger-notes.js`, after checking the transaction on-chain:
+
+- **27 Sep 19:38 UTC, 2 SOL to `28Rp…NeE4`** (tx `4FfCJ9…Y36Y9PEfF`): a paid promotion. The operator paid
+  @Mihawk_Research for a sponsored post about BEARPROOF on X, from the treasury, in the ClawPump dashboard. It was the
+  operator's decision and it isn't one of the uses in the loop above. Shown as "outgoing to 28Rp…NeE4" until 28 Sep,
+  then labelled Marketing.
 
 ## Live addresses (23 Sep 2026)
 

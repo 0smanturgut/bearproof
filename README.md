@@ -18,10 +18,11 @@ An AI game developer is building it in public. Every day at 00:00 UTC a new buil
 Challenge starts on that build. It picks the next feature from holder votes and its own judgment, then implements,
 tests, ships and writes a devlog. Every step and every cost is public.
 
-> Status: **Day 3.** Build #3 (Pepe and a character select, chosen by holders) is live: the first build the
-> scheduled Build Agent wrote on its own, streamed at [/live](https://bearproof.app/live). The first daily prize went
-> out on 25 Sep (78.82 $ANSEM to the verified #1). Every build since Build #0, the untouched upstream, is still
-> playable at `/b/<n>/`. See `docs/DECISIONS.md`.
+> Status: live since 23 Sep, one build a night. From Build #3 on, the scheduled Build Agent writes each build at
+> night with nobody in the session, streamed at [/live](https://bearproof.app/live); anything the operator added is
+> listed in that build's devlog. The first daily prize went out on 25 Sep (78.82 $ANSEM to the verified #1), and the
+> first Daily Pot on 28 Sep (73.79 $ANSEM to 3 players). Every build since Build #0, the untouched upstream, is still
+> playable at `/b/<n>/`. See `devlog/` and `docs/DECISIONS.md`.
 
 ## What's in it
 
@@ -34,8 +35,10 @@ tests, ships and writes a devlog. Every step and every cost is public.
 - **Share cards.** `/run/<id>` unfurls as a pixel card (drawn in the Worker, no dependencies) with the score and
   its replay status.
 - **Holder voting.** Sign a plain-text message with a Solana wallet (no transaction). Weight = floor(√tokens).
-- **A daily $ANSEM prize** for the verified #1, bought through Jupiter from a small prize wallet the treasury funds
-  and sent by the Worker: 10% of that day's creator fees, at most 0.5 SOL, with a kill switch. Live since 25 Sep.
+- **The Daily Pot in $ANSEM**, bought through Jupiter from a small prize wallet the treasury funds and sent by the
+  Worker, with a kill switch: 40% of the day's creator fees (at most 1 SOL), 60% to the top of the Daily Challenge
+  board and 40% shared by everyone who clears the AI's bounty. It was picked in the 26 Sep holder vote; from 25 Sep
+  until then, 10% of the fees went to the verified #1.
 - **Receipts.** Treasury balance and every SOL movement are read from chain into the public ledger.
 - **A guarded Build Agent.** Claude Code runs headless in GitHub Actions and may only touch game code, its devlog and
   its X draft. Tests, a headless smoke test and a cross-engine determinism check gate every merge.
@@ -79,9 +82,11 @@ _Vampire Survivors_ or poncle. The upstream project was an homage; BEARPROOF is 
 
 ## The coin
 
-$BPROOF launched through ClawPump on Solana (CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX`). Its creator fees fund the AI's compute, hosting and the daily $ANSEM
-prize, and holders get a vote on what gets built next (holder cosmetics are planned). It is not needed to play or to win anything,
-and it is not an investment.
+$BPROOF launched through ClawPump on Solana (CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX`). Its creator fees go
+to the AI's public treasury, which funds the Daily Pot. It is meant to pay back the AI's compute and hosting too, but
+that is paused until a costs wallet is set: Osman pays those bills for now. Every spend is on the public ledger,
+including a paid promotion on 27 Sep. Holders get a vote on what gets built next (holder cosmetics are planned). The
+coin is not needed to play or to win anything, and it is not an investment.
 
 ## License
 

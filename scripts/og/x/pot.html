@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* A settled Daily Pot day, from /api/winners and the ledger. Data comes in ?d=<json>:
+               { kicker, total, sol, split: [[label, value]], rows: [{ tag, name, note, amount, bounty?, roll? }], foot } */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 60% 60% at 100% 0%,
+                        rgba(245, 197, 66, 0.1),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        ellipse 50% 60% at 0% 100%,
+                        rgba(22, 224, 138, 0.07),
+                        transparent 60%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 118px;
+            }
+            .kicker {
+                font: 400 34px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: var(--gold);
+            }
+            .display {
+                font-size: 112px;
+                margin-top: 10px;
+            }
+            .left {
+                position: absolute;
+                left: 64px;
+                top: 350px;
+                width: 520px;
+            }
+            .left .coin {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+            }
+            .left b {
+                display: block;
+                font: 400 132px/0.85 'Jersey 10';
+                color: var(--gold);
+                text-shadow:
+                    0 7px 0 #3a2c05,
+                    0 0 50px rgba(245, 197, 66, 0.35);
+            }
+            .left .unit {
+                font: 400 44px/1 'Jersey 10';
+                color: var(--text);
+                letter-spacing: 0.04em;
+            }
+            .left p {
+                margin: 18px 0 0;
+                font-size: 22px;
+                line-height: 1.5;
+                color: #b9c4cf;
+            }
+            .left p em {
+                font-style: normal;
+                color: var(--text);
+            }
+            .split {
+                margin-top: 26px;
+                border-top: 1px solid var(--line);
+            }
+            .split div {
+                display: flex;
+                justify-content: space-between;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--line);
+                font-size: 21px;
+                color: #b9c4cf;
+            }
+            .split b {
+                font: 400 34px/1 'Jersey 10';
+                color: var(--text);
+            }
+            .list {
+                position: absolute;
+                left: 640px;
+                right: 64px;
+                top: 330px;
+                background: rgba(11, 17, 23, 0.94);
+                box-shadow: inset 0 0 0 1px var(--line);
+            }
+            .r {
+                display: grid;
+                grid-template-columns: 104px 1fr auto;
+                align-items: center;
+                gap: 16px;
+                min-height: 74px;
+                padding: 8px 26px;
+                border-top: 1px solid var(--line);
+            }
+            .r:first-child {
+                border-top: 0;
+            }
+            .r .tag {
+                font: 400 38px/1 'Jersey 10';
+                color: var(--gold);
+            }
+            .r .tag.b {
+                font-size: 26px;
+                letter-spacing: 0.06em;
+                color: var(--green);
+            }
+            .r .nm {
+                font: 400 38px/1 'Jersey 10';
+                color: var(--text);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .r .nm small {
+                display: block;
+                margin-top: 6px;
+                font:
+                    18px/1.2 'JetBrains Mono',
+                    monospace;
+                color: var(--muted);
+            }
+            .r .amt {
+                font: 400 40px/1 'Jersey 10';
+                color: var(--gold);
+                white-space: nowrap;
+            }
+            .r .amt i {
+                font-style: normal;
+                font-size: 26px;
+                color: var(--muted);
+            }
+            .r.roll .amt {
+                color: var(--muted);
+                font-size: 30px;
+            }
+            .xnote {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 30px;
+                font-size: 19px;
+                color: var(--muted);
+                white-space: nowrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <div class="kicker" id="kicker"></div>
+            <h1 class="display">THE DAILY POT <span class="green">PAID OUT</span></h1>
+        </div>
+        <div class="left">
+            <div class="coin"><b id="total"></b></div>
+            <div class="unit">$ANSEM, ON-CHAIN</div>
+            <p id="sol"></p>
+            <div class="split" id="split"></div>
+        </div>
+        <div class="list" id="list"></div>
+        <div class="xnote" id="foot"></div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const d = JSON.parse(new URLSearchParams(location.search).get('d') || '{}');
+            const $ = (id) => document.getElementById(id);
+            $('kicker').textContent = d.kicker || '';
+            $('total').textContent = d.total || '';
+            $('sol').innerHTML = d.sol || '';
+            $('foot').textContent = d.foot || '';
+            for (const [label, value] of d.split || []) {
+                const row = document.createElement('div');
+                const l = document.createElement('span');
+                l.textContent = label;
+                const v = document.createElement('b');
+                v.textContent = value;
+                row.append(l, v);
+                $('split').append(row);
+            }
+            for (const row of d.rows || []) {
+                const r = document.createElement('div');
+                r.className = 'r' + (row.roll ? ' roll' : '');
+                const tag = document.createElement('span');
+                tag.className = 'tag' + (row.bounty ? ' b' : '');
+                tag.textContent = row.tag;
+                const nm = document.createElement('span');
+                nm.className = 'nm';
+                nm.textContent = row.name;
+                if (row.note) {
+                    const s = document.createElement('small');
+                    s.textContent = row.note;
+                    nm.append(s);
+                }
+                const amt = document.createElement('span');
+                amt.className = 'amt';
+                amt.innerHTML = row.amount;
+                r.append(tag, nm, amt);
+                $('list').append(r);
+            }
+            await ready();
+        </script>
+    </body>
+</html>

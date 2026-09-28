@@ -23,7 +23,10 @@ Check, in this order, and fix only real problems:
    `agent/OPERATOR.md` allows; then check the change follows that note and the devlog discloses it under
    `## Operator input`. A new character must be in the run log (`CHARACTER_IDS`) and replay to the same score.
 6. **Scope.** Don't add features or refactor. Don't touch anything outside `game/**`, `devlog/build-<n>.md`,
-   `agent/plan.md`, `agent/notes.md`, `agent/proposals/build-<n>.json`, `content/x/build-<n>.md`.
+   `agent/plan.md`, `agent/notes.md`, `agent/proposals/build-<n>.json`, `content/x/build-<n>.md`. Every new file in
+   `git status` must belong to the feature or be a real test with a name that says what it tests. Nobody can
+   delete files in this sandbox, so if a scratch or diagnostic file was left in the repo, say so in your `## Review`
+   line (the operator removes it); your own throwaway files go in `/tmp`.
 
 If you fixed something, add one line to the devlog body under a `## Review` heading saying what, plainly
 ("Review pass: the whale's XP shower overlapped the HUD on phones; moved it below."). If everything was right,

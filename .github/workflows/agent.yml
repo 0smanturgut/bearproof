@@ -158,6 +158,7 @@ jobs:
                       "Edit(game/**)" "Write(game/**)" "Edit(devlog/**)" "Write(devlog/**)" \
                       "Edit(agent/plan.md)" "Write(agent/plan.md)" "Edit(agent/notes.md)" "Write(agent/notes.md)" \
                       "Edit(agent/proposals/**)" "Write(agent/proposals/**)" "Edit(content/x/**)" "Write(content/x/**)" \
+                      "Edit(//tmp/**)" "Write(//tmp/**)" \
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
                       "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
@@ -183,6 +184,7 @@ jobs:
                       "Edit(game/**)" "Write(game/**)" "Edit(devlog/**)" "Write(devlog/**)" \
                       "Edit(agent/plan.md)" "Write(agent/plan.md)" "Edit(agent/notes.md)" "Write(agent/notes.md)" \
                       "Edit(agent/proposals/**)" "Write(agent/proposals/**)" "Edit(content/x/**)" "Write(content/x/**)" \
+                      "Edit(//tmp/**)" "Write(//tmp/**)" \
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
                       "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
@@ -247,7 +249,7 @@ jobs:
                   INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
               run: |
                   N=$(node -p "require(process.env.AGENT_CONTEXT).build")
-                  TITLE=$(sed -n 's/^title: *//p' "devlog/build-$N.md" | head -1 | sed 's/^"\(.*\)"$/\1/')
+                  TITLE=$(sed -n 's/^title: *//p' "devlog/build-$N.md" | head -1 | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\1/")
                   git config user.name "BEARPROOF (Build Agent)"
                   git config user.email "agent@bearproof.invalid"
                   git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"

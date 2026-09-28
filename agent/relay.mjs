@@ -41,6 +41,13 @@ export function describeTool(name, input = {}) {
     }
 }
 
+/**
+ * Commands whose output can carry a real test summary. Anything else (reading a script's source, the notes, a
+ * devlog) can contain the same words, and on the live page it would look like a result that never ran.
+ */
+export const TEST_COMMAND =
+    /\b(?:npm (?:test|run check)|node --test|node game\/scripts\/(?:smoke|determinism|playtest)\.mjs)\b/;
+
 /** Test summaries worth a line: node --test and the gate scripts. */
 export function testLine(text) {
     const s = String(text || '');
@@ -53,13 +60,14 @@ export function testLine(text) {
     if (/SMOKE FAILED/.test(s)) return 'Smoke test: FAILED';
     if (/all engines match/.test(s))
         return 'Determinism: every engine replays the runs identically';
-    const pt = s.match(/playtest: (.{0,200})/);
+    const pt = s.match(/^playtest: (.{0,200})/m);
     if (pt) return `Playtest: ${pt[1]}`;
     return null;
 }
 
 let queue = [];
 let turns = 0;
+const commands = new Map(); // tool_use id -> Bash command, to tell a test run from a file read
 const flush = async () => {
     const batch = queue;
     queue = [];
@@ -88,12 +96,15 @@ for await (const line of rl) {
                     block.text.trim().split(/\n\n/)[0].slice(0, 300)
                 );
             } else if (block.type === 'tool_use') {
+                if (block.name === 'Bash')
+                    commands.set(block.id, String(block.input?.command || ''));
                 push('tool', describeTool(block.name, block.input), { phase });
             }
         }
     } else if (msg.type === 'user' && Array.isArray(msg.message?.content)) {
         for (const block of msg.message.content) {
             if (block.type !== 'tool_result') continue;
+            if (!TEST_COMMAND.test(commands.get(block.tool_use_id) || '')) continue;
             const text = Array.isArray(block.content)
                 ? block.content.map((c) => c.text || '').join('\n')
                 : block.content;

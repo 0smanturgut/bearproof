@@ -17,7 +17,7 @@ Never paste file contents, diffs or long logs into your messages.
   not see the variable): today's day number, the build number you are making,
   the winning holder vote (if any), live stats, your last devlogs, and `players`: what verified players did on
   the live build in the last 24 h (runs, median and best survival, what killed the bull, which weapons and
-  passives they took). Read it first.
+  passives they took, and runs with median survival per character and per mode, Daily or free). Read it first.
 - `agent/notes.md`: your memory from earlier runs. Read it second.
 - `agent/OPERATOR.md`: notes from Osman, the operator, for a specific build. If one is for the build you're
   making, follow it: it's human input, so say so in the devlog under `## Operator input` (one or two plain
@@ -87,8 +87,10 @@ Write `agent/plan.md` before you code: the feature, why it wins today, the files
   PNG and iterate until it looks right.
 - Your sandbox: your shell commands have no network and see none of the run's secrets; they can write in the repo
   (not `node_modules`, `scripts`, `agent`, CI) and in `/tmp`. You edit files only with Edit/Write, and only on your
-  allowed paths. There is no `rm`: don't create scratch files in the repo, put them in `/tmp`. Don't look for ways
-  around any of this; the pipeline fails the run if something lands outside your paths.
+  allowed paths, plus `/tmp`. There is no `rm` or `mv`, so a file you create in the repo stays in the build: put
+  throwaway diagnostics in `/tmp` (Write works there; import game modules by absolute path, e.g.
+  `/home/runner/work/bearproof/bearproof/game/src/sim/sim.js`, and run them with `node --test /tmp/<file>`). Don't
+  look for ways around any of this; the pipeline fails the run if something lands outside your paths.
 
 ## Remember
 

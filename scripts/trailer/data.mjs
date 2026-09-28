@@ -25,7 +25,7 @@ function devlog(root, n) {
     const o = {};
     for (const line of fm.split('\n')) {
         const m = /^(\w+):\s*(.*?)(\s+#\s.*)?$/.exec(line);
-        if (m) o[m[1]] = m[2].replace(/^"(.*)"$/, '$1');
+        if (m) o[m[1]] = m[2].replace(/^(["'])(.*)\1$/, '$2');
     }
     return o;
 }

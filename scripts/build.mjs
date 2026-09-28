@@ -79,7 +79,9 @@ function collectBuilds() {
         if (meta.n !== n) throw new Error(`tag ${tag}: metadata says n=${meta.n}`);
         if (out.some((b) => b.n === n)) throw new Error(`build ${n} defined twice`);
         const commit = git('rev-parse', `${tag}^{commit}`).toString().trim();
-        out.push({ path: 'game', costUsd: null, ...meta, n, ref: tag, commit });
+        // Builds 6 and 7 were tagged with their devlog title's YAML quotes still on ('…'); tags are immutable.
+        const title = String(meta.title || '').replace(/^(["'])(.*)\1$/, '$2');
+        out.push({ path: 'game', costUsd: null, ...meta, title, n, ref: tag, commit });
     }
     // Each build's devlog ends with three proposals for the next build; holders vote on them the day it is live.
     for (const b of out) {

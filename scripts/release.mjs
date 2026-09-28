@@ -78,7 +78,8 @@ if (fs.existsSync(devlogPath)) {
     const m = fs.readFileSync(devlogPath, 'utf8').match(/^---\n([\s\S]*?)\n---/);
     for (const line of (m ? m[1] : '').split('\n')) {
         const kv = line.match(/^(\w+):\s*(.*?)(\s+#.*)?$/);
-        if (kv) front[kv[1]] = kv[2].replace(/^"(.*)"$/, '$1');
+        // Same as scripts/devlog.mjs: a value in single or double quotes loses them.
+        if (kv) front[kv[1]] = kv[2].replace(/^(["'])(.*)\1$/, '$2');
     }
 }
 

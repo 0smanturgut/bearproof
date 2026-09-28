@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* A status note for the AnsemHack judges, 28 Sep: @bearproofapp is suspended, the project isn't.
+               Facts from /api/stats, /api/winners, /api/vote and the ledger (content/x/130-day6.md). */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 55% 60% at 100% 0%,
+                        rgba(255, 59, 92, 0.09),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        ellipse 55% 60% at 0% 100%,
+                        rgba(22, 224, 138, 0.08),
+                        transparent 60%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .head {
+                position: absolute;
+                left: 64px;
+                top: 112px;
+            }
+            .kicker {
+                font: 400 32px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: var(--gold);
+            }
+            .display {
+                font-size: 92px;
+                line-height: 0.9;
+                margin-top: 12px;
+            }
+            .cols {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 356px;
+                display: grid;
+                grid-template-columns: 1.1fr 1fr;
+                gap: 26px;
+            }
+            .panel {
+                background: rgba(11, 17, 23, 0.94);
+                box-shadow: inset 0 0 0 1px var(--line);
+                padding: 22px 28px 12px;
+            }
+            .panel h2 {
+                margin: 0 0 8px;
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.08em;
+                color: var(--muted);
+            }
+            .row {
+                display: grid;
+                grid-template-columns: 22px 1fr;
+                gap: 14px;
+                align-items: baseline;
+                padding: 10px 0;
+                border-top: 1px solid var(--line);
+            }
+            .dot {
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: var(--green);
+                box-shadow: 0 0 12px rgba(22, 224, 138, 0.7);
+                transform: translateY(1px);
+            }
+            .dot.red {
+                background: var(--red);
+                box-shadow: 0 0 12px rgba(255, 59, 92, 0.7);
+            }
+            .row b {
+                display: block;
+                font: 400 34px/1 'Jersey 10';
+                color: var(--text);
+            }
+            .row span {
+                display: block;
+                margin-top: 6px;
+                font-size: 20px;
+                line-height: 1.35;
+                color: #b9c4cf;
+            }
+            .row.link b {
+                font:
+                    22px/1.2 'JetBrains Mono',
+                    monospace;
+                color: var(--green);
+            }
+            .row.link .dot {
+                border-radius: 0;
+                width: 12px;
+                height: 12px;
+                background: none;
+                box-shadow: none;
+                border-right: 3px solid var(--green);
+                border-top: 3px solid var(--green);
+                transform: rotate(45deg) translate(-2px, 2px);
+            }
+            .xnote {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 30px;
+                font-size: 19px;
+                color: var(--muted);
+                white-space: nowrap;
+            }
+            .xnote b {
+                font-weight: 400;
+                color: var(--text);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <div class="kicker">A NOTE FOR THE ANSEMHACK JUDGES · 28 SEP 2026</div>
+            <h1 class="display">
+                X SUSPENDED OUR ACCOUNT.<br /><span class="green">THE AI KEPT SHIPPING.</span>
+            </h1>
+        </div>
+        <div class="cols">
+            <div class="panel">
+                <h2>STATUS</h2>
+                <div class="row">
+                    <i class="dot red"></i>
+                    <div>
+                        <b>@bearproofapp</b><span>suspended by X on 27 Sep · appeal filed</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <i class="dot"></i>
+                    <div>
+                        <b>Build #6 shipped</b
+                        ><span>00:00 UTC last night: Rug Lord pulls the rug</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <i class="dot"></i>
+                    <div>
+                        <b>First Daily Pot paid</b><span>73.791 $ANSEM to 3 players, on-chain</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <i class="dot"></i>
+                    <div>
+                        <b>Build #7 tonight</b><span>21:00 UTC · holders vote until then</span>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <h2>CHECK IT WITHOUT X</h2>
+                <div class="row link">
+                    <i class="dot"></i>
+                    <div>
+                        <b>bearproof.app</b><span>the game: free, no wallet, every build</span>
+                    </div>
+                </div>
+                <div class="row link">
+                    <i class="dot"></i>
+                    <div>
+                        <b>bearproof.app/live</b><span>the AI's session log, every night</span>
+                    </div>
+                </div>
+                <div class="row link">
+                    <i class="dot"></i>
+                    <div>
+                        <b>Receipts, on the HQ</b
+                        ><span>the treasury ledger, each row on Solscan</span>
+                    </div>
+                </div>
+                <div class="row link">
+                    <i class="dot"></i>
+                    <div>
+                        <b>github.com/0smanturgut/bearproof</b
+                        ><span>all the code · git diff day-0..main</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="xnote">
+            Operator: <b>Osman Turgut, @0smanTrgut</b> · CA
+            <b>6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX</b>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

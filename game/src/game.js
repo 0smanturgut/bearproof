@@ -420,6 +420,9 @@ export class Game {
                         this.haptics.bossSpawn();
                     }
                     break;
+                case 'enemyTyping':
+                    this._sfx('typing', 0.3);
+                    break;
                 case 'rugWarn':
                     fx.number(e.x, e.y - 44, 'RUG PULL!', 'info');
                     this._sfx('rugWarn', 0);

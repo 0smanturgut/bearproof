@@ -8,6 +8,7 @@ import { liveBuild } from '../lib/builds.js';
 import { all, buildOverride } from '../lib/db.js';
 import { error, json } from '../lib/http.js';
 import { foldInsights } from '../lib/insights.js';
+import { characterOf } from '../lib/character.js';
 
 export async function insights(request, env) {
     const params = new URL(request.url).searchParams;
@@ -20,7 +21,7 @@ export async function insights(request, env) {
     const from = now - hours * 3600000;
     const rows = await all(
         env,
-        `SELECT player_id, stats FROM runs
+        `SELECT player_id, stats, mode, hex(substr(input_log, 1, 10)) AS head FROM runs
           WHERE build = ?1 AND status = 'verified' AND stats IS NOT NULL AND created_at >= ?2
           ORDER BY created_at DESC LIMIT 2000`,
         build,
@@ -43,8 +44,8 @@ export async function insights(request, env) {
             build,
             window: { hours, from: new Date(from).toISOString(), to: new Date(now).toISOString() },
             replays,
-            ...foldInsights(rows),
-            note: 'From verified runs only, re-played on the server. Ids are content ids (game/src/sim/content.js).'
+            ...foldInsights(rows.map((r) => ({ ...r, character: characterOf(r.head) }))),
+            note: 'From verified runs only, re-played on the server. Ids are content ids (game/src/sim/content.js); characters come from each run log, modes are daily and free.'
         },
         { maxAge: 60 }
     );

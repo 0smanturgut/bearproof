@@ -52,3 +52,23 @@ test('stats are validated: junk and player text never get through', () => {
     assert.deepEqual(s.w, [['horns', 2]]);
     assert.deepEqual(foldInsights([{ player_id: 'x', stats: 'not json' }]).runs, 0);
 });
+
+test('insights: runs split by character and by mode, each with its median survival', () => {
+    const rows = [
+        { ...run('a', 60000, 'grizzly'), character: 'bull', mode: 'daily' },
+        { ...run('a', 120000, 'grizzly'), character: 'pepe', mode: 'daily' },
+        { ...run('b', 240000, 'grizzly'), character: 'bull', mode: 'free' },
+        { ...run('c', 300000, 'grizzly'), character: 'bull', mode: 'daily' },
+        { ...run('d', 90000, 'grizzly'), character: 'Not An Id!', mode: '' }
+    ];
+    const out = foldInsights(rows);
+    assert.deepEqual(out.characters, [
+        { id: 'bull', runs: 3, share: 75, survivalSecMedian: 240 },
+        { id: 'pepe', runs: 1, share: 25, survivalSecMedian: 120 }
+    ]);
+    assert.deepEqual(out.modes, [
+        { id: 'daily', runs: 3, share: 75, survivalSecMedian: 120 },
+        { id: 'free', runs: 1, share: 25, survivalSecMedian: 240 }
+    ]);
+    assert.deepEqual(foldInsights([run('a', 60000, 'grizzly')]).characters, []);
+});

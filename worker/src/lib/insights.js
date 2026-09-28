@@ -54,15 +54,38 @@ export function cleanStats(s) {
     };
 }
 
-/** Fold stats rows ({player_id, stats}) into insights. */
+const ID = /^[a-z0-9_]{1,40}$/;
+
+/** Runs per group (a character, a mode), biggest first, with each group's median survival. */
+function groups(list) {
+    const g = new Map();
+    for (const [id, sec] of list) {
+        if (!g.has(id)) g.set(id, []);
+        g.get(id).push(sec);
+    }
+    return [...g]
+        .sort((a, b) => b[1].length - a[1].length || (a[0] < b[0] ? -1 : 1))
+        .map(([id, secs]) => ({
+            id,
+            runs: secs.length,
+            share: Math.round((secs.length / list.length) * 1000) / 10,
+            survivalSecMedian: median(secs)
+        }));
+}
+
+/** Fold stats rows ({player_id, stats, character?, mode?}) into insights. */
 export function foldInsights(rows) {
     const runs = [];
     const players = new Set();
+    const characters = [];
+    const modes = [];
     for (const r of rows) {
         const s = cleanStats(typeof r.stats === 'string' ? safeParse(r.stats) : r.stats);
         if (!s) continue;
         runs.push(s);
         players.add(r.player_id);
+        if (ID.test(r.character || '')) characters.push([r.character, s.t / 1000]);
+        if (ID.test(r.mode || '')) modes.push([r.mode, s.t / 1000]);
     }
     const n = runs.length;
     const died = new Map();
@@ -91,7 +114,9 @@ export function foldInsights(rows) {
             : null,
         diedTo: top(died, 6, deaths),
         weapons: top(weapons, 10, n),
-        passives: top(passives, 10, n)
+        passives: top(passives, 10, n),
+        characters: groups(characters),
+        modes: groups(modes)
     };
 }
 

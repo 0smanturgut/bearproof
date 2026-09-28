@@ -1,7 +1,7 @@
 // Stage openings (Build #7): the first two minutes on every stage, with and without the Flash Crash twist, played
 // by the autopilot. Build #6's Daily (Bear Trap + Flash Crash) had doomposters as the top killer, so this keeps an
-// eye on the openings and reports how much of the early damage each enemy dealt. (Named zz- because it started as
-// a diagnostic and the sandbox can't rename files; it is a real test now.)
+// eye on the openings and reports how much of the early damage each enemy dealt. (It started as the diagnostic
+// game/test/zz-diag.test.js; the operator renamed it, since the Build Agent's sandbox can't rename files.)
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

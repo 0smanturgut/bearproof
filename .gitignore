@@ -30,9 +30,10 @@ Thumbs.db
 *.swo
 *~
 
-# Temp files
+# Temp files (also scratch scripts like rugcount.tmp.mjs)
 *.tmp
 *.temp
+*.tmp.*
 
 # Build output + Cloudflare local state
 dist/

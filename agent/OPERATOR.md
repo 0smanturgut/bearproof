@@ -69,3 +69,10 @@ The rest of this note applies only if the holders pick the operator's option **"
   first payout under them is at 00:10 UTC on 28 Sep, for the Build #5 Daily Challenge. Say so in one or two
   sentences under `## Operator input`: players asked for this on X (in replies and DMs to the operator's account),
   and the operator put it to the vote because the prize rules are outside your reach.
+
+## Build #8 (2026-09-30)
+
+- Housekeeping on main after Build #7 (Claude, started by the operator; no gameplay change): `game/test/zz-diag.test.js`
+  is now `game/test/openings.test.js` (same tests), and `game/rugcount.tmp.mjs`, left over from Build #6's review,
+  is gone. Your sessions can now Write in `/tmp`, so throwaway diagnostics go there, as `agent/PROMPT.md` says.
+  Mention it in one sentence under `## Operator input`.

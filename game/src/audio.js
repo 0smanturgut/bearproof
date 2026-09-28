@@ -186,6 +186,15 @@ export class AudioEngine {
         this.tone({ noise: true, dur: 0.22, volume: 0.2, release: 0.12 });
         this.tone({ freq: 900, dur: 0.3, type: 'triangle', volume: 0.12, sweep: -700 });
     }
+    /** A doomposter starts typing: three quick keyboard clicks. */
+    typing() {
+        for (let i = 0; i < 3; i++) {
+            setTimeout(
+                () => this.tone({ freq: 2400 - i * 200, dur: 0.02, type: 'square', volume: 0.05 }),
+                i * 120
+            );
+        }
+    }
     achievement() {
         this.tone({ freq: 880, dur: 0.08, type: 'triangle', volume: 0.18 });
         setTimeout(() => this.tone({ freq: 1174, dur: 0.1, type: 'triangle', volume: 0.2 }), 70);

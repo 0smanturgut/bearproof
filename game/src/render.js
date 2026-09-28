@@ -303,6 +303,10 @@ export class Renderer {
             if (e === p) this._drawBull(p, X(p.x), Y(p.y), t, dt, fx, glows, sim);
             else this._drawEnemy(e, X(e.x), Y(e.y), t, glows);
         }
+        // doomposters typing: bubbles over the crowd, so nothing hides the tell
+        for (const e of list) {
+            if (e.windup > 0 && e.def.windup) this._drawTyping(e, X(e.x), Y(e.y), t, fx.calm);
+        }
         // forget enemies we no longer see
         if (this.seen.size > list.length * 2 + 200) {
             const alive = new Set(list.map((e) => e.uid));
@@ -459,6 +463,35 @@ export class Renderer {
             ctx.fillStyle = '#FF3B5C';
             ctx.fillRect(sx - w / 2, y, w * Math.max(0, e.hp / e.maxHp), h);
         }
+    }
+
+    /**
+     * A chat bubble over a doomposter winding up a shot: the dots fill in over the wind-up (one, two, three),
+     * and the bubble turns red for the last beat before the post goes out.
+     */
+    _drawTyping(e, sx, sy, t, calm) {
+        const ctx = this.ctx;
+        const sd = SPRITES[e.def.sprite || e.id];
+        const u = Math.max(2, Math.round(this.k)); // one bubble pixel, in device px
+        const prog = 1 - e.windup / e.def.windup;
+        const dots = Math.min(3, 1 + Math.floor(prog * 3));
+        const late = prog > 0.72;
+        const w = 13 * u;
+        const h = 7 * u;
+        const bob = calm ? 0 : Math.round(Math.sin(t * 18) * 0.5 * u);
+        const x = Math.round(sx - w / 2);
+        const y = Math.round(sy - ((sd ? sd.h : 22) * this.k) / 2 - h - 4 * u + bob);
+        ctx.fillStyle = '#07090C';
+        ctx.fillRect(x - u, y, w + 2 * u, h);
+        ctx.fillRect(x, y - u, w, h + 2 * u);
+        ctx.fillStyle = late ? '#FF3B5C' : '#EEF1F5';
+        ctx.fillRect(x, y, w, h);
+        // tail, pointing down at the poster
+        ctx.fillRect(x + 3 * u, y + h, 2 * u, u);
+        ctx.fillRect(x + 3 * u, y + h + u, u, u);
+        ctx.fillStyle = late ? '#FFFFFF' : '#6B55A0';
+        for (let i = 0; i < dots; i++)
+            ctx.fillRect(x + (2 + i * 4) * u, y + 3 * u, u + u / 2, u + u / 2);
     }
 
     // ---------------------------------------------------------------- airdrop crates

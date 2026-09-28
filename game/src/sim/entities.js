@@ -216,6 +216,21 @@ export class Enemy {
         this.rugWarn = 0;
         this.rugPull = 0;
         this.rugAngle = 0;
+        this.windup = 0; // ranged: seconds of typing left before the shot goes out
+    }
+
+    _shoot(angle, sim) {
+        const def = this.def;
+        sim.enemyProjectiles.push(
+            new EnemyProjectile(
+                this.x,
+                this.y,
+                angle,
+                def.projectileSpeed || 220,
+                def.projectileDamage * sim.enemyDmgMult
+            )
+        );
+        sim.emit({ t: 'enemyShot', x: this.x, y: this.y, id: this.id });
     }
 
     update(dt, sim) {
@@ -274,25 +289,28 @@ export class Enemy {
                 }
             }
 
-            if (def.ranged && def.keepDistance) {
+            if (def.ranged && def.keepDistance && this.windup > 0) {
+                // Typing: stands still for `def.windup` s, then posts the shot at where the bull is now.
+                this.windup -= dt;
+                if (this.windup <= 0) {
+                    this.windup = 0;
+                    this._shoot(atan2(dy, dx), sim);
+                    this.fireTimer = Math.max(0.1, (def.fireCooldown || 2) - def.windup);
+                }
+            } else if (def.ranged && def.keepDistance) {
                 const keep = def.keepDistance;
                 const dir = d > keep + 30 ? 1 : d < keep - 30 ? -1 : 0;
                 vx = tx * this.speed * dir * slow;
                 vy = ty * this.speed * dir * slow;
                 this.fireTimer -= dt;
                 if (this.fireTimer <= 0 && d < def.firingRange) {
-                    const ang = atan2(dy, dx);
-                    sim.enemyProjectiles.push(
-                        new EnemyProjectile(
-                            this.x,
-                            this.y,
-                            ang,
-                            def.projectileSpeed || 220,
-                            def.projectileDamage * sim.enemyDmgMult
-                        )
-                    );
-                    this.fireTimer = def.fireCooldown || 2;
-                    sim.emit({ t: 'enemyShot', x: this.x, y: this.y, id: this.id });
+                    if (def.windup) {
+                        this.windup = def.windup;
+                        sim.emit({ t: 'enemyTyping', x: this.x, y: this.y, id: this.id });
+                    } else {
+                        this._shoot(atan2(dy, dx), sim);
+                        this.fireTimer = def.fireCooldown || 2;
+                    }
                 }
             } else if (def.dasher) {
                 this.dashTimer -= dt;

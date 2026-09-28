@@ -439,8 +439,10 @@ export const ENEMIES = {
         name: 'Doomposter',
         sprite: 'doomposter',
         ranged: true,
-        firingRange: 360,
-        keepDistance: 260,
+        // Fires from inside a phone's view (~520 across), and types for `windup` s before every shot.
+        firingRange: 250,
+        keepDistance: 200,
+        windup: 0.6,
         projectileSpeed: 220,
         projectileDamage: 14,
         fireCooldown: 2.4,

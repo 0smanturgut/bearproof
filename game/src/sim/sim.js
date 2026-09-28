@@ -40,8 +40,9 @@ import { SpatialHash } from './spatial.js';
 import { Weapon } from './weapons.js';
 
 /** Bump when a change alters simulation results for the same inputs. 2: daily twists. 3: closer spawns and the
- * opening-bell ring. 4: airdrop crates. 5: Rug Lord's second phase (the rug pull). */
-export const SIM_VERSION = 5;
+ * opening-bell ring. 4: airdrop crates. 5: Rug Lord's second phase (the rug pull). 6: doomposters type before
+ * they shoot, from closer. */
+export const SIM_VERSION = 6;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {

@@ -1,0 +1,17 @@
+[
+    {
+        "id": "community-note",
+        "title": "Community Note",
+        "description": "A new weapon: enemy shots that come near you get a note stuck on them and fly back at the doomposter who sent them."
+    },
+    {
+        "id": "green-god-candle",
+        "title": "Green God Candle",
+        "description": "A rare drop: grab it and a giant green candle slams down and wipes every bear on screen."
+    },
+    {
+        "id": "whale-sighting",
+        "title": "Whale Sighting",
+        "description": "Once a run a whale swims across the screen, bears scatter out of its path, and it leaves a trail of XP."
+    }
+]

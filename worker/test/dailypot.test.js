@@ -88,11 +88,11 @@ const claim = (env, opts = {}) =>
 
 /** Hold the row's lock the way cron.js does, run advancePot, release it. */
 let clock = 1;
-async function advance(env, chain) {
+async function advance(env, chain, now = NOW + 15 * 60000) {
     const lock = clock++;
     env.DB.db.prepare('UPDATE daily_winners SET lock_until = ? WHERE date = ?').run(lock, D);
     try {
-        await advancePot(env, await row(env), { lock, chain });
+        await advancePot(env, await row(env), { lock, chain, now });
     } finally {
         env.DB.db
             .prepare('UPDATE daily_winners SET lock_until = NULL WHERE date = ? AND lock_until = ?')
@@ -170,6 +170,7 @@ test('rolloverIn: read from the last settled day in D1, so a rollover is used on
 function fakeChain({
     balance = 1 * SOL,
     swapFails = 0,
+    busy = 0,
     confirmFails = new Set(),
     refuse = new Map()
 } = {}) {
@@ -186,6 +187,12 @@ function fakeChain({
         mintInfo: async () => ({ programId: 'TOKEN_2022', decimals: 6 }),
         solBalance: async () => balance,
         signSwap: async () => {
+            if (busy > 0) {
+                busy--;
+                throw Object.assign(new Error('jupiter: busy (HTTP 429: Rate limit)'), {
+                    transient: true
+                });
+            }
             s.swaps++;
             if (s.swaps <= swapFails) throw new Error('jupiter: no route');
             return {
@@ -364,6 +371,36 @@ test('advancePot: pays SOL after two failed swaps, and says so', async () => {
     assert.equal(r.payout_status, 'paid');
     assert.equal(r.payout_token, 'SOL');
     assert.equal((await noteOf(env)).fallback, 'SOL after two failed swaps');
+});
+
+test('advancePot: Jupiter too busy to quote is not a failed swap; after 6 h it counts', async () => {
+    const env = await settled();
+    const chain = fakeChain({ busy: 3 });
+    await advance(env, chain);
+    await advance(env, chain, NOW + 5 * 3600000);
+    let note = await noteOf(env);
+    assert.equal(note.step, 'claimed');
+    assert.equal(note.swapFailures, undefined);
+    assert.equal(note.jupiterBusy, 2);
+    await advance(env, chain, NOW + 7 * 3600000); // still busy 7 h after the day was settled: one failure
+    note = await noteOf(env);
+    assert.equal(note.swapFailures, 1);
+    await advance(env, chain, NOW + 7.25 * 3600000); // Jupiter answers: paid in $ANSEM
+    const r = await row(env);
+    assert.equal(r.payout_status, 'paid');
+    assert.equal(r.payout_token, 'ANSEM');
+    assert.equal(chain.s.swaps, 1);
+});
+
+test('advancePot: a share that still cannot be sent 72 h after the day was settled is marked failed', async () => {
+    const env = await settled();
+    const chain = fakeChain({ swapFails: 2 });
+    await advance(env, chain);
+    await advance(env, chain, NOW + 73 * 3600000); // second failed swap: SOL, but it is too late to send
+    const note = await noteOf(env);
+    assert.equal(transfers(chain).length, 0);
+    assert.ok(note.recipients.every((r) => r.status === 'failed'));
+    assert.match(note.recipients[0].lastError, /gave up after 72 h/);
 });
 
 test('dailyPotFrom: decided once, 5 minutes after the 26 Sep poll closed', async () => {

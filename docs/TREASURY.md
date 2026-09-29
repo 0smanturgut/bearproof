@@ -77,7 +77,10 @@ While it can't be read, no day from 27 Sep on is settled at all, so a day is nev
   sent, and the cron's lock on the day is checked on every save, so after a crash or a slow run nothing is bought or
   paid twice. A signature that can't be found is only given up (and a new transfer signed) when two runs 15 minutes
   apart agree, and only on an RPC that keeps transaction history (Helius); otherwise it is left for the operator.
-  Two failed swaps: paid in SOL, and the ledger says so. Network fees and new token-account rent come on top, from
+  Two failed swaps: paid in SOL, and the ledger says so. Jupiter too busy to give a quote (rate limit, outage)
+  isn't a failed swap, since nothing was bought: it is asked again every 15 minutes for 6 hours after the day is
+  settled, and only then counts (28 Sep: one swap expired, then a rate limit counted as the second failure and
+  the day was paid in SOL; the 6-hour rule came after). Network fees and new token-account rent come on top, from
   the prize wallet.
 - **Short wallet**: if the prize wallet can't cover a day (the pot plus 0.01 SOL and 0.0025 SOL per recipient), the
   payout waits for the operator's top-up and the HQ says so; nothing is lost. The pot is 40% of fees that already

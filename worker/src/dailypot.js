@@ -29,6 +29,7 @@ const DAY = 86400000;
 const PER_RUN = 5; // transfers per cron run; each waits for its confirmation
 const MAX_ATTEMPTS = 3; // failed transfers per recipient, then the share is marked failed
 const GIVE_UP_MS = 72 * 3600000; // a share that still couldn't be sent after 3 days is marked failed
+const BUSY_MS = 6 * 3600000; // Jupiter busy (rate limit, down): no swap was tried, so ask again for up to 6 h
 const DECIDE_AFTER_MS = 5 * 60000; // a vote accepted in the poll's last second is in D1 by then
 const addDays = (date, n) => utcDate(Date.parse(`${date}T00:00:00Z`) + n * DAY);
 
@@ -266,7 +267,11 @@ export const archivalRpc = (env) =>
  * (cron.js) holds the row's lock and passes its token as `lock`: every save is conditional on it, and a run that
  * lost it throws LockLost before sending anything. `chain` is lib/solana.js; tests pass a fake one.
  */
-export async function advancePot(env, stale, { lock, deadline, chain = solana } = {}) {
+export async function advancePot(
+    env,
+    stale,
+    { lock, deadline, now = Date.now(), chain = solana } = {}
+) {
     const {
         boughtBy,
         broadcast,
@@ -396,7 +401,15 @@ export async function advancePot(env, stale, { lock, deadline, chain = solana } 
         try {
             s = await signSwap(conn, signer, env.ANSEM_MINT, total);
         } catch (err) {
-            if (!(await swapFailed(err))) return; // no route, or Jupiter down
+            // Jupiter was too busy to quote: nothing was swapped, so it isn't a failed swap. Ask again next run,
+            // for 6 hours after the day was settled; after that it counts, and two of them pay SOL.
+            if (err?.transient && now - row.created_at < BUSY_MS) {
+                note.lastError = String(err.message).slice(0, 200);
+                note.jupiterBusy = (note.jupiterBusy || 0) + 1;
+                await save();
+                return;
+            }
+            if (!(await swapFailed(err))) return; // no route, or Jupiter busy for 6 h
         }
         if (s) {
             Object.assign(note, {
@@ -435,7 +448,7 @@ export async function advancePot(env, stale, { lock, deadline, chain = solana } 
         });
         await save();
     };
-    const givingUp = Date.now() - row.created_at > GIVE_UP_MS;
+    const givingUp = now - row.created_at > GIVE_UP_MS;
     let tried = 0;
     for (const r of list) {
         if (r.status === 'sent' || r.status === 'failed') continue;

@@ -70,7 +70,9 @@ function potDay(note, names) {
           ? note.pot?.reason === 'fees not measured yet'
               ? WHY['fees not measured yet']
               : 'Nobody could be paid, so the pot rolled over to the next day.'
-          : null;
+          : token === 'SOL'
+            ? 'Paid in SOL: the $ANSEM swap failed twice, so the published fallback applied.'
+            : null;
     return {
         payouts,
         bounty: note.bounty?.name

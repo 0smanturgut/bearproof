@@ -141,6 +141,6 @@ export const POT_RULE_DETAILS = [
     'Nobody cleared the bounty, or the places are too small to pay: that part rolls over to the next day, up to 0.5 SOL each.',
     'Only runs the server re-played with the same score, a passed bot check and a Solana address left on the receipt can be paid. The operator’s runs never are.',
     'The day is settled after 00:10 UTC, once the server has re-played every run; runs still unverified 12 hours after the close are left out.',
-    'Paid in $ANSEM bought with the SOL at payout time; if the swap fails twice, in SOL, and the ledger says so. Network fees and new token-account rent come on top, from the prize wallet.',
+    'Paid in $ANSEM bought with the SOL at payout time; if the swap fails twice, in SOL, and the ledger says so (Jupiter too busy to quote is asked again for 6 hours first). Network fees and new token-account rent come on top, from the prize wallet.',
     'A share that can’t be sent after three tries (or 72 hours) is shown as failed, and the operator sends it by hand, labelled on the ledger.'
 ];

@@ -111,18 +111,44 @@ export async function tokenBalanceRaw(conn, owner, mint, programId) {
     }
 }
 
-/** Swap `lamports` SOL into `outputMint` for the signer's own wallet. Returns the tx signature. */
+/**
+ * A Jupiter API call, JSON back. The keyless API rate-limits (HTTP 429 with a plain-text "Rate limit" body), so a
+ * 429, a 5xx or a body that isn't JSON is tried again after 2 s and 5 s, then thrown with `transient: true`: Jupiter
+ * was busy, no swap was tried. The daily pot doesn't count that as a failed swap (dailypot.js).
+ */
+export async function jupiter(url, init, waits = [2000, 5000]) {
+    for (let i = 0; ; i++) {
+        let why;
+        try {
+            const r = await fetch(url, init);
+            const text = await r.text();
+            if (r.status !== 429 && r.status < 500) {
+                try {
+                    return JSON.parse(text);
+                } catch {
+                    why = `HTTP ${r.status}, not JSON: ${text.slice(0, 40)}`;
+                }
+            } else why = `HTTP ${r.status}: ${text.slice(0, 40)}`;
+        } catch (err) {
+            why = String(err?.message || err).slice(0, 80);
+        }
+        if (i >= waits.length)
+            throw Object.assign(new Error(`jupiter: busy (${why})`), { transient: true });
+        await new Promise((resolve) => setTimeout(resolve, waits[i]));
+    }
+}
+
 /**
  * A signed, unsent Jupiter swap of `lamports` SOL into `outputMint` for the signer's own wallet, like
  * `signTokenTransfer`: record `signature`, then `broadcast` and `confirmSignature`, and read what it bought with
  * `boughtBy`. `quotedOut` is Jupiter's quote, not the fill.
  */
 export async function signSwap(conn, signer, outputMint, lamports, slippageBps = 150) {
-    const q = await fetch(
+    const q = await jupiter(
         `${JUP}/quote?inputMint=${WSOL}&outputMint=${outputMint}&amount=${lamports}&slippageBps=${slippageBps}&restrictIntermediateTokens=true`
-    ).then((r) => r.json());
+    );
     if (!q || !q.outAmount) throw new Error(`jupiter: no route (${q?.error || 'unknown'})`);
-    const sw = await fetch(`${JUP}/swap`, {
+    const sw = await jupiter(`${JUP}/swap`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -134,7 +160,7 @@ export async function signSwap(conn, signer, outputMint, lamports, slippageBps =
                 priorityLevelWithMaxLamports: { maxLamports: 200000, priorityLevel: 'high' }
             }
         })
-    }).then((r) => r.json());
+    });
     if (!sw?.swapTransaction)
         throw new Error(`jupiter: no swap transaction (${sw?.error || 'unknown'})`);
     const vtx = VersionedTransaction.deserialize(Buffer.from(sw.swapTransaction, 'base64'));

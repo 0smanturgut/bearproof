@@ -1581,7 +1581,7 @@ async function loadWinners() {
         const sent = (paid.payouts || []).filter((p) => p.status === 'sent');
         const text =
             paid.policy === 'daily-pot'
-                ? `The AI paid ${sent.length} player${sent.length === 1 ? '' : 's'} for ${paid.date}: ${tokenAmount(paid.amountRaw, paid.token)} on-chain.`
+                ? `The AI paid ${sent.length} player${sent.length === 1 ? '' : 's'} for ${paid.date}: ${tokenAmount(paid.amountRaw, paid.token)} on-chain. ${paid.why || ''}`.trim()
                 : paid.passedOver && paid.passedOver.length
                   ? `The AI paid ${paid.name}, the best eligible run of ${paid.date}, ${tokenAmount(paid.amountRaw, paid.token)} on-chain. ${paid.why || ''}`.trim()
                   : `The AI paid ${paid.name}, the verified #1 of ${paid.date}, ${tokenAmount(paid.amountRaw, paid.token)} on-chain.`;
@@ -1609,8 +1609,8 @@ async function loadWinners() {
                 r.status === 'paid'
                     ? h(
                           'span',
-                          { class: 'w-what paid' },
-                          `Paid ${tokenAmount(r.amountRaw, r.token)}`
+                          { class: 'w-what paid', title: r.why || '' },
+                          `Paid ${tokenAmount(r.amountRaw, r.token)}${r.token === 'SOL' ? ' (swap fallback)' : ''}`
                       )
                     : h(
                           'span',

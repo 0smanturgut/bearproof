@@ -176,7 +176,7 @@ export async function activity(env) {
                     ? passedOver.length
                         ? `Prize paid for ${w.date}: ${amount} to the best eligible run. ${passedOver.length === 1 ? 'The run above it was' : `The ${passedOver.length} runs above it were`} passed over (${[...new Set(passedOver.map((s) => s.why))].join('; ')}).`
                         : `Prize paid for ${w.date}: ${amount} to the verified #1.`
-                    : `Daily Pot paid for ${w.date}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}.`,
+                    : `Daily Pot paid for ${w.date}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}${w.payout_token === 'SOL' ? ' (in SOL: the $ANSEM swap failed twice)' : ''}.`,
             tx: w.payout_tx || null
         });
     }

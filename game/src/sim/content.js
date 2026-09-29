@@ -44,7 +44,22 @@ export const SIM = Object.freeze({
     CRATE_DIST_MAX: 240,
     CRATE_FALL: 2,
     CRATE_LIFE: 25,
-    CRATE_PICKUP: 30
+    CRATE_PICKUP: 30,
+    // Whale Alert: once a run, a warning at 1:27, then at 1:30 a whale swims across the screen level with the
+    // bull (70-130 units above or below it). Bears in its lane get shoved aside and dazed; it drops a candle
+    // every WHALE_DROP_EVERY units it swims.
+    WHALE_AT: 90,
+    WHALE_WARN: 3,
+    WHALE_SPEED: 150,
+    WHALE_START: 650, // starts this far to the side of the bull and swims twice as far
+    WHALE_LANE_MIN: 70,
+    WHALE_LANE_MAX: 130,
+    WHALE_RX: 58, // the lane it clears: half-length and half-height of its body, in world units
+    WHALE_RY: 22,
+    WHALE_DAZE: 1.2,
+    WHALE_DAZE_SLOW: 0.5,
+    WHALE_DROP_EVERY: 50,
+    WHALE_CANDLE: 12
 });
 
 // ---------------------------------------------------------------- airdrop crates

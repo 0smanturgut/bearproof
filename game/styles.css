@@ -653,6 +653,9 @@ body {
 .toast.bear {
     color: var(--bear);
 }
+.toast.whale {
+    color: #9be2ff;
+}
 
 .hint-move {
     position: absolute;

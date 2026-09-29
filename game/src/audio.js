@@ -195,6 +195,19 @@ export class AudioEngine {
             );
         }
     }
+    /** Whale Alert: a long, low call that bends up and back down. */
+    whaleCall() {
+        this.tone({ freq: 110, dur: 0.7, type: 'sine', volume: 0.22, sweep: 90 });
+        setTimeout(
+            () => this.tone({ freq: 200, dur: 0.9, type: 'sine', volume: 0.18, sweep: -110 }),
+            650
+        );
+    }
+    /** The whale shoulders through the crowd: a soft splash. */
+    whaleSplash() {
+        this.tone({ noise: true, dur: 0.16, volume: 0.1, release: 0.12 });
+        this.tone({ freq: 420, dur: 0.1, type: 'sine', volume: 0.06, sweep: -260 });
+    }
     achievement() {
         this.tone({ freq: 880, dur: 0.08, type: 'triangle', volume: 0.18 });
         setTimeout(() => this.tone({ freq: 1174, dur: 0.1, type: 'triangle', volume: 0.2 }), 70);

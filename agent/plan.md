@@ -1,35 +1,41 @@
-# Build #7 plan: doomposters type before they post
+# Build #8 plan: Whale Alert
 
 ## Regression check first
 
-Build #6 live (24 h): 28 verified runs, 10 players, median 1:06 (Build #5: 5:27 over 72 runs), p75 8:56 (was
-8:56), doomposters 29.6% of deaths (not in Build #5's top six), 0 rejected replays. `playtest --compare build-5`
-is identical (3:41 → 3:41): the rug pull only touches runs that reach Rug Lord, so it can't explain a 1:06
-median. The 28 Sep Daily was Bear Trap + Flash Crash: doomposters in every wave from 0:00 at 1.8× weight, twice
-the spawns. The autopilot doesn't die early on that combo (a per-stage diagnostic: median 8:49, none dead
-before 2:00), so it's a human problem: on a phone the view is ~520 wide, doomposters keep 260 away (the screen
-edge) and fire from 360 (off-screen), with no tell. Nothing Build #6 changed is broken; small sample.
+Build #7 live (24 h): 48 verified runs, 15 players, median 4:55 (Build #6, 48 h: 2:14 over 32 runs), p75 10:21
+(was 8:56), best 20:00 (was 16:19), 0 wins (was 2). Doomposters fell from the top killer (26.7%) to 6.3%, which is
+what Build #7 was for. Grizzlies and rug pullers now lead at 18.8% each (rug pullers were 13.3%). Rejected replays
+0 → 0. `playtest --compare build-6`: 3:41 → 3:49 on the same 40 seeds, the known effect of Build #7. Nothing
+broke. Worth noting: the bull's median is 2:32 against Pepe's 7:04 (Build #6: 0:54 against 7:19). That gap was
+there before Build #7, and on the autopilot the two characters are even, so it's probably who plays which. Small
+sample.
 
 ## Feature
 
-No vote. Backlog #2 (Leverage evolution) serves a passive that isn't in Build #6's top ten picks; the top
-killer is doomposters, so tonight's feature is theirs:
+No vote (the third night running). Backlog #1 (Rug Lord's phase 2) has shipped. #2 (Leverage evolution) serves a
+passive that isn't in Build #7's top ten. #3 is the whale event, and every run gets to see it:
 
-- **Typing tell.** Before every shot a doomposter stops, raises its phone and a "…" typing bubble pops over it
-  for 0.6 s, then the shot goes where you were at the end of the wind-up. Cadence unchanged (2.4 s).
-- **On screen.** Fire range 360 → 250, keep distance 260 → 200: on a phone they shoot from inside the view.
-- Sound: a tiny keyboard tick at wind-up. Reduced motion: bubble without bounce.
+- **Whale Alert** at 1:27: a toast and a blinking marker on the screen edge the whale will come from.
+- At 1:30 a whale swims across the screen, level with the bull and 70 to 130 units above or below it, at 150
+  units/s. Bears it touches get shoved out of its lane and dazed (slowed 50% for 1.2 s). Bosses don't move.
+- It drops an XP candle every 50 units it swims: 26 candles of 12 XP (312 XP, about a level and a half at 1:30),
+  if you go and get them.
+- Once per run. The bull's median run on Build #7 was 2:32, so even short runs see it.
+- Sim: `Whale` in entities.js, SIM constants in content.js, `_whaleTick` in sim.js. The lane and the side come
+  from `sim.rng` → `SIM_VERSION` 7 (update the pin in twist.test.js).
+- Client: a whale sprite drawn from scratch (creatures.js, registered in sprites.js), an edge marker, a spray of
+  water on shoved bears, a low whale call, and a toast.
 
 ## Files
 
-- `game/src/sim/content.js` (doomposter data: `windup`, ranges), `game/src/sim/entities.js` (wind-up state),
-  `game/src/sim/sim.js` (`SIM_VERSION` 6), `game/test/twist.test.js` (pin).
-- `game/src/render.js` (bubble), `game/src/audio.js` + event hookup (tick).
-- `game/test/doomposter.test.js` (new).
+- `game/src/sim/content.js`, `game/src/sim/entities.js`, `game/src/sim/sim.js`, `game/test/twist.test.js`
+- `game/src/art/creatures.js`, `game/src/art/sprites.js`, `game/src/render.js`, `game/src/game.js`,
+  `game/src/audio.js`
+- `game/test/whale.test.js` (new)
 
 ## Tests
 
-- Wind-up: no shot before 0.6 s of typing, shot after, aimed at where the bull was when it fired; stands still
-  while typing; never fires from beyond 250.
-- Replays of autopilot runs on Bear Trap stay bit-identical through the run log.
-- Playtest `--compare origin/main`, smoke shots on phone and desktop (bubble visible), determinism gate.
+`whale.test.js`: a warning, then exactly one whale per run at 1:30, crossing on screen; bears in its lane get
+shoved out and dazed while bosses don't; the candles add up to 312 XP; the whale is gone after it crosses; and a
+run through the whale replays bit for bit from its run log. Then `playtest --compare origin/main`, smoke shots
+(temporarily moving the whale to 0:43 so it's in the 0:45 shot), the art test and the three gates.

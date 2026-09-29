@@ -33,7 +33,7 @@ import {
     characterDef
 } from './content.js';
 import { cos, hypot, sin } from './dmath.js';
-import { Enemy, Player, SupplyCrate, XpOrb, resetEntityIds } from './entities.js';
+import { Enemy, Player, SupplyCrate, Whale, XpOrb, resetEntityIds } from './entities.js';
 import { MOVE_TABLE, isValidCode } from './input-codes.js';
 import { Rng } from './rng.js';
 import { SpatialHash } from './spatial.js';
@@ -41,8 +41,8 @@ import { Weapon } from './weapons.js';
 
 /** Bump when a change alters simulation results for the same inputs. 2: daily twists. 3: closer spawns and the
  * opening-bell ring. 4: airdrop crates. 5: Rug Lord's second phase (the rug pull). 6: doomposters type before
- * they shoot, from closer. */
-export const SIM_VERSION = 6;
+ * they shoot, from closer. 7: Whale Alert (a whale crosses at 1:30, shoving bears and dropping candles). */
+export const SIM_VERSION = 7;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -80,6 +80,8 @@ export class Simulation {
         this.crates = [];
         this.nextCrateAt = SIM.CRATE_FIRST;
         this.lastLoot = null;
+        this.whale = null;
+        this.whalePlan = null; // { dir, lane, spawned } once the alert has gone out
         this.delayed = [];
         this.spatial = new SpatialHash(64);
 
@@ -150,6 +152,7 @@ export class Simulation {
         this._updateList(this.xp, dt);
         this._updateList(this.crates, dt);
         this._dropCrate();
+        this._whaleTick(dt);
         this._spawn(dt);
         if (p.dead) return this._end('liquidated');
 
@@ -381,6 +384,32 @@ export class Simulation {
         );
         this.crates.push(crate);
         this.emit({ t: 'crateDrop', x: crate.x, y: crate.y });
+    }
+
+    // --- Whale Alert ------------------------------------------------------------
+
+    /** Once a run: the alert (which side, which lane) at WHALE_AT - WHALE_WARN, the whale at WHALE_AT. */
+    _whaleTick(dt) {
+        if (this.whale) {
+            this.whale.update(dt, this);
+            if (this.whale.dead) this.whale = null;
+            return;
+        }
+        if (!this.whalePlan && this.time >= SIM.WHALE_AT - SIM.WHALE_WARN) {
+            const dir = this.rng.next() < 0.5 ? 1 : -1;
+            const side = this.rng.next() < 0.5 ? 1 : -1;
+            const spread = SIM.WHALE_LANE_MAX - SIM.WHALE_LANE_MIN;
+            const lane = side * (SIM.WHALE_LANE_MIN + this.rng.next() * spread);
+            this.whalePlan = { dir, lane, spawned: false };
+            this.emit({ t: 'whaleWarn', dir, lane, in: SIM.WHALE_WARN });
+        }
+        if (this.whalePlan && !this.whalePlan.spawned && this.time >= SIM.WHALE_AT) {
+            const { dir, lane } = this.whalePlan;
+            this.whalePlan.spawned = true;
+            const x = this.player.x - dir * SIM.WHALE_START;
+            this.whale = new Whale(x, this.player.y + lane, dir);
+            this.emit({ t: 'whale', x, y: this.whale.y, dir });
+        }
     }
 
     /** The bull reached a landed crate: apply its loot. */

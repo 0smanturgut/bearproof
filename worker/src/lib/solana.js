@@ -7,6 +7,7 @@
  */
 
 import {
+    ComputeBudgetProgram,
     Connection,
     PublicKey,
     SystemProgram,
@@ -62,8 +63,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  * Wait until a signature is confirmed by polling (no websocket, which a Worker can't keep open reliably).
  * Throws if the transaction failed or its blockhash expired.
  */
-export async function confirmSignature(conn, signature, lastValidBlockHeight) {
-    for (;;) {
+/**
+ * Wait for `signature` until it confirms, fails or its blockhash expires. With `raw`, the transaction is sent
+ * again every few seconds meanwhile (the same signature, so it can only land once): an RPC's own retries give up
+ * early, and on 28 Sep two of four payout transactions expired unseen.
+ */
+export async function confirmSignature(conn, signature, lastValidBlockHeight, raw = null) {
+    for (let poll = 1; ; poll++) {
         const { value } = await conn.getSignatureStatuses([signature]);
         const st = value && value[0];
         if (st && st.err) throw new Error(`tx ${signature} failed: ${JSON.stringify(st.err)}`);
@@ -71,6 +77,10 @@ export async function confirmSignature(conn, signature, lastValidBlockHeight) {
             return signature;
         if ((await conn.getBlockHeight('confirmed')) > lastValidBlockHeight)
             throw new Error(`tx ${signature} expired before confirmation`);
+        if (raw && poll % 2 === 0)
+            await conn
+                .sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 })
+                .catch(() => {}); // "already processed" and the like: the status poll decides
         await sleep(2000);
     }
 }
@@ -81,8 +91,9 @@ async function sendLegacy(conn, signer, instructions) {
         ...instructions
     );
     tx.addSignature(signer.publicKey, Buffer.from(await signer.sign(tx.serializeMessage())));
-    const signature = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 3 });
-    return confirmSignature(conn, signature, lastValidBlockHeight);
+    const raw = tx.serialize();
+    const signature = await conn.sendRawTransaction(raw, { maxRetries: 3 });
+    return confirmSignature(conn, signature, lastValidBlockHeight, raw);
 }
 
 export async function solBalance(conn, pubkey) {
@@ -178,7 +189,7 @@ export async function signSwap(conn, signer, outputMint, lamports, slippageBps =
 export async function swapSolTo(conn, signer, outputMint, lamports, slippageBps = 150) {
     const s = await signSwap(conn, signer, outputMint, lamports, slippageBps);
     const signature = await conn.sendRawTransaction(s.raw, { maxRetries: 3 });
-    await confirmSignature(conn, signature, s.lastValidBlockHeight);
+    await confirmSignature(conn, signature, s.lastValidBlockHeight, s.raw);
     return { signature, quotedOut: s.quotedOut };
 }
 
@@ -238,13 +249,28 @@ export async function sendToken(conn, signer, mint, recipient, amount, { program
 }
 
 /**
+ * A priority fee, so a payout isn't the transaction validators drop first when the network is busy. It is paid on
+ * the compute-unit limit: 200,000 micro-lamports × 80,000 units = 0.000016 SOL for a token transfer. The 27 Sep
+ * $ANSEM transfers used 7,017 to 19,778 units (the most when the recipient's token account was created).
+ */
+const PRIORITY_MICROLAMPORTS = 200_000;
+export const TRANSFER_UNITS = { token: 80_000, sol: 5_000 };
+function priority(units) {
+    return [
+        ComputeBudgetProgram.setComputeUnitLimit({ units }),
+        ComputeBudgetProgram.setComputeUnitPrice({ microLamports: PRIORITY_MICROLAMPORTS })
+    ];
+}
+
+/**
  * Build and sign a transaction without sending it. Its signature is known before it goes out, so the caller can
  * record it first: after a crash, the recorded signature says whether the transfer landed, and it is never sent
  * twice. Send it with `broadcast`, then `confirmSignature`.
  */
-async function signLegacy(conn, signer, instructions) {
+async function signLegacy(conn, signer, instructions, units) {
     const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash('confirmed');
     const tx = new Transaction({ feePayer: signer.publicKey, blockhash, lastValidBlockHeight }).add(
+        ...priority(units),
         ...instructions
     );
     const sig = await signer.sign(tx.serializeMessage());
@@ -283,19 +309,25 @@ export function signTokenTransfer(conn, signer, mint, recipient, amount, info) {
     return signLegacy(
         conn,
         signer,
-        tokenTransferInstructions(signer, mint, recipient, amount, info)
+        tokenTransferInstructions(signer, mint, recipient, amount, info),
+        TRANSFER_UNITS.token
     );
 }
 
 /** A signed, unsent SOL transfer. */
 export function signSolTransfer(conn, signer, recipient, lamports) {
-    return signLegacy(conn, signer, [
-        SystemProgram.transfer({
-            fromPubkey: signer.publicKey,
-            toPubkey: new PublicKey(recipient),
-            lamports
-        })
-    ]);
+    return signLegacy(
+        conn,
+        signer,
+        [
+            SystemProgram.transfer({
+                fromPubkey: signer.publicKey,
+                toPubkey: new PublicKey(recipient),
+                lamports
+            })
+        ],
+        TRANSFER_UNITS.sol
+    );
 }
 
 export function broadcast(conn, raw) {

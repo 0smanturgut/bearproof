@@ -81,7 +81,8 @@ While it can't be read, no day from 27 Sep on is settled at all, so a day is nev
   isn't a failed swap, since nothing was bought: it is asked again every 15 minutes for 6 hours after the day is
   settled, and only then counts (28 Sep: one swap expired, then a rate limit counted as the second failure and
   the day was paid in SOL; the 6-hour rule came after). Network fees and new token-account rent come on top, from
-  the prize wallet.
+  the prize wallet. Each transfer carries a small priority fee (at most 0.000016 SOL) and is sent again every few
+  seconds until it confirms or its blockhash expires, since on 28 Sep two of four payout transactions expired unseen.
 - **Short wallet**: if the prize wallet can't cover a day (the pot plus 0.01 SOL and 0.0025 SOL per recipient), the
   payout waits for the operator's top-up and the HQ says so; nothing is lost. The pot is 40% of fees that already
   came in, so it is small when fees are small (0.09 SOL for 25 Sep, 0.41 SOL for launch day). The 1 SOL cap only

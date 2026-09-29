@@ -420,7 +420,7 @@ export async function advancePot(
             await save(); // on record before it goes out
             try {
                 await broadcast(conn, s.raw);
-                await confirmSignature(conn, s.signature, s.lastValidBlockHeight);
+                await confirmSignature(conn, s.signature, s.lastValidBlockHeight, s.raw);
             } catch (err) {
                 if (!refusedBeforeSend(err)) {
                     note.lastError = String(err?.message || err).slice(0, 200);
@@ -496,7 +496,7 @@ export async function advancePot(
             r.lvbh = signed.lastValidBlockHeight;
             await save(); // on record before it goes out
             await broadcast(conn, signed.raw);
-            await confirmSignature(conn, signed.signature, signed.lastValidBlockHeight);
+            await confirmSignature(conn, signed.signature, signed.lastValidBlockHeight, signed.raw);
             await markSent(r);
         } catch (err) {
             if (err instanceof LockLost) throw err;

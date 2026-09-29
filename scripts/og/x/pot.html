@@ -5,7 +5,7 @@
         <link rel="stylesheet" href="/scripts/og/x/x.css" />
         <style>
             /* A settled Daily Pot day, from /api/winners and the ledger. Data comes in ?d=<json>:
-               { kicker, total, sol, split: [[label, value]], rows: [{ tag, name, note, amount, bounty?, roll? }], foot } */
+               { kicker, total, unit?, sol, split: [[label, value]], rows: [{ tag, name, note, amount, bounty?, roll? }], foot } */
             body {
                 background:
                     radial-gradient(
@@ -167,7 +167,7 @@
         </div>
         <div class="left">
             <div class="coin"><b id="total"></b></div>
-            <div class="unit">$ANSEM, ON-CHAIN</div>
+            <div class="unit" id="unit">$ANSEM, ON-CHAIN</div>
             <p id="sol"></p>
             <div class="split" id="split"></div>
         </div>
@@ -180,6 +180,7 @@
             const $ = (id) => document.getElementById(id);
             $('kicker').textContent = d.kicker || '';
             $('total').textContent = d.total || '';
+            if (d.unit) $('unit').textContent = d.unit;
             $('sol').innerHTML = d.sol || '';
             $('foot').textContent = d.foot || '';
             for (const [label, value] of d.split || []) {

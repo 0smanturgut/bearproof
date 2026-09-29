@@ -283,6 +283,97 @@ export function pepe(f) {
     return s.render();
 }
 
+// ---------------------------------------------------------------- the whale
+
+/**
+ * 52×28 whale, swimming right: a blunt deep-blue head, a pale pleated belly, a flipper, a fluke raised behind,
+ * and a spout from the blowhole. Friendly to the bull (a calm eye, a small smile). Whale Alert's visitor.
+ * Frames 0-3: the fluke beats down and up while the spout rises, sprays and falls.
+ */
+export function whale(f) {
+    const s = new PixelSprite(52, 28, { dither: 0.3 });
+    const b = [0, -0.6, -1, -0.4][f % 4]; // body bob
+    const flap = [0, 2, 3, 1][f % 4]; // fluke height (px above the body line)
+    s.auto('body', { R: 4, grad: 0.3 });
+    s.auto('tail', { R: 2, grad: 0.2 });
+    s.auto('fin', { R: 1.4, grad: 0.15 });
+    // tail stock and fluke, behind the body
+    s.capsule(14, 17 + b, 5, 15 + b - flap * 0.5, 4.4, 1.8, M.ice, { g: 'tail', bias: -0.08 });
+    const ty = 15.5 + b - flap * 0.5;
+    s.capsule(6.5, ty, 3, ty - 6 - flap * 0.4, 2.6, 1.6, M.ice, { g: 'tail', bias: -0.1 });
+    s.capsule(6.5, ty, 3, ty + 5.5 - flap * 0.2, 2.6, 1.6, M.ice, { g: 'tail', bias: -0.1 });
+    // the body: long and round, blunt at the head end
+    s.ellipse(27, 16 + b, 17, 8.4, M.ice, { g: 'body' });
+    s.ellipse(40, 15.2 + b, 8.6, 7.6, M.ice, { g: 'body' });
+    // pale belly with throat pleats
+    s.ellipse(33, 21 + b, 15, 3.6, M.snow, { g: 'body', clip: true, bias: 0.05 });
+    const by = Math.round(21 + b);
+    for (let x = 26; x <= 45; x += 3) s.px(x, by, '#8FA8C0').px(x + 1, by + 1, '#8FA8C0');
+    // flipper
+    s.capsule(33, 20 + b, 29 - flap * 0.3, 25 + b - flap * 0.3, 2.2, 1.1, M.ice, {
+        g: 'fin',
+        bias: -0.12
+    });
+    // eye: calm, with a catchlight; a small smile along the jaw
+    const ey = Math.round(15 + b);
+    s.px(42, ey, C.pupil)
+        .px(43, ey, C.pupil)
+        .px(42, ey - 1, C.pupil)
+        .px(43, ey - 1, '#E8FAFF');
+    for (let x = 38; x <= 47; x++) s.px(x, Math.round(18.6 + b + (x > 45 ? -1 : 0)), '#061A2E');
+    s.px(37, Math.round(17.6 + b), '#061A2E');
+    // our own detail: a few pale barnacle freckles on the back
+    s.px(22, Math.round(10 + b), '#9BE2FF')
+        .px(25, Math.round(9 + b), '#9BE2FF')
+        .px(23, Math.round(11.5 + b), '#9BE2FF');
+    // the spout: rises, sprays, falls
+    const hx = 37;
+    const hy = Math.round(8 + b);
+    const W = '#E8FAFF';
+    const glow = { glow: '#46B8F0' };
+    if (f % 4 === 0) {
+        s.px(hx, hy - 1, W, glow).px(hx, hy - 2, W, glow);
+    } else if (f % 4 === 1) {
+        for (let y = 1; y <= 4; y++) s.px(hx, hy - y, W, glow).px(hx + 1, hy - y, '#9BE2FF', glow);
+        s.pxs(
+            [
+                [hx - 1, hy - 5],
+                [hx + 2, hy - 5],
+                [hx, hy - 6],
+                [hx + 1, hy - 6]
+            ],
+            W,
+            glow
+        );
+    } else if (f % 4 === 2) {
+        for (let y = 1; y <= 4; y++) s.px(hx, hy - y, '#9BE2FF', glow);
+        s.pxs(
+            [
+                [hx - 2, hy - 5],
+                [hx - 1, hy - 6],
+                [hx + 1, hy - 6],
+                [hx + 2, hy - 5],
+                [hx - 3, hy - 3],
+                [hx + 3, hy - 3]
+            ],
+            W,
+            glow
+        );
+    } else {
+        s.pxs(
+            [
+                [hx - 3, hy - 2],
+                [hx + 3, hy - 2],
+                [hx - 4, hy],
+                [hx + 4, hy]
+            ],
+            '#9BE2FF',
+            glow
+        );
+    }
+    return s.render();
+}
+
 // ---------------------------------------------------------------- enemies
 
 /** 14×22 hopping red candle with an angry face. */

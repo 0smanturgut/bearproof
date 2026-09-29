@@ -436,6 +436,22 @@ export class Game {
                 case 'cold':
                     fx.number(e.x, e.y - 34, `-${e.v} COLD`, 'hurt');
                     break;
+                case 'whaleWarn':
+                    this._sfx('whaleCall', 0);
+                    if (!this.attract) this.ui.toast('WHALE ALERT', 'whale', 2000);
+                    break;
+                case 'whale':
+                    fx.addShake(0.2);
+                    this._sfx('whaleSplash', 0);
+                    break;
+                case 'whaleShove':
+                    fx.burst(e.x, e.y + (e.up ? 10 : -10), '#9BE2FF', 6, 150, 3, 'spark');
+                    this._sfx('whaleSplash', 0.25);
+                    break;
+                case 'whaleGone':
+                    if (!this.attract && e.drops)
+                        this.ui.toast('THE WHALE LEFT CANDLES', 'bull', 1400);
+                    break;
                 case 'crateDrop':
                     this._sfx('airdrop', 0);
                     if (!this.attract) this.ui.toast('AIRDROP INCOMING', 'bull', 1400);

@@ -29,6 +29,8 @@ const SPRITE_GENS = {
     pepe: make(creatures.pepe, 4, { fps: 9 }),
     emblem: make(creatures.emblemSmall),
     emblem_large: make(creatures.emblemLarge),
+    // visitors
+    whale: make(creatures.whale, 4, { fps: 5 }),
     // enemies
     red_candle: make(creatures.redCandle, 4, { fps: 8 }),
     bag_holder: make(creatures.bagHolder, 4, { fps: 6 }),
@@ -108,6 +110,7 @@ export const ICONS = lazyTable(ICON_GENS);
 export const SPRITE_GROUPS = {
     player: ['bull', 'pepe'],
     brand: ['emblem', 'emblem_large'],
+    visitors: ['whale'],
     enemies: [
         'red_candle',
         'bag_holder',

@@ -1,0 +1,19 @@
+[
+    {
+        "id": "the-whale",
+        "title": "The Whale",
+        "description": "A third character: a whale with 150 HP that moves slowly and starts with Belly Flop, a slam that knocks back every bear around it.",
+        "from": "player"
+    },
+    {
+        "id": "boss-jackpot",
+        "title": "Boss Jackpot",
+        "description": "A boss kill pays triple score, shows the payout in big gold numbers over the body and rains gold candles.",
+        "from": "player"
+    },
+    {
+        "id": "stop-loss",
+        "title": "Stop Loss",
+        "description": "A new passive: when you drop under 25% HP, a stop-loss fires once a minute and blasts every bear near you away."
+    }
+]

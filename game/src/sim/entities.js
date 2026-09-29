@@ -604,4 +604,53 @@ export class SupplyCrate {
     }
 }
 
+/**
+ * Whale Alert: a whale swims straight across the chart along `y`, heading `dir` (1 = right). Bears in its lane
+ * get shoved out of the way and dazed (bosses hold their ground); every SIM.WHALE_DROP_EVERY units it swims it
+ * leaves a candle. It never touches the bull.
+ */
+export class Whale {
+    constructor(x, y, dir) {
+        this.x = x;
+        this.y = y;
+        this.dir = dir;
+        this.travel = 0;
+        this.length = SIM.WHALE_START * 2;
+        this.nextDrop = SIM.WHALE_DROP_EVERY;
+        this.drops = 0;
+        this.shoved = 0;
+        this.dead = false;
+    }
+    update(dt, sim) {
+        const step = SIM.WHALE_SPEED * dt;
+        this.x += this.dir * step;
+        this.travel += step;
+        for (const e of sim.enemies) {
+            if (e.boss || e.hp <= 0) continue;
+            const dx = e.x - this.x;
+            const dy = e.y - this.y;
+            const rx = SIM.WHALE_RX + e.size;
+            const ry = SIM.WHALE_RY + e.size;
+            if ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) >= 1) continue;
+            e.y = this.y + (dy >= 0 ? ry : -ry);
+            e.slowTimer = Math.max(e.slowTimer, SIM.WHALE_DAZE);
+            e.slowPct = Math.max(e.slowPct || 0, SIM.WHALE_DAZE_SLOW);
+            if (!e.whaled) {
+                e.whaled = true;
+                this.shoved++;
+                sim.emit({ t: 'whaleShove', x: e.x, y: e.y, up: dy < 0 });
+            }
+        }
+        while (this.travel >= this.nextDrop && this.nextDrop <= this.length) {
+            this.nextDrop += SIM.WHALE_DROP_EVERY;
+            this.drops++;
+            sim.xp.push(new XpOrb(this.x - this.dir * 30, this.y, SIM.WHALE_CANDLE));
+        }
+        if (this.travel >= this.length) {
+            this.dead = true;
+            sim.emit({ t: 'whaleGone', x: this.x, y: this.y, drops: this.drops });
+        }
+    }
+}
+
 export { enemyDef };

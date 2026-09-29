@@ -307,6 +307,10 @@ export class Renderer {
         for (const e of list) {
             if (e.windup > 0 && e.def.windup) this._drawTyping(e, X(e.x), Y(e.y), t, fx.calm);
         }
+        // Whale Alert: the whale swims over the crowd
+        if (sim.whale && visible(sim.whale.x, sim.whale.y, 120)) {
+            this._drawWhale(sim.whale, X(sim.whale.x), Y(sim.whale.y), t, fx.calm, glows);
+        }
         // forget enemies we no longer see
         if (this.seen.size > list.length * 2 + 200) {
             const alive = new Set(list.map((e) => e.uid));
@@ -351,6 +355,47 @@ export class Renderer {
         // --- lighting: vignette + stage tint
         ctx.drawImage(this._vignette(W, H, theme.vignette), 0, 0);
         this._drawScreenFx(fx, W, H, p, theme, t);
+        this._drawWhaleAlert(sim, Y, W, H, t);
+    }
+
+    // ---------------------------------------------------------------- Whale Alert
+
+    /** The whale, gliding a little above the chart with its shadow on the floor. Faces the way it swims. */
+    _drawWhale(w, sx, sy, t, calm, glows) {
+        const k = this.k;
+        const def = SPRITES.whale;
+        const lift = calm ? 0 : Math.sin(t * 2.2) * 2 * k;
+        this._shadow(sx, sy + (def.h * k) / 2 + 2 * k, def.w * k * 0.8, 0.7);
+        const frame = Math.floor(t * (def.fps || 5));
+        const y = sy - 4 * k + lift;
+        this._blit('whale', sx, y, { frame, flip: w.dir < 0 });
+        glows.push(['whale', sx, y, frame, w.dir < 0, 0.9]);
+    }
+
+    /** During the alert: a blinking whale and an arrow on the screen edge it will swim in from, at its lane. */
+    _drawWhaleAlert(sim, Y, W, H, t) {
+        const plan = sim.whalePlan;
+        if (!plan || plan.spawned || Math.floor(t * 5) % 2) return;
+        const ctx = this.ctx;
+        const k = this.k;
+        const def = SPRITES.whale;
+        const scale = 0.7;
+        const pad = 10 * this.dpr;
+        const hw = (def.w * k * scale) / 2;
+        const from = -plan.dir; // -1: the left edge
+        const x = from < 0 ? pad + hw + 8 * k : W - pad - hw - 8 * k;
+        const y = Math.max(pad + 40 * k, Math.min(H - pad - 40 * k, Y(sim.player.y + plan.lane)));
+        this._blit('whale', x, y, { flip: plan.dir < 0, sx: scale, sy: scale });
+        // arrow, pointing the way it will swim
+        const ax = from < 0 ? x + hw + 4 * k : x - hw - 4 * k;
+        const d = plan.dir;
+        ctx.fillStyle = '#9BE2FF';
+        ctx.beginPath();
+        ctx.moveTo(ax + d * 5 * k, y);
+        ctx.lineTo(ax - d * 1 * k, y - 5 * k);
+        ctx.lineTo(ax - d * 1 * k, y + 5 * k);
+        ctx.closePath();
+        ctx.fill();
     }
 
     // ---------------------------------------------------------------- creatures

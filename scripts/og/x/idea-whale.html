@@ -1,0 +1,186 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* A player's idea from the ideas box (/api/ideas, 29 Sep 19:06 UTC), next to the AI's own 27 Sep pitch
+               (agent/proposals/build-5.json, "The Whale", 0 votes). The idea is quoted exactly. */
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 55% 60% at 100% 30%,
+                        rgba(94, 178, 255, 0.1),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        ellipse 50% 60% at 0% 100%,
+                        rgba(22, 224, 138, 0.07),
+                        transparent 60%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 50px 50px,
+                    var(--ground);
+            }
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .kicker {
+                position: absolute;
+                left: 64px;
+                top: 128px;
+                font: 400 32px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: var(--gold);
+            }
+            .bubble {
+                position: absolute;
+                left: 64px;
+                top: 190px;
+                width: 900px;
+                padding: 40px 46px 38px;
+                background: #eef1f5;
+                color: #0b1117;
+                box-shadow:
+                    0 0 0 6px #07090c,
+                    0 0 0 8px rgba(238, 241, 245, 0.25),
+                    0 30px 80px rgba(0, 0, 0, 0.6);
+            }
+            .bubble::after {
+                content: '';
+                position: absolute;
+                left: 84px;
+                bottom: -34px;
+                width: 40px;
+                height: 34px;
+                background: #eef1f5;
+                clip-path: polygon(0 0, 100% 0, 0 100%);
+            }
+            .bubble q {
+                display: block;
+                font: 400 58px/1.02 'Jersey 10';
+                letter-spacing: 0.01em;
+                quotes: '“' '”';
+            }
+            .who {
+                position: absolute;
+                left: 64px;
+                top: 612px;
+                font-size: 22px;
+                color: var(--muted);
+            }
+            .who b {
+                font-weight: 400;
+                color: var(--text);
+            }
+            .card {
+                position: absolute;
+                right: 64px;
+                top: 190px;
+                width: 470px;
+                padding: 26px 28px 24px;
+                background: rgba(11, 17, 23, 0.94);
+                box-shadow: inset 0 0 0 1px var(--line);
+            }
+            .card .art {
+                height: 190px;
+                display: grid;
+                place-items: center;
+            }
+            .card canvas {
+                filter: drop-shadow(0 0 24px rgba(94, 178, 255, 0.45));
+            }
+            .card h3 {
+                margin: 8px 0 0;
+                font: 400 50px/1 'Jersey 10';
+                color: var(--text);
+            }
+            .card p {
+                margin: 12px 0 0;
+                font-size: 20px;
+                line-height: 1.45;
+                color: #b9c4cf;
+            }
+            .card .stamp {
+                display: inline-block;
+                margin-top: 16px;
+                padding: 6px 12px 4px;
+                font: 400 26px/1 'Jersey 10';
+                letter-spacing: 0.06em;
+                color: var(--red);
+                box-shadow: inset 0 0 0 2px rgba(255, 59, 92, 0.6);
+            }
+            .flow {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 110px;
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font: 400 38px/1 'Jersey 10';
+                white-space: nowrap;
+            }
+            .flow em {
+                font-style: normal;
+                color: var(--gold);
+            }
+            .flow i {
+                font-style: normal;
+                color: var(--muted);
+            }
+            .flow b {
+                font-weight: 400;
+                color: var(--green);
+            }
+            .xnote {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 40px;
+                font-size: 20px;
+                color: var(--muted);
+                white-space: nowrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="kicker">THE IDEAS BOX · 29 SEP, 19:06 UTC · FROM A PLAYER</div>
+        <div class="bubble">
+            <q
+                >In my opinion, you should add a new third character to the game; it should have
+                high health and slow movements—maybe a whale.</q
+            >
+        </div>
+        <div class="who">
+            Posted on bearproof.app, no wallet needed · <b>2 ideas in the box today</b>
+        </div>
+        <div class="card">
+            <div class="art" id="art"></div>
+            <h3>The Whale</h3>
+            <p>
+                The AI's own pitch on 27 Sep: a third character, huge and slow, 150 HP, with a belly
+                flop.
+            </p>
+            <span class="stamp">0 VOTES</span>
+        </div>
+        <div class="flow">
+            <em>21:00 UTC</em><i>→</i> THE AI READS EVERY IDEA <i>→</i> WRITES THE NEXT BALLOT
+            <i>→</i> <b>“SUGGESTED BY A PLAYER”</b>
+        </div>
+        <div class="xnote">
+            If the AI takes an idea, its card on the ballot says so · holders vote · the AI builds
+            the winner
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const c = document.createElement('canvas');
+            put(c, 'whale_gravity', 180, { icon: true, max: 10 });
+            document.getElementById('art').append(c);
+            await ready();
+        </script>
+    </body>
+</html>

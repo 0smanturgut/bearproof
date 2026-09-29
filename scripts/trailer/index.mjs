@@ -3,7 +3,10 @@
  * The BEARPROOF trailer, rendered from code and live data.
  *
  *   node scripts/trailer/index.mjs [--aspect 16x9,9x16] [--out content/x/video/trailer] [--work <dir>]
- *                                  [--skip-capture] [--reuse-data]
+ *                                  [--skip-capture] [--reuse-data] [--evergreen]
+ *
+ * --evergreen: the closing "BUILD #n SHIPS AT 00:00 UTC" becomes "EVERY NIGHT / A NEW BUILD AT 00:00 UTC", for a
+ * video that stays up for days (a pinned post).
  *
  * 1. snapshot the live API and git (data.mjs): every number on screen comes from here
  * 2. film every shipped build on a virtual clock (capture.mjs, shots.mjs), 60 fps, frame-exact
@@ -49,6 +52,7 @@ if (flag('--reuse-data') && fs.existsSync(dataFile)) {
         `data: day ${data.day}, build #${data.liveBuild.n}, ${data.ledger.feeClaims} fee claims, ${data.ledger.prizes.length} prizes`
     );
 }
+data.evergreen = flag('--evergreen');
 if (!fs.existsSync(path.join(ROOT, 'dist/b', String(data.liveBuild.n)))) {
     log('dist/ is missing the live build: npm run build');
     execFileSync('node', ['scripts/build.mjs'], { cwd: ROOT, stdio: 'inherit' });

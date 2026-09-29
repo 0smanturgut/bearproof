@@ -34,14 +34,15 @@ export function agentLines(D) {
     const ev = D.agent.events;
     const pick = [];
     const seen = new Set();
-    const add = (e, text = e.text) => {
+    // A rule can find nothing in a night's log: skip it (the default for `text` must not read a missing event).
+    const add = (e, text) => {
         if (!e || seen.has(e)) return;
         seen.add(e);
-        pick.push({ ts: e.ts, type: e.type, text: text.replace(/\s+/g, ' ').trim() });
+        pick.push({ ts: e.ts, type: e.type, text: (text ?? e.text).replace(/\s+/g, ' ').trim() });
     };
     const first = (re, type) => ev.find((e) => (!type || e.type === type) && re.test(e.text));
     add(ev.find((e) => e.type === 'start'));
-    add(first(/context file|Starting tonight/i, 'say'));
+    add(first(/context file|Starting tonight|reading the context/i, 'say'));
     add(first(/Reading .*OPERATOR/i, 'tool'));
     add(first(/playtest/i, 'test'));
     add(first(/Writing the plan|plan before/i, 'say'));
@@ -99,8 +100,11 @@ export function verifyRows(D) {
 export function ledgerRows(D) {
     const label = (r) => {
         if (r.cat === 'creator_fees') return 'creator fees';
-        if (r.cat === 'prize')
-            return /:buy$/.test(r.memo) ? 'prize: buy $ANSEM' : 'prize: $ANSEM sent';
+        if (r.cat === 'prize') {
+            if (/:buy$/.test(r.memo)) return 'prize: buy $ANSEM';
+            // A day paid in SOL (the published fallback when the $ANSEM swap fails twice) has no token amount.
+            return r.token == null && r.sol != null ? 'prize: SOL sent' : 'prize: $ANSEM sent';
+        }
         if (r.cat === 'compute') return 'compute paid back';
         if (r.cat === 'launch')
             return /locked/i.test(r.memo)

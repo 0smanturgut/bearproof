@@ -10,7 +10,9 @@ node scripts/trailer/index.mjs     # → content/x/video/trailer/bearproof-trail
 ```
 
 Options: `--aspect 16x9` (or `9x16`), `--work <dir>` (intermediate frames, default in the OS temp dir),
-`--out <dir>`, `--skip-capture` and `--reuse-data` (re-cut without filming again). A full render of both aspects
+`--out <dir>`, `--skip-capture` and `--reuse-data` (re-cut without filming again), and `--evergreen` (the closing
+"BUILD #n SHIPS AT 00:00 UTC" becomes "EVERY NIGHT / A NEW BUILD AT 00:00 UTC", for a video that stays up for days,
+like a pinned post). A full render of both aspects
 takes about 15 minutes on an M1. Videos stay out of git (`content/x/video/` is ignored). To check a scene without a
 full render: `node scripts/trailer/stills.mjs <work dir> 16x9 9.5,31,61.5` writes those seconds as PNGs.
 

@@ -1769,19 +1769,28 @@ function tonight(ctx, env, s, lt) {
     const next = D.liveBuild.n + 1;
     const px = P ? 230 : 280;
     const cy = H / 2 - (P ? 60 : 40);
-    slamText(ctx, env, lt, 0, `BUILD #${next}`, W / 2, cy, {
+    slamText(ctx, env, lt, 0, D.evergreen ? 'EVERY NIGHT' : `BUILD #${next}`, W / 2, cy, {
         px,
         color: C.bull,
         shadow: 12,
         shadowColor: C.bullDeep,
         glow: 50
     });
-    slamText(ctx, env, lt, 0.75 * BEAT, 'SHIPS AT 00:00 UTC.', W / 2, cy + px * 0.55, {
-        px: px * 0.42,
-        color: C.text,
-        shadow: 6,
-        maxW: W - 2 * M(env)
-    });
+    slamText(
+        ctx,
+        env,
+        lt,
+        0.75 * BEAT,
+        D.evergreen ? 'A NEW BUILD AT 00:00 UTC.' : 'SHIPS AT 00:00 UTC.',
+        W / 2,
+        cy + px * 0.55,
+        {
+            px: px * 0.42,
+            color: C.text,
+            shadow: 6,
+            maxW: W - 2 * M(env)
+        }
+    );
     const line = P
         ? 'Watch the AI write it, live from 21:00 UTC'
         : 'Watch the AI write it, live from 21:00 UTC → bearproof.app/live';

@@ -71,7 +71,9 @@ function potDay(note, names) {
               ? WHY['fees not measured yet']
               : 'Nobody could be paid, so the pot rolled over to the next day.'
           : token === 'SOL'
-            ? 'Paid in SOL: the $ANSEM swap failed twice, so the published fallback applied.'
+            ? payouts.some((p) => p.status === 'pending')
+                ? 'Payout in progress, in SOL: the $ANSEM swap failed twice, so the published fallback applies.'
+                : 'Paid in SOL: the $ANSEM swap failed twice, so the published fallback applied.'
             : null;
     return {
         payouts,

@@ -1744,6 +1744,7 @@ const CATEGORY = {
     sweep: 'Sweep',
     launch: 'Launch',
     marketing: 'Marketing',
+    buyback: 'Buyback',
     other: 'Other'
 };
 

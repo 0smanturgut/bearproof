@@ -150,6 +150,22 @@ test('launch receipts: a launch buy and a token move are spelled out', () => {
     assert.equal(r2.memo, 'moved 24,845,152 $BPROOF to Othe…1111');
 });
 
+test('a treasury buy after launch day is a buyback, not the launch buy', () => {
+    const bal = (owner, uiAmount) => ({ mint: MINT, owner, uiTokenAmount: { uiAmount } });
+    const buy = tx({
+        from: T,
+        to: 'Curve111111111111111111111111111111111111111',
+        lamports: 101_451_200,
+        extraKeys: [MINT]
+    });
+    buy.blockTime = Date.parse('2026-09-29T10:58:56Z') / 1000;
+    buy.meta.preTokenBalances = [];
+    buy.meta.postTokenBalances = [bal(T, 1_107_008.31)];
+    const r = classifyTx(buy, 's4', T, known);
+    assert.equal(r.category, 'buyback');
+    assert.equal(r.memo, 'buyback: bought 1,107,008 $BPROOF (0.11% of supply)');
+});
+
 test('a payment to a known launch address is the coin launch', () => {
     const LAUNCH = 'Launch1111111111111111111111111111111111111';
     const r = classifyTx(tx({ from: T, to: LAUNCH, lamports: 7e8 }), 's3', T, {

@@ -38,6 +38,8 @@ function memoOf(tx) {
 
 const short = (a) => (a ? `${a.slice(0, 4)}…${a.slice(-4)}` : 'unknown');
 const fmtTokens = (n) => Math.round(n).toLocaleString('en-US');
+// The coin launched on 23 Sep 2026; a treasury buy of $BPROOF after that day is a buyback, not the launch buy.
+const LAUNCH_DAY_END = Date.parse('2026-09-24T00:00:00Z');
 
 /** How the tx moved `mint` tokens: the wallet's change, and who else gained (by owner). */
 function tokenMoves(tx, wallet, mint) {
@@ -93,7 +95,10 @@ export function classifyTx(tx, signature, wallet, known = {}) {
         // Launch day receipts, said plainly: the creation, any buy at launch, any tokens moved out.
         const t = tokenMoves(tx, wallet, known.mint);
         category = 'launch';
-        if (t.mine > 0) {
+        if (t.mine > 0 && (tx.blockTime || 0) * 1000 >= LAUNCH_DAY_END) {
+            category = 'buyback';
+            label = `buyback: bought ${fmtTokens(t.mine)} $BPROOF (${((t.mine / 1e9) * 100).toFixed(2)}% of supply)`;
+        } else if (t.mine > 0) {
             label = `coin launch · launch buy of ${fmtTokens(t.mine)} $BPROOF (${((t.mine / 1e9) * 100).toFixed(2)}% of supply)`;
         } else if (t.mine < 0) {
             const to = t.gainers[0]?.[0];

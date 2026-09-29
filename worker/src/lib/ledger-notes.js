@@ -13,6 +13,13 @@ export const LEDGER_NOTES = {
             {
                 category: 'marketing',
                 memo: 'paid promotion: the operator paid @Mihawk_Research for a sponsored post about BEARPROOF on X (labelled 28 Sep)'
+            },
+        // 29 Sep 10:58 UTC, 0.1 SOL from the treasury for 1,107,008 $BPROOF, made by the operator through ClawPump.
+        // Synced before the classifier knew buybacks, so it read "coin launch · launch buy".
+        '3wdsVG5nENQgHLioYnDuy1Uf8fWNQThs1smsz4cNE1Tuj1RUYW3njgYWfmhzx62sTiPuMpJT3SvVtH2Hbp9m9xCH':
+            {
+                category: 'buyback',
+                memo: 'buyback: the treasury bought 1,107,008 $BPROOF (0.11% of supply) for 0.1 SOL; the operator made it through ClawPump, and the tokens are held in the treasury wallet'
             }
     },
     // [{ tx, ts (ISO), direction, amountSol, category, memo }]

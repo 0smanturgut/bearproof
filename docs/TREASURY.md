@@ -120,6 +120,10 @@ signature in `worker/src/lib/ledger-notes.js`, after checking the transaction on
   @Mihawk_Research for a sponsored post about BEARPROOF on X, from the treasury, in the ClawPump dashboard. It was the
   operator's decision and it isn't one of the uses in the loop above. Shown as "outgoing to 28Rp…NeE4" until 28 Sep,
   then labelled Marketing.
+- **29 Sep 10:58 UTC, 0.1 SOL for 1,107,008 $BPROOF** (tx `3wdsVG…H2Hbp9m9xCH`): a buyback. The operator bought
+  the coin with treasury SOL through ClawPump; the tokens are held in the treasury wallet. It first showed as "coin
+  launch · launch buy", because the classifier called every treasury buy of the coin a launch buy. From this day on,
+  a buy after 23 Sep is labelled a buyback.
 
 ## Live addresses (23 Sep 2026)
 

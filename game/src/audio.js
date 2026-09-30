@@ -177,6 +177,27 @@ export class AudioEngine {
         setTimeout(() => this.tone({ freq: 1760, dur: 0.16, type: 'square', volume: 0.14 }), 60);
         setTimeout(() => this.tone({ freq: 2640, dur: 0.2, type: 'triangle', volume: 0.1 }), 130);
     }
+    /** Boss Jackpot: a slot machine paying out, a run of coins climbing to a bright chord. */
+    jackpot() {
+        const notes = [784, 988, 1175, 1568, 1319, 1568, 2093];
+        notes.forEach((f, i) =>
+            setTimeout(
+                () => this.tone({ freq: f, dur: 0.07, type: 'square', volume: 0.1 }),
+                180 + i * 70
+            )
+        );
+        setTimeout(
+            () => {
+                this.tone({ freq: 1047, dur: 0.5, type: 'triangle', volume: 0.16 });
+                this.tone({ freq: 1568, dur: 0.5, type: 'triangle', volume: 0.12 });
+            },
+            180 + notes.length * 70
+        );
+    }
+    /** A jackpot candle lands: a small coin clink. */
+    coin() {
+        this.tone({ freq: 2200 + Math.random() * 500, dur: 0.04, type: 'triangle', volume: 0.06 });
+    }
     /** Rug Lord grips the rug: a low rising rumble. */
     rugWarn() {
         this.tone({ freq: 70, dur: 0.5, type: 'sawtooth', volume: 0.14, sweep: 60 });

@@ -66,7 +66,11 @@ export class Game {
         window.addEventListener('resize', () => this.renderer.resize());
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && this.state === 'playing') this.pause();
+            // A phone may have dropped the GPU canvases while the page was hidden: paint every sprite again.
+            if (!document.hidden) this.renderer.recover();
         });
+        // Chrome restores a lost 2D context blank; the baked sprites have to be painted again.
+        canvas.addEventListener('contextrestored', () => this.renderer.recover());
         requestAnimationFrame((t) => this._frame(t));
     }
 
@@ -368,6 +372,18 @@ export class Game {
                     break;
                 case 'bossDown':
                     if (!this.attract) this.ui.toast(`${e.name.toUpperCase()} REKT`, 'bull', 1800);
+                    if (e.jackpot) {
+                        fx.number(e.x, e.y - 70, 'JACKPOT', 'jackpotLabel');
+                        fx.number(e.x, e.y - 40, `+${fmtNum(e.jackpot)}`, 'jackpot');
+                        fx.burst(e.x, e.y - 60, '#FFE08A', 26, 260, 3, 'ember');
+                        this._sfx('jackpot', 0);
+                        if (!this.attract) this.haptics.levelUp();
+                    }
+                    break;
+                case 'candleLand':
+                    fx.ping(e.x, e.y + 4, '255,197,61');
+                    fx.burst(e.x, e.y + 6, '#FFC53D', 5, 110, 2.5, 'spark');
+                    this._sfx('coin', 0.03);
                     break;
                 case 'fire':
                     if (e.w === 'horns') fx.swipe(e.x, e.y, e.r, e.evolved);

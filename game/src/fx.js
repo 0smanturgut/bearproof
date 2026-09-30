@@ -151,19 +151,26 @@ export class Fx {
     }
 
     number(x, y, value, kind = 'dmg') {
-        if (!this.prefs.damageNumbers && kind !== 'info' && kind !== 'hurt') return;
-        if (this.numbers.length >= MAX_NUMBERS) this.numbers.shift();
+        const jackpot = kind === 'jackpot' || kind === 'jackpotLabel';
+        if (!this.prefs.damageNumbers && kind !== 'info' && kind !== 'hurt' && !jackpot) return;
+        if (this.numbers.length >= MAX_NUMBERS) {
+            // Drop the oldest ordinary number; a jackpot stays up for its whole life.
+            const i = this.numbers.findIndex(
+                (n) => n.kind !== 'jackpot' && n.kind !== 'jackpotLabel'
+            );
+            this.numbers.splice(Math.max(0, i), 1);
+        }
         const text = typeof value === 'number' ? String(Math.max(1, Math.round(value))) : value;
-        const life = kind === 'crit' ? 0.9 : kind === 'info' ? 1.2 : 0.7;
+        const life = jackpot ? 2.2 : kind === 'crit' ? 0.9 : kind === 'info' ? 1.2 : 0.7;
         this.numbers.push({
-            x: x + (Math.random() - 0.5) * 12,
+            x: x + (jackpot ? 0 : (Math.random() - 0.5) * 12),
             y,
             text,
             kind,
             life,
             max: life,
-            vx: (Math.random() - 0.5) * 30,
-            vy: kind === 'info' ? -40 : -90,
+            vx: jackpot ? 0 : (Math.random() - 0.5) * 30,
+            vy: jackpot ? -18 : kind === 'info' ? -40 : -90,
             rot: kind === 'crit' ? (Math.random() - 0.5) * 0.3 : 0
         });
     }

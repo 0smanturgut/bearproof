@@ -41,8 +41,9 @@ import { Weapon } from './weapons.js';
 
 /** Bump when a change alters simulation results for the same inputs. 2: daily twists. 3: closer spawns and the
  * opening-bell ring. 4: airdrop crates. 5: Rug Lord's second phase (the rug pull). 6: doomposters type before
- * they shoot, from closer. 7: Whale Alert (a whale crosses at 1:30, shoving bears and dropping candles). */
-export const SIM_VERSION = 7;
+ * they shoot, from closer. 7: Whale Alert (a whale crosses at 1:30, shoving bears and dropping candles).
+ * 8: Boss Jackpot (a boss kill pays triple score and rains its XP as a ring of falling gold candles). */
+export const SIM_VERSION = 8;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -269,16 +270,34 @@ export class Simulation {
         this.enemies = born.length ? alive.concat(born) : alive;
     }
 
+    /** Boss Jackpot: the boss's XP falls as a ring of gold candles around the body, one after another. */
+    _rainJackpot(e) {
+        const n = SIM.JACKPOT_CANDLES;
+        for (let k = 0; k < n; k++) {
+            const a = (k / n) * Math.PI * 2;
+            const r = k % 2 ? SIM.JACKPOT_RING_MAX : SIM.JACKPOT_RING_MIN;
+            const fall = SIM.JACKPOT_FALL * (k + 1);
+            this.xp.push(new XpOrb(e.x + cos(a) * r, e.y + sin(a) * r, e.exp / n, fall));
+        }
+    }
+
     _onKilled(e, born) {
+        let jackpot = 0;
         if (!e.selfDestructed) {
             this.stats.kills++;
-            this.stats.score += e.boss ? e.exp * SIM.BOSS_SCORE_MULT : e.exp;
-            this.xp.push(new XpOrb(e.x, e.y, e.exp));
+            if (e.boss) {
+                jackpot = e.exp * SIM.BOSS_SCORE_MULT * SIM.BOSS_JACKPOT_MULT;
+                this.stats.score += jackpot;
+                this._rainJackpot(e);
+            } else {
+                this.stats.score += e.exp;
+                this.xp.push(new XpOrb(e.x, e.y, e.exp));
+            }
         }
         this.emit({ t: 'kill', x: e.x, y: e.y, id: e.id, boss: e.boss, self: !!e.selfDestructed });
         if (e.boss) {
             this.stats.bossKills++;
-            this.emit({ t: 'bossDown', id: e.id, name: e.def.name, x: e.x, y: e.y });
+            this.emit({ t: 'bossDown', id: e.id, name: e.def.name, x: e.x, y: e.y, jackpot });
             if (e.def.final) this.won = true;
         }
         if (e.def.splitter && e.def.splitInto) {

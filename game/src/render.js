@@ -6,7 +6,14 @@
  * glows (eyes, candles, lasers). Reads simulation state; never mutates it.
  */
 
-import { SPRITES, bakeGlow, bakeSprite } from './art/sprites.js';
+import {
+    SPRITES,
+    bakeGlow,
+    bakeSprite,
+    clearSpriteCache,
+    spriteCacheGeneration,
+    watchCanvas
+} from './art/sprites.js';
 import { THEMES } from './art/stages.js';
 import { SIM } from './sim/content.js';
 
@@ -17,6 +24,8 @@ const AREA_PHONE = 500 * 1040;
 const AREA_DESKTOP = 960 * 620;
 const MIN_SHORT_SIDE = 440; // never show less than this many world units across the short side
 const TAU = Math.PI * 2;
+const CANDLE_DROP = 0.35; // s: how long a jackpot candle is seen falling before it lands
+const CANDLE_DROP_HEIGHT = 170; // world units it falls from
 
 export const KILL_COLORS = {
     red_candle: '#FF3B5C',
@@ -47,7 +56,7 @@ function makeCanvas(w, h) {
     const c = document.createElement('canvas');
     c.width = Math.max(1, Math.round(w));
     c.height = Math.max(1, Math.round(h));
-    return c;
+    return watchCanvas(c);
 }
 
 export class Renderer {
@@ -85,6 +94,22 @@ export class Renderer {
         this.k = Math.max(1, Math.round(ART_UNIT * this.s));
         this.ctx.imageSmoothingEnabled = false;
         this._cache = {};
+    }
+
+    /**
+     * After a lost 2D context (Chrome on Android) every baked canvas may be blank: drop them all, the sprite
+     * cache too, so the next frame paints them again from the sprite data. Called on the main canvas's
+     * `contextrestored` and when the page is shown again; `draw` also follows any sprite cache drop.
+     */
+    recover() {
+        clearSpriteCache();
+        this.ctx.imageSmoothingEnabled = false; // a restored context comes back with default state
+        this._dropCaches();
+    }
+
+    _dropCaches() {
+        this._cache = {};
+        this._gen = spriteCacheGeneration();
     }
 
     /** Visible world half-extents (for culling and the attract bot). */
@@ -206,6 +231,7 @@ export class Renderer {
      * @param {number} t  render clock in seconds (animation only)
      */
     draw(sim, fx, cam, t) {
+        if (this._gen !== spriteCacheGeneration()) this._dropCaches();
         const ctx = this.ctx;
         const W = this.canvas.width;
         const H = this.canvas.height;
@@ -244,7 +270,7 @@ export class Renderer {
         // --- XP candles (with a soft light under each)
         ctx.globalCompositeOperation = 'lighter';
         for (const o of sim.xp) {
-            if (!visible(o.x, o.y, 40)) continue;
+            if (o.fall > 0 || !visible(o.x, o.y, 40)) continue;
             const big = o.value >= 50;
             const r = (big ? 30 : 18) * s;
             ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 6 + o.x);
@@ -260,6 +286,10 @@ export class Renderer {
         ctx.globalCompositeOperation = 'source-over';
         for (const o of sim.xp) {
             if (!visible(o.x, o.y, 40)) continue;
+            if (o.fall > 0) {
+                this._drawFallingCandle(o, X(o.x), Y(o.y), s);
+                continue;
+            }
             const bob = Math.sin(t * 5 + o.x * 0.1) * 2 * s;
             const alpha = o.life < 3 ? (Math.floor(t * 8) % 2 ? 0.35 : 1) : 1;
             this._blit(o.value >= 50 ? 'xp_candle_big' : 'xp_candle', X(o.x), Y(o.y) + bob, {
@@ -540,6 +570,29 @@ export class Renderer {
     }
 
     // ---------------------------------------------------------------- airdrop crates
+
+    /** Boss Jackpot: a gold candle dropping out of the sky for its last CANDLE_DROP s, then it lands (sim). */
+    _drawFallingCandle(o, sx, sy, s) {
+        const drop = Math.min(o.fallMax, CANDLE_DROP);
+        if (o.fall > drop) return; // still queued up behind the candles before it
+        const f = o.fall / drop; // 1 at the top of the drop, 0 on the ground
+        const h = CANDLE_DROP_HEIGHT * s * f * f;
+        const ctx = this.ctx;
+        this._shadow(sx, sy + 8 * s, 18 * s * (1 - f * 0.6), 0.5 * (1 - f));
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = 'rgba(255,197,61,0.5)';
+        const w = Math.max(2, Math.round(4 * s));
+        ctx.fillRect(
+            Math.round(sx - w / 2),
+            Math.round(sy - h - 60 * s * f),
+            w,
+            Math.round(60 * s * f)
+        );
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+        this._blit('xp_candle_big', sx, sy - h);
+    }
 
     /** A falling crate's landing ring, or a landed crate with a green beacon (blinking when it's about to go). */
     _drawCrateGround(c, sx, sy, t) {
@@ -1114,14 +1167,34 @@ export class Renderer {
         for (const n of fx.numbers) {
             const age = n.max - n.life;
             const a = Math.min(1, (n.life / n.max) * 2.2);
+            const jackpot = n.kind === 'jackpot' || n.kind === 'jackpotLabel';
             const base =
-                n.kind === 'crit' ? 32 : n.kind === 'info' ? 26 : n.kind === 'hurt' ? 26 : 20;
-            const pop = 1 + Math.max(0, 0.12 - age) * (n.kind === 'crit' ? 5 : 3);
+                n.kind === 'jackpot'
+                    ? 54
+                    : n.kind === 'jackpotLabel'
+                      ? 30
+                      : n.kind === 'crit'
+                        ? 32
+                        : n.kind === 'info'
+                          ? 26
+                          : n.kind === 'hurt'
+                            ? 26
+                            : 20;
+            const pop = jackpot
+                ? 1 + Math.max(0, 0.25 - age) * 2.4 + (fx.calm ? 0 : 0.04 * Math.sin(age * 14))
+                : 1 + Math.max(0, 0.12 - age) * (n.kind === 'crit' ? 5 : 3);
             const size = Math.round(base * pop * this.dpr);
             ctx.font = `${size}px "Jersey 10", monospace`;
             ctx.globalAlpha = a;
-            const x = X(n.x);
-            const y = Y(n.y);
+            let x = X(n.x);
+            let y = Y(n.y);
+            if (jackpot) {
+                // A boss can die at the edge of the view: keep the payout on screen.
+                const cw = this.canvas.width;
+                const half = ctx.measureText(n.text).width / 2 + 10 * this.dpr;
+                x = Math.min(cw - half, Math.max(half, x));
+                y = Math.min(this.canvas.height - size, Math.max(size * 2.2, y));
+            }
             if (n.rot) {
                 ctx.save();
                 ctx.translate(x, y);
@@ -1142,6 +1215,14 @@ export class Renderer {
                         ? '#16E08A'
                         : '#F4F7FA';
             ctx.fillText(n.text, ox, oy);
+            if (jackpot) {
+                ctx.fillStyle = n.kind === 'jackpot' ? '#FFC53D' : '#FFE08A';
+                ctx.fillText(n.text, ox, oy);
+                ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                ctx.fillText(n.text, ox, oy - Math.max(1, 2 * this.dpr));
+                ctx.fillStyle = n.kind === 'jackpot' ? '#FFC53D' : '#FFE08A';
+                ctx.fillText(n.text, ox, oy + Math.max(1, this.dpr));
+            }
             if (n.kind === 'crit') {
                 ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 ctx.fillText(n.text, ox, oy - Math.max(1, this.dpr));

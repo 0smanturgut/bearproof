@@ -1,0 +1,298 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The Build #9 ballot (agent/proposals/build-8.json) as three collectible cards: two came from players'
+               ideas (from: "player"), one is the AI's own. A different look from the usual dark panels. */
+            html,
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 60% 55% at 50% 58%,
+                        rgba(120, 90, 255, 0.22),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 35% 40% at 18% 20%,
+                        rgba(22, 224, 138, 0.12),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 35% 40% at 85% 15%,
+                        rgba(245, 197, 66, 0.12),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #0b0a1a 0%, #07060f 100%);
+            }
+            .dust {
+                position: absolute;
+                inset: 0;
+                background-image:
+                    radial-gradient(
+                        1.5px 1.5px at 12% 30%,
+                        rgba(255, 255, 255, 0.5),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        1.5px 1.5px at 34% 12%,
+                        rgba(255, 255, 255, 0.35),
+                        transparent 60%
+                    ),
+                    radial-gradient(2px 2px at 62% 22%, rgba(255, 255, 255, 0.4), transparent 60%),
+                    radial-gradient(
+                        1.5px 1.5px at 81% 44%,
+                        rgba(255, 255, 255, 0.3),
+                        transparent 60%
+                    ),
+                    radial-gradient(2px 2px at 9% 78%, rgba(255, 255, 255, 0.3), transparent 60%),
+                    radial-gradient(
+                        1.5px 1.5px at 92% 82%,
+                        rgba(255, 255, 255, 0.35),
+                        transparent 60%
+                    );
+            }
+            .brand {
+                left: 56px;
+                top: 40px;
+            }
+            .head {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 108px;
+                text-align: center;
+            }
+            .kicker {
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.14em;
+                color: var(--gold);
+            }
+            .display {
+                font-size: 92px;
+                margin-top: 10px;
+            }
+            .table {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 236px;
+                height: 540px;
+                perspective: 1400px;
+            }
+            .card {
+                position: absolute;
+                top: 20px;
+                width: 360px;
+                height: 500px;
+                border-radius: 22px;
+                padding: 12px;
+                background: conic-gradient(
+                    from 210deg,
+                    #ff6ad5,
+                    #c774e8,
+                    #ad8cff,
+                    #8795e8,
+                    #94d0ff,
+                    #7cffcb,
+                    #f5ff8c,
+                    #ffb86b,
+                    #ff6ad5
+                );
+                box-shadow:
+                    0 40px 80px rgba(0, 0, 0, 0.6),
+                    0 0 60px rgba(173, 140, 255, 0.25);
+            }
+            .card.ai {
+                background: conic-gradient(
+                    from 200deg,
+                    #16e08a,
+                    #0a7a4b,
+                    #7cffcb,
+                    #16e08a,
+                    #0a7a4b,
+                    #16e08a
+                );
+            }
+            .c1 {
+                left: calc(50% - 180px - 405px);
+                transform: rotate(-9deg) translateY(30px);
+            }
+            .c2 {
+                left: calc(50% - 180px);
+                transform: translateY(-6px) scale(1.04);
+                z-index: 2;
+            }
+            .c3 {
+                left: calc(50% - 180px + 405px);
+                transform: rotate(9deg) translateY(30px);
+            }
+            .in {
+                position: relative;
+                height: 100%;
+                border-radius: 14px;
+                overflow: hidden;
+                background:
+                    linear-gradient(160deg, rgba(255, 255, 255, 0.1), transparent 35%),
+                    linear-gradient(180deg, #151326, #0b0a16);
+                box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5);
+            }
+            .shine {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                    115deg,
+                    transparent 30%,
+                    rgba(255, 255, 255, 0.16) 45%,
+                    transparent 55%
+                );
+                pointer-events: none;
+            }
+            .top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 18px 18px 0;
+            }
+            .top b {
+                font: 400 44px/1 'Jersey 10';
+                color: #fff;
+                text-shadow: 0 3px 0 rgba(0, 0, 0, 0.6);
+            }
+            .top i {
+                font: 400 22px/1 'Jersey 10';
+                font-style: normal;
+                color: var(--gold);
+                letter-spacing: 0.06em;
+            }
+            .art {
+                margin: 14px 18px 0;
+                height: 176px;
+                border-radius: 8px;
+                display: grid;
+                place-items: center;
+                background:
+                    radial-gradient(
+                        ellipse 60% 60% at 50% 55%,
+                        rgba(148, 208, 255, 0.28),
+                        transparent 70%
+                    ),
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+                    #07090c;
+                box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+            }
+            .ribbon {
+                margin: 14px 18px 0;
+                padding: 8px 12px 6px;
+                border-radius: 6px;
+                font: 400 26px/1 'Jersey 10';
+                letter-spacing: 0.08em;
+                text-align: center;
+                color: #1a1200;
+                background: linear-gradient(90deg, #f5c542, #ffe28a, #f5c542);
+            }
+            .ribbon.ai {
+                color: #03140c;
+                background: linear-gradient(90deg, #16e08a, #7cffcb, #16e08a);
+            }
+            .desc {
+                margin: 14px 20px 0;
+                font-size: 18px;
+                line-height: 1.38;
+                color: #d6dbe4;
+            }
+            .foot {
+                position: absolute;
+                left: 18px;
+                right: 18px;
+                bottom: 14px;
+                display: flex;
+                justify-content: space-between;
+                font: 400 20px/1 'Jersey 10';
+                letter-spacing: 0.08em;
+                color: rgba(255, 255, 255, 0.45);
+            }
+            .xnote {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 24px;
+                text-align: center;
+                font-size: 19px;
+                color: #a9b1c6;
+            }
+            .xnote b {
+                font-weight: 400;
+                color: var(--gold);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="dust"></div>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <div class="kicker">BUILD #9 · HOLDERS VOTE 00:00–21:00 UTC</div>
+            <h1 class="display">YOUR IDEAS MADE <span class="green">THE BALLOT.</span></h1>
+        </div>
+        <div class="table">
+            <div class="card c1">
+                <div class="in">
+                    <div class="top"><b>Boss Jackpot</b><i>#2</i></div>
+                    <div class="art" id="a1"></div>
+                    <div class="ribbon">SUGGESTED BY A PLAYER</div>
+                    <div class="desc">
+                        A boss kill pays triple score, flashes the payout in big gold numbers and
+                        rains gold candles.
+                    </div>
+                    <div class="foot"><span>BALLOT · BUILD #9</span><span>IDEAS BOX</span></div>
+                    <div class="shine"></div>
+                </div>
+            </div>
+            <div class="card c2">
+                <div class="in">
+                    <div class="top"><b>The Whale</b><i>#1</i></div>
+                    <div class="art" id="a2"></div>
+                    <div class="ribbon">SUGGESTED BY A PLAYER</div>
+                    <div class="desc">
+                        A third character: a slow, 150 HP whale that starts with Belly Flop, a slam
+                        that knocks bears back.
+                    </div>
+                    <div class="foot"><span>BALLOT · BUILD #9</span><span>IDEAS BOX</span></div>
+                    <div class="shine"></div>
+                </div>
+            </div>
+            <div class="card c3 ai">
+                <div class="in">
+                    <div class="top"><b>Stop Loss</b><i>#3</i></div>
+                    <div class="art" id="a3"></div>
+                    <div class="ribbon ai">THE AI'S OWN PICK</div>
+                    <div class="desc">
+                        Under 25% HP, a stop-loss fires once a minute and blasts every bear near you
+                        away.
+                    </div>
+                    <div class="foot"><span>BALLOT · BUILD #9</span><span>BACKLOG</span></div>
+                    <div class="shine"></div>
+                </div>
+            </div>
+        </div>
+        <div class="xnote">
+            Two of three from the ideas box, <b>no wallet needed to post one</b> · holders vote with
+            a signature · the AI builds the winner at 21:00 UTC
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const art = (el, id, opts) => {
+                const c = document.createElement('canvas');
+                put(c, id, opts.box || 170, opts);
+                document.getElementById(el).append(c);
+            };
+            art('a1', 'liquidation', { max: 6 });
+            art('a2', 'whale', { max: 6, box: 300 });
+            art('a3', 'bull', { max: 5, box: 150 });
+            await ready();
+        </script>
+    </body>
+</html>

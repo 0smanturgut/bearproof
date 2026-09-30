@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Last call for the 29 Sep Daily as a wanted poster: the one wanted is whoever beats the leader.
+               Board: /api/leaderboard?date=2026-09-29 at 23:15 UTC. Tzae took the top prize on 26, 27 and 28 Sep
+               (/api/winners). The silhouette is the game's bull sprite, blacked out. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background: #1a120b;
+            }
+            .sheet {
+                position: absolute;
+                inset: 40px 70px;
+                background:
+                    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.22 0 0 0 0 0.1 0 0 0 0.16 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+                    radial-gradient(
+                        ellipse 70% 65% at 50% 45%,
+                        #efdcaa 0%,
+                        #e2c88e 62%,
+                        #b98d52 100%
+                    );
+                box-shadow:
+                    inset 0 0 90px rgba(90, 50, 15, 0.55),
+                    0 30px 80px rgba(0, 0, 0, 0.6);
+                color: #2b180b;
+                text-align: center;
+                transform: rotate(-1deg);
+            }
+            .nail {
+                position: absolute;
+                top: 26px;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                background: radial-gradient(circle at 35% 35%, #8a8a8a, #2d2d2d 70%);
+                box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+            }
+            .w {
+                margin-top: 58px;
+                font:
+                    900 188px/0.9 'SuperClarendon',
+                    'Rockwell',
+                    serif;
+                letter-spacing: 0.02em;
+            }
+            .rule {
+                margin: 18px 70px 0;
+                border-top: 5px solid #2b180b;
+                border-bottom: 2px solid #2b180b;
+                height: 6px;
+            }
+            .for {
+                margin-top: 22px;
+                font:
+                    700 44px/1 'Rockwell',
+                    serif;
+                letter-spacing: 0.12em;
+            }
+            .name {
+                margin-top: 8px;
+                font:
+                    900 150px/0.95 'SuperClarendon',
+                    'Rockwell',
+                    serif;
+                letter-spacing: 0.04em;
+            }
+            .frame {
+                position: relative;
+                width: 440px;
+                height: 300px;
+                margin: 26px auto 0;
+                border: 8px solid #2b180b;
+                background: radial-gradient(ellipse 70% 70% at 50% 50%, #f3e4bd, #d9bd82);
+                display: grid;
+                place-items: center;
+            }
+            .frame canvas {
+                filter: brightness(0) opacity(0.82);
+            }
+            .frame b {
+                position: absolute;
+                right: 26px;
+                top: 14px;
+                font:
+                    900 150px/1 'SuperClarendon',
+                    'Rockwell',
+                    serif;
+                color: #2b180b;
+            }
+            .frame span {
+                position: absolute;
+                left: -300px;
+                right: -300px;
+                bottom: -48px;
+                white-space: nowrap;
+                font:
+                    italic 400 28px/1 'Rockwell',
+                    serif;
+            }
+            .stats {
+                margin: 70px 60px 0;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                border-top: 3px solid #2b180b;
+                border-bottom: 3px solid #2b180b;
+            }
+            .stats div {
+                padding: 16px 0 12px;
+            }
+            .stats div + div {
+                border-left: 3px solid #2b180b;
+            }
+            .stats b {
+                display: block;
+                font:
+                    900 60px/1 'SuperClarendon',
+                    'Rockwell',
+                    serif;
+            }
+            .stats span {
+                display: block;
+                margin-top: 8px;
+                font:
+                    700 22px/1 'Rockwell',
+                    serif;
+                letter-spacing: 0.1em;
+            }
+            .seen {
+                margin-top: 24px;
+                font:
+                    400 32px/1.3 'Rockwell',
+                    serif;
+            }
+            .reward {
+                margin-top: 14px;
+                font:
+                    900 76px/1 'SuperClarendon',
+                    'Rockwell',
+                    serif;
+                letter-spacing: 0.06em;
+            }
+            .rsub {
+                margin-top: 8px;
+                font:
+                    700 30px/1.25 'Rockwell',
+                    serif;
+                letter-spacing: 0.04em;
+            }
+            .close {
+                display: inline-block;
+                margin-top: 18px;
+                padding: 12px 26px 10px;
+                border: 4px solid #7a1c12;
+                color: #7a1c12;
+                font:
+                    900 40px/1 'Rockwell',
+                    serif;
+                letter-spacing: 0.08em;
+                transform: rotate(-2deg);
+            }
+            .fine {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 20px;
+                font:
+                    400 16px/1.35 'JetBrains Mono',
+                    monospace;
+                color: #4a3320;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="sheet">
+            <i class="nail" style="left: 30px"></i><i class="nail" style="right: 30px"></i>
+            <div class="w">WANTED</div>
+            <div class="rule"></div>
+            <div class="for">A PLAYER WHO CAN BEAT</div>
+            <div class="name">TZAE</div>
+            <div class="frame">
+                <div id="sil"></div>
+                <b>?</b>
+                <span>Could be you. Same seed for everyone.</span>
+            </div>
+            <div class="stats">
+                <div><b>267,328</b><span>POINTS</span></div>
+                <div><b>20:00</b><span>SURVIVED</span></div>
+                <div><b>10,382</b><span>BEARS DOWN</span></div>
+            </div>
+            <div class="seen">Last seen winning the top prize three Dailies in a row.</div>
+            <div class="reward">REWARD</div>
+            <div class="rsub">
+                The biggest share of today's Daily Pot,<br />paid in $ANSEM after 00:10 UTC
+            </div>
+            <div class="close">BOARD CLOSES 00:00 UTC</div>
+            <div class="fine">
+                BEARPROOF · Daily Challenge, 29 Sep · board at 23:15 UTC · every run replayed on the
+                server · free to play
+            </div>
+        </div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            const c = document.createElement('canvas');
+            put(c, 'bull', 250, { max: 8, glow: false });
+            document.getElementById('sil').append(c);
+            await ready();
+        </script>
+    </body>
+</html>

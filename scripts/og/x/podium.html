@@ -1,0 +1,372 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* A Daily Pot payout as a medal ceremony. Filled from /api/winners after the payout lands:
+               ?d={kicker, title, green, places:[{rank,name,note,amount}], more:[...], bounty:{title,note,
+               each,names:[]}, foot}. Nothing is drawn that the payout doesn't have. */
+            html,
+            body {
+                background:
+                    conic-gradient(
+                        from 172deg at 22% -8%,
+                        transparent 0deg,
+                        rgba(255, 236, 170, 0.1) 8deg,
+                        transparent 16deg
+                    ),
+                    conic-gradient(
+                        from 180deg at 50% -12%,
+                        transparent 0deg,
+                        rgba(255, 244, 200, 0.14) 9deg,
+                        transparent 18deg
+                    ),
+                    conic-gradient(
+                        from 188deg at 78% -8%,
+                        transparent 0deg,
+                        rgba(255, 236, 170, 0.1) 8deg,
+                        transparent 16deg
+                    ),
+                    radial-gradient(
+                        ellipse 60% 40% at 50% 92%,
+                        rgba(22, 224, 138, 0.22),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #04150f 0%, #03100b 55%, #020806 100%);
+            }
+            .confetti {
+                position: absolute;
+                inset: 0;
+                z-index: 0;
+            }
+            .head,
+            .stage,
+            .side,
+            .bounty,
+            .floor {
+                z-index: 1;
+            }
+            .confetti i {
+                position: absolute;
+                width: 10px;
+                height: 18px;
+                border-radius: 2px;
+                opacity: 0.85;
+            }
+            .brand {
+                left: 56px;
+                top: 40px;
+            }
+            .head {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 104px;
+                text-align: center;
+            }
+            .kicker {
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.14em;
+                color: var(--gold);
+            }
+            .display {
+                margin-top: 10px;
+                font-size: 100px;
+            }
+            .stage {
+                position: absolute;
+                left: 50%;
+                bottom: 150px;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: flex-end;
+                gap: 14px;
+            }
+            .step {
+                width: 330px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .who {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 16px;
+            }
+            .medal {
+                width: 58px;
+                height: 58px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font: 400 34px/1 'Jersey 10';
+                color: #2b1d00;
+                box-shadow:
+                    inset 0 -5px 0 rgba(0, 0, 0, 0.25),
+                    0 0 30px rgba(255, 214, 90, 0.35);
+            }
+            .r1 .medal {
+                background: radial-gradient(circle at 35% 30%, #fff3b8, #f5c542 55%, #b98a12);
+            }
+            .r2 .medal {
+                background: radial-gradient(circle at 35% 30%, #ffffff, #cfd8e3 55%, #8793a3);
+                box-shadow:
+                    inset 0 -5px 0 rgba(0, 0, 0, 0.25),
+                    0 0 30px rgba(207, 216, 227, 0.3);
+            }
+            .r3 .medal {
+                background: radial-gradient(circle at 35% 30%, #ffd9b8, #d98a4e 55%, #8a4f24);
+                box-shadow:
+                    inset 0 -5px 0 rgba(0, 0, 0, 0.25),
+                    0 0 30px rgba(217, 138, 78, 0.3);
+            }
+            .name {
+                margin-top: 12px;
+                max-width: 330px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font: 400 44px/1 'Jersey 10';
+                color: #fff;
+                text-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+            }
+            .note {
+                margin-top: 6px;
+                font-size: 18px;
+                color: #a9c7b8;
+            }
+            .block {
+                position: relative;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 16px;
+                background: linear-gradient(180deg, #f4f1e8, #d9d3c3);
+                box-shadow:
+                    inset 0 10px 0 #ffffff,
+                    inset 0 -8px 0 rgba(0, 0, 0, 0.12),
+                    0 30px 60px rgba(0, 0, 0, 0.5);
+                color: #0b1117;
+            }
+            .block b {
+                font: 400 96px/0.9 'Jersey 10';
+                color: #0b1117;
+            }
+            .block .amt {
+                margin-top: 6px;
+                font: 400 34px/1 'Jersey 10';
+                letter-spacing: 0.02em;
+                color: #06261f;
+            }
+            .block .amt i {
+                font-style: normal;
+                color: #0c7a4a;
+            }
+            .r1 .block {
+                height: 250px;
+            }
+            .r2 .block {
+                height: 190px;
+            }
+            .r3 .block {
+                height: 150px;
+            }
+            .r1 .block b {
+                color: #b98a12;
+            }
+            .side {
+                position: absolute;
+                bottom: 150px;
+                width: 230px;
+                display: grid;
+                gap: 10px;
+            }
+            .side.l {
+                left: 40px;
+            }
+            .side.r {
+                right: 40px;
+            }
+            .chip {
+                padding: 12px 14px 10px;
+                background: rgba(6, 22, 16, 0.9);
+                box-shadow: inset 0 0 0 2px #1d3b30;
+            }
+            .chip small {
+                display: block;
+                font: 400 20px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: var(--gold);
+            }
+            .chip span {
+                display: block;
+                margin-top: 6px;
+                font: 400 28px/1 'Jersey 10';
+                color: #fff;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .chip em {
+                display: block;
+                margin-top: 4px;
+                font: 400 22px/1 'Jersey 10';
+                font-style: normal;
+                color: var(--green);
+            }
+            .floor {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 150px;
+                background: linear-gradient(180deg, #0a2419, #061510);
+                box-shadow: inset 0 3px 0 #1d3b30;
+            }
+            .bounty {
+                position: absolute;
+                left: 56px;
+                right: 56px;
+                bottom: 58px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                white-space: nowrap;
+            }
+            .bounty .bt {
+                padding: 8px 14px 6px;
+                font: 400 28px/1 'Jersey 10';
+                letter-spacing: 0.08em;
+                color: #1a1200;
+                background: linear-gradient(90deg, #f5c542, #ffe28a, #f5c542);
+            }
+            .bounty .bn {
+                font: 400 30px/1 'Jersey 10';
+                color: #fff;
+            }
+            .bounty .bn small {
+                display: block;
+                margin-top: 6px;
+                font:
+                    400 18px/1.2 'JetBrains Mono',
+                    monospace;
+                color: #a9c7b8;
+                white-space: normal;
+            }
+            .bounty .each {
+                margin-left: auto;
+                text-align: right;
+                font: 400 34px/1 'Jersey 10';
+                color: var(--green);
+            }
+            .bounty .each small {
+                display: block;
+                margin-top: 4px;
+                font:
+                    400 18px/1 'JetBrains Mono',
+                    monospace;
+                color: #a9c7b8;
+            }
+            .xnote {
+                position: absolute;
+                z-index: 2;
+                left: 0;
+                right: 0;
+                bottom: 18px;
+                text-align: center;
+                font-size: 17px;
+                color: #7f9b8e;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="confetti" id="confetti"></div>
+        <div class="brand">BEARPROOF</div>
+        <div class="head">
+            <div class="kicker" id="kicker"></div>
+            <h1 class="display"><span id="title"></span> <span class="green" id="green"></span></h1>
+        </div>
+        <div class="floor"></div>
+        <div class="stage" id="stage"></div>
+        <div class="side l" id="moreL"></div>
+        <div class="side r" id="moreR"></div>
+        <div class="bounty" id="bounty"></div>
+        <div class="xnote" id="foot"></div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const d = JSON.parse(new URLSearchParams(location.search).get('d') || '{}');
+            const $ = (id) => document.getElementById(id);
+            const el = (tag, cls, html) => {
+                const e = document.createElement(tag);
+                if (cls) e.className = cls;
+                if (html != null) e.innerHTML = html;
+                return e;
+            };
+            $('kicker').textContent = d.kicker || '';
+            $('title').textContent = d.title || '';
+            $('green').textContent = d.green || '';
+            $('foot').textContent = d.foot || '';
+            // Podium order: 2, 1, 3.
+            const by = Object.fromEntries((d.places || []).map((p) => [p.rank, p]));
+            for (const rank of [2, 1, 3]) {
+                const p = by[rank];
+                if (!p) continue;
+                const step = el('div', `step r${rank}`);
+                const who = el('div', 'who');
+                who.append(el('div', 'medal', String(rank)));
+                const nm = el('div', 'name');
+                nm.textContent = p.name;
+                who.append(nm);
+                if (p.note) {
+                    const n = el('div', 'note');
+                    n.textContent = p.note;
+                    who.append(n);
+                }
+                const block = el('div', 'block');
+                block.append(el('b', null, String(rank)), el('div', 'amt', p.amount));
+                step.append(who, block);
+                $('stage').append(step);
+            }
+            (d.more || []).forEach((m, i) => {
+                const c = el('div', 'chip');
+                c.append(el('small', null, m.tag));
+                const s = el('span');
+                s.textContent = m.name;
+                c.append(s, el('em', null, m.amount));
+                $(i % 2 ? 'moreR' : 'moreL').append(c);
+            });
+            if (d.bounty) {
+                const b = $('bounty');
+                b.append(el('div', 'bt', d.bounty.title));
+                const bn = el('div', 'bn');
+                bn.textContent = d.bounty.names || '';
+                bn.append(el('small', null, d.bounty.note || ''));
+                b.append(bn);
+                const each = el('div', 'each', d.bounty.each || '');
+                each.append(el('small', null, d.bounty.eachNote || ''));
+                b.append(each);
+            }
+            // Confetti: a fixed pattern (no randomness, so re-renders match).
+            const colors = ['#16e08a', '#f5c542', '#ffffff', '#7cffcb', '#ffe28a'];
+            for (let i = 0; i < 90; i++) {
+                const c = el('i');
+                const x = (i * 137.5) % 100;
+                const y = ((i * 61.8) % 64) + 2;
+                // Keep the headline and the podium clear: confetti only at the sides and along the top.
+                if ((x > 15 && x < 85 && y > 8) || (x < 20 && y < 10)) continue;
+                c.style.left = `${x}%`;
+                c.style.top = `${y}%`;
+                c.style.background = colors[i % colors.length];
+                c.style.transform = `rotate(${(i * 47) % 180}deg) scale(${0.6 + ((i * 13) % 7) / 10})`;
+                c.style.opacity = String(0.35 + ((i * 29) % 50) / 100);
+                $('confetti').append(c);
+            }
+            await ready();
+        </script>
+    </body>
+</html>

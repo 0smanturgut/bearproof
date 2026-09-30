@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Build #8's night as a till receipt. Every line is from the session log (/api/agent/live, run of
+               29 Sep 21:24-21:44 UTC) and devlog/build-8.md. A different look from the dark panels. */
+            html,
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 45% 70% at 34% 50%,
+                        rgba(255, 214, 150, 0.16),
+                        transparent 70%
+                    ),
+                    repeating-linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0.012) 0 2px,
+                        transparent 2px 7px
+                    ),
+                    linear-gradient(160deg, #1d1612, #0c0907 70%);
+            }
+            .paper {
+                position: absolute;
+                left: 150px;
+                top: -30px;
+                width: 520px;
+                height: 960px;
+                padding: 64px 40px 40px;
+                background: linear-gradient(180deg, #fbf8f1, #f1ece1 60%, #ebe4d6);
+                color: #211d18;
+                font:
+                    400 19px/1.55 'JetBrains Mono',
+                    'Courier New',
+                    monospace;
+                transform: rotate(-3deg);
+                box-shadow:
+                    0 40px 70px rgba(0, 0, 0, 0.55),
+                    0 8px 18px rgba(0, 0, 0, 0.35);
+                clip-path: polygon(
+                    0 0,
+                    100% 0,
+                    100% 97%,
+                    96% 100%,
+                    92% 97%,
+                    88% 100%,
+                    84% 97%,
+                    80% 100%,
+                    76% 97%,
+                    72% 100%,
+                    68% 97%,
+                    64% 100%,
+                    60% 97%,
+                    56% 100%,
+                    52% 97%,
+                    48% 100%,
+                    44% 97%,
+                    40% 100%,
+                    36% 97%,
+                    32% 100%,
+                    28% 97%,
+                    24% 100%,
+                    20% 97%,
+                    16% 100%,
+                    12% 97%,
+                    8% 100%,
+                    4% 97%,
+                    0 100%
+                );
+            }
+            .c {
+                text-align: center;
+            }
+            .h1 {
+                font: 400 44px/1 'Jersey 10';
+                letter-spacing: 0.06em;
+            }
+            .h2 {
+                margin-top: 6px;
+                font-size: 17px;
+                letter-spacing: 0.12em;
+            }
+            .rule {
+                margin: 14px 0;
+                border-top: 2px dashed #6e655a;
+            }
+            .row {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+            }
+            .row span:first-child {
+                white-space: nowrap;
+            }
+            .row b {
+                font-weight: 700;
+            }
+            .k {
+                display: inline-block;
+                width: 82px;
+                color: #6e655a;
+            }
+            .tot {
+                font: 400 40px/1 'Jersey 10';
+                letter-spacing: 0.04em;
+            }
+            .stamp {
+                position: absolute;
+                right: 26px;
+                top: 748px;
+                padding: 8px 14px 6px;
+                border: 4px solid rgba(12, 150, 88, 0.85);
+                border-radius: 6px;
+                color: rgba(12, 150, 88, 0.9);
+                font: 400 38px/1 'Jersey 10';
+                letter-spacing: 0.06em;
+                transform: rotate(-12deg);
+                mix-blend-mode: multiply;
+            }
+            .bar {
+                margin: 16px 0 6px 14px;
+                width: 230px;
+                height: 58px;
+                background: repeating-linear-gradient(
+                    90deg,
+                    #211d18 0 3px,
+                    transparent 3px 5px,
+                    #211d18 5px 6px,
+                    transparent 6px 10px,
+                    #211d18 10px 14px,
+                    transparent 14px 16px
+                );
+            }
+            .side {
+                position: absolute;
+                left: 800px;
+                right: 70px;
+                top: 0;
+                bottom: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .brand {
+                position: static;
+                margin-bottom: 44px;
+            }
+            .side .kicker {
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.12em;
+                color: #f5c542;
+            }
+            .side h1 {
+                margin: 14px 0 0;
+                font: 400 108px/0.9 'Jersey 10';
+                color: #fbf8f1;
+                text-shadow: 0 6px 0 rgba(0, 0, 0, 0.5);
+            }
+            .side h1 em {
+                font-style: normal;
+                color: var(--green);
+                text-shadow:
+                    0 6px 0 var(--green-deep),
+                    0 0 40px rgba(22, 224, 138, 0.35);
+            }
+            .side p {
+                margin: 30px 0 0;
+                font-size: 26px;
+                line-height: 1.5;
+                color: #d8cfc2;
+            }
+            .side p b {
+                font-weight: 400;
+                color: #fbf8f1;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="paper">
+            <div class="c h1">BEARPROOF</div>
+            <div class="c h2">AI BUILD SERVICE · RECEIPT #8</div>
+            <div class="c h2">29 SEP 2026 · 21:24–21:44 UTC</div>
+            <div class="rule"></div>
+            <div class="row">
+                <span><span class="k">READ</span>48 runs, 15 players</span><span>✓</span>
+            </div>
+            <div class="row">
+                <span><span class="k">READ</span>the ideas box: 2 ideas</span><span>✓</span>
+            </div>
+            <div class="row">
+                <span><span class="k">VOTES</span>none, 3rd night</span><span>–</span>
+            </div>
+            <div class="row">
+                <span><span class="k">PICKED</span><b>Whale Alert</b></span
+                ><span>✓</span>
+            </div>
+            <div class="row">
+                <span><span class="k">DREW</span>a whale, 4 frames</span><span>✓</span>
+            </div>
+            <div class="row">
+                <span><span class="k">ADDED</span>26 candles, 312 XP</span><span>✓</span>
+            </div>
+            <div class="row">
+                <span><span class="k">TESTS</span>238 passed, 0 failed</span><span>✓</span>
+            </div>
+            <div class="row">
+                <span><span class="k">REVIEW</span>2nd AI: nothing to fix</span><span>✓</span>
+            </div>
+            <div class="row">
+                <span><span class="k">BALLOT</span>2 of 3 from players</span><span>✓</span>
+            </div>
+            <div class="rule"></div>
+            <div class="row"><span>BUILD PASS · 103 turns</span><span>$3.12</span></div>
+            <div class="row"><span>REVIEW PASS · 38 turns</span><span>$0.47</span></div>
+            <div class="rule"></div>
+            <div class="row tot"><span>TOTAL</span><span>$3.5959</span></div>
+            <div class="c" style="margin-top: 6px; font-size: 15px; color: #6e655a">
+                measured, Claude Code's own count
+            </div>
+            <div class="rule"></div>
+            <div class="c">SHIPS 00:00 UTC · MERGED 21:44</div>
+            <div class="c">NOBODY AT THE KEYBOARD</div>
+            <div class="bar"></div>
+            <div class="c" style="font-size: 16px">bearproof.app/live · THANK YOU FOR PLAYING</div>
+            <div class="stamp">SHIPPED</div>
+        </div>
+        <div class="side">
+            <div class="brand">BEARPROOF</div>
+            <div class="kicker">BUILD #8 · WHALE ALERT</div>
+            <h1>LAST NIGHT'S <em>RECEIPT.</em></h1>
+            <p>
+                An AI wrote a new version of the game in <b>20 minutes</b>, with nobody at the
+                keyboard. This is everything it did, and the bill.
+            </p>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

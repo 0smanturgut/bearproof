@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The Daily bounty on Build #8 (game/bounty.json: "Ten Minute HODL", survive to 10:00) as an office
+               poster. Today's Daily (30 Sep) is Crypto Winter, where the 10:00 boss is The Long Winter (content.js:
+               Liquidation is swapped out on that stage). The shot is a 2x frame of a real Build #8 autopilot run on
+               Crypto Winter (seed 347, the bull) at 10:00.2, with the cold ticking (-1 COLD). Portrait for phones. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background: radial-gradient(ellipse 80% 60% at 50% 40%, #121212, #000 75%);
+            }
+            .frame {
+                position: absolute;
+                left: 50%;
+                top: 150px;
+                transform: translateX(-50%);
+                padding: 10px;
+                border: 3px solid #e9e6df;
+            }
+            .frame img {
+                display: block;
+                width: 1000px;
+                height: 653px;
+                image-rendering: pixelated;
+            }
+            .frame i {
+                position: absolute;
+                right: 22px;
+                bottom: 22px;
+                padding: 6px 12px 4px;
+                font: 400 22px/1 'Jersey 10';
+                letter-spacing: 0.06em;
+                font-style: normal;
+                color: #e8eef5;
+                background: rgba(6, 10, 14, 0.82);
+                box-shadow: inset 0 0 0 2px #3a1119;
+            }
+            .frame i em {
+                font-style: normal;
+                color: var(--green);
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 884px;
+                margin: 0;
+                text-align: center;
+                font:
+                    400 200px/1 'Times New Roman',
+                    Times,
+                    serif;
+                letter-spacing: 0.14em;
+                text-indent: 0.14em;
+                color: #f3f1ec;
+            }
+            p {
+                position: absolute;
+                left: 110px;
+                right: 110px;
+                top: 1134px;
+                margin: 0;
+                text-align: center;
+                font:
+                    400 44px/1.32 'Times New Roman',
+                    Times,
+                    serif;
+                color: #d9d6cf;
+            }
+            .fine {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 96px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 16px;
+                font-size: 19px;
+                letter-spacing: 0.08em;
+                color: #8d8a84;
+            }
+            .fine b {
+                font-weight: 400;
+                color: #c9c5bd;
+            }
+            .brand {
+                position: static;
+                font-size: 30px;
+            }
+            .brand canvas {
+                width: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="frame">
+            <img src="/scripts/og/x/hodl-shot.png" alt="" />
+            <i><em>AUTOPILOT</em> · BUILD #8 · CRYPTO WINTER · 10:00 INTO A REAL RUN</i>
+        </div>
+        <h1>HODL</h1>
+        <p>Ten minutes is all the bounty asks.<br />The Long Winter shows up at minute ten.</p>
+        <div class="fine">
+            <span class="brand">BEARPROOF</span><span>·</span
+            ><span>TODAY'S DAILY: <b>CRYPTO WINTER</b> · BOUNTY: <b>TEN MINUTE HODL</b></span>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

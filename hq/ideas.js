@@ -75,10 +75,16 @@
     }
 
     // --- Turnstile, as in the game (game/src/turnstile.js): invisible for most people. ---
+    // The check starts when someone starts typing, so on a slow phone it has usually finished by the time they
+    // press Send. A token is single use and lives five minutes; the widget refreshes it on its own.
     let siteKey;
     let loading = null;
     let widgetId = null;
-    let pending = null;
+    let running = false; // a check is under way
+    let ready = null; // { token, at }: a token nobody has used yet
+    let waiter = null; // resolves the token a submit is waiting for
+    let needsTap = false;
+    let lastError = '';
 
     async function key() {
         if (siteKey !== undefined) return siteKey;
@@ -101,68 +107,128 @@
             s.src =
                 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__bearproofIdeasTurnstile';
             s.async = true;
-            s.onerror = () => reject(new Error('turnstile failed to load'));
+            s.onerror = () => {
+                loading = null; // let a later try load it again
+                reject(new Error('turnstile failed to load'));
+            };
             document.head.appendChild(s);
         });
         return loading;
     }
 
     function hint(on) {
+        needsTap = on;
         $('#ideaTsHint').hidden = !on;
     }
 
-    async function token(sitekey) {
+    function deliver(t) {
+        running = false;
+        if (waiter) waiter(t);
+        else if (t) ready = { token: t, at: Date.now() };
+    }
+
+    /** Run the check: render the widget the first time, reset it after. Resolves false if it can't start. */
+    async function check() {
+        running = true;
+        const sitekey = await key();
         let ts;
         try {
+            if (!sitekey) throw new Error('no site key');
             ts = await loadTurnstile();
         } catch {
-            return null;
+            lastError = sitekey ? 'script' : '';
+            running = false;
+            return false;
         }
+        try {
+            if (widgetId !== null) {
+                ts.reset(widgetId);
+                return true;
+            }
+            widgetId = ts.render($('#ideaTs'), {
+                sitekey,
+                appearance: 'interaction-only',
+                theme: 'dark',
+                'refresh-expired': 'auto',
+                callback: (t) => {
+                    lastError = '';
+                    hint(false);
+                    deliver(t);
+                },
+                'error-callback': (code) => {
+                    lastError = String(code || 'error');
+                    hint(false);
+                    deliver(null);
+                    return true; // handled: no console noise
+                },
+                'expired-callback': () => {
+                    ready = null;
+                },
+                'before-interactive-callback': () => hint(true),
+                'after-interactive-callback': () => hint(false)
+            });
+            return true;
+        } catch {
+            lastError = 'render';
+            running = false;
+            return false;
+        }
+    }
+
+    function warmUp() {
+        if (widgetId === null && !running) check();
+    }
+
+    /**
+     * A fresh token, or null. Waits up to 45 s, or 3 minutes once the check wants a tap (the hint under the box
+     * says so).
+     */
+    function token() {
+        if (ready && Date.now() - ready.at < 280000) {
+            const t = ready.token;
+            ready = null;
+            return Promise.resolve(t);
+        }
+        ready = null;
         return new Promise((resolve) => {
-            let timer = setTimeout(() => finish(null), 15000);
-            let settled = false;
-            function finish(t) {
-                if (settled) return;
-                settled = true;
-                clearTimeout(timer);
-                pending = null;
-                hint(false);
+            const t0 = Date.now();
+            let timer = null;
+            const finish = (t) => {
+                if (!waiter) return;
+                waiter = null;
+                clearInterval(timer);
                 resolve(t);
-            }
-            pending = {
-                finish,
-                interactive() {
-                    hint(true);
-                    clearTimeout(timer);
-                    timer = setTimeout(() => finish(null), 120000);
-                }
             };
-            try {
-                if (widgetId !== null) {
-                    ts.reset(widgetId);
-                    return;
+            waiter = finish;
+            timer = setInterval(() => {
+                if (Date.now() - t0 > (needsTap ? 180000 : 45000)) {
+                    lastError = lastError || 'timeout';
+                    finish(null);
                 }
-                widgetId = ts.render($('#ideaTs'), {
-                    sitekey,
-                    appearance: 'interaction-only',
-                    theme: 'dark',
-                    callback: (t) => pending && pending.finish(t),
-                    'error-callback': () => {
-                        if (pending) pending.finish(null);
-                        return true;
-                    },
-                    'expired-callback': () => ts.reset(widgetId),
-                    'before-interactive-callback': () => pending && pending.interactive(),
-                    'after-interactive-callback': () => hint(false)
+            }, 500);
+            if (!running)
+                check().then((ok) => {
+                    if (!ok) finish(null);
                 });
-            } catch {
-                finish(null);
-            }
         });
+    }
+
+    function botMessage() {
+        const code = lastError ? ` (${lastError})` : '';
+        return `The bot check didn't finish${code}. Press Send to try again. Inside the X app? Open bearproof.app in your phone's browser instead.`;
     }
 
     function count() {
         $('#ideaCount').textContent = `${$('#ideaText').value.length} / ${MAX}`;
+    }
+
+    async function post(text, turnstileToken) {
+        const r = await fetch('/api/ideas', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ text, turnstileToken })
+        });
+        return { r, data: await r.json().catch(() => null) };
     }
 
     async function submit(e) {
@@ -175,13 +241,16 @@
         say('Sending…');
         try {
             const sitekey = await key();
-            const turnstileToken = sitekey ? await token(sitekey) : null;
-            const r = await fetch('/api/ideas', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ text, turnstileToken })
-            });
-            const data = await r.json().catch(() => null);
+            let t = sitekey ? await token() : null;
+            if (sitekey && !t) t = await token(); // one more go: a check can fail once on a flaky connection
+            if (sitekey && !t) return say(botMessage(), 'bad');
+            let { r, data } = await post(text, t);
+            if (r.status === 403 && sitekey) {
+                // Rejected by the server (used, expired or failed): one retry with a fresh token.
+                const t2 = await token();
+                if (!t2) return say(botMessage(), 'bad');
+                ({ r, data } = await post(text, t2));
+            }
             if (r.ok && data && data.ok) {
                 say(
                     'Sent. The AI reads the ideas box every night at 21:00 UTC, before it writes the next ballot.',
@@ -190,6 +259,8 @@
                 $('#ideaForm').reset();
                 count();
                 load();
+            } else if (r.status === 403) {
+                say(botMessage(), 'bad');
             } else {
                 say(
                     (data && data.error && data.error.message) ||
@@ -208,5 +279,8 @@
     if (!form) return;
     form.addEventListener('submit', submit);
     $('#ideaText').addEventListener('input', count);
+    // Start the bot check as soon as someone starts writing, not when they press Send.
+    $('#ideaText').addEventListener('focus', warmUp);
+    $('#ideaText').addEventListener('input', warmUp);
     load();
 })();

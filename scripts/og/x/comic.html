@@ -1,0 +1,271 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* 30 Sep in four panels: a player's idea was blocked by the ideas box's bot check (their screenshot),
+               the fix went live the same afternoon (6bd5246, 17:40 UTC), an idea for an upgrade guide came in at
+               20:35 UTC (/api/ideas, quoted exactly), and the AI put "Field Guide" on the Build #10 ballot as
+               "suggested by a player" (agent/proposals/build-9.json). It doesn't claim the two players are one. */
+            html,
+            body {
+                background:
+                    radial-gradient(circle, rgba(0, 0, 0, 0.18) 1.4px, transparent 1.8px) 0 0 / 14px
+                        14px,
+                    #f5d547;
+            }
+            .title {
+                position: absolute;
+                left: 50px;
+                right: 50px;
+                top: 26px;
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+            }
+            .title h1 {
+                margin: 0;
+                font: 400 64px/1 'Jersey 10';
+                color: #1a1a1a;
+                letter-spacing: 0.02em;
+            }
+            .title span {
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.1em;
+                color: #1a1a1a;
+            }
+            .grid {
+                position: absolute;
+                left: 40px;
+                right: 40px;
+                top: 104px;
+                bottom: 30px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 16px;
+            }
+            .p {
+                position: relative;
+                border: 6px solid #111;
+                background: #fffdf5;
+                box-shadow: 8px 8px 0 #111;
+                overflow: hidden;
+            }
+            .p .cap {
+                position: absolute;
+                left: 0;
+                top: 0;
+                padding: 10px 16px 8px;
+                max-width: 88%;
+                background: #111;
+                color: #fffdf5;
+                font:
+                    700 22px/1.25 'Chalkboard SE',
+                    'Marker Felt',
+                    'Comic Sans MS',
+                    sans-serif;
+            }
+            .p .n {
+                position: absolute;
+                right: 12px;
+                top: 8px;
+                font: 400 34px/1 'Jersey 10';
+                color: #111;
+            }
+            .bubble {
+                position: absolute;
+                padding: 14px 18px;
+                border: 4px solid #111;
+                border-radius: 22px;
+                background: #fff;
+                font:
+                    700 24px/1.25 'Chalkboard SE',
+                    'Marker Felt',
+                    'Comic Sans MS',
+                    sans-serif;
+                color: #111;
+            }
+            .bubble::after {
+                content: '';
+                position: absolute;
+                width: 26px;
+                height: 26px;
+                background: #fff;
+                border-right: 4px solid #111;
+                border-bottom: 4px solid #111;
+            }
+            .bubble.down::after {
+                left: 40px;
+                bottom: -17px;
+                transform: rotate(45deg);
+            }
+            .phone {
+                position: absolute;
+                width: 190px;
+                height: 250px;
+                border-radius: 22px;
+                background: #111;
+                padding: 12px;
+            }
+            .phone .s {
+                width: 100%;
+                height: 100%;
+                border-radius: 12px;
+                background: #0b1117;
+                padding: 14px 12px;
+                font:
+                    400 13px/1.35 'JetBrains Mono',
+                    monospace;
+                color: #c9d2dc;
+            }
+            .phone .s .err {
+                margin-top: 10px;
+                color: #ff5a6e;
+                font-size: 13px;
+            }
+            .phone .s .btn {
+                margin-top: 12px;
+                padding: 8px 0;
+                text-align: center;
+                border-radius: 6px;
+                background: #7ef7a8;
+                color: #06261f;
+                font: 400 20px/1 'Jersey 10';
+            }
+            .boom {
+                position: absolute;
+                font: 400 64px/1 'Jersey 10';
+                color: #d8263e;
+                text-shadow: 3px 3px 0 #111;
+                transform: rotate(-8deg);
+            }
+            .ok {
+                color: #0a9a5e;
+            }
+            .note {
+                position: absolute;
+                padding: 14px 16px;
+                background: #fff7c2;
+                border: 3px solid #111;
+                box-shadow: 5px 5px 0 #111;
+                font:
+                    700 22px/1.3 'Chalkboard SE',
+                    'Marker Felt',
+                    'Comic Sans MS',
+                    sans-serif;
+                color: #111;
+                transform: rotate(-2deg);
+            }
+            .card {
+                position: absolute;
+                width: 300px;
+                padding: 14px 16px 16px;
+                border-radius: 14px;
+                background: #151326;
+                border: 5px solid #111;
+                box-shadow: 0 0 0 4px #ffcf4a inset;
+                color: #fff;
+                transform: rotate(4deg);
+            }
+            .card b {
+                display: block;
+                font: 400 44px/1 'Jersey 10';
+            }
+            .card i {
+                display: block;
+                margin-top: 10px;
+                padding: 6px 8px 4px;
+                border-radius: 6px;
+                text-align: center;
+                font: 400 22px/1 'Jersey 10';
+                font-style: normal;
+                letter-spacing: 0.08em;
+                color: #1a1200;
+                background: #ffcf4a;
+            }
+            .card span {
+                display: block;
+                margin-top: 10px;
+                font:
+                    400 15px/1.35 'JetBrains Mono',
+                    monospace;
+                color: #d6dbe4;
+            }
+            .sprite {
+                position: absolute;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="title">
+            <h1>FROM BUG TO BALLOT IN ONE DAY</h1>
+            <span>BEARPROOF · 30 SEP</span>
+        </div>
+        <div class="grid">
+            <div class="p">
+                <div class="cap">A player tries to send an idea.</div>
+                <div class="n">1</div>
+                <div class="phone" style="left: 60px; top: 90px">
+                    <div class="s">
+                        YOUR IDEA<br />Page that reviews all upgrades and what they do…
+                        <div class="btn">Send idea</div>
+                        <div class="err">The bot check didn't pass.</div>
+                    </div>
+                </div>
+                <div class="boom" style="left: 300px; top: 150px">NOPE.</div>
+                <div class="sprite" id="s1" style="left: 470px; top: 140px"></div>
+            </div>
+            <div class="p">
+                <div class="cap">They send us a screenshot. We find the bug.</div>
+                <div class="n">2</div>
+                <div class="note" style="left: 46px; top: 96px; width: 620px">
+                    The check only started when you pressed Send, and gave up after 15 s. Too soon
+                    on some phones.
+                </div>
+                <div class="boom ok" style="left: 60px; top: 250px">FIXED.</div>
+                <div class="bubble down" style="left: 290px; top: 236px; width: 380px">
+                    Now it starts while you type, and tries once more.
+                </div>
+            </div>
+            <div class="p">
+                <div class="cap">That evening, an idea lands in the box.</div>
+                <div class="n">3</div>
+                <div class="bubble down" style="left: 40px; top: 84px; width: 520px">
+                    “A page that explains the game a little bit more may be helpful. Each in-game
+                    upgrade and a description of the upgrade…”
+                </div>
+                <div class="sprite" id="s3" style="left: 600px; top: 150px"></div>
+            </div>
+            <div class="p">
+                <div class="cap">At 21:00 the AI reads it and puts it on the ballot.</div>
+                <div class="n">4</div>
+                <div class="card" style="left: 70px; top: 88px">
+                    <b>Field Guide</b><i>SUGGESTED BY A PLAYER</i
+                    ><span
+                        >Every weapon, passive and bear: its icon, what it does, what it evolves
+                        into.</span
+                    >
+                </div>
+                <div class="bubble down" style="left: 420px; top: 110px; width: 280px">
+                    Holders vote today. The winner gets built tonight.
+                </div>
+                <div class="sprite" id="s4" style="left: 470px; top: 250px"></div>
+            </div>
+        </div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            const art = (el, id, box, max, flipX) => {
+                const c = document.createElement('canvas');
+                put(c, id, box, { max });
+                if (flipX) c.style.transform = 'scaleX(-1)';
+                document.getElementById(el).append(c);
+            };
+            art('s1', 'bull', 150, 5);
+            art('s3', 'emblem_large', 130, 5);
+            art('s4', 'bull', 150, 5, true);
+            await ready();
+        </script>
+    </body>
+</html>

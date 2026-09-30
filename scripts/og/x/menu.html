@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The Build #10 ballot (agent/proposals/build-9.json) as a restaurant's chalkboard: three dishes, one
+               from a player's idea (from: "player"), two the AI's own. Descriptions follow the proposals. */
+            html,
+            body {
+                background:
+                    repeating-linear-gradient(
+                        90deg,
+                        rgba(0, 0, 0, 0.06) 0 2px,
+                        transparent 2px 9px
+                    ),
+                    linear-gradient(180deg, #5b3a22, #3e2716);
+            }
+            .frame {
+                position: absolute;
+                left: 50px;
+                top: 40px;
+                right: 50px;
+                bottom: 40px;
+                border-radius: 12px;
+                padding: 22px;
+                background: linear-gradient(135deg, #a4743f, #7a5129 40%, #8d5f33 70%, #6a4524);
+                box-shadow:
+                    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+                    0 30px 70px rgba(0, 0, 0, 0.6);
+            }
+            .board {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                border-radius: 6px;
+                background:
+                    radial-gradient(
+                        ellipse 70% 60% at 45% 40%,
+                        rgba(255, 255, 255, 0.06),
+                        transparent 70%
+                    ),
+                    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.04), transparent 30%),
+                    #1f2a24;
+                box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.55);
+                color: #f2efe6;
+                font-family: 'Chalkduster', 'Chalkboard SE', 'Marker Felt', sans-serif;
+                overflow: hidden;
+            }
+            .smudge {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 30% 10% at 70% 20%,
+                        rgba(255, 255, 255, 0.05),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 25% 8% at 30% 60%,
+                        rgba(255, 255, 255, 0.04),
+                        transparent 70%
+                    );
+            }
+            .head {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 30px;
+                text-align: center;
+            }
+            .head small {
+                display: block;
+                font-size: 26px;
+                letter-spacing: 0.2em;
+                color: #cfe8d8;
+            }
+            .head h1 {
+                margin: 10px 0 0;
+                font-size: 76px;
+                font-weight: 400;
+                color: #fff7d6;
+            }
+            .rule {
+                position: absolute;
+                left: 140px;
+                right: 140px;
+                top: 196px;
+                border-top: 3px dashed rgba(242, 239, 230, 0.55);
+            }
+            .dishes {
+                position: absolute;
+                left: 70px;
+                right: 330px;
+                top: 226px;
+                display: grid;
+                gap: 22px;
+            }
+            .dish b {
+                font-size: 40px;
+                font-weight: 400;
+                color: #fff7d6;
+            }
+            .dish .tag {
+                display: inline-block;
+                margin-left: 14px;
+                padding: 4px 12px;
+                border: 2px solid currentColor;
+                border-radius: 8px;
+                font-size: 18px;
+                letter-spacing: 0.08em;
+                vertical-align: 6px;
+            }
+            .dish .tag.p {
+                color: #ffd76a;
+            }
+            .dish .tag.a {
+                color: #8ff0b8;
+            }
+            .dish p {
+                margin: 8px 0 0;
+                font-size: 22px;
+                line-height: 1.4;
+                color: #e7e3d6;
+            }
+            .dish .dots {
+                float: right;
+                font-size: 30px;
+                color: #cfe8d8;
+            }
+            .chef {
+                position: absolute;
+                right: 70px;
+                top: 250px;
+                width: 230px;
+                text-align: center;
+            }
+            .chef {
+                padding-top: 40px;
+            }
+            .chef .hat {
+                position: absolute;
+                left: 118px;
+                top: 36px;
+                width: 60px;
+                height: 48px;
+                border-radius: 32px 32px 6px 6px;
+                background: #f2efe6;
+                box-shadow: inset 0 -9px 0 rgba(0, 0, 0, 0.14);
+                transform: rotate(12deg);
+                z-index: 2;
+            }
+            .chef p {
+                margin: 16px 0 0;
+                font-size: 20px;
+                line-height: 1.35;
+                color: #cfe8d8;
+            }
+            .foot {
+                position: absolute;
+                left: 60px;
+                right: 60px;
+                bottom: 26px;
+                display: block;
+                text-align: center;
+                font-size: 22px;
+                color: #e7e3d6;
+            }
+            .foot em {
+                font-style: normal;
+                color: #ffd76a;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="frame">
+            <div class="board">
+                <div class="smudge"></div>
+                <div class="head">
+                    <small>BEARPROOF · BUILD #10 · HOLDERS ORDER UNTIL 21:00 UTC</small>
+                    <h1>Tonight's Menu</h1>
+                </div>
+                <div class="rule"></div>
+                <div class="dishes">
+                    <div class="dish">
+                        <b>Field Guide</b><span class="tag p">SUGGESTED BY A PLAYER</span>
+                        <p>
+                            A Guide button on the start screen: every weapon, passive and bear, with
+                            its icon, what it does and what it evolves into.
+                        </p>
+                    </div>
+                    <div class="dish">
+                        <b>Stop Loss</b><span class="tag a">THE AI'S PICK</span>
+                        <p>
+                            Drop under 25% HP and a stop-loss fires, at most once a minute, blasting
+                            every bear near you away.
+                        </p>
+                    </div>
+                    <div class="dish">
+                        <b>Short Squeeze</b><span class="tag a">THE AI'S PICK</span>
+                        <p>
+                            Once a run at 3:00, every bear on screen turns and runs from you for 5
+                            seconds. Chase them down for double XP.
+                        </p>
+                    </div>
+                </div>
+                <div class="chef">
+                    <div class="hat"></div>
+                    <div id="bull"></div>
+                    <p>Chef: the AI.<br />Cooks the winner at 21:00 UTC, ready by 00:00.</p>
+                </div>
+                <div class="foot">
+                    Order with a wallet signature, <em>no transaction</em> · square-root vote
+                    weights · anyone can suggest a dish in the ideas box
+                </div>
+            </div>
+        </div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            const c = document.createElement('canvas');
+            put(c, 'bull', 170, { max: 6 });
+            document.getElementById('bull').append(c);
+            await ready();
+        </script>
+    </body>
+</html>

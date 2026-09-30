@@ -1,0 +1,260 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* A player's bug report and the AI's fix, as a support ticket. The report is quoted from the player's
+               reply on X (30 Sep); the fix is devlog/build-9.md "Operator input" and the session log (21:30-21:31
+               UTC). Honest about the limit: the AI couldn't test that phone. */
+            html,
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 60% 70% at 30% 40%,
+                        rgba(22, 224, 138, 0.1),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #0d1218 0%, #080b0f 100%);
+            }
+            .brand {
+                left: 64px;
+                top: 44px;
+            }
+            .card {
+                position: absolute;
+                left: 64px;
+                top: 120px;
+                width: 900px;
+                bottom: 60px;
+                border-radius: 16px;
+                background: #f7f8fa;
+                color: #1d2430;
+                box-shadow: 0 40px 90px rgba(0, 0, 0, 0.6);
+                overflow: hidden;
+            }
+            .bar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px 30px;
+                background: #e9edf2;
+                border-bottom: 1px solid #d5dbe3;
+                font:
+                    400 20px/1 'JetBrains Mono',
+                    monospace;
+                color: #5b6778;
+            }
+            .bar b {
+                font-weight: 400;
+                color: #1d2430;
+            }
+            .body {
+                padding: 26px 30px 0;
+            }
+            h2 {
+                margin: 0;
+                font:
+                    700 36px/1.15 'Avenir Next',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #121820;
+            }
+            .meta {
+                margin-top: 12px;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .chip {
+                padding: 6px 12px;
+                border-radius: 999px;
+                font:
+                    600 17px/1 'Avenir Next',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                background: #e9edf2;
+                color: #334155;
+            }
+            .chip.bug {
+                background: #fde2e4;
+                color: #b4232f;
+            }
+            .chip.dev {
+                background: #dff7ec;
+                color: #0a7a4b;
+            }
+            .msg {
+                margin-top: 22px;
+                display: grid;
+                grid-template-columns: 54px 1fr;
+                gap: 16px;
+            }
+            .av {
+                width: 54px;
+                height: 54px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font:
+                    700 22px/1 'Avenir Next',
+                    sans-serif;
+                color: #fff;
+                background: #6b7a90;
+            }
+            .av.ai {
+                background: #0a7a4b;
+            }
+            .who {
+                font:
+                    600 18px/1 'Avenir Next',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #334155;
+            }
+            .who span {
+                font-weight: 400;
+                color: #7a8699;
+            }
+            .text {
+                margin-top: 8px;
+                padding: 16px 18px;
+                border-radius: 12px;
+                background: #eef1f5;
+                font:
+                    500 22px/1.4 'Avenir Next',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #1d2430;
+            }
+            .text.ai {
+                background: #e6f6ee;
+            }
+            .text code {
+                font:
+                    400 18px/1 'JetBrains Mono',
+                    monospace;
+                padding: 2px 6px;
+                border-radius: 5px;
+                background: rgba(10, 122, 75, 0.12);
+            }
+            .card .foot {
+                position: absolute;
+                left: 30px;
+                right: 410px;
+                bottom: 30px;
+                font:
+                    500 18px/1.45 'Avenir Next',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #5b6778;
+            }
+            .stamp {
+                position: absolute;
+                right: 44px;
+                bottom: 40px;
+                padding: 10px 18px 6px;
+                border: 6px solid #0a9a5e;
+                border-radius: 10px;
+                font: 400 56px/1 'Jersey 10';
+                letter-spacing: 0.08em;
+                color: #0a9a5e;
+                transform: rotate(-9deg);
+                opacity: 0.9;
+            }
+            .side {
+                position: absolute;
+                left: 1010px;
+                right: 64px;
+                top: 150px;
+            }
+            .kicker {
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.12em;
+                color: #f5c542;
+            }
+            .side h1 {
+                margin: 14px 0 0;
+                font: 400 88px/0.9 'Jersey 10';
+                color: #eaf0f5;
+            }
+            .side h1 em {
+                font-style: normal;
+                color: var(--green);
+            }
+            .side p {
+                margin: 26px 0 0;
+                font-size: 21px;
+                line-height: 1.5;
+                color: #b9c4cf;
+            }
+            .side p b {
+                font-weight: 400;
+                color: #eaf0f5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="card">
+            <div class="bar">
+                <span>bug report · via X · <b>30 Sep</b></span
+                ><span>fix shipped in <b>Build #9</b></span>
+            </div>
+            <div class="body">
+                <h2>All the characters vanish mid-run on a Samsung A52 (Chrome)</h2>
+                <div class="meta">
+                    <span class="chip bug">bug</span><span class="chip">Android · Chrome</span
+                    ><span class="chip dev">passed on by the operator</span>
+                </div>
+                <div class="msg">
+                    <div class="av">P</div>
+                    <div>
+                        <div class="who">A player <span>· 30 Sep</span></div>
+                        <div class="text">
+                            “The game was still running, but all the characters suddenly disappeared
+                            from the screen.”
+                        </div>
+                    </div>
+                </div>
+                <div class="msg">
+                    <div class="av ai">AI</div>
+                    <div>
+                        <div class="who">The Build Agent <span>· Build #9 devlog</span></div>
+                        <div class="text ai">
+                            “The likely cause is Chrome dropping the canvas's GPU context, which
+                            leaves the baked sprite canvases blank. […] I can't reproduce that phone
+                            here, so this is what I changed and tested, not proof that it's fixed on
+                            that device.”
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="foot">
+                Status: live in Build #9 since 1 Oct, 00:00 UTC. The game now repaints its sprites
+                when Chrome gives the canvas back, or when you return to the page.
+            </div>
+            <div class="stamp">FIX SHIPPED</div>
+        </div>
+        <div class="side">
+            <div class="kicker">BUILD #9 · A PLAYER'S BUG</div>
+            <h1>YOU REPORT IT.<br /><em>THE AI FIXES IT.</em></h1>
+            <p>
+                A player told us on X. We passed it to the AI as a note for the night. It wrote the
+                fix,
+                <b>245 tests</b> passed, and it said plainly what it could and couldn't check.
+            </p>
+            <p>Seen it again? Tell us: every report goes on the AI's list.</p>
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            await ready();
+        </script>
+    </body>
+</html>

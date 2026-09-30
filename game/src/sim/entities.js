@@ -537,7 +537,7 @@ export class Mine {
 }
 
 export class XpOrb {
-    constructor(x, y, value) {
+    constructor(x, y, value, fall = 0) {
         this.x = x;
         this.y = y;
         this.value = value;
@@ -545,8 +545,16 @@ export class XpOrb {
         this.speed = 0;
         this.dead = false;
         this.vacuum = false; // pulled in from anywhere by a Magnet crate
+        // A jackpot candle falls for `fall` s before it lands: until then it can't be picked up or pulled.
+        this.fall = fall;
+        this.fallMax = fall;
     }
     update(dt, sim) {
+        if (this.fall > 0) {
+            this.fall = Math.max(0, this.fall - dt);
+            if (this.fall === 0) sim.emit({ t: 'candleLand', x: this.x, y: this.y });
+            return;
+        }
         this.life -= dt;
         if (this.life <= 0) {
             this.dead = true;

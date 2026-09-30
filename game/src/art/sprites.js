@@ -177,6 +177,8 @@ export const ICON_GROUPS = {
 
 const T = '.';
 const cache = new Map();
+// Bumped whenever the cache is dropped, so other caches of baked canvases (the renderer's) can follow.
+let generation = 0;
 
 function makeCanvas(w, h) {
     const doc = globalThis.document;
@@ -184,6 +186,7 @@ function makeCanvas(w, h) {
         const c = doc.createElement('canvas');
         c.width = w;
         c.height = h;
+        watchCanvas(c);
         return c;
     }
     const Offscreen = globalThis.OffscreenCanvas;
@@ -289,7 +292,25 @@ export function bakeGlow(id, scale = 1, { flip = false } = {}) {
     return frames;
 }
 
-/** Drop every baked canvas (e.g. after a DPR change). */
+/** Drop every baked canvas (e.g. after a DPR change, or a lost canvas context). */
 export function clearSpriteCache() {
     cache.clear();
+    generation++;
+}
+
+/** Counts cache drops: a cache of baked canvases elsewhere should empty itself when this changes. */
+export function spriteCacheGeneration() {
+    return generation;
+}
+
+/**
+ * Chrome on Android can drop the GPU context of a 2D canvas (low memory, a GPU process reset). A baked canvas
+ * then comes back blank and would never be painted again, so the sprites vanish while everything drawn fresh
+ * each frame still shows. When any baked canvas loses or gets back its context, bake everything again.
+ */
+export function watchCanvas(c) {
+    if (!c || typeof c.addEventListener !== 'function') return c;
+    c.addEventListener('contextlost', clearSpriteCache);
+    c.addEventListener('contextrestored', clearSpriteCache);
+    return c;
 }

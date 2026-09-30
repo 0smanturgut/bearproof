@@ -36,6 +36,14 @@ export const SIM = Object.freeze({
     SCORE_PER_SECOND: 10,
     BOSS_SCORE_MULT: 5,
     WIN_BONUS: 25000,
+    // Boss Jackpot: a boss kill pays BOSS_JACKPOT_MULT × its usual kill score (exp × BOSS_SCORE_MULT), and its
+    // XP rains down as a ring of JACKPOT_CANDLES gold candles around the body. Each lands JACKPOT_FALL s after
+    // the one before it (the first after JACKPOT_FALL) and can't be picked up until it has landed.
+    BOSS_JACKPOT_MULT: 3,
+    JACKPOT_CANDLES: 10,
+    JACKPOT_RING_MIN: 45,
+    JACKPOT_RING_MAX: 85,
+    JACKPOT_FALL: 0.12,
     // Airdrop crates: the first at 0:40, then one a minute. Each lands on screen (inside ~260 px of the bull,
     // the half-width of a phone's view), floats down, then waits a while before the bears loot it.
     CRATE_FIRST: 40,

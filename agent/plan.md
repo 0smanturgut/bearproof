@@ -1,41 +1,36 @@
-# Build #8 plan: Whale Alert
+# Build #9 plan: Boss Jackpot
 
 ## Regression check first
 
-Build #7 live (24 h): 48 verified runs, 15 players, median 4:55 (Build #6, 48 h: 2:14 over 32 runs), p75 10:21
-(was 8:56), best 20:00 (was 16:19), 0 wins (was 2). Doomposters fell from the top killer (26.7%) to 6.3%, which is
-what Build #7 was for. Grizzlies and rug pullers now lead at 18.8% each (rug pullers were 13.3%). Rejected replays
-0 → 0. `playtest --compare build-6`: 3:41 → 3:49 on the same 40 seeds, the known effect of Build #7. Nothing
-broke. Worth noting: the bull's median is 2:32 against Pepe's 7:04 (Build #6: 0:54 against 7:19). That gap was
-there before Build #7, and on the autopilot the two characters are even, so it's probably who plays which. Small
-sample.
+Build #8 live (24 h): 220 verified runs, 45 players, all Daily, median 4:20 (Build #7, 48 h: 4:55 over 48 runs),
+p75 9:40 (was 10:21), best 20:00 (same), 1 win (was 0), boss kills per run 0.33 (was 0.52). Rug pullers jumped to
+37% of deaths (was 18.8%). Rejected replays 0 → 0. `playtest --compare build-7`: 3:49 → 3:35 (the known RNG shift
+from the whale). The day's Daily was Crypto Winter + Bull Run (+25% spawn rate). `playtest --twist bull_run --runs
+80 --compare build-7`: rug puller deaths 22% → 19%, so the whale doesn't feed them; the spike is most likely the
+day's combo landing on Rug Season (1:00–2:00) with many new players. Nothing to fix.
 
 ## Feature
 
-No vote (the third night running). Backlog #1 (Rug Lord's phase 2) has shipped. #2 (Leverage evolution) serves a
-passive that isn't in Build #7's top ten. #3 is the whale event, and every run gets to see it:
+Holders' vote: Boss Jackpot (a player's idea from the ideas box, 2 wallets voted). A boss kill:
 
-- **Whale Alert** at 1:27: a toast and a blinking marker on the screen edge the whale will come from.
-- At 1:30 a whale swims across the screen, level with the bull and 70 to 130 units above or below it, at 150
-  units/s. Bears it touches get shoved out of its lane and dazed (slowed 50% for 1.2 s). Bosses don't move.
-- It drops an XP candle every 50 units it swims: 26 candles of 12 XP (312 XP, about a level and a half at 1:30),
-  if you go and get them.
-- Once per run. The bull's median run on Build #7 was 2:32, so even short runs see it.
-- Sim: `Whale` in entities.js, SIM constants in content.js, `_whaleTick` in sim.js. The lane and the side come
-  from `sim.rng` → `SIM_VERSION` 7 (update the pin in twist.test.js).
-- Client: a whale sprite drawn from scratch (creatures.js, registered in sprites.js), an edge marker, a spray of
-  water on shoved bears, a low whale call, and a toast.
+- pays a jackpot: 3× the boss's usual kill score (Rug Lord 2,500 → 7,500), `SIM.BOSS_JACKPOT_MULT`;
+- rains its XP down as a ring of 10 gold candles around the body (same total XP, so balance stays put), each
+  falling in with a short stagger (`XpOrb.fall`: can't be picked up or pulled until it lands);
+- shows the payout as a big gold "JACKPOT +7,500" over the body, a coin-cascade sound, gold sparks raining.
+
+Operator note: recover from a lost 2D canvas context (Android Chrome): on `contextrestored` and when the page is
+visible again, empty the sprite cache (`sprites.js`) and the renderer's `_cache`, so everything re-bakes.
+
+Score changes → `SIM_VERSION` 8 (pin in twist.test.js). Bounty: keep or retune from data.
 
 ## Files
 
-- `game/src/sim/content.js`, `game/src/sim/entities.js`, `game/src/sim/sim.js`, `game/test/twist.test.js`
-- `game/src/art/creatures.js`, `game/src/art/sprites.js`, `game/src/render.js`, `game/src/game.js`,
-  `game/src/audio.js`
-- `game/test/whale.test.js` (new)
+- `game/src/sim/content.js`, `sim.js`, `entities.js`: jackpot score, candle ring, fall timer, event.
+- `game/src/game.js`, `fx.js`, `render.js`, `audio.js`: jackpot number, falling candles, sound, cache reset.
+- `game/src/art/sprites.js`: a cache-clear function.
+- `game/test/jackpot.test.js`: score, ring, fall, replay; cache rebuild test. `twist.test.js` pin.
 
-## Tests
+## Test
 
-`whale.test.js`: a warning, then exactly one whale per run at 1:30, crossing on screen; bears in its lane get
-shoved out and dazed while bosses don't; the candles add up to 312 XP; the whale is gone after it crosses; and a
-run through the whale replays bit for bit from its run log. Then `playtest --compare origin/main`, smoke shots
-(temporarily moving the whale to 0:43 so it's in the 0:45 shot), the art test and the three gates.
+Unit tests above, `npm run check`, smoke (screenshot with a boss spawn moved early, then revert), determinism,
+`playtest --compare origin/main`.

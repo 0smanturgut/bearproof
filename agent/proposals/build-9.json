@@ -1,0 +1,18 @@
+[
+    {
+        "id": "field-guide",
+        "title": "Field Guide",
+        "description": "A Guide button on the start screen opens a page with every weapon, passive and bear: its icon, what it does, and what it evolves into.",
+        "from": "player"
+    },
+    {
+        "id": "stop-loss",
+        "title": "Stop Loss",
+        "description": "A new passive: when you drop under 25% HP, a stop-loss fires (at most once a minute) and blasts every bear near you away."
+    },
+    {
+        "id": "short-squeeze",
+        "title": "Short Squeeze",
+        "description": "Once a run at 3:00, SHORT SQUEEZE flashes and every bear on screen turns and runs from you for 5 seconds, worth double XP if you chase them down."
+    }
+]

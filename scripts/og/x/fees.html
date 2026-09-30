@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Where $BPROOF's creator fees go, per 1 SOL, by the rules as they stand on 30 Sep:
+               - ClawPump keeps 25% of the creator fees (CREATOR_FEE_SHARE 0.75, docs/TREASURY.md);
+               - of our 75%, 10% buys $BPROOF and burns it (ClawPump token page, "Creator fee split"), 90% reaches the
+                 treasury;
+               - the Daily Pot is 40% of our share of the day's fees (the creator vault's accrual x 0.75, worker/src/
+                 cron.js), capped at 1 SOL a day;
+               - the rest stays in the treasury. "So far": ClawPump's agent earnings (2.931 SOL), /api/winners (3
+                 pots), /api/stats computeSpentUsd.measured ($21.36, builds #3-#8). Palette checked with the dataviz
+                 validator on this surface (burn/pot/treasury, all pairs). */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background: #0b1117;
+            }
+            .brand {
+                left: 64px;
+                top: 48px;
+            }
+            .kicker {
+                position: absolute;
+                left: 64px;
+                top: 126px;
+                font: 400 30px/1 'Jersey 10';
+                letter-spacing: 0.12em;
+                color: #8a97a5;
+            }
+            h1 {
+                position: absolute;
+                left: 60px;
+                top: 162px;
+                margin: 0;
+                font: 400 104px/0.9 'Jersey 10';
+                color: #eaf0f5;
+            }
+            h1 em {
+                font-style: normal;
+                color: var(--green);
+            }
+            svg {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .lab {
+                position: absolute;
+                font-size: 19px;
+                line-height: 1.35;
+                color: #aeb9c5;
+            }
+            .lab b {
+                display: block;
+                font: 400 34px/1 'Jersey 10';
+                letter-spacing: 0.04em;
+                color: #eaf0f5;
+                margin-bottom: 6px;
+            }
+            .lab b i {
+                font-style: normal;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 22px;
+                letter-spacing: 0;
+                color: #eaf0f5;
+                margin-right: 10px;
+            }
+            .lab.r {
+                text-align: right;
+            }
+            .sw {
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border-radius: 3px;
+                margin-right: 9px;
+                vertical-align: 1px;
+            }
+            .rule {
+                position: absolute;
+                left: 64px;
+                top: 376px;
+                font-size: 18px;
+                color: #8a97a5;
+                letter-spacing: 0.04em;
+            }
+            .sofar {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 1212px;
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 14px;
+            }
+            .sofar .t {
+                grid-column: 1 / -1;
+                font: 400 26px/1 'Jersey 10';
+                letter-spacing: 0.14em;
+                color: #8a97a5;
+            }
+            .cell {
+                padding: 16px 18px 14px;
+                background: #111a23;
+                box-shadow: inset 0 0 0 1px #1c2733;
+            }
+            .cell b {
+                display: block;
+                font: 400 52px/0.9 'Jersey 10';
+                color: #eaf0f5;
+            }
+            .cell span {
+                display: block;
+                margin-top: 8px;
+                font-size: 16px;
+                line-height: 1.35;
+                color: #aeb9c5;
+            }
+            .fine {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                bottom: 34px;
+                font-size: 16px;
+                line-height: 1.45;
+                color: #7a8794;
+            }
+            .fine b {
+                font-weight: 400;
+                color: #c9d2dc;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="brand">BEARPROOF</div>
+        <div class="kicker">$BPROOF · CREATOR FEES, FOLLOWED ON-CHAIN</div>
+        <h1>WHERE EVERY <em>1 SOL</em><br />OF FEES GOES.</h1>
+        <div class="rule">
+            By the rules as of 30 Sep · per 1 SOL of creator fees from trades on pump.fun
+        </div>
+        <svg id="flow" width="1200" height="1500" viewBox="0 0 1200 1500"></svg>
+        <div id="labels"></div>
+        <div class="sofar">
+            <div class="t">SO FAR · MEASURED</div>
+            <div class="cell">
+                <b>2.93 SOL</b><span>in creator fees to our share since launch on 23 Sep</span>
+            </div>
+            <div class="cell">
+                <b>3 POTS</b><span>paid to players on-chain, the 4th tonight</span>
+            </div>
+            <div class="cell">
+                <b>$21.36</b><span>of AI compute for 6 builds. The operator pays it for now.</span>
+            </div>
+        </div>
+        <div class="fine">
+            The Daily Pot is capped at 1 SOL a day and paid in $ANSEM (in SOL if the swap fails
+            twice). Burns:
+            <b>clawpump.tech/tokens/6akt…ttZX</b> · every spend is labelled on the ledger at
+            <b>bearproof.app</b>, with a Solscan link.
+        </div>
+        <script type="module">
+            import { brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const NS = 'http://www.w3.org/2000/svg';
+            const svg = document.getElementById('flow');
+            const mk = (tag, a) => {
+                const e = document.createElementNS(NS, tag);
+                for (const [k, v] of Object.entries(a)) e.setAttribute(k, v);
+                svg.append(e);
+                return e;
+            };
+            const NEUTRAL = '#c9d2dc',
+                CLAW = '#6b7682',
+                BURN = '#d9467a',
+                POT = '#bd8a06',
+                TREAS = '#4d8ce8';
+            const U = 900; // px per SOL
+            const Y0 = 480,
+                Y1 = 650,
+                Y2 = 820,
+                Y3 = 990,
+                H = 14;
+            // nodes: [x, width, y, color]
+            const fees = [150, U * 1.0, Y0, NEUTRAL];
+            const claw = [110, U * 0.25, Y1, CLAW];
+            const share = [375, U * 0.75, Y1, NEUTRAL];
+            const burn = [375, U * 0.075, Y2, BURN];
+            const treas = [472.5, U * 0.675, Y2, TREAS];
+            const pot = [450, U * 0.3, Y3, POT];
+            const stays = [750, U * 0.375, Y3, TREAS];
+            // a ribbon from a slice of the parent's bottom edge to the child's top edge
+            const ribbon = (px, pw, child, color, op = 0.34) => {
+                const [cx, cw, cy] = child;
+                const y0 = px[1] + H,
+                    y1 = cy,
+                    m = (y0 + y1) / 2;
+                const x0 = px[0],
+                    x1 = cx;
+                mk('path', {
+                    d: `M${x0},${y0} C${x0},${m} ${x1},${m} ${x1},${y1} L${x1 + cw},${y1} C${x1 + cw},${m} ${x0 + pw},${m} ${x0 + pw},${y0} Z`,
+                    fill: color,
+                    opacity: op
+                });
+            };
+            // fees -> clawpump (left 25%), share (right 75%)
+            ribbon([fees[0], fees[2]], claw[1], claw, CLAW, 0.4);
+            ribbon([fees[0] + claw[1], fees[2]], share[1], share, NEUTRAL, 0.2);
+            // share -> burn (left 10%), treasury (right 90%)
+            ribbon([share[0], share[2]], burn[1], burn, BURN, 0.45);
+            ribbon([share[0] + burn[1], share[2]], treas[1], treas, TREAS, 0.3);
+            // treasury -> pot (0.30), stays (0.375)
+            ribbon([treas[0], treas[2]], pot[1], pot, POT, 0.42);
+            ribbon([treas[0] + pot[1], treas[2]], stays[1], stays, TREAS, 0.3);
+            for (const [x, w, y, c] of [fees, claw, share, burn, treas, pot, stays])
+                mk('rect', { x, y, width: w, height: H, rx: 4, fill: c });
+
+            const L = document.getElementById('labels');
+            const lab = (html, x, y, w, cls = '') => {
+                const d = document.createElement('div');
+                d.className = 'lab ' + cls;
+                d.innerHTML = html;
+                Object.assign(d.style, { left: x + 'px', top: y + 'px', width: w + 'px' });
+                L.append(d);
+            };
+            const sw = (c) => `<span class="sw" style="background:${c}"></span>`;
+            lab(`<b><i>1.00</i>CREATOR FEES</b>`, 150, Y0 - 50, 600);
+            lab(`<b><i>0.25</i>${sw(CLAW)}CLAWPUMP</b>The platform's share.`, 110, Y1 + 32, 250);
+            lab(`<b style="text-align:right"><i>0.75</i>OUR SHARE</b>`, 700, Y1 - 50, 350, 'r');
+            lab(
+                `<b><i>0.075</i>${sw(BURN)}BUY &amp; BURN</b>10% of our share buys $BPROOF and burns it, automatically on ClawPump.`,
+                70,
+                Y2 + 32,
+                290
+            );
+            lab(`<b style="text-align:right"><i>0.675</i>THE TREASURY</b>`, 700, Y2 - 50, 380, 'r');
+            lab(
+                `<b><i>0.30</i>${sw(POT)}THE DAILY POT</b>40% of our share, paid to the best players and the bounty clearers every night, in $ANSEM.`,
+                430,
+                Y3 + 32,
+                300
+            );
+            lab(
+                `<b><i>0.375</i>${sw(TREAS)}STAYS IN THE TREASURY</b>For the AI's compute and hosting, and every other labelled spend.`,
+                770,
+                Y3 + 32,
+                360
+            );
+            await ready();
+        </script>
+    </body>
+</html>

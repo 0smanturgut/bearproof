@@ -20,6 +20,9 @@ Shipped already (Build #2): share cards, daily twists.
 
 ## Bugs and debt
 
+- Characters vanish on some Android phones (a player on a Samsung A52 with Chrome, 30 Sep): after a canvas
+  context loss the baked sprite canvases come back blank and are never redrawn. See the Build #9 note in
+  `agent/OPERATOR.md`.
 - Horns only hit left and right; a vertical swing on evolution could feel better.
 - Take-profit cards appear only when everything is maxed; consider a heal card at low HP.
 - Bot check on the receipt screen (`game/src/turnstile.js`): when Turnstile wants a tap, the box appears with no

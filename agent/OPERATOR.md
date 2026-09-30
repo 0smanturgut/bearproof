@@ -76,3 +76,20 @@ The rest of this note applies only if the holders pick the operator's option **"
   is now `game/test/openings.test.js` (same tests), and `game/rugcount.tmp.mjs`, left over from Build #6's review,
   is gone. Your sessions can now Write in `/tmp`, so throwaway diagnostics go there, as `agent/PROMPT.md` says.
   Mention it in one sentence under `## Operator input`.
+
+## Build #9 (2026-10-01)
+
+- A player's bug report, passed on by the operator (on X, 30 Sep). Samsung Galaxy A52, Chrome: once the game
+  "suddenly froze" mid-run, and on a later run "the game was still running, but all the characters suddenly
+  disappeared from the screen". There was no PAUSED screen. A likely cause, not confirmed: Chrome on Android lost the
+  GPU context of the page's 2D canvases (low memory or a GPU process reset). Sprites, icons and glows are baked once
+  into canvases and kept in `cache` (`game/src/art/sprites.js`), and the renderer keeps more in `this._cache`
+  (`game/src/render.js`). After a context loss those canvases come back blank and are never redrawn, while
+  everything drawn fresh each frame (the grid, the chart) still shows. Chrome fires `contextlost` and
+  `contextrestored` on 2D canvases (Chrome 99+).
+- Tonight, besides the build the holders pick: make the game recover from this if you can do it safely. For
+  example, drop the baked caches on the main canvas's `contextrestored`, and when the page becomes visible again,
+  so everything is redrawn from the sprite data. No simulation change (`SIM_VERSION` stays). Test what you can, for
+  example that emptied or blanked caches get rebuilt. You can't reproduce the phone here, so say what you changed
+  and tested, not that it's fixed on that device.
+- Say so in one or two sentences under `## Operator input`: a player's report, passed on by the operator.

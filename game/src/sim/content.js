@@ -387,13 +387,15 @@ export const PASSIVES = {
 
 // ---------------------------------------------------------------------------
 // Enemies: the bear market. Archetype flags: ranged, dasher, splitter, shielded, bomber, cloner.
-// `score` defaults to `exp`.
+// `score` defaults to `exp`. `description` and `tip` are display only (the Field Guide); the sim never reads them.
 // ---------------------------------------------------------------------------
 export const ENEMIES = {
     RED_CANDLE: {
         id: 'red_candle',
         name: 'Red Candle',
         sprite: 'red_candle',
+        description: 'The bear market itself. Walks straight at you, one red candle at a time.',
+        tip: 'Anything kills it. Keep moving and let your weapons work.',
         hp: 15,
         speed: 110,
         damage: 10,
@@ -404,6 +406,8 @@ export const ENEMIES = {
         id: 'bag_holder',
         name: 'Bag Holder',
         sprite: 'bag_holder',
+        description: 'Slow, heavy, and still holding. Hits hard if it ever catches you.',
+        tip: 'It is the slowest bear on the chart. Walk away.',
         hp: 30,
         speed: 70,
         damage: 15,
@@ -414,6 +418,8 @@ export const ENEMIES = {
         id: 'paper_hands',
         name: 'Paper Hands',
         sprite: 'paper_hands',
+        description: 'Quicker than a red candle, and folds at the first real hit.',
+        tip: 'Comes back in the endgame. Area weapons clear them in packs.',
         hp: 25,
         speed: 95,
         damage: 12,
@@ -424,6 +430,9 @@ export const ENEMIES = {
         id: 'rug_puller',
         name: 'Rug Puller',
         sprite: 'rug_puller',
+        description:
+            'Every 3.5 s it locks on and dashes at you in a straight line, at twice its speed.',
+        tip: "It aims where you are when the dash starts and can't turn. Sidestep, don't outrun.",
         dasher: true,
         dashSpeed: 320,
         dashInterval: 3.5,
@@ -438,6 +447,8 @@ export const ENEMIES = {
         id: 'grizzly',
         name: 'Grizzly',
         sprite: 'grizzly',
+        description: 'Slow and huge. A shield halves your damage until it has soaked 60.',
+        tip: 'Its hits are the biggest of any bear. Never let one reach you.',
         shielded: true,
         shieldHp: 60,
         damageReduction: 0.5,
@@ -451,6 +462,8 @@ export const ENEMIES = {
         id: 'fud_cloud',
         name: 'FUD Cloud',
         sprite: 'fud_cloud',
+        description: 'Fast, fragile and everywhere. Spreads in a crowd.',
+        tip: 'Low HP, high damage. Kill it before it touches you.',
         hp: 20,
         speed: 130,
         damage: 18,
@@ -461,6 +474,8 @@ export const ENEMIES = {
         id: 'doomposter',
         name: 'Doomposter',
         sprite: 'doomposter',
+        description: 'Keeps its distance and posts at you. Types for 0.6 s before every shot.',
+        tip: 'When the typing bubble shows, step sideways. The post flies where you were.',
         ranged: true,
         // Fires from inside a phone's view (~520 across), and types for `windup` s before every shot.
         firingRange: 250,
@@ -479,6 +494,8 @@ export const ENEMIES = {
         id: 'ponzi',
         name: 'Ponzi',
         sprite: 'ponzi',
+        description: 'When it dies, two downlines spill out.',
+        tip: 'Kill it where your aura or orbit can finish the downlines.',
         splitter: true,
         splitInto: 'downline',
         splitCount: 2,
@@ -492,6 +509,8 @@ export const ENEMIES = {
         id: 'downline',
         name: 'Downline',
         sprite: 'downline',
+        description: 'Small and quick. Only ever comes out of a dead Ponzi.',
+        tip: 'Weak alone. Dangerous when ten of them arrive at once.',
         hp: 18,
         speed: 105,
         damage: 8,
@@ -502,6 +521,8 @@ export const ENEMIES = {
         id: 'margin_call',
         name: 'Margin Call',
         sprite: 'margin_call',
+        description: 'Gets close, lights a 1.4 s fuse, then blows up for 40 in a wide circle.',
+        tip: 'Once the fuse is lit, run. Kill it first and nothing explodes.',
         bomber: true,
         fuseRange: 80,
         fuseTime: 1.4,
@@ -517,6 +538,8 @@ export const ENEMIES = {
         id: 'sybil',
         name: 'Sybil',
         sprite: 'sybil',
+        description: 'One wallet, many faces. Spawns two weaker clones every 5.5 s.',
+        tip: 'Clones never clone. Kill the real one and the farm stops.',
         cloner: true,
         cloneCooldown: 5.5,
         cloneCount: 2,
@@ -537,6 +560,8 @@ export const BOSSES = {
         name: 'Rug Lord',
         sprite: 'rug_lord',
         tagline: 'He is pulling everything.',
+        description:
+            'Calls in 3 rug pullers every 6 s. Below half HP he pulls the rug: a warning, then the floor slides you toward him.',
         hp: 2500,
         speed: 80,
         damage: 40,
@@ -557,6 +582,8 @@ export const BOSSES = {
         name: 'Capitulation',
         sprite: 'capitulation',
         tagline: 'The biggest red candle you have ever seen.',
+        description:
+            'Calls in 5 red candles every 6 s. Slow, but it takes a long time to burn down.',
         hp: 4200,
         speed: 70,
         damage: 50,
@@ -574,6 +601,7 @@ export const BOSSES = {
         name: 'Liquidation',
         sprite: 'liquidation',
         tagline: 'Your position is being closed.',
+        description: 'Every 4.5 s it jumps 120 toward you. Keep your distance and keep moving.',
         hp: 6000,
         speed: 60,
         damage: 60,
@@ -590,6 +618,8 @@ export const BOSSES = {
         name: 'The Bear Market',
         sprite: 'bear_market',
         tagline: 'Survive this and the cycle turns.',
+        description:
+            'The final boss. Jumps 140 toward you every 4.5 s. Beat it and you win the run.',
         hp: 10000,
         speed: 55,
         damage: 75,
@@ -607,6 +637,8 @@ export const BOSSES = {
         name: 'The Long Winter',
         sprite: 'long_winter',
         tagline: 'Crypto winter has a face.',
+        description:
+            'Takes Liquidation’s place in Crypto Winter. Jumps 120 toward you every 4.5 s.',
         hp: 6200,
         speed: 55,
         damage: 60,

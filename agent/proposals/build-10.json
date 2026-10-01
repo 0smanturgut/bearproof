@@ -1,0 +1,17 @@
+[
+    {
+        "id": "rug-insurance",
+        "title": "Rug Insurance",
+        "description": "A new passive: the next rug-puller dash that hits you bounces off a shield with a loud CLANK and dazes the puller for 2 s, recharging every 20 s."
+    },
+    {
+        "id": "bull-charge",
+        "title": "Bull Charge",
+        "description": "Double-tap anywhere and the bull drops its horns and charges 150 units through every bear in the line, on an 8 s cooldown; Pepe does a frog leap instead."
+    },
+    {
+        "id": "the-degen",
+        "title": "The Degen",
+        "description": "A third character, an original raccoon in a hoodie, who starts with Dead Cat Bounce and one stack of Leverage: 80 HP, and every crit hits twice."
+    }
+]

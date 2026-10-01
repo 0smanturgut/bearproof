@@ -152,6 +152,7 @@
                 <div class="title-row">
                     <button id="btnFree" class="btn btn-ghost">FREE RUN</button>
                     <button id="btnBoard" class="btn btn-ghost">BOARD</button>
+                    <button id="btnGuide" class="btn btn-ghost">GUIDE</button>
                     <button id="btnSettings" class="btn btn-ghost btn-sq" aria-label="Settings">
                         <svg viewBox="0 0 8 8" aria-hidden="true">
                             <path d="M3 0h2v1h1v1h1v2H6v1H5v1H3V5H2V4H1V2h1V1h1zM3 2v2h2V2z" />
@@ -340,6 +341,26 @@
                     <h2 id="setTitle" class="screen-h">SETTINGS</h2>
                     <div id="settingsList" class="settings-list"></div>
                     <button id="btnSettingsBack" class="btn">DONE</button>
+                </div>
+            </section>
+
+            <section
+                id="screenGuide"
+                class="screen screen-guide"
+                hidden
+                aria-labelledby="guideTitle"
+            >
+                <div class="panel guide-panel">
+                    <h2 id="guideTitle" class="screen-h">FIELD GUIDE</h2>
+                    <div
+                        id="guideTabs"
+                        class="guide-tabs"
+                        role="tablist"
+                        aria-label="Field Guide sections"
+                    ></div>
+                    <p id="guideIntro" class="guide-intro"></p>
+                    <ul id="guideList" class="guide-list" role="tabpanel"></ul>
+                    <button id="btnGuideBack" class="btn">BACK</button>
                 </div>
             </section>
 

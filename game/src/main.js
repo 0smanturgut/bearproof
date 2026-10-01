@@ -19,6 +19,7 @@ import { bakeSprite } from './art/sprites.js';
 import * as api from './api.js';
 import { createBot } from './sim/bot.js';
 import { bountyText, readBounty } from './bounty.js';
+import { guideSections } from './guide.js';
 import {
     CHARACTERS,
     CHARACTER_IDS,
@@ -125,6 +126,11 @@ async function boot() {
         });
     });
     $('btnSettingsBack').addEventListener('click', () => ui.show(back));
+    $('btnGuide').addEventListener('click', () => {
+        back = 'screenTitle';
+        ui.showGuide(guideSections());
+    });
+    $('btnGuideBack').addEventListener('click', () => ui.show(back));
 
     game.startBackdrop(); // the title screen floats over the live build, played by the autopilot
     setupCharacterPick(prefs, persist);

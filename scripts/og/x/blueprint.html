@@ -1,0 +1,511 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Osman's proposal (1 Oct), drawn as an engineering blueprint stamped "draft, open for comment": the
+               game as a paid app on iOS and Android for a small one-time price; the store keeps its cut (15-30% is
+               the stores' published range); what is left after taxes buys $BPROOF on the open market and burns it,
+               every transaction on the public ledger; the web game stays free. Nothing here is built or decided,
+               and the sheet says so. No store logos. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background:
+                    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 / 25px 25px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 /
+                        25px 25px,
+                    linear-gradient(rgba(255, 255, 255, 0.11) 2px, transparent 2px) 0 0 / 125px
+                        125px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.11) 2px, transparent 2px) 0 0 /
+                        125px 125px,
+                    radial-gradient(
+                        ellipse 90% 70% at 45% 35%,
+                        #1a57c2 0%,
+                        #0e3f9d 55%,
+                        #082c77 100%
+                    );
+                color: #eef5ff;
+            }
+            .fold {
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(
+                        90deg,
+                        transparent 598px,
+                        rgba(255, 255, 255, 0.1) 600px,
+                        rgba(0, 0, 20, 0.14) 602px,
+                        transparent 605px
+                    ),
+                    linear-gradient(
+                        transparent 748px,
+                        rgba(255, 255, 255, 0.1) 750px,
+                        rgba(0, 0, 20, 0.14) 752px,
+                        transparent 755px
+                    );
+            }
+            .grain {
+                position: absolute;
+                inset: 0;
+                background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+                pointer-events: none;
+            }
+            svg.art {
+                position: absolute;
+                inset: 0;
+            }
+            svg.art * {
+                vector-effect: non-scaling-stroke;
+            }
+            .ln {
+                fill: none;
+                stroke: #eef5ff;
+                stroke-width: 3.5;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            .thin {
+                stroke-width: 1.5;
+            }
+            .lead {
+                stroke-width: 2;
+                stroke-dasharray: 3 9;
+            }
+            .dash {
+                stroke-width: 2.5;
+                stroke-dasharray: 12 10;
+            }
+            .t {
+                fill: #eef5ff;
+                stroke: none;
+                font-family: 'DIN Alternate', 'DIN Condensed', sans-serif;
+                font-weight: 700;
+            }
+            .hot {
+                stroke: #ffa040;
+            }
+            .flame {
+                filter: drop-shadow(0 0 14px rgba(255, 140, 40, 0.85));
+            }
+            .top {
+                position: absolute;
+                left: 70px;
+                right: 70px;
+                top: 62px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font:
+                    700 21px/1 'DIN Alternate',
+                    sans-serif;
+                letter-spacing: 0.16em;
+                color: rgba(238, 245, 255, 0.8);
+            }
+            .top .brand {
+                position: static;
+                color: #eef5ff;
+                text-shadow: none;
+            }
+            .top .brand canvas {
+                filter: grayscale(1) brightness(2.2);
+            }
+            h1 {
+                position: absolute;
+                left: 66px;
+                top: 124px;
+                margin: 0;
+                font:
+                    700 168px/0.86 'DIN Condensed',
+                    sans-serif;
+                letter-spacing: 0.01em;
+                color: #f6faff;
+            }
+            h1 em {
+                font-style: normal;
+                color: #ffa040;
+                text-shadow: 0 0 34px rgba(255, 140, 40, 0.55);
+            }
+            .sub {
+                position: absolute;
+                left: 70px;
+                top: 416px;
+                margin: 0;
+                font:
+                    700 29px/1 'DIN Alternate',
+                    sans-serif;
+                letter-spacing: 0.07em;
+                color: rgba(238, 245, 255, 0.88);
+            }
+            .stamp {
+                position: absolute;
+                right: 76px;
+                top: 248px;
+                padding: 12px 22px 6px;
+                border: 7px solid #ff8a2e;
+                border-radius: 8px;
+                transform: rotate(7deg);
+                text-align: center;
+                color: #ff8a2e;
+                filter: url(#ink);
+            }
+            .stamp b {
+                display: block;
+                font:
+                    700 78px/0.9 'DIN Condensed',
+                    sans-serif;
+                letter-spacing: 0.08em;
+            }
+            .stamp span {
+                display: block;
+                margin-top: 2px;
+                font:
+                    700 25px/1 'DIN Condensed',
+                    sans-serif;
+                letter-spacing: 0.16em;
+            }
+            .step {
+                position: absolute;
+                left: 470px;
+                width: 664px;
+            }
+            .step .hd {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            .step .n {
+                flex: none;
+                width: 50px;
+                height: 50px;
+                border: 3.5px solid #eef5ff;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font:
+                    700 34px/1 'DIN Condensed',
+                    sans-serif;
+                padding-top: 5px;
+            }
+            .step h2 {
+                margin: 6px 0 0;
+                font:
+                    700 58px/1 'DIN Condensed',
+                    sans-serif;
+                letter-spacing: 0.05em;
+            }
+            .step p {
+                margin: 2px 0 0 66px;
+                font:
+                    700 30px/1.24 'DIN Alternate',
+                    sans-serif;
+                color: rgba(238, 245, 255, 0.88);
+            }
+            .step.burn .n {
+                border-color: #ffa040;
+                color: #ffa040;
+            }
+            .step.burn h2 {
+                color: #ffa040;
+            }
+            .sp {
+                position: absolute;
+                filter: grayscale(1) brightness(1.9) contrast(1.1);
+                mix-blend-mode: screen;
+            }
+            .coinin {
+                position: absolute;
+                left: 196px;
+                top: 676px;
+                width: 108px;
+                text-align: center;
+                font:
+                    700 13px/1 'DIN Alternate',
+                    sans-serif;
+                letter-spacing: 0.14em;
+                color: rgba(238, 245, 255, 0.9);
+            }
+            .detail {
+                position: absolute;
+                left: 70px;
+                top: 1246px;
+                width: 566px;
+                height: 190px;
+                padding: 26px 22px 0 176px;
+            }
+            .detail i {
+                position: absolute;
+                left: 20px;
+                top: -15px;
+                padding: 6px 12px 3px;
+                background: #eef5ff;
+                font:
+                    700 19px/1 'DIN Alternate',
+                    sans-serif;
+                font-style: normal;
+                letter-spacing: 0.14em;
+                color: #0b3a94;
+            }
+            .detail h3 {
+                margin: 0;
+                font:
+                    700 46px/0.95 'DIN Condensed',
+                    sans-serif;
+                letter-spacing: 0.05em;
+            }
+            .detail p {
+                margin: 8px 0 0;
+                font:
+                    700 23px/1.25 'DIN Alternate',
+                    sans-serif;
+                color: rgba(238, 245, 255, 0.88);
+            }
+            .tb {
+                position: absolute;
+                left: 664px;
+                top: 1246px;
+                width: 468px;
+                height: 190px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: repeat(5, 1fr);
+            }
+            .tb div {
+                display: flex;
+                align-items: baseline;
+                gap: 12px;
+                padding: 9px 14px 0;
+                font:
+                    700 26px/1 'DIN Condensed',
+                    sans-serif;
+                letter-spacing: 0.06em;
+                white-space: nowrap;
+            }
+            .tb div.w {
+                grid-column: 1 / 3;
+            }
+            .tb small {
+                font:
+                    700 15px/1 'DIN Alternate',
+                    sans-serif;
+                letter-spacing: 0.16em;
+                color: rgba(238, 245, 255, 0.66);
+            }
+            .tb .you {
+                color: #ffa040;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="fold"></div>
+        <svg class="art" viewBox="0 0 1200 1500" width="1200" height="1500">
+            <defs>
+                <filter id="ink" x="-10%" y="-10%" width="120%" height="120%">
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.85"
+                        numOctaves="2"
+                        seed="7"
+                    />
+                    <feColorMatrix
+                        type="matrix"
+                        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.32"
+                    />
+                    <feComponentTransfer result="m">
+                        <feFuncA type="discrete" tableValues="0 1 1 1" />
+                    </feComponentTransfer>
+                    <feComposite in="SourceGraphic" in2="m" operator="in" />
+                </filter>
+                <marker
+                    id="ah"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="7"
+                    markerHeight="7"
+                    orient="auto-start-reverse"
+                >
+                    <path d="M0 0 L10 5 L0 10 Z" fill="#eef5ff" />
+                </marker>
+                <clipPath id="door">
+                    <path d="M180 1190 V1112 A70 58 0 0 1 320 1112 V1190 Z" />
+                </clipPath>
+                <linearGradient id="fl" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0" stop-color="#ff5a1f" />
+                    <stop offset="0.55" stop-color="#ff9a3c" />
+                    <stop offset="1" stop-color="#ffd76a" />
+                </linearGradient>
+            </defs>
+
+            <!-- sheet frame -->
+            <rect class="ln" x="28" y="28" width="1144" height="1444" />
+            <rect class="ln thin" x="44" y="44" width="1112" height="1412" />
+            <path class="ln thin" d="M70 468 H1130" />
+
+            <!-- 1: the phone -->
+            <rect class="ln" x="175" y="490" width="150" height="240" rx="24" />
+            <rect class="ln thin" x="186" y="514" width="128" height="190" rx="6" />
+            <path class="ln" d="M236 502 H264" />
+            <path class="ln thin" d="M232 717 H268" />
+            <!-- the coin going in -->
+            <circle class="ln" cx="394" cy="528" r="25" />
+            <text class="t" x="394" y="539" font-size="30" text-anchor="middle">$</text>
+            <path class="ln thin" d="M374 548 Q352 572 331 572" marker-end="url(#ah)" />
+            <path class="ln thin" d="M428 512 H446 M430 528 H452 M428 544 H446" />
+
+            <!-- the pipe -->
+            <path class="ln" d="M238 730 V770 M262 730 V916 M238 790 V916" />
+            <path class="ln" d="M238 984 V1030 M262 984 V1030" />
+            <!-- the store's branch and tank -->
+            <path
+                class="ln"
+                d="M238 770 H208 M238 790 H208 M176 770 H120 Q100 770 100 790 V820 M176 790 H126 Q120 790 120 796 V820"
+            />
+            <path class="ln" d="M176 764 L208 796 V764 L176 796 Z" />
+            <path class="ln thin" d="M192 780 V752 M180 752 H204" />
+            <rect class="ln" x="64" y="820" width="92" height="74" rx="8" />
+            <text class="t" x="110" y="866" font-size="24" text-anchor="middle">15–30%</text>
+
+            <!-- 3: the swap pump -->
+            <circle class="ln" cx="250" cy="950" r="34" />
+            <path class="ln thin" d="M232 941 H266" marker-end="url(#ah)" />
+            <path class="ln thin" d="M268 959 H234" marker-end="url(#ah)" />
+
+            <!-- coins in the pipe -->
+            <circle class="ln thin" cx="250" cy="752" r="8" />
+            <circle class="ln thin" cx="250" cy="840" r="8" />
+            <circle class="ln thin" cx="250" cy="884" r="8" />
+            <circle class="ln thin hot" cx="250" cy="1008" r="8" />
+
+            <!-- 4: the furnace -->
+            <rect class="ln" x="130" y="1030" width="240" height="176" rx="10" stroke-width="4.5" />
+            <path class="ln" d="M112 1206 H388" stroke-width="4.5" />
+            <g fill="#eef5ff">
+                <circle cx="146" cy="1046" r="3.5" />
+                <circle cx="354" cy="1046" r="3.5" />
+                <circle cx="146" cy="1190" r="3.5" />
+                <circle cx="354" cy="1190" r="3.5" />
+            </g>
+            <g class="flame" clip-path="url(#door)">
+                <path
+                    fill="url(#fl)"
+                    d="M196 1192 C182 1160 204 1146 210 1122 C222 1140 232 1140 236 1118 C240 1096 252 1088 250 1070 C270 1092 268 1118 280 1128 C290 1116 290 1104 298 1096 C304 1124 322 1140 308 1192 Z"
+                />
+                <path
+                    fill="#ffe9a8"
+                    d="M228 1192 C220 1172 236 1160 240 1146 C248 1158 258 1150 258 1134 C270 1150 282 1168 272 1192 Z"
+                />
+            </g>
+            <path class="ln" d="M180 1190 V1112 A70 58 0 0 1 320 1112 V1190" />
+            <rect class="ln" x="150" y="992" width="30" height="38" />
+            <g fill="#ffa040">
+                <rect x="160" y="970" width="9" height="9" opacity="0.95" />
+                <rect x="172" y="952" width="7" height="7" opacity="0.8" />
+                <rect x="156" y="938" width="6" height="6" opacity="0.62" />
+                <rect x="174" y="924" width="5" height="5" opacity="0.45" />
+                <rect x="164" y="910" width="4" height="4" opacity="0.3" />
+            </g>
+
+            <!-- leaders to the notes -->
+            <path class="ln lead" d="M336 610 H462" />
+            <path class="ln lead" d="M270 800 H462" />
+            <path class="ln lead" d="M290 950 H462" />
+            <path class="ln lead" d="M376 1120 H462" />
+
+            <!-- detail A: the web game -->
+            <rect class="ln dash" x="70" y="1246" width="566" height="190" rx="10" />
+            <rect class="ln" x="92" y="1288" width="132" height="104" rx="8" />
+            <path class="ln thin" d="M92 1312 H224" />
+            <g fill="#eef5ff">
+                <circle cx="104" cy="1300" r="3" />
+                <circle cx="115" cy="1300" r="3" />
+                <circle cx="126" cy="1300" r="3" />
+            </g>
+            <text class="t" x="158" y="1370" font-size="44" text-anchor="middle">$0</text>
+
+            <!-- title block -->
+            <rect class="ln" x="664" y="1246" width="468" height="190" />
+            <path
+                class="ln thin"
+                d="M664 1284 H1132 M664 1322 H1132 M664 1360 H1132 M664 1398 H1132 M898 1322 V1398"
+            />
+        </svg>
+
+        <div class="top">
+            <span class="brand">BEARPROOF</span>
+            <span>PROPOSAL 01 · MOBILE · SHEET 1 OF 1</span>
+        </div>
+        <h1>INSERT COIN.<br /><em>BURN</em> COIN.</h1>
+        <p class="sub">A PLAN FOR A PAID APP. NOT BUILT YET. TELL ME WHAT YOU THINK.</p>
+        <div class="stamp"><b>DRAFT</b><span>OPEN FOR COMMENT</span></div>
+
+        <div id="screen"></div>
+        <div class="coinin">INSERT COIN</div>
+
+        <div class="step" style="top: 585px">
+            <div class="hd">
+                <span class="n">1</span>
+                <h2>THE APP</h2>
+            </div>
+            <p>iOS and Android. One small price, paid once.</p>
+        </div>
+        <div class="step" style="top: 775px">
+            <div class="hd">
+                <span class="n">2</span>
+                <h2>THE STORE'S CUT</h2>
+            </div>
+            <p>15–30% of every sale stays with the store.</p>
+        </div>
+        <div class="step" style="top: 925px">
+            <div class="hd">
+                <span class="n">3</span>
+                <h2>THE SWAP</h2>
+            </div>
+            <p>What's left, after taxes, buys $BPROOF on the open market.</p>
+        </div>
+        <div class="step burn" style="top: 1087px">
+            <div class="hd">
+                <span class="n">4</span>
+                <h2>THE BURN</h2>
+            </div>
+            <p>And burns it. Every buy and every burn on the public ledger.</p>
+        </div>
+
+        <div class="detail">
+            <i>DETAIL A</i>
+            <h3>THE WEB GAME<br />STAYS FREE</h3>
+            <p>Same Daily, same seed, same prizes. No app or coin needed to play or win.</p>
+        </div>
+        <div class="tb">
+            <div class="w"><small>TITLE</small>THE BURN LOOP</div>
+            <div class="w"><small>STATUS</small>PROPOSED · NOT BUILT</div>
+            <div><small>DRAWN BY</small>OSMAN</div>
+            <div><small>CHECKED BY</small><span class="you">YOU</span></div>
+            <div><small>DATE</small>1 OCT 2026</div>
+            <div><small>REV</small>0</div>
+            <div class="w"><small>NOTE</small>NO PRICE PROMISES</div>
+        </div>
+        <div class="grain"></div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const screen = document.getElementById('screen');
+            const add = (id, box, x, y, max) => {
+                const c = document.createElement('canvas');
+                put(c, id, box, { max, glow: false });
+                c.className = 'sp';
+                c.style.left = x - c.width / 2 + 'px';
+                c.style.top = y - c.height / 2 + 'px';
+                screen.append(c);
+            };
+            add('bull', 80, 250, 622, 2);
+            add('rug_puller', 30, 214, 556, 1);
+            add('grizzly', 40, 286, 566, 1);
+            add('red_candle', 26, 204, 640, 1);
+            add('red_candle', 26, 296, 632, 1);
+            await ready();
+        </script>
+    </body>
+</html>

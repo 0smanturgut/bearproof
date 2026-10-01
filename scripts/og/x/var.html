@@ -1,0 +1,449 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The Build #9 regression check as a football VAR review. devlog/build-9.md, "Regression check":
+               rug pullers ended 37% of Build #8's runs (220 verified runs, 45 players), up from 18.8% on Build #7;
+               the AI replayed the 30 Sep twist (Bull Run, +25% spawns) on 80 seeds, Build #7 against #8, and
+               rug-puller deaths went 22% -> 19%; "The whale's shove only slows bears, it never speeds them up";
+               the spike is "most likely the day itself" (Crypto Winter + Bull Run packing the 1:00-2:00 Rug
+               Season, three times as many players, many new). "Nothing to fix." "Regressions first is a rule
+               @clawpumptech suggested." */
+            html,
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 70% 50% at 50% -10%,
+                        rgba(170, 200, 255, 0.16),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #070a12 0%, #04060a 100%);
+            }
+            .cond {
+                font-family: 'Avenir Next Condensed', 'Avenir Next', sans-serif;
+            }
+            .var {
+                position: absolute;
+                left: 56px;
+                top: 38px;
+                height: 58px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 0 18px;
+                background: #000;
+                box-shadow: inset 0 0 0 3px #fff;
+                font:
+                    800 46px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.06em;
+                color: #fff;
+            }
+            .var i {
+                width: 34px;
+                height: 24px;
+                border: 3px solid #fff;
+                border-radius: 3px;
+                position: relative;
+            }
+            .var i::after {
+                content: '';
+                position: absolute;
+                left: 9px;
+                bottom: -9px;
+                width: 10px;
+                height: 4px;
+                background: #fff;
+            }
+            .done {
+                position: absolute;
+                left: 236px;
+                top: 43px;
+                height: 48px;
+                padding: 0 26px;
+                display: grid;
+                place-items: center;
+                background: var(--green);
+                transform: skewX(-12deg);
+                font:
+                    800 30px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.08em;
+                color: #031a12;
+            }
+            .done span {
+                transform: skewX(12deg);
+            }
+            .tr {
+                position: absolute;
+                right: 56px;
+                top: 36px;
+                text-align: right;
+            }
+            .tr .brand {
+                position: static;
+                justify-content: flex-end;
+            }
+            .tr small {
+                display: block;
+                margin-top: 8px;
+                font-size: 17px;
+                letter-spacing: 0.08em;
+                color: var(--muted);
+            }
+            .incident {
+                position: absolute;
+                left: 56px;
+                right: 56px;
+                top: 124px;
+            }
+            .incident .k {
+                font-size: 21px;
+                letter-spacing: 0.12em;
+                color: var(--muted);
+            }
+            .incident h1 {
+                margin: 8px 0 0;
+                font:
+                    800 88px/0.95 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.01em;
+                color: #fff;
+            }
+            .incident h1 em {
+                font-style: normal;
+                color: var(--red);
+            }
+            .incident p {
+                margin: 10px 0 0;
+                font:
+                    600 27px/1.3 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.02em;
+                color: #c9d2dc;
+            }
+            .incident p b {
+                color: #fff;
+            }
+            .pane {
+                position: absolute;
+                top: 318px;
+                width: 730px;
+                height: 312px;
+                overflow: hidden;
+                background:
+                    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 40px 40px,
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 40px 40px,
+                    var(--ground);
+                box-shadow:
+                    0 0 0 3px #e8eef5,
+                    0 24px 50px rgba(0, 0, 0, 0.6);
+            }
+            .pane.a {
+                left: 56px;
+            }
+            .pane.b {
+                left: 814px;
+            }
+            .pane .bg canvas {
+                position: absolute;
+                opacity: 0.28;
+            }
+            .pane .sp {
+                position: absolute;
+            }
+            .pane .vig {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    ellipse 70% 70% at 50% 45%,
+                    transparent 55%,
+                    rgba(0, 0, 0, 0.6)
+                );
+                pointer-events: none;
+            }
+            .head {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                height: 46px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 16px;
+                background: rgba(0, 0, 0, 0.82);
+                z-index: 3;
+            }
+            .head b {
+                font:
+                    800 26px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.06em;
+                color: #fff;
+            }
+            .head span {
+                font-size: 16px;
+                letter-spacing: 0.08em;
+                color: #c9d2dc;
+            }
+            .head span i {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                margin-right: 8px;
+                border-radius: 50%;
+                background: var(--red);
+                vertical-align: -1px;
+            }
+            .stat {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 70px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                background: rgba(0, 0, 0, 0.86);
+                z-index: 3;
+            }
+            .stat span {
+                font:
+                    700 24px/1.1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.06em;
+                color: #c9d2dc;
+            }
+            .stat small {
+                display: block;
+                margin-top: 4px;
+                font:
+                    400 15px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.04em;
+                color: #8a97a5;
+            }
+            .stat b {
+                font:
+                    800 58px/1 'Avenir Next Condensed',
+                    sans-serif;
+                color: #fff;
+            }
+            .pane.b .stat b {
+                color: var(--green);
+            }
+            .ring {
+                position: absolute;
+                border: 4px solid #fff;
+                border-radius: 50%;
+                box-shadow: 0 0 18px rgba(255, 255, 255, 0.5);
+                z-index: 2;
+            }
+            .tag {
+                position: absolute;
+                padding: 6px 12px 4px;
+                background: #fff;
+                font:
+                    800 20px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.1em;
+                color: #000;
+                z-index: 2;
+            }
+            .decision {
+                position: absolute;
+                left: 56px;
+                right: 56px;
+                top: 664px;
+                height: 92px;
+                display: flex;
+                align-items: center;
+                background: #000;
+                box-shadow: inset 0 0 0 3px var(--green);
+            }
+            .decision .lab {
+                align-self: stretch;
+                display: grid;
+                place-items: center;
+                padding: 0 26px;
+                background: var(--green);
+                font:
+                    800 30px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.12em;
+                color: #031a12;
+            }
+            .decision .call {
+                padding: 0 26px;
+                font:
+                    800 66px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.03em;
+                color: var(--green);
+                text-shadow: 0 0 30px rgba(22, 224, 138, 0.35);
+            }
+            .decision .why {
+                font:
+                    600 26px/1.25 'Avenir Next Condensed',
+                    sans-serif;
+                color: #e6edf3;
+            }
+            .cause {
+                position: absolute;
+                left: 56px;
+                right: 56px;
+                top: 768px;
+                display: flex;
+                align-items: center;
+                gap: 24px;
+            }
+            .cause p {
+                flex: 1;
+                margin: 0;
+                font:
+                    600 26px/1.3 'Avenir Next Condensed',
+                    sans-serif;
+                color: #c9d2dc;
+            }
+            .cause p b {
+                color: #fff;
+                letter-spacing: 0.04em;
+            }
+            .stamp {
+                flex: none;
+                padding: 12px 20px 9px;
+                border: 4px solid var(--green);
+                border-radius: 6px;
+                transform: rotate(-3deg);
+                font:
+                    800 32px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.1em;
+                color: var(--green);
+            }
+            .src {
+                position: absolute;
+                left: 56px;
+                right: 56px;
+                bottom: 30px;
+                font-size: 16px;
+                letter-spacing: 0.04em;
+                color: #6f7d8b;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="var"><i></i>VAR</div>
+        <div class="done"><span>CHECK COMPLETE</span></div>
+        <div class="tr">
+            <div class="brand">BEARPROOF</div>
+            <small>BUILD #9 · THE AI'S CHECK BEFORE THE BUILD</small>
+        </div>
+        <div class="incident">
+            <div class="k">THE INCIDENT · BUILD #8 · 220 VERIFIED RUNS</div>
+            <h1>RUG PULLERS ENDED <em>37%</em> OF RUNS.</h1>
+            <p>
+                Up from 18.8% on Build #7. <b>Prime suspect:</b> the whale the AI had just added in
+                Build #8.
+            </p>
+        </div>
+        <div class="pane a" id="pa">
+            <div class="bg"></div>
+            <div class="head">
+                <b>BUILD #7</b><span><i></i>REPLAY · 80 SEEDS</span>
+            </div>
+            <div class="vig"></div>
+            <div class="stat">
+                <span>RUG-PULLER DEATHS<small>the 30 Sep twist, same 80 seeds</small></span
+                ><b>22%</b>
+            </div>
+        </div>
+        <div class="pane b" id="pb">
+            <div class="bg"></div>
+            <div class="head">
+                <b>BUILD #8, WITH THE WHALE</b><span><i></i>REPLAY · 80 SEEDS</span>
+            </div>
+            <div class="vig"></div>
+            <div class="stat">
+                <span>RUG-PULLER DEATHS<small>the 30 Sep twist, same 80 seeds</small></span
+                ><b>19%</b>
+            </div>
+        </div>
+        <div class="decision">
+            <div class="lab">DECISION</div>
+            <div class="call">NO FOUL</div>
+            <div class="why">The whale's shove only slows bears.<br />It never speeds them up.</div>
+        </div>
+        <div class="cause">
+            <p>
+                <b>LIKELY CAUSE: THE DAY ITSELF.</b> The 30 Sep Daily, Crypto Winter plus Bull Run,
+                packed Rug Season with bears, and three times as many players came, many of them
+                new.
+            </p>
+            <div class="stamp">NOTHING TO FIX</div>
+        </div>
+        <div class="src">
+            From the AI's Build #9 devlog · it checks for regressions before every build, a rule
+            ClawPump suggested · a quit counts as a death
+        </div>
+        <script type="module">
+            import { put, brand, ready } from '/scripts/og/x/x.js';
+            brand(document.querySelector('.brand'));
+            const add = (pane, id, box, x, y, max = 6, opts = {}) => {
+                const c = document.createElement('canvas');
+                put(c, id, box, { max, ...opts });
+                const w = document.createElement('div');
+                w.className = 'sp';
+                w.append(c);
+                pane.append(w);
+                // Centre the sprite on (x, y) once its canvas has a size.
+                w.style.left = x - c.width / 2 + 'px';
+                w.style.top = y - c.height / 2 + 'px';
+                return c;
+            };
+            for (const id of ['pa', 'pb']) {
+                const pane = document.getElementById(id);
+                const bg = pane.querySelector('.bg');
+                for (let i = 0; i < 9; i++) {
+                    const c = document.createElement('canvas');
+                    put(c, 'red_candle', 60, { max: 3, glow: false });
+                    c.style.left = 30 + i * 80 + 'px';
+                    c.style.top = 70 + ((i * 53) % 120) + 'px';
+                    bg.append(c);
+                }
+            }
+            const a = document.getElementById('pa');
+            add(a, 'bull', 120, 365, 165, 3);
+            add(a, 'rug_puller', 90, 150, 120, 3);
+            add(a, 'rug_puller', 90, 590, 112, 3);
+            add(a, 'rug_puller', 90, 230, 205, 3);
+            add(a, 'rug_puller', 90, 520, 208, 3);
+
+            const b = document.getElementById('pb');
+            add(b, 'bull', 120, 400, 165, 3);
+            add(b, 'whale', 170, 165, 160, 3);
+            add(b, 'rug_puller', 90, 620, 112, 3);
+            add(b, 'rug_puller', 90, 560, 210, 3);
+            add(b, 'rug_puller', 90, 330, 92, 3);
+            const ring = document.createElement('div');
+            ring.className = 'ring';
+            Object.assign(ring.style, {
+                left: '50px',
+                top: '96px',
+                width: '230px',
+                height: '128px'
+            });
+            b.append(ring);
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.textContent = 'SUSPECT';
+            Object.assign(tag.style, { left: '118px', top: '62px' });
+            b.append(tag);
+            await ready();
+        </script>
+    </body>
+</html>

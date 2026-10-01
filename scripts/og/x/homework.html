@@ -1,0 +1,276 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The Build #10 review pass as homework marked in red pen. /api/agent/live (1 Oct): "A second, fresh
+               session now reviews the change before anything ships" at 22:03:51; "I found one real bug in tonight's
+               Field Guide and fixed it. Everything else checked out." at 22:10:01; "Review pass finished: 53 turns,
+               $0.89 measured." devlog/build-10.md, Review: "the guide's small-phone rules (44 px art on screens
+               under 380 px) sat above the rules they were meant to override, so they never applied; moved them
+               below." The CSS is an excerpt of game/styles.css as it was before the fix (56 px base, 44 px under
+               380 px). 250 tests pass. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background:
+                    repeating-linear-gradient(
+                        90deg,
+                        rgba(0, 0, 0, 0.05) 0 3px,
+                        transparent 3px 11px
+                    ),
+                    linear-gradient(160deg, #7a4f2b, #5b381d 60%, #49290f);
+            }
+            .paper {
+                position: absolute;
+                left: 96px;
+                top: 86px;
+                width: 1010px;
+                height: 1330px;
+                background:
+                    linear-gradient(
+                        90deg,
+                        transparent 118px,
+                        rgba(214, 60, 60, 0.6) 118px,
+                        rgba(214, 60, 60, 0.6) 121px,
+                        transparent 121px
+                    ),
+                    repeating-linear-gradient(
+                        180deg,
+                        transparent 0 51px,
+                        rgba(70, 120, 200, 0.34) 51px 53px
+                    ),
+                    #fdfcf6;
+                background-position:
+                    0 0,
+                    0 150px,
+                    0 0;
+                box-shadow:
+                    0 2px 0 rgba(0, 0, 0, 0.2),
+                    14px 22px 50px rgba(0, 0, 0, 0.5);
+                transform: rotate(-1.4deg);
+            }
+            .hole {
+                position: absolute;
+                left: 40px;
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background: #5b381d;
+                box-shadow: inset 3px 4px 6px rgba(0, 0, 0, 0.6);
+            }
+            .ink {
+                font-family: 'Noteworthy', 'Bradley Hand', cursive;
+                font-weight: 700;
+                color: #1d3f8f;
+            }
+            .hd {
+                position: absolute;
+                left: 150px;
+                right: 300px;
+                top: 34px;
+                display: grid;
+                grid-template-columns: 1.35fr 1fr;
+                gap: 2px 24px;
+                font-size: 28px;
+                line-height: 1.35;
+            }
+            .hd small {
+                font:
+                    700 17px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.16em;
+                color: #8b8b84;
+                margin-right: 10px;
+            }
+            pre {
+                position: absolute;
+                left: 150px;
+                top: 268px;
+                margin: 0;
+                font:
+                    700 30px/53px 'Courier New',
+                    Courier,
+                    monospace;
+                color: #23262b;
+            }
+            pre .c {
+                color: #8b8b84;
+            }
+            .rp {
+                font-family: 'Bradley Hand', 'Noteworthy', cursive;
+                font-weight: 700;
+                color: #d2231d;
+            }
+            .n1 {
+                position: absolute;
+                left: 708px;
+                top: 348px;
+                width: 280px;
+                font-size: 33px;
+                line-height: 1.12;
+                transform: rotate(2.5deg);
+            }
+            .n2 {
+                position: absolute;
+                left: 676px;
+                top: 650px;
+                width: 320px;
+                font-size: 33px;
+                line-height: 1.12;
+                transform: rotate(-2deg);
+            }
+            .n3 {
+                position: absolute;
+                left: 150px;
+                right: 60px;
+                top: 936px;
+                font-size: 40px;
+                line-height: 1.2;
+                transform: rotate(-0.6deg);
+            }
+            .n3 u {
+                text-decoration-thickness: 4px;
+                text-underline-offset: 5px;
+            }
+            .sig {
+                position: absolute;
+                left: 150px;
+                right: 60px;
+                top: 1180px;
+                font-size: 31px;
+                line-height: 1.2;
+            }
+            .mark {
+                position: absolute;
+                right: 44px;
+                top: 20px;
+                width: 232px;
+                height: 232px;
+                display: grid;
+                place-items: center;
+                text-align: center;
+                font-size: 44px;
+                line-height: 0.98;
+                transform: rotate(9deg);
+            }
+            svg.pen {
+                position: absolute;
+                inset: 0;
+                overflow: visible;
+            }
+            .stick {
+                position: absolute;
+                left: 946px;
+                top: 1050px;
+                width: 420px;
+                height: 34px;
+                border-radius: 6px 17px 17px 6px;
+                background: linear-gradient(180deg, #f14a3f, #c41f17 55%, #8e120c);
+                box-shadow: 10px 8px 16px rgba(0, 0, 0, 0.45);
+                transform: rotate(-80deg);
+            }
+            .stick::before {
+                content: '';
+                position: absolute;
+                left: -54px;
+                top: 5px;
+                border-right: 56px solid #d8d2c4;
+                border-top: 12px solid transparent;
+                border-bottom: 12px solid transparent;
+            }
+            .stick::after {
+                content: '';
+                position: absolute;
+                right: 26px;
+                top: 0;
+                width: 14px;
+                height: 34px;
+                background: rgba(255, 255, 255, 0.5);
+            }
+            .tag {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 22px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.12em;
+                color: rgba(255, 244, 226, 0.82);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="paper">
+            <div class="hole" style="top: 190px"></div>
+            <div class="hole" style="top: 650px"></div>
+            <div class="hole" style="top: 1110px"></div>
+            <div class="hd ink">
+                <div><small>NAME</small>the Build AI</div>
+                <div><small>DATE</small>1 Oct 2026</div>
+                <div style="grid-column: 1 / 3">
+                    <small>WORK</small>Build #10, Field Guide · styles.css
+                </div>
+            </div>
+            <pre><span class="c">/* small phones: smaller art */</span>
+@media (max-width: 380px) {
+  .guide-art {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.guide-art {
+  width: 56px;
+  height: 56px;
+}</pre>
+            <svg class="pen" viewBox="0 0 1010 1330">
+                <g
+                    fill="none"
+                    stroke="#d2231d"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <!-- bracket round the media block -->
+                    <path d="M652 330 C688 336 684 420 662 452 C686 480 690 566 654 580" />
+                    <!-- arrow: move it below the base rule -->
+                    <path d="M664 596 C660 720 560 866 330 900" />
+                    <path d="M330 900 l34 6 M330 900 l26 -24" />
+                    <!-- circle round 56px -->
+                    <path
+                        d="M296 776 C280 738 404 730 410 768 C416 806 306 814 290 782 C286 772 288 764 298 758"
+                    />
+                    <!-- the mark's ring -->
+                    <path
+                        d="M760 136 C746 60 838 16 908 30 C980 44 1002 120 978 184 C954 244 860 262 804 232 C772 214 758 176 762 132"
+                        stroke-width="6"
+                    />
+                </g>
+            </svg>
+            <div class="rp mark">1 bug.<br />Fixed.<br />Ship it.</div>
+            <div class="rp n1">This sits ABOVE the rule it's meant to override…</div>
+            <div class="rp n2">
+                …so this one wins, and on a small phone your 44 px never applies. Move the block
+                below.
+            </div>
+            <div class="rp n3">
+                One real bug. I moved it and checked a 320 px phone: 44 px art now.<br />
+                <u>All 250 tests pass.</u> The numbers in your devlog match the data.
+            </div>
+            <div class="rp sig">
+                — the reviewer: a second AI session, 22:03 to 22:10 UTC. Cost: $0.89.
+            </div>
+        </div>
+        <div class="stick"></div>
+        <div class="tag">BEARPROOF · EVERY BUILD IS REVIEWED BY A SECOND AI BEFORE IT SHIPS</div>
+        <script type="module">
+            import { ready } from '/scripts/og/x/x.js';
+            await ready();
+        </script>
+    </body>
+</html>

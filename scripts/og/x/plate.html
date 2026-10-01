@@ -1,0 +1,353 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Build #10, "Field Guide", as a naturalist's plate: the game's eleven bears, all at one scale, with
+               the first-seen times, HP and the rug puller's line from the guide itself (game/src/guide.js reads
+               content.js). devlog/build-10.md: rug pullers ended 47.9% of Build #9's runs; 40 entries (11 weapons,
+               13 passives, 11 bears, 5 bosses); picked in the holder vote from a player's idea; the session ran
+               21:50-22:12 UTC on 1 Oct. The Latin names are a joke and are not in the game. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background:
+                    radial-gradient(
+                        ellipse 30% 22% at 12% 9%,
+                        rgba(150, 110, 60, 0.16),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 22% 16% at 92% 88%,
+                        rgba(150, 110, 60, 0.2),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 12% 8% at 80% 20%,
+                        rgba(150, 110, 60, 0.1),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 80% 70% at 50% 45%,
+                        #f6eedb 0%,
+                        #efe4cb 60%,
+                        #e3d4b3 100%
+                    );
+                color: #3b2c1c;
+                font-family: 'Baskerville', 'Hoefler Text', Georgia, serif;
+            }
+            .grain {
+                position: absolute;
+                inset: 0;
+                background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.13 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+                pointer-events: none;
+            }
+            .frame {
+                position: absolute;
+                inset: 34px;
+                border: 3px solid #4a3826;
+            }
+            .frame::after {
+                content: '';
+                position: absolute;
+                inset: 8px;
+                border: 1px solid #4a3826;
+            }
+            .top {
+                position: absolute;
+                left: 78px;
+                right: 78px;
+                top: 70px;
+                display: flex;
+                justify-content: space-between;
+                font:
+                    400 21px/1 'Baskerville',
+                    serif;
+                letter-spacing: 0.22em;
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 112px;
+                margin: 0;
+                text-align: center;
+                font:
+                    700 118px/1 'Didot',
+                    'Bodoni 72',
+                    serif;
+                letter-spacing: 0.035em;
+                color: #2e2114;
+            }
+            .it {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 244px;
+                text-align: center;
+                font:
+                    italic 400 50px/1 'Baskerville',
+                    serif;
+                color: #3b2c1c;
+            }
+            .rule {
+                position: absolute;
+                left: 300px;
+                right: 300px;
+                top: 320px;
+                height: 1px;
+                background: #4a3826;
+            }
+            .rule::after {
+                content: '';
+                position: absolute;
+                left: 50%;
+                top: -6px;
+                width: 12px;
+                height: 12px;
+                margin-left: -6px;
+                background: #4a3826;
+                transform: rotate(45deg);
+            }
+            .caps {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 342px;
+                text-align: center;
+                font:
+                    400 19px/1 'Baskerville',
+                    serif;
+                letter-spacing: 0.26em;
+            }
+            .grid {
+                position: absolute;
+                left: 70px;
+                right: 70px;
+                top: 392px;
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                grid-auto-rows: 306px;
+            }
+            .sp {
+                position: relative;
+                text-align: center;
+            }
+            .sp .art {
+                height: 190px;
+                display: grid;
+                place-items: center;
+            }
+            .sp canvas {
+                filter: drop-shadow(4px 5px 0 rgba(74, 56, 38, 0.22));
+            }
+            .sp small {
+                display: block;
+                font:
+                    italic 400 17px/1 'Baskerville',
+                    serif;
+                color: #6b5540;
+            }
+            .sp b {
+                display: block;
+                margin-top: 6px;
+                font:
+                    700 27px/1 'Baskerville',
+                    serif;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: #2e2114;
+            }
+            .sp i {
+                display: block;
+                margin-top: 6px;
+                font:
+                    italic 400 23px/1 'Baskerville',
+                    serif;
+            }
+            .sp span {
+                display: block;
+                margin-top: 9px;
+                font:
+                    400 17px/1 'Baskerville',
+                    serif;
+                letter-spacing: 0.06em;
+                color: #5a4630;
+            }
+            .feature {
+                grid-column: span 2;
+                position: relative;
+                margin: 0 6px 18px;
+                padding: 16px 20px 0 204px;
+                background: rgba(255, 252, 240, 0.72);
+                box-shadow:
+                    0 0 0 1px rgba(74, 56, 38, 0.55),
+                    5px 7px 0 rgba(74, 56, 38, 0.16);
+                text-align: left;
+                transform: rotate(-1.2deg);
+            }
+            .feature .art {
+                position: absolute;
+                left: 12px;
+                top: 14px;
+                width: 184px;
+                height: 150px;
+                display: grid;
+                place-items: center;
+            }
+            .feature canvas {
+                filter: drop-shadow(4px 5px 0 rgba(74, 56, 38, 0.22));
+            }
+            .feature small {
+                font:
+                    italic 400 17px/1 'Baskerville',
+                    serif;
+                color: #6b5540;
+            }
+            .feature b {
+                display: block;
+                margin-top: 5px;
+                font:
+                    700 31px/1 'Baskerville',
+                    serif;
+                letter-spacing: 0.1em;
+                color: #2e2114;
+            }
+            .feature i {
+                display: block;
+                margin-top: 5px;
+                font:
+                    italic 400 23px/1 'Baskerville',
+                    serif;
+            }
+            .feature p {
+                margin: 10px 0 0;
+                font:
+                    400 19px/1.3 'Baskerville',
+                    serif;
+                color: #3b2c1c;
+            }
+            .hand {
+                font-family: 'Bradley Hand', 'Noteworthy', cursive;
+                font-weight: 700;
+                color: #b3261e;
+            }
+            .feature .note {
+                position: absolute;
+                left: 26px;
+                right: 16px;
+                top: 176px;
+                font-size: 31px;
+                line-height: 1.22;
+            }
+            .feature .note u {
+                text-decoration-thickness: 3px;
+                text-underline-offset: 4px;
+            }
+            svg.ink {
+                position: absolute;
+                left: 0;
+                top: 0;
+                pointer-events: none;
+            }
+            .foot {
+                position: absolute;
+                left: 90px;
+                right: 90px;
+                bottom: 64px;
+                display: block;
+                text-align: center;
+                font:
+                    italic 400 23px/1.4 'Baskerville',
+                    serif;
+                color: #3b2c1c;
+            }
+            .foot b {
+                font-style: normal;
+                font-weight: 400;
+                font-size: 18px;
+                letter-spacing: 0.2em;
+                color: #3b2c1c;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="frame"></div>
+        <div class="top"><span>BEARPROOF · BUILD № 10</span><span>PLATE X.</span></div>
+        <h1>A FIELD GUIDE</h1>
+        <div class="it">to the Bears of the Bear Market</div>
+        <div class="rule"></div>
+        <div class="caps">ELEVEN SPECIES · ALL TO ONE SCALE · FROM THE GAME'S OWN DATA</div>
+        <div class="grid" id="grid"></div>
+        <div class="foot">
+            Compiled in 22 minutes by an AI, on the night of 1 October 2026, from a player's idea
+            picked in the holders' vote.<br />
+            <b>ALSO INSIDE: 11 WEAPONS · 13 PASSIVES · 5 BOSSES · LIVE IN BUILD #10</b>
+        </div>
+        <div class="grain"></div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            // [sprite, name, joke Latin, the guide's first-seen line, HP]
+            const ROW1 = [
+                ['red_candle', 'Red Candle', 'Candela rubra', 'From 0:00', '15 HP'],
+                ['bag_holder', 'Bag Holder', 'Saccus tenax', 'From 0:00', '30 HP'],
+                ['paper_hands', 'Paper Hands', 'Manus papyracea', 'From 0:30', '25 HP'],
+                ['doomposter', 'Doomposter', 'Scriptor apocalypticus', 'From 1:00', '28 HP']
+            ];
+            const ROW2A = ['fud_cloud', 'FUD Cloud', 'Nimbus dubius', 'From 1:30', '20 HP'];
+            const ROW2B = ['ponzi', 'Ponzi', 'Pyramis fraudulenta', 'From 2:00', '55 HP'];
+            const ROW3 = [
+                ['downline', 'Downline', 'Pyramis minor', 'Splits out of a Ponzi', '18 HP'],
+                ['margin_call', 'Margin Call', 'Vocatio marginalis', 'From 2:00', '35 HP'],
+                ['grizzly', 'Grizzly', 'Ursus horribilis', 'From 3:00', '120 HP'],
+                ['sybil', 'Sybil', 'Sybilla multiplex', 'From 4:00', '42 HP']
+            ];
+            const grid = document.getElementById('grid');
+            let fig = 0;
+            const cell = ([id, name, latin, seen, hp]) => {
+                fig++;
+                const d = document.createElement('div');
+                d.className = 'sp';
+                const c = document.createElement('canvas');
+                put(c, id, 400, { max: 5, glow: false });
+                const art = document.createElement('div');
+                art.className = 'art';
+                art.append(c);
+                d.append(art);
+                d.insertAdjacentHTML(
+                    'beforeend',
+                    `<small>Fig. ${fig}</small><b>${name}</b><i>${latin}</i><span>${seen} · ${hp}</span>`
+                );
+                grid.append(d);
+            };
+            ROW1.forEach(cell);
+            cell(ROW2A);
+            // the featured specimen: the rug puller, on a label card with a field note in red ink
+            fig++;
+            const f = document.createElement('div');
+            f.className = 'feature';
+            const fc = document.createElement('canvas');
+            put(fc, 'rug_puller', 400, { max: 5, glow: false });
+            const fa = document.createElement('div');
+            fa.className = 'art';
+            fa.append(fc);
+            f.append(fa);
+            f.insertAdjacentHTML(
+                'beforeend',
+                `<small>Fig. ${fig} · From 1:30 · 40 HP</small><b>RUG PULLER</b><i>Tapetum raptor</i>
+                 <p>Every 3.5 s it locks on and dashes at you in a straight line.</p>
+                 <div class="hand note">Ended 47.9% of runs on 1 Oct.<br /><u>Sidestep, don't outrun.</u></div>
+                 <svg class="ink" width="210" height="180" viewBox="0 0 210 180">
+                    <path d="M16 92 C6 44 60 8 112 12 C170 16 200 58 190 104 C180 150 116 174 62 160 C30 152 12 124 18 88"
+                          fill="none" stroke="#b3261e" stroke-width="4" stroke-linecap="round" />
+                 </svg>`
+            );
+            grid.append(f);
+            cell(ROW2B);
+            ROW3.forEach(cell);
+            await ready();
+        </script>
+    </body>
+</html>

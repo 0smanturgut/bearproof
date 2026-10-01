@@ -1,0 +1,271 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The character shift the AI found in its Build #10 regression check, as a magazine cover.
+               devlog/build-10.md: "Pepe went from 24.5% to 51.3% of runs, with a median of 5:33 against the bull's
+               3:28. The sample is fine on both builds (over 200 runs each)." (Build #8's runs against Build #9's.)
+               The cover lines at the bottom are the same devlog: 40 guide entries, rug pullers ending 47.9% of
+               runs, The Degen on the Build #11 ballot. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background: radial-gradient(
+                    circle at 50% 44%,
+                    #ffe45c 0%,
+                    #ffd400 46%,
+                    #f2b900 100%
+                );
+                color: #111;
+                font-family: 'Avenir Next Condensed', 'Avenir Next', sans-serif;
+            }
+            .dots {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(rgba(0, 0, 0, 0.16) 1.6px, transparent 2px) 0 0 / 14px
+                    14px;
+                -webkit-mask-image: linear-gradient(180deg, transparent 45%, #000 100%);
+            }
+            .strip {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                height: 58px;
+                background: #111;
+                color: #ffd400;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 44px;
+                font:
+                    800 24px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.16em;
+            }
+            .mast {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 54px;
+                text-align: center;
+                font:
+                    400 452px/0.86 Impact,
+                    'Haettenschweiler',
+                    sans-serif;
+                letter-spacing: -0.012em;
+                color: #111;
+            }
+            .the {
+                position: absolute;
+                left: 52px;
+                top: 86px;
+                padding: 6px 12px 3px;
+                background: #e0115f;
+                color: #fff;
+                font:
+                    800 30px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.14em;
+                transform: rotate(-4deg);
+            }
+            #pepe {
+                position: absolute;
+                left: 50%;
+                top: 330px;
+                transform: translateX(-50%);
+                filter: drop-shadow(16px 16px 0 rgba(0, 0, 0, 0.9));
+            }
+            .burst {
+                position: absolute;
+                right: 46px;
+                top: 404px;
+                width: 250px;
+                height: 250px;
+                display: grid;
+                place-items: center;
+                text-align: center;
+                background: #e0115f;
+                color: #fff;
+                font:
+                    800 35px/1.02 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.04em;
+                clip-path: polygon(
+                    50% 0,
+                    61% 12%,
+                    77% 6%,
+                    80% 22%,
+                    96% 26%,
+                    89% 41%,
+                    100% 54%,
+                    87% 63%,
+                    91% 80%,
+                    75% 80%,
+                    68% 96%,
+                    54% 87%,
+                    40% 98%,
+                    32% 83%,
+                    15% 86%,
+                    16% 69%,
+                    1% 61%,
+                    11% 47%,
+                    2% 32%,
+                    18% 27%,
+                    22% 10%,
+                    38% 14%
+                );
+                transform: rotate(9deg);
+            }
+            .main {
+                position: absolute;
+                left: 48px;
+                top: 836px;
+                font:
+                    400 208px/0.86 Impact,
+                    sans-serif;
+                letter-spacing: 0.005em;
+                color: #111;
+            }
+            .main em {
+                font-style: normal;
+                color: #fff;
+                -webkit-text-stroke: 5px #111;
+                paint-order: stroke fill;
+                text-shadow: 9px 9px 0 #e0115f;
+            }
+            .stats {
+                position: absolute;
+                left: 52px;
+                right: 52px;
+                top: 1206px;
+                display: grid;
+                grid-template-columns: 1.25fr 1fr;
+                gap: 36px;
+            }
+            .stats div {
+                border-top: 8px solid #111;
+                padding-top: 12px;
+            }
+            .stats b {
+                display: block;
+                font:
+                    400 104px/0.92 Impact,
+                    sans-serif;
+            }
+            .stats b i {
+                font-style: normal;
+                color: #e0115f;
+            }
+            .stats span {
+                display: block;
+                margin-top: 8px;
+                font:
+                    700 30px/1.15 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.03em;
+            }
+            #bull {
+                position: absolute;
+                left: 70px;
+                top: 470px;
+                width: 230px;
+                height: 230px;
+                border-radius: 50%;
+                background: #111;
+                display: grid;
+                place-items: center;
+                box-shadow: 0 0 0 8px #fff;
+                transform: rotate(-7deg);
+            }
+            .bullcap {
+                position: absolute;
+                left: 60px;
+                top: 716px;
+                width: 250px;
+                text-align: center;
+                font:
+                    800 26px/1.05 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.06em;
+                transform: rotate(-7deg);
+            }
+            .also {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 84px;
+                background: #111;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 0 40px;
+                font:
+                    700 21px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.05em;
+                white-space: nowrap;
+            }
+            .also b {
+                color: #ffd400;
+                font-weight: 800;
+            }
+            .also i {
+                font-style: normal;
+                color: #e0115f;
+            }
+            .src {
+                position: absolute;
+                left: 52px;
+                right: 52px;
+                bottom: 96px;
+                font:
+                    600 19px/1.2 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.06em;
+                color: rgba(0, 0, 0, 0.72);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="dots"></div>
+        <div class="mast">META</div>
+        <div class="strip">
+            <span>THE BEARPROOF META REPORT</span><span>NO. 10 · 2 OCT 2026 · FREE TO PLAY</span>
+        </div>
+        <div class="the">THE</div>
+        <div id="bull"></div>
+        <div class="bullcap">THE BULL<br />MEDIAN RUN: 3:28</div>
+        <canvas id="pepe"></canvas>
+        <div class="burst">NOBODY<br />ANNOUNCED<br />IT</div>
+        <div class="main">PEPE<br /><em>TAKES OVER</em></div>
+        <div class="stats">
+            <div>
+                <b>24.5<i>→</i>51.3%</b><span>of all runs are Pepe now. That took one day.</span>
+            </div>
+            <div><b>5:33</b><span>Pepe's median run (the bull: 3:28)</span></div>
+        </div>
+        <div class="src">
+            BUILD #8'S RUNS AGAINST BUILD #9'S, OVER 200 RUNS EACH · FOUND BY THE AI IN ITS NIGHTLY
+            CHECK, BUILD #10 DEVLOG
+        </div>
+        <div class="also">
+            <b>ALSO INSIDE</b><span>FIELD GUIDE: 40 ENTRIES</span><i>●</i
+            ><span>RUG PULLERS: THE 47.9% PROBLEM</span><i>●</i
+            ><span>ON THE BALLOT: A RACCOON</span>
+        </div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            put(document.getElementById('pepe'), 'pepe', 1000, { max: 17, glow: false });
+            const b = document.createElement('canvas');
+            put(b, 'bull', 1000, { max: 4, glow: false });
+            document.getElementById('bull').append(b);
+            await ready();
+        </script>
+    </body>
+</html>

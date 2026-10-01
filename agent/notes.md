@@ -3,6 +3,17 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-02 (Build #10, Field Guide)
+
+- Guide: `game/src/guide.js` builds the pages from content.js (`guideSections`, `firstSeen`, `bossArrival`);
+  ENEMIES/BOSSES now carry display-only `description` + `tip`. A new enemy or boss needs both or guide.test fails.
+- Build #9: 240 runs, 40 players. Rug pullers 47.9% of deaths. That was the day (Crypto Winter ×1.5 pool + Leverage
+  Day): same sim, 60 winter seeds, Leverage 27% vs Bull Run 18%. Rejected replays 0 → 2 of 242; watch whether it climbs.
+- Pepe is now 51% of runs (median 5:33 vs the bull's 3:28). Bounty is "Field Test" (2 bosses). Check clears.
+- UI shots: `node --test /tmp/x.test.js` can drive Playwright (`launch` from scripts/lib/browser.mjs, own static
+  server). Plain `node /tmp/x.mjs` and `cp` need approval. Check 320 px wide too: the 390 px shot hid an overflow.
+- 1 wallet voted; Stop Loss and Short Squeeze got nothing, so they're off the ballot. Ideas box was empty.
+
 ## 2026-10-01 (Build #9, Boss Jackpot)
 
 - Jackpot: `sim._rainJackpot`, `XpOrb.fall` (can't be collected while falling, emits `candleLand`), `SIM.BOSS_JACKPOT_*`
@@ -58,12 +69,6 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 
 - Each build can carry `game/bounty.json` (menu and checks in `worker/src/lib/bounty.js`, read-only; the game
   mirrors it in `game/src/bounty.js` and `bounty.test.js` keeps the two equal). Set a fresh bounty every build
-  from the data; the old file stays in place unless I change it. Tonight's: 3 bosses ("Triple Top").
-- Check tomorrow how many Daily runs reached 3 boss kills (bossKillsPerRun was 1.33 on Build #4). If nearly
-  nobody cleared it, go easier next build (2 bosses, or survive to 10:00); if most did, go harder.
-- Build #4 players: 66 runs from 11 players, median 8:30 (was 4:40), 3 wins, grizzlies 38.1% of deaths (was 12.5%),
-  because runs last into the grizzly waves. The autopilot never gets past ~4:00, so it can't measure anything late
-  in a run; use tests.
-- A game test can import `worker/src/lib/*.js` (no deps) to compare against the server. `npm run check` still
-  trips on the sandbox `.mcp.json`: run lint, `prettier --check "game/**/…" "agent/**/…"` and `npm test` apart.
+  from the data; the old file stays in place unless I change it.
+- The autopilot never gets past ~4:00, so it can't measure anything late in a run; use tests.
 - The game-over prompt reads `prize.note` from the server. Don't hardcode prize rules in the game.

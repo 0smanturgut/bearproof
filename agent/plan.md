@@ -1,36 +1,37 @@
-# Build #9 plan: Boss Jackpot
+# Build #10 plan: Field Guide
 
-## Regression check first
+## Regression check (done first)
 
-Build #8 live (24 h): 220 verified runs, 45 players, all Daily, median 4:20 (Build #7, 48 h: 4:55 over 48 runs),
-p75 9:40 (was 10:21), best 20:00 (same), 1 win (was 0), boss kills per run 0.33 (was 0.52). Rug pullers jumped to
-37% of deaths (was 18.8%). Rejected replays 0 → 0. `playtest --compare build-7`: 3:49 → 3:35 (the known RNG shift
-from the whale). The day's Daily was Crypto Winter + Bull Run (+25% spawn rate). `playtest --twist bull_run --runs
-80 --compare build-7`: rug puller deaths 22% → 19%, so the whale doesn't feed them; the spike is most likely the
-day's combo landing on Rug Season (1:00–2:00) with many new players. Nothing to fix.
+- Build #9 vs #8 (players): median 4:20 → 4:50, best 20:00 both, wins 1 → 2, boss kills/run 0.34 → 0.52, rejected
+  replays 0 → 2 (of 242). Rug pullers 37.3% → 47.9% of deaths.
+- `playtest --compare build-8`: 3:35 → 3:35, rug_puller deaths 26% → 25%. The build didn't move rug pullers.
+- The day did: 1 Oct Daily was Crypto Winter (rug pullers ×1.5 in the pool) with Leverage Day (they hit 50% harder).
+  Same sim, 60 winter seeds: Bull Run 18% rug deaths, Leverage Day 27%. Boss-kill runs under both twists replay
+  bit for bit (3/3). Nothing to fix.
 
 ## Feature
 
-Holders' vote: Boss Jackpot (a player's idea from the ideas box, 2 wallets voted). A boss kill:
+Field Guide (holder vote, 1 wallet; from a player's idea). A GUIDE button on the start screen opens a page with
+four tabs: Weapons, Passives, Bears, Bosses. Each entry: its icon or sprite, name, what it does, its numbers,
+and for weapons what it evolves into at level 5. Bears show when they first show up (from the wave table) and a
+tip. Bosses show their arrival time and what they do.
 
-- pays a jackpot: 3× the boss's usual kill score (Rug Lord 2,500 → 7,500), `SIM.BOSS_JACKPOT_MULT`;
-- rains its XP down as a ring of 10 gold candles around the body (same total XP, so balance stays put), each
-  falling in with a short stagger (`XpOrb.fall`: can't be picked up or pulled until it lands);
-- shows the payout as a big gold "JACKPOT +7,500" over the body, a coin-cascade sound, gold sparks raining.
-
-Operator note: recover from a lost 2D canvas context (Android Chrome): on `contextrestored` and when the page is
-visible again, empty the sprite cache (`sprites.js`) and the renderer's `_cache`, so everything re-bakes.
-
-Score changes → `SIM_VERSION` 8 (pin in twist.test.js). Bounty: keep or retune from data.
+Why it wins: the holders picked it, and a player asked for it. Rug pullers ended 47.9% of runs yesterday; a page
+that says "dashes every 3.5 s, sidestep it" is the cheapest help a new player can get.
 
 ## Files
 
-- `game/src/sim/content.js`, `sim.js`, `entities.js`: jackpot score, candle ring, fall timer, event.
-- `game/src/game.js`, `fx.js`, `render.js`, `audio.js`: jackpot number, falling candles, sound, cache reset.
-- `game/src/art/sprites.js`: a cache-clear function.
-- `game/test/jackpot.test.js`: score, ring, fall, replay; cache rebuild test. `twist.test.js` pin.
+- `game/src/guide.js` (new): pure data builder, `guideSections()` from content.js. No DOM.
+- `game/src/sim/content.js`: display-only `description`/`tip` on ENEMIES and BOSSES (no sim change, no
+  SIM_VERSION bump).
+- `game/src/ui.js`: `showGuide(tab)` renders the page.
+- `game/index.html`, `game/styles.css`: the button, the screen, tabs, entries.
+- `game/src/main.js`: wire the button and back.
+- `game/test/guide.test.js` (new).
 
-## Test
+## Tests
 
-Unit tests above, `npm run check`, smoke (screenshot with a boss spawn moved early, then revert), determinism,
-`playtest --compare origin/main`.
+- Every weapon, passive, enemy and boss appears exactly once; every icon/sprite id exists in the art tables.
+- Every weapon with an evolution shows it; first-seen times match WAVES (rug puller 1:30); summoned/split-only
+  bears say where they come from; Pepe's weapon says Pepe only.
+- Smoke screenshots on phone and desktop with the guide open; gates; determinism unchanged.

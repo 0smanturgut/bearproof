@@ -53,7 +53,8 @@ export class UI {
             'screenOver',
             'screenBoard',
             'screenSettings',
-            'screenShare'
+            'screenShare',
+            'screenGuide'
         ];
         this.hud = {
             level: $('hLevel'),
@@ -525,6 +526,52 @@ export class UI {
             el.addEventListener('change', () => onChange(el.dataset.k, el.checked))
         );
         this.show('screenSettings');
+    }
+
+    /**
+     * The Field Guide: one tab per guideSections() entry, each a list of icon, name, what it does and its numbers.
+     * Remembers the last tab for the session.
+     */
+    showGuide(sections, tab = this._guideTab) {
+        const current = sections.find((s) => s.id === tab) || sections[0];
+        this._guideTab = current.id;
+        const tabs = $('guideTabs');
+        tabs.innerHTML = '';
+        for (const s of sections) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'guide-tab';
+            b.setAttribute('role', 'tab');
+            b.setAttribute('aria-selected', String(s.id === current.id));
+            b.innerHTML = `<span>${esc(s.label.toUpperCase())}</span><small>${s.entries.length}</small>`;
+            b.setAttribute('aria-label', `${s.label}, ${s.entries.length}`);
+            b.addEventListener('click', () => {
+                this.showGuide(sections, s.id);
+                $('guideTabs').querySelector('[aria-selected="true"]')?.focus();
+            });
+            tabs.appendChild(b);
+        }
+        $('guideIntro').textContent = current.intro || '';
+        const list = $('guideList');
+        list.innerHTML = '';
+        list.dataset.tab = current.id;
+        for (const e of current.entries) {
+            const li = document.createElement('li');
+            li.className = 'guide-entry' + (e.evolves ? ' evolves' : '');
+            li.innerHTML = `
+                <div class="guide-art"><canvas aria-hidden="true"></canvas></div>
+                <div class="guide-body">
+                    <b class="guide-name">${esc(e.name)}</b>
+                    ${e.tags.map((t) => `<span class="guide-tag">${esc(t)}</span>`).join('')}
+                    <p class="guide-text">${esc(e.text)}</p>
+                    <p class="guide-stats">${esc(e.stats)}</p>
+                    ${e.extra ? `<p class="guide-extra">${esc(e.extra)}</p>` : ''}
+                </div>`;
+            paintIcon(li.querySelector('canvas'), e.art, current.id === 'bosses' ? 1 : 2);
+            list.appendChild(li);
+        }
+        list.scrollTop = 0;
+        if ($('screenGuide').hidden) this.show('screenGuide');
     }
 
     setSoundLabel(on) {

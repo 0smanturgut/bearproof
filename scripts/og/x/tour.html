@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Every build so far as a band's tour poster: dates, titles and who picked each one, from the devlogs'
+               front matter (date, title, mode, chosenBy). #1-#2 are "bootstrap" builds (made with the operator
+               before the nightly loop); #3-#9 were written by the Build Agent at night. Compute: /api/stats
+               computeSpentUsd.measured ($25.10, 7 metered runs). */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background: #0b0a09;
+            }
+            .grain {
+                position: absolute;
+                inset: 0;
+                background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.85 0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+                pointer-events: none;
+            }
+            .sun {
+                position: absolute;
+                left: 50%;
+                top: 250px;
+                width: 760px;
+                height: 760px;
+                margin-left: -380px;
+                border-radius: 50%;
+                background: repeating-radial-gradient(
+                    circle at 50% 50%,
+                    #d7263d 0 22px,
+                    #0b0a09 22px 30px
+                );
+                opacity: 0.18;
+            }
+            .top {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 60px;
+                text-align: center;
+            }
+            .top small {
+                display: block;
+                font:
+                    800 30px/1 'Avenir Next Condensed',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.4em;
+                color: #f3e7cf;
+            }
+            .top h1 {
+                margin: 12px 0 0;
+                font:
+                    400 190px/0.85 Impact,
+                    'Haettenschweiler',
+                    'Arial Narrow Bold',
+                    sans-serif;
+                letter-spacing: 0.01em;
+                color: #f3e7cf;
+                text-shadow: 8px 8px 0 #d7263d;
+            }
+            .top h2 {
+                margin: 18px 0 0;
+                font:
+                    800 48px/1 'Avenir Next Condensed',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.12em;
+                color: #d7263d;
+            }
+            .top p {
+                margin: 14px 0 0;
+                font:
+                    600 26px/1.3 'Avenir Next Condensed',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.06em;
+                color: #cfc3aa;
+            }
+            .emblem {
+                position: absolute;
+                left: 50%;
+                top: 408px;
+                transform: translateX(-50%);
+                opacity: 0.95;
+            }
+            .dates {
+                position: absolute;
+                left: 90px;
+                right: 90px;
+                top: 640px;
+            }
+            .row {
+                display: grid;
+                grid-template-columns: 150px 1fr 230px;
+                align-items: baseline;
+                gap: 16px;
+                padding: 13px 0 11px;
+                border-bottom: 2px solid rgba(243, 231, 207, 0.18);
+                font:
+                    800 38px/1 'Avenir Next Condensed',
+                    'Avenir Next',
+                    sans-serif;
+                color: #f3e7cf;
+            }
+            .row .d {
+                color: #d7263d;
+                letter-spacing: 0.04em;
+            }
+            .row .t {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .row .t i {
+                font-style: normal;
+                color: #cfc3aa;
+                margin-right: 12px;
+            }
+            .row .v {
+                text-align: right;
+                font:
+                    700 21px/1 'Avenir Next Condensed',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.1em;
+                color: #cfc3aa;
+            }
+            .row .v.h {
+                color: #ffcf4a;
+            }
+            .row .v.a {
+                color: #37e39a;
+            }
+            .row.next {
+                border-bottom: none;
+                color: #d7263d;
+            }
+            .row.next .v {
+                color: #f3e7cf;
+            }
+            .foot {
+                position: absolute;
+                left: 90px;
+                right: 90px;
+                bottom: 50px;
+                display: block;
+                text-align: center;
+                font:
+                    600 24px/1.45 'Avenir Next Condensed',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.04em;
+                color: #cfc3aa;
+            }
+            .foot b {
+                font-weight: 800;
+                color: #f3e7cf;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="sun"></div>
+        <div class="top">
+            <small>AN ANSEMHACK ENTRY PRESENTS</small>
+            <h1>BEARPROOF</h1>
+            <h2>THE NIGHTLY BUILD TOUR · 2026</h2>
+            <p>One new build every night at 00:00 UTC. Written by an AI.</p>
+        </div>
+        <div class="emblem" id="emblem"></div>
+        <div class="dates" id="dates"></div>
+        <div class="foot">
+            <b>$25.10</b> of AI compute for #3–#9, measured · every build is still playable at
+            <b>bearproof.app</b><br />#1–#2 were set up with the operator before the nightly loop
+            began
+        </div>
+        <div class="grain"></div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            const em = document.createElement('canvas');
+            put(em, 'emblem_large', 190, { max: 8 });
+            document.getElementById('emblem').append(em);
+            const ROWS = [
+                ['23 SEP', '#1', 'THE BULL-VS-BEAR REBUILD', 'BOOTSTRAP', ''],
+                ['24 SEP', '#2', 'THE NEW LOOK', 'BOOTSTRAP', ''],
+                ['25 SEP', '#3', 'PEPE JOINS THE BEAR MARKET', "HOLDERS' PICK", 'h'],
+                ['26 SEP', '#4', 'AIRDROP CRATES', "HOLDERS' PICK", 'h'],
+                ['27 SEP', '#5', "THE AI'S BOUNTY", "HOLDERS' PICK", 'h'],
+                ['28 SEP', '#6', 'RUG LORD PULLS THE RUG', "THE AI'S PICK", 'a'],
+                ['29 SEP', '#7', 'DOOMPOSTERS TYPE FIRST', "THE AI'S PICK", 'a'],
+                ['30 SEP', '#8', 'WHALE ALERT', "THE AI'S PICK", 'a'],
+                ['1 OCT', '#9', 'BOSS JACKPOT', "HOLDERS' PICK", 'h']
+            ];
+            const box = document.getElementById('dates');
+            for (const [d, n, t, v, c] of ROWS) {
+                const r = document.createElement('div');
+                r.className = 'row';
+                r.innerHTML = `<span class="d">${d}</span><span class="t"><i>${n}</i>${t}</span><span class="v ${c}">${v}</span>`;
+                box.append(r);
+            }
+            const nx = document.createElement('div');
+            nx.className = 'row next';
+            nx.innerHTML = `<span class="d">2 OCT</span><span class="t"><i>#10</i>???</span><span class="v">HOLDERS VOTE TONIGHT</span>`;
+            box.append(nx);
+            await ready();
+        </script>
+    </body>
+</html>

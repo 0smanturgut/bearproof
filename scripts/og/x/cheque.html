@@ -1,0 +1,318 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* A day's Daily Pot as the giant novelty cheque a winner holds for the photo. Data comes in ?d=<json>:
+               { no, date, payee, amount, words, memo, tx, wallet, also: [[label, name, amount], ...], foot }.
+               All of it is read from /api/winners and the ledger for that day. */
+            html,
+            body {
+                background:
+                    radial-gradient(
+                        ellipse 60% 70% at 50% 40%,
+                        rgba(245, 197, 66, 0.16),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #0c1016, #06080b);
+            }
+            .confetti i {
+                position: absolute;
+                width: 14px;
+                height: 22px;
+                opacity: 0.9;
+            }
+            .cheque {
+                position: absolute;
+                left: 90px;
+                top: 96px;
+                width: 1420px;
+                height: 640px;
+                transform: rotate(-2.2deg);
+                border-radius: 10px;
+                background:
+                    repeating-radial-gradient(
+                        circle at 18% 120%,
+                        rgba(22, 120, 80, 0.1) 0 2px,
+                        transparent 2px 13px
+                    ),
+                    repeating-radial-gradient(
+                        circle at 86% -20%,
+                        rgba(22, 120, 80, 0.1) 0 2px,
+                        transparent 2px 13px
+                    ),
+                    linear-gradient(180deg, #f2faf0, #dff0dc);
+                box-shadow:
+                    inset 0 0 0 5px #165c40,
+                    inset 0 0 0 12px #f2faf0,
+                    inset 0 0 0 14px #165c40,
+                    0 40px 90px rgba(0, 0, 0, 0.7);
+                color: #123c2b;
+            }
+            .bank {
+                position: absolute;
+                left: 54px;
+                top: 42px;
+                display: flex;
+                align-items: center;
+                gap: 18px;
+            }
+            .bank b {
+                display: block;
+                font:
+                    700 58px/1 'Copperplate',
+                    'Baskerville',
+                    serif;
+                letter-spacing: 0.04em;
+            }
+            .bank small {
+                display: block;
+                margin-top: 6px;
+                font:
+                    600 21px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.14em;
+                color: #2f6b52;
+            }
+            .no {
+                position: absolute;
+                right: 56px;
+                top: 44px;
+                text-align: right;
+                font:
+                    700 30px/1.5 'Courier New',
+                    monospace;
+            }
+            .lab {
+                font:
+                    700 19px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.16em;
+                color: #2f6b52;
+            }
+            .line {
+                position: absolute;
+                border-bottom: 3px solid #165c40;
+            }
+            .payee {
+                left: 54px;
+                top: 176px;
+                width: 890px;
+                height: 124px;
+            }
+            .payee .lab {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .hand {
+                font-family: 'Bradley Hand', 'Noteworthy', cursive;
+                font-weight: 700;
+                color: #0f2f8a;
+            }
+            .payee .hand {
+                position: absolute;
+                left: 20px;
+                bottom: 0;
+                font-size: 112px;
+                line-height: 1;
+                white-space: nowrap;
+            }
+            .amt {
+                position: absolute;
+                right: 54px;
+                top: 180px;
+                width: 380px;
+                height: 124px;
+                border: 4px solid #165c40;
+                background: rgba(255, 255, 255, 0.7);
+                display: grid;
+                place-items: center;
+                text-align: center;
+            }
+            .amt b {
+                font: 400 84px/0.9 'Jersey 10';
+                color: #0c7a4d;
+            }
+            .amt span {
+                display: block;
+                font:
+                    700 24px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.2em;
+            }
+            .words {
+                left: 54px;
+                top: 318px;
+                width: 1312px;
+                height: 78px;
+            }
+            .words .hand {
+                position: absolute;
+                left: 20px;
+                bottom: 2px;
+                font-size: 50px;
+                line-height: 1;
+                white-space: nowrap;
+            }
+            .memo {
+                left: 54px;
+                top: 420px;
+                width: 730px;
+                height: 86px;
+            }
+            .memo .lab {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .memo .hand {
+                position: absolute;
+                left: 70px;
+                bottom: 2px;
+                font-size: 38px;
+                line-height: 1;
+                white-space: nowrap;
+            }
+            .sig {
+                left: 850px;
+                top: 420px;
+                width: 516px;
+                height: 86px;
+            }
+            .sig .hand {
+                position: absolute;
+                left: 30px;
+                bottom: -2px;
+                font:
+                    700 78px/1 'Snell Roundhand',
+                    'Bradley Hand',
+                    cursive;
+            }
+            .sig small {
+                position: absolute;
+                left: 0;
+                top: 94px;
+                font:
+                    700 17px/1 'Avenir Next Condensed',
+                    sans-serif;
+                letter-spacing: 0.12em;
+                color: #2f6b52;
+                white-space: nowrap;
+            }
+            .micr {
+                position: absolute;
+                left: 54px;
+                right: 54px;
+                bottom: 40px;
+                font:
+                    700 30px/1 'Courier New',
+                    monospace;
+                letter-spacing: 0.12em;
+                color: #123c2b;
+                white-space: nowrap;
+            }
+            .also {
+                position: absolute;
+                left: 110px;
+                right: 110px;
+                top: 770px;
+                display: flex;
+                gap: 14px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .also div {
+                padding: 10px 16px 8px;
+                border-radius: 10px;
+                background: #0f1620;
+                box-shadow: inset 0 0 0 2px #1c2733;
+                font: 400 30px/1 'Jersey 10';
+                color: #eaf0f5;
+                white-space: nowrap;
+            }
+            .also div i {
+                font-style: normal;
+                color: #8a97a5;
+                margin-right: 10px;
+            }
+            .also div b {
+                font-weight: 400;
+                color: #f5c542;
+                margin-left: 10px;
+            }
+            .foot {
+                position: absolute;
+                left: 60px;
+                right: 60px;
+                bottom: 24px;
+                display: block;
+                text-align: center;
+                font-size: 19px;
+                letter-spacing: 0.06em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="confetti" id="conf"></div>
+        <div class="cheque">
+            <div class="bank">
+                <canvas id="em"></canvas>
+                <div>
+                    <b>THE DAILY POT</b
+                    ><small>BEARPROOF · PAID BY THE AI'S PRIZE WALLET, ON SOLANA</small>
+                </div>
+            </div>
+            <div class="no" id="no"></div>
+            <div class="line payee">
+                <span class="lab">PAY TO THE ORDER OF</span><span class="hand" id="payee"></span>
+            </div>
+            <div class="amt">
+                <div><b id="amount"></b><span>$ANSEM</span></div>
+            </div>
+            <div class="line words"><span class="hand" id="words"></span></div>
+            <div class="line memo">
+                <span class="lab">FOR</span><span class="hand" id="memo"></span>
+            </div>
+            <div class="line sig"><span class="hand">the AI</span><small id="wallet"></small></div>
+            <div class="micr" id="micr"></div>
+        </div>
+        <div class="also" id="also"></div>
+        <div class="foot" id="foot"></div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            const D = JSON.parse(new URLSearchParams(location.search).get('d'));
+            put(document.getElementById('em'), 'emblem_large', 90, { max: 3, glow: false });
+            const $ = (id) => document.getElementById(id);
+            $('no').innerHTML = `No. ${D.no}<br />${D.date}`;
+            $('payee').textContent = D.payee;
+            $('amount').textContent = D.amount;
+            $('words').textContent = D.words;
+            $('memo').textContent = D.memo;
+            $('wallet').textContent = D.wallet;
+            $('micr').textContent = D.tx;
+            $('also').innerHTML = D.also
+                .map(([l, n, a]) => `<div><i>${l}</i>${n}<b>${a}</b></div>`)
+                .join('');
+            $('foot').textContent = D.foot;
+            const conf = $('conf');
+            const cols = ['#f5c542', '#16e08a', '#ff3b5c', '#2c7be5', '#ffffff'];
+            for (let i = 0; i < 46; i++) {
+                // confetti along the top and down the two sides, clear of the cheque's footer
+                const c = document.createElement('i');
+                const side = i % 3 === 0;
+                c.style.left = side
+                    ? (i % 2 ? 18 : 1556) + ((i * 7) % 20) + 'px'
+                    : ((i * 211.7) % 1560) + 20 + 'px';
+                c.style.top = side ? ((i * 97.3) % 700) + 120 + 'px' : ((i * 53.9) % 70) + 6 + 'px';
+                c.style.background = cols[i % cols.length];
+                c.style.transform = `rotate(${(i * 47) % 180}deg)`;
+                c.style.opacity = String(0.35 + ((i * 13) % 50) / 100);
+                conf.append(c);
+            }
+            await ready();
+        </script>
+    </body>
+</html>

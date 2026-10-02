@@ -9,7 +9,7 @@ import { Simulation } from './sim/sim.js';
 import { BOSSES, CRATE_LOOT, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
-import { CHARACTER_IDS, TWISTS, dailyTwistForSeed } from './sim/content.js';
+import { CHARACTER_IDS, TWISTS, WEAPONS, dailyTwistForSeed } from './sim/content.js';
 import { createBot } from './sim/bot.js';
 import { Fx } from './fx.js';
 import { KILL_COLORS, Renderer } from './render.js';
@@ -353,10 +353,16 @@ export class Game {
                     this._sfx('levelUp', 0);
                     if (!this.attract) this.haptics.levelUp();
                     break;
-                case 'evolve':
-                    this.ui.toast('EVOLVED', 'gold', 1200);
+                case 'evolve': {
+                    const name = Object.values(WEAPONS).find((w) => w.id === e.id)?.evolveName;
+                    this.ui.toast(
+                        name ? `EVOLVED: ${name.toUpperCase()}` : 'EVOLVED',
+                        'gold',
+                        1400
+                    );
                     fx.addFlash('255,197,61', 0.3, 2);
                     break;
+                }
                 case 'bossWarn':
                     this._sfx('bossWarn', 0);
                     if (!this.attract) this.ui.toast(`${e.name.toUpperCase()} IN 5`, 'bear', 1600);

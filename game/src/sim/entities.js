@@ -210,6 +210,8 @@ export class Enemy {
         this.cloneTimer = def.cloneCooldown ? def.cloneCooldown * (0.6 + rng.next() * 0.8) : 0;
         this.slowTimer = 0;
         this.slowPct = 0;
+        this.auraSlowTimer = 0; // Copium (evolved Hopium)
+        this.auraSlowPct = 0;
         // Rug Lord's second phase: enraged once, then a warning and a pull in turn (seconds left on each).
         this.enraged = false;
         this.rugTimer = 0;
@@ -245,7 +247,14 @@ export class Enemy {
         let vy = 0;
 
         if (this.slowTimer > 0) this.slowTimer -= dt;
-        const slow = this.slowTimer > 0 ? 1 - (this.slowPct || 0) : 1;
+        if (this.auraSlowTimer > 0) this.auraSlowTimer -= dt;
+        // The stronger of the two slows wins; they don't stack.
+        const slow =
+            1 -
+            Math.max(
+                this.slowTimer > 0 ? this.slowPct || 0 : 0,
+                this.auraSlowTimer > 0 ? this.auraSlowPct : 0
+            );
         if (this.flashTimer > 0) this.flashTimer -= dt;
 
         if (def.bomber) {

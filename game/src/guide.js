@@ -124,7 +124,7 @@ export function guideSections() {
         {
             id: 'weapons',
             label: 'Weapons',
-            intro: `Up to ${SIM.MAX_WEAPONS} at once. Every level up to ${SIM.WEAPON_MAX_LEVEL}: +20% damage, 8% faster, 10% more reach. Most evolve at Lv ${SIM.WEAPON_MAX_LEVEL}.`,
+            intro: `Up to ${SIM.MAX_WEAPONS} at once. Every level up to ${SIM.WEAPON_MAX_LEVEL}: +20% damage, 8% faster, 10% more reach. ${Object.values(WEAPONS).every((w) => w.evolveName) ? 'Every one evolves' : 'Most evolve'} at Lv ${SIM.WEAPON_MAX_LEVEL}.`,
             entries: Object.values(WEAPONS).map(weaponEntry)
         },
         {

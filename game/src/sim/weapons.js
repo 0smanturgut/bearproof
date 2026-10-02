@@ -251,8 +251,15 @@ export class Weapon {
     _aura(player, sim) {
         const range = this.getRange(player);
         const dmg = this.getDamage(player);
+        const slowPct = this.isEvolved() ? this.def.evolveSlowPct || 0 : 0;
+        const slowDur = this.def.evolveSlowDuration || 0.3;
         for (const e of sim.spatial.queryRect(player.x, player.y, range)) {
             if (e.hp > 0 && hypot(e.x - player.x, e.y - player.y) < range) {
+                // Its own slow slot, so it never cuts short or stretches Circuit Breaker's freeze.
+                if (slowPct > 0) {
+                    e.auraSlowTimer = slowDur;
+                    e.auraSlowPct = slowPct;
+                }
                 sim.damageEnemy(e, dmg, false, this.id, true);
             }
         }

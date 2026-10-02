@@ -261,7 +261,7 @@ export class Renderer {
 
         // --- ground layer: aura, mines
         const aura = p.weapons.find((w) => w.def.type === 'aura');
-        if (aura) this._drawAura(X(p.x), Y(p.y), aura.getRange(p) * s, t);
+        if (aura) this._drawAura(X(p.x), Y(p.y), aura.getRange(p) * s, t, aura.isEvolved());
         for (const m of sim.mines) {
             if (!visible(m.x, m.y)) continue;
             this._drawMine(m, X(m.x), Y(m.y), t);
@@ -493,7 +493,7 @@ export class Renderer {
             tint = '#FFFFFF';
             sxs *= 1.12;
             sys *= 0.9;
-        } else if (e.slowTimer > 0) tint = '#9FE6FF';
+        } else if (e.slowTimer > 0 || e.auraSlowTimer > 0) tint = '#9FE6FF';
         if (def.bomber && e.fuseArmed) {
             frame = (t * 20) % 2 < 1 ? 1 : 3;
             if (Math.floor(t * 12) % 2 === 0) tint = '#FFFFFF';
@@ -715,17 +715,20 @@ export class Renderer {
 
     // ---------------------------------------------------------------- weapons
 
-    _drawAura(x, y, r, t) {
+    /** Hopium's cloud. Evolved (Copium) it turns the cold cyan of the bears it slows, and its bubbles sink. */
+    _drawAura(x, y, r, t, evolved = false) {
         const ctx = this.ctx;
-        const key = `aura:${Math.round(r / 4)}`;
+        const rgb = evolved ? '64,214,230' : '22,224,138';
+        const hi = evolved ? '159,230,255' : '123,245,166';
+        const key = `aura:${evolved ? 'c' : 'h'}:${Math.round(r / 4)}`;
         let tex = this._cache[key];
         if (!tex) {
             tex = makeCanvas(r * 2 + 4, r * 2 + 4);
             const g = tex.getContext('2d');
             const gr = g.createRadialGradient(r + 2, r + 2, r * 0.15, r + 2, r + 2, r);
-            gr.addColorStop(0, 'rgba(22,224,138,0.02)');
-            gr.addColorStop(0.75, 'rgba(22,224,138,0.1)');
-            gr.addColorStop(1, 'rgba(22,224,138,0.22)');
+            gr.addColorStop(0, `rgba(${rgb},${evolved ? 0.05 : 0.02})`);
+            gr.addColorStop(0.75, `rgba(${rgb},${evolved ? 0.14 : 0.1})`);
+            gr.addColorStop(1, `rgba(${rgb},${evolved ? 0.3 : 0.22})`);
             g.fillStyle = gr;
             g.beginPath();
             g.arc(r + 2, r + 2, r, 0, TAU);
@@ -736,22 +739,24 @@ export class Renderer {
         ctx.globalAlpha = pulse;
         ctx.drawImage(tex, x - tex.width / 2, y - tex.height / 2);
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = `rgba(123,245,166,${0.3 + 0.2 * Math.sin(t * 4)})`;
-        ctx.lineWidth = Math.max(1, this.s * 1.5);
+        ctx.strokeStyle = `rgba(${hi},${0.3 + 0.2 * Math.sin(t * 4)})`;
+        ctx.lineWidth = Math.max(1, this.s * (evolved ? 2 : 1.5));
         ctx.setLineDash([4 * this.dpr, 10 * this.dpr]);
-        ctx.lineDashOffset = -t * 40;
+        // Copium's ring crawls the other way.
+        ctx.lineDashOffset = evolved ? t * 14 : -t * 40;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, TAU);
         ctx.stroke();
         ctx.setLineDash([]);
-        // rising hopium bubbles
-        ctx.fillStyle = 'rgba(123,245,166,0.55)';
-        for (let i = 0; i < 10; i++) {
+        // rising hopium bubbles; copium sinks
+        ctx.fillStyle = `rgba(${hi},0.55)`;
+        const rise = evolved ? -14 : 30;
+        for (let i = 0; i < (evolved ? 14 : 10); i++) {
             const a = hash1(i) * TAU + t * 0.2;
             const rr = r * (0.3 + 0.65 * hash1(i * 7));
             const life = (t * 0.6 + hash1(i * 13)) % 1;
             const bx = x + Math.cos(a) * rr;
-            const by = y + Math.sin(a) * rr * 0.9 - life * 30 * this.s;
+            const by = y + Math.sin(a) * rr * 0.9 - life * rise * this.s;
             const sz = Math.max(1, (1 - life) * 3 * this.dpr);
             ctx.globalAlpha = 1 - life;
             ctx.fillRect(Math.round(bx), Math.round(by), sz, sz);

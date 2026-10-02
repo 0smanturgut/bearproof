@@ -42,8 +42,9 @@ import { Weapon } from './weapons.js';
 /** Bump when a change alters simulation results for the same inputs. 2: daily twists. 3: closer spawns and the
  * opening-bell ring. 4: airdrop crates. 5: Rug Lord's second phase (the rug pull). 6: doomposters type before
  * they shoot, from closer. 7: Whale Alert (a whale crosses at 1:30, shoving bears and dropping candles).
- * 8: Boss Jackpot (a boss kill pays triple score and rains its XP as a ring of falling gold candles). */
-export const SIM_VERSION = 8;
+ * 8: Boss Jackpot (a boss kill pays triple score and rains its XP as a ring of falling gold candles).
+ * 9: Copium (Hopium evolves at Lv 5 and slows bears in the cloud). */
+export const SIM_VERSION = 9;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {

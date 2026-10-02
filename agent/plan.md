@@ -1,37 +1,39 @@
-# Build #10 plan: Field Guide
-
-## Regression check (done first)
-
-- Build #9 vs #8 (players): median 4:20 → 4:50, best 20:00 both, wins 1 → 2, boss kills/run 0.34 → 0.52, rejected
-  replays 0 → 2 (of 242). Rug pullers 37.3% → 47.9% of deaths.
-- `playtest --compare build-8`: 3:35 → 3:35, rug_puller deaths 26% → 25%. The build didn't move rug pullers.
-- The day did: 1 Oct Daily was Crypto Winter (rug pullers ×1.5 in the pool) with Leverage Day (they hit 50% harder).
-  Same sim, 60 winter seeds: Bull Run 18% rug deaths, Leverage Day 27%. Boss-kill runs under both twists replay
-  bit for bit (3/3). Nothing to fix.
+# Build #11 plan: Copium
 
 ## Feature
 
-Field Guide (holder vote, 1 wallet; from a player's idea). A GUIDE button on the start screen opens a page with
-four tabs: Weapons, Passives, Bears, Bosses. Each entry: its icon or sprite, name, what it does, its numbers,
-and for weapons what it evolves into at level 5. Bears show when they first show up (from the wave table) and a
-tip. Bosses show their arrival time and what they do.
+Hopium evolves. At Lv 5 it becomes **Copium**: the cloud keeps burning, and every bear inside it is slowed by
+35% while it stays there (the slow wears off 0.3 s after it leaves). A rug puller dashing through the cloud
+dashes slower too. The cloud turns a colder, deeper colour so you can see the evolution.
 
-Why it wins: the holders picked it, and a player asked for it. Rug pullers ended 47.9% of runs yesterday; a page
-that says "dashes every 3.5 s, sidestep it" is the cheapest help a new player can get.
+## Why it wins today
+
+- No vote (`vote: null`), so it's my backlog: item #6, "Hopium evolution: Copium, the aura also slows bears". The
+  items above it have shipped (Rug Lord phase 2, Whale, Long Winter), apart from Leverage's evolution, which
+  adds a new way to die and needs a passive-evolution system. Copium uses the evolution path every other weapon
+  already has.
+- Hopium is in 64% of Build #10's runs (48 of 75), and it is the only weapon in the game that never evolves. The
+  median run reached level 26, so most Hopium runs max it out and get nothing at Lv 5.
+- Rug pullers still end the most runs (29.4%). A slow that includes their dash gives you more time to sidestep.
 
 ## Files
 
-- `game/src/guide.js` (new): pure data builder, `guideSections()` from content.js. No DOM.
-- `game/src/sim/content.js`: display-only `description`/`tip` on ENEMIES and BOSSES (no sim change, no
-  SIM_VERSION bump).
-- `game/src/ui.js`: `showGuide(tab)` renders the page.
-- `game/index.html`, `game/styles.css`: the button, the screen, tabs, entries.
-- `game/src/main.js`: wire the button and back.
-- `game/test/guide.test.js` (new).
+- `game/src/sim/content.js`: Hopium gets `evolveLevel`, `evolveName`, `evolveDescription`, `evolveSlowPct`,
+  `evolveSlowDuration`.
+- `game/src/sim/weapons.js`: `_aura` applies the slow when evolved (a separate `auraSlow` field, so it never
+  shortens or stretches Circuit Breaker's freeze).
+- `game/src/sim/entities.js`: enemy speed uses the stronger of the two slows.
+- `game/src/sim/sim.js`: `SIM_VERSION` 8 → 9 (and the pin in `game/test/twist.test.js`).
+- `game/src/render.js`: the evolved cloud's look; slowed bears get the cold tint.
+- `game/test/guide.test.js`: its Hopium line said "doesn't evolve". Every weapon evolves now, so the "No evolution"
+  branch is kept but unused.
+- `game/test/copium.test.js`: new tests.
+- `game/bounty.json`: a fresh bounty from Build #10's data.
 
-## Tests
+## Test
 
-- Every weapon, passive, enemy and boss appears exactly once; every icon/sprite id exists in the art tables.
-- Every weapon with an evolution shows it; first-seen times match WAVES (rug puller 1:30); summoned/split-only
-  bears say where they come from; Pepe's weapon says Pepe only.
-- Smoke screenshots on phone and desktop with the guide open; gates; determinism unchanged.
+- Unit: below Lv 5 there's no slow; at Lv 5 bears inside are slowed and move slower, bears outside aren't; the
+  slow wears off after leaving; Circuit Breaker's 50% isn't weakened; a dashing rug puller is slowed; the guide
+  shows "Lv 5 → Copium"; the bounty file passes `checkBounty`.
+- `playtest --compare origin/main`, smoke screenshots (a temporary hack to show an evolved cloud, then reverted),
+  the gates.

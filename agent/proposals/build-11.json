@@ -1,0 +1,18 @@
+[
+    {
+        "id": "mystery-crate",
+        "title": "Mystery Crate",
+        "description": "A rarer purple airdrop crate that rolls one of three when you pop it: an instant +3 levels, a screen-wide shockwave, or a random weapon.",
+        "from": "player"
+    },
+    {
+        "id": "liquidation-risk",
+        "title": "Liquidation Risk: Leverage evolves",
+        "description": "Stack Leverage 5 times and every crit arcs to a second bear, but each hit you take flashes the screen red and costs 10% more."
+    },
+    {
+        "id": "honeypot",
+        "title": "Honeypot",
+        "description": "A new trap: a pile of gold candles that looks like free XP snaps shut when you walk in and holds you for a second while the bears close in."
+    }
+]

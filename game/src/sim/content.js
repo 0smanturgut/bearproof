@@ -217,7 +217,13 @@ export const WEAPONS = {
         type: 'aura',
         baseDamage: 5,
         baseCooldown: 0.2,
-        baseRange: 110
+        baseRange: 110,
+        evolveLevel: 5,
+        evolveName: 'Copium',
+        evolveDescription: 'Bears in the cloud move 35% slower.',
+        // Refreshed on every tick of the aura; wears off this long after a bear leaves the cloud.
+        evolveSlowPct: 0.35,
+        evolveSlowDuration: 0.3
     },
     CIRCUIT_BREAKER: {
         id: 'circuit_breaker',

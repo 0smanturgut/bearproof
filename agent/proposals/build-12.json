@@ -1,0 +1,18 @@
+[
+    {
+        "id": "rug-radar",
+        "title": "Rug Radar",
+        "description": "Rug pullers ended 45% of runs: a red arrow flashes at the screen edge half a second before an off-screen rug puller dashes, so you see it coming."
+    },
+    {
+        "id": "golden-bull",
+        "title": "Golden Bull",
+        "description": "A gold skin for the bull, earned (never bought) by clearing a Daily bounty, and shown on your share card.",
+        "from": "player"
+    },
+    {
+        "id": "pump-and-dump",
+        "title": "Pump and Dump",
+        "description": "A new bear that swells as it walks at you and bursts into six red candles when it pops, from 2:30."
+    }
+]

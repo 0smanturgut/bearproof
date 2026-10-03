@@ -48,7 +48,7 @@ test('crates: the first drops at 0:40, then one a minute, on screen near the bul
     }
 });
 
-test('crates: loot is one of the three and never the same twice in a row', () => {
+test('crates: loot is one of the four and never the same twice in a row', () => {
     const sim = quiet(11);
     const loot = [];
     for (let i = 0; i < 30; i++) {
@@ -58,7 +58,7 @@ test('crates: loot is one of the three and never the same twice in a row', () =>
     }
     for (const id of loot) assert.ok(CRATE_LOOT_IDS.includes(id));
     for (let i = 1; i < loot.length; i++) assert.notEqual(loot[i], loot[i - 1]);
-    assert.equal(new Set(loot).size, 3, 'all three show up');
+    assert.equal(new Set(loot).size, CRATE_LOOT_IDS.length, 'every loot shows up');
 });
 
 test('crates: can only be opened once landed, and expire if nobody comes', () => {
@@ -144,7 +144,7 @@ test('runlog: a run with crates replays exactly, and the autopilot opens them', 
 
 test('autopilot: grabs most of the crates that drop', (t) => {
     let dropped = 0;
-    const loot = { magnet: 0, shield: 0, printer: 0 };
+    const loot = Object.fromEntries(CRATE_LOOT_IDS.map((id) => [id, 0]));
     for (let seed = 1; seed <= 10; seed++) {
         const sim = new Simulation({ seed });
         const bot = createBot();
@@ -157,7 +157,7 @@ test('autopilot: grabs most of the crates that drop', (t) => {
             }
         }
     }
-    const opened = loot.magnet + loot.shield + loot.printer;
+    const opened = Object.values(loot).reduce((a, b) => a + b, 0);
     t.diagnostic(`crates: ${opened}/${dropped} opened, ${JSON.stringify(loot)}`);
     assert.ok(opened >= dropped / 2, `${opened}/${dropped}`);
 });

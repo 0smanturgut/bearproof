@@ -43,8 +43,9 @@ import { Weapon } from './weapons.js';
  * opening-bell ring. 4: airdrop crates. 5: Rug Lord's second phase (the rug pull). 6: doomposters type before
  * they shoot, from closer. 7: Whale Alert (a whale crosses at 1:30, shoving bears and dropping candles).
  * 8: Boss Jackpot (a boss kill pays triple score and rains its XP as a ring of falling gold candles).
- * 9: Copium (Hopium evolves at Lv 5 and slows bears in the cloud). */
-export const SIM_VERSION = 9;
+ * 9: Copium (Hopium evolves at Lv 5 and slows bears in the cloud). 10: God Candle (a fourth crate loot that
+ * wipes every bear near the bull). */
+export const SIM_VERSION = 10;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -88,6 +89,7 @@ export class Simulation {
         this.spatial = new SpatialHash(64);
 
         this.spawnAcc = 0;
+        this.calmUntil = 0; // no spawns before this time (a God Candle's calm)
         this.coldAcc = 0;
         this.enemyDmgMult = 1;
         this.hpMult = 1;
@@ -343,7 +345,8 @@ export class Simulation {
         const max = Math.min(SIM.MAX_ENEMIES, 20 + Math.floor(this.time / 10));
         const interval =
             Math.max(0.2, 1.2 - this.time / 200) / ((wave.spawnMult || 1) * this.twist.spawnMult);
-        this.spawnAcc += dt;
+        // a God Candle's calm: no regular spawns, and no backlog to burst in after it (bosses stay on schedule)
+        this.spawnAcc = this.time < this.calmUntil ? 0 : this.spawnAcc + dt;
         while (this.spawnAcc >= interval && this.enemies.length < max) {
             this.spawnAcc -= interval;
             const id = pickWeighted(wave.pool, this.stageId, () => this.rng.next());
@@ -443,9 +446,30 @@ export class Simulation {
         } else if (def.id === 'printer') {
             p.printerTimer = def.duration;
             p.printerMult = def.cooldownMult;
+        } else if (def.id === 'god_candle') {
+            this._godCandle(def);
         }
         this.stats.crates++;
         this.emit({ t: 'crate', id: def.id, name: def.name, x: crate.x, y: crate.y });
+    }
+
+    /** God Candle: every bear within `def.radius` of the bull dies (shield or not); a boss loses `bossShare`. */
+    _godCandle(def) {
+        const p = this.player;
+        let wiped = 0;
+        for (const e of this.enemies) {
+            if (e.hp <= 0 || e.despawned || hypot(e.x - p.x, e.y - p.y) > def.radius) continue;
+            if (e.boss) {
+                this.damageEnemy(e, e.maxHp * def.bossShare, true, 'god_candle');
+                continue;
+            }
+            e.shielded = false;
+            e.shieldHp = 0;
+            this.damageEnemy(e, e.hp, false, 'god_candle', true);
+            wiped++;
+        }
+        this.calmUntil = this.time + def.calm;
+        this.emit({ t: 'godCandle', x: p.x, y: p.y, r: def.radius, wiped, calm: def.calm });
     }
 
     bossAbility(boss) {

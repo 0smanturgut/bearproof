@@ -1,0 +1,344 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The ideas box of 3 Oct on a cork board: two player ideas that involved paying with the coin, and what
+               the AI did with them. devlog/build-12.md, "Next": "The ideas box had two ideas, and both involved
+               paying with the coin (deposit-to-enter games, skins you buy). Wallets and payouts are outside what I
+               build, so I only took the skin part, and made it earned in play." /api/ideas, 3 Oct: weekly
+               competitive games with a $3, $5 or $10 deposit in the coin; character skins bought with the coin.
+               Golden Bull is on the Build #13 ballot (agent/proposals/build-12.json, from: player). The ideas are
+               paraphrased, and the board says so. */
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #b58553;
+            }
+            .cork {
+                position: absolute;
+                inset: 0;
+            }
+            .frame {
+                position: absolute;
+                inset: 0;
+                border: 30px solid #5b3a1f;
+                border-image: linear-gradient(135deg, #7a5230, #4a2e17 45%, #6b4526 60%, #3f2713) 1;
+                box-shadow:
+                    inset 0 0 0 3px rgba(0, 0, 0, 0.35),
+                    inset 0 0 90px rgba(40, 20, 5, 0.55);
+                z-index: 20;
+                pointer-events: none;
+            }
+            .paper {
+                position: absolute;
+                background: #fffdf5;
+                box-shadow:
+                    0 2px 2px rgba(0, 0, 0, 0.25),
+                    0 14px 26px rgba(40, 20, 5, 0.42);
+            }
+            .pin {
+                position: absolute;
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                box-shadow:
+                    4px 9px 8px rgba(0, 0, 0, 0.45),
+                    inset -5px -6px 8px rgba(0, 0, 0, 0.35),
+                    inset 4px 4px 6px rgba(255, 255, 255, 0.55);
+                z-index: 6;
+            }
+            .pin.r {
+                background: #d9342b;
+            }
+            .pin.g {
+                background: #1fa35c;
+            }
+            .pin.y {
+                background: #e7b416;
+            }
+            .pin.b {
+                background: #2f62c9;
+            }
+            /* the header strip */
+            .head {
+                left: 150px;
+                top: 78px;
+                width: 900px;
+                height: 150px;
+                transform: rotate(-1.2deg);
+                padding: 26px 40px 0;
+                text-align: center;
+                font-family: 'American Typewriter', 'Courier New', monospace;
+                color: #1d1a16;
+            }
+            .head b {
+                display: block;
+                font-size: 54px;
+                letter-spacing: 0.06em;
+            }
+            .head span {
+                display: block;
+                margin-top: 8px;
+                font-size: 27px;
+            }
+            /* index cards */
+            .card {
+                padding: 0 34px;
+                background:
+                    linear-gradient(#e2584f, #e2584f) 0 76px / 100% 3px no-repeat,
+                    repeating-linear-gradient(180deg, transparent 0 51px, #a9c4e6 51px 53px) 0
+                        78px / 100% 100% no-repeat,
+                    #fffdf5;
+            }
+            .card .tag {
+                height: 76px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font:
+                    700 23px/1 'American Typewriter',
+                    'Courier New',
+                    monospace;
+                letter-spacing: 0.12em;
+                color: #55504a;
+            }
+            .card .ink {
+                margin-top: 10px;
+                font:
+                    700 40px/53px 'Bradley Hand',
+                    'Noteworthy',
+                    cursive;
+                color: #1c2f6e;
+            }
+            .card.typed .ink {
+                font:
+                    400 31px/53px 'American Typewriter',
+                    'Courier New',
+                    monospace;
+                color: #1d1a16;
+            }
+            .card.typed .ink b {
+                font-weight: 700;
+                font-size: 40px;
+            }
+            .stamp {
+                position: absolute;
+                padding: 8px 20px 4px;
+                border: 7px solid currentColor;
+                border-radius: 10px;
+                font:
+                    400 62px/1 'Impact',
+                    'Arial Black',
+                    sans-serif;
+                letter-spacing: 0.08em;
+                white-space: nowrap;
+                filter: url(#rough);
+                mix-blend-mode: multiply;
+                z-index: 5;
+            }
+            .stamp.no {
+                color: #c8281f;
+            }
+            .stamp.re {
+                color: #2553b8;
+            }
+            .stamp.ok {
+                color: #128a4a;
+            }
+            /* the sticky note */
+            .sticky {
+                position: absolute;
+                left: 96px;
+                top: 846px;
+                width: 420px;
+                height: 392px;
+                padding: 58px 36px 0;
+                background: linear-gradient(180deg, #ffe873, #ffdf4a);
+                transform: rotate(-4deg);
+                box-shadow:
+                    0 2px 2px rgba(0, 0, 0, 0.2),
+                    8px 18px 26px rgba(40, 20, 5, 0.42);
+                font:
+                    400 43px/1.22 'Marker Felt',
+                    'Bradley Hand',
+                    cursive;
+                color: #2a2412;
+            }
+            .sticky small {
+                display: block;
+                margin-top: 22px;
+                font:
+                    400 25px/1.25 'American Typewriter',
+                    'Courier New',
+                    monospace;
+                color: #5a4c14;
+            }
+            .strip {
+                left: 150px;
+                top: 1316px;
+                width: 900px;
+                height: 116px;
+                padding-top: 12px;
+                transform: rotate(0.8deg);
+                display: grid;
+                place-items: center;
+                text-align: center;
+                font:
+                    400 24px/1.3 'American Typewriter',
+                    'Courier New',
+                    monospace;
+                color: #1d1a16;
+            }
+            svg.thread {
+                position: absolute;
+                inset: 0;
+                z-index: 7;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <svg class="cork" width="1200" height="1500">
+            <defs>
+                <filter id="grain" x="0" y="0" width="100%" height="100%">
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.62"
+                        numOctaves="3"
+                        seed="11"
+                    />
+                    <feColorMatrix
+                        type="matrix"
+                        values="0 0 0 0 0.22  0 0 0 0 0.12  0 0 0 0 0.04  0 0 0 1.5 -0.62"
+                    />
+                </filter>
+                <filter id="fleck" x="0" y="0" width="100%" height="100%">
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.09"
+                        numOctaves="2"
+                        seed="4"
+                    />
+                    <feColorMatrix
+                        type="matrix"
+                        values="0 0 0 0 1  0 0 0 0 0.86  0 0 0 0 0.62  0 0 0 1.3 -0.72"
+                    />
+                </filter>
+                <filter id="rough">
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.85"
+                        numOctaves="2"
+                        seed="7"
+                        result="n"
+                    />
+                    <feColorMatrix
+                        in="n"
+                        type="matrix"
+                        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.0 1.72"
+                        result="m"
+                    />
+                    <feComposite in="SourceGraphic" in2="m" operator="in" />
+                </filter>
+            </defs>
+            <rect width="1200" height="1500" fill="#b98954" />
+            <rect width="1200" height="1500" filter="url(#fleck)" opacity="0.5" />
+            <rect width="1200" height="1500" filter="url(#grain)" />
+        </svg>
+
+        <div class="paper head">
+            <b>THE IDEAS BOX · 3 OCT</b>
+            <span>Two players asked. Here's what the AI did with it.</span>
+        </div>
+        <div class="pin y" style="left: 186px; top: 84px"></div>
+        <div class="pin y" style="left: 976px; top: 66px"></div>
+
+        <!-- idea 1 -->
+        <div
+            class="paper card"
+            style="left: 74px; top: 292px; width: 520px; height: 396px; transform: rotate(-3deg)"
+        >
+            <div class="tag"><span>IDEA FROM A PLAYER</span><span>Nº 1</span></div>
+            <div class="ink">
+                Weekly competitive games. Players deposit $3, $5 or $10 in the coin to enter.
+            </div>
+            <div class="stamp no" style="left: 196px; top: 286px; transform: rotate(-9deg)">
+                DECLINED
+            </div>
+        </div>
+        <div class="pin r" style="left: 312px; top: 284px"></div>
+
+        <!-- idea 2 -->
+        <div
+            class="paper card"
+            style="left: 616px; top: 310px; width: 510px; height: 344px; transform: rotate(2.4deg)"
+        >
+            <div class="tag"><span>IDEA FROM A PLAYER</span><span>Nº 2</span></div>
+            <div class="ink">Character skins, bought with the coin.</div>
+            <div class="stamp re" style="left: 150px; top: 226px; transform: rotate(7deg)">
+                REWRITTEN
+            </div>
+        </div>
+        <div class="pin b" style="left: 862px; top: 300px"></div>
+        <div class="pin b" style="left: 656px; top: 628px"></div>
+
+        <!-- the AI's reason -->
+        <div class="sticky">
+            “Wallets and payouts are outside what I build.”
+            <small>the AI, in its Build #12 devlog</small>
+        </div>
+        <div class="pin r" style="left: 286px; top: 846px"></div>
+
+        <!-- what went on the ballot -->
+        <div
+            class="paper card typed"
+            style="left: 566px; top: 792px; width: 548px; height: 450px; transform: rotate(-1.6deg)"
+        >
+            <div class="tag"><span>THE AI'S VERSION</span><span>BUILD #13</span></div>
+            <div class="ink">
+                <b>GOLDEN BULL</b><br />A gold skin for the bull.<br />You earn it by clearing a<br />Daily
+                bounty. Never bought.
+            </div>
+            <div class="stamp ok" style="left: 86px; top: 340px; transform: rotate(-5deg)">
+                ON THE BALLOT
+            </div>
+        </div>
+        <div class="pin g" style="left: 820px; top: 780px"></div>
+
+        <!-- the thread from idea 2 to the AI's version -->
+        <svg class="thread" width="1200" height="1500">
+            <path
+                d="M676 652 C 690 760, 790 716, 838 800"
+                fill="none"
+                stroke="rgba(40,10,5,0.35)"
+                stroke-width="7"
+                transform="translate(5 8)"
+            />
+            <path
+                d="M676 652 C 690 760, 790 716, 838 800"
+                fill="none"
+                stroke="#c1272d"
+                stroke-width="5"
+                stroke-linecap="round"
+            />
+        </svg>
+
+        <div class="paper strip">
+            The AI isn't allowed to write code that touches wallets or payouts.<br />Ideas are
+            paraphrased from the public ideas box on bearproof.app.
+        </div>
+        <div class="pin y" style="left: 582px; top: 1294px"></div>
+        <div class="frame"></div>
+        <script type="module">
+            await document.fonts.ready;
+            window.ready = true;
+        </script>
+    </body>
+</html>

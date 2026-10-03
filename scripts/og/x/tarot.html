@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* Build #12, "God Candle", as a tarot card: XII, drawn with the game's own god_candle sprite (new in
+               Build #12), the bull and its bears. devlog/build-12.md: a crate can hold a God Candle; every non-boss
+               bear within 400 units dies and nothing spawns for 4 seconds; nobody voted, so the AI took it from
+               its backlog. The "reversed" meaning is a joke that happens to be true: a wipe with no bears near you
+               clears nothing. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background:
+                    radial-gradient(
+                        ellipse 70% 55% at 50% 42%,
+                        rgba(120, 60, 160, 0.38),
+                        transparent 70%
+                    ),
+                    repeating-linear-gradient(
+                        45deg,
+                        rgba(255, 255, 255, 0.018) 0 3px,
+                        transparent 3px 9px
+                    ),
+                    linear-gradient(180deg, #1a0d24, #0c0612);
+                color: #f2e3b3;
+            }
+            .card {
+                position: absolute;
+                left: 232px;
+                top: 54px;
+                width: 736px;
+                height: 1176px;
+                border-radius: 34px;
+                background:
+                    radial-gradient(
+                        ellipse 80% 46% at 50% 30%,
+                        rgba(60, 210, 140, 0.22),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #0f1638 0%, #0a0f28 55%, #070a1c 100%);
+                box-shadow:
+                    0 0 0 5px #e7c66a,
+                    0 0 0 16px #0a0f28,
+                    0 0 0 19px #e7c66a,
+                    0 40px 90px rgba(0, 0, 0, 0.75);
+                transform: rotate(-2.2deg);
+                overflow: hidden;
+            }
+            .inner {
+                position: absolute;
+                inset: 22px;
+                border-radius: 18px;
+                box-shadow: inset 0 0 0 2px rgba(231, 198, 106, 0.8);
+            }
+            svg.lines {
+                position: absolute;
+                inset: 0;
+            }
+            .num {
+                position: absolute;
+                left: 50%;
+                top: 44px;
+                transform: translateX(-50%);
+                padding: 8px 22px 6px 30px;
+                background: #0d1433;
+                box-shadow: 0 0 0 2px #e7c66a;
+                border-radius: 8px;
+                font:
+                    700 56px/1 'Didot',
+                    'Bodoni 72',
+                    serif;
+                letter-spacing: 0.16em;
+                color: #e7c66a;
+            }
+            #candle {
+                position: absolute;
+                left: 50%;
+                top: 142px;
+                transform: translateX(-50%);
+                filter: drop-shadow(0 0 26px rgba(80, 255, 160, 0.9))
+                    drop-shadow(0 0 80px rgba(60, 220, 140, 0.6));
+            }
+            #bull {
+                position: absolute;
+                left: 50%;
+                top: 800px;
+                transform: translateX(-50%);
+            }
+            .bear {
+                position: absolute;
+                opacity: 0.92;
+            }
+            .title {
+                position: absolute;
+                left: 54px;
+                right: 54px;
+                bottom: 56px;
+                height: 96px;
+                display: grid;
+                place-items: center;
+                background: #0a0f28;
+                box-shadow:
+                    0 0 0 3px #e7c66a,
+                    inset 0 0 0 7px #0a0f28,
+                    inset 0 0 0 9px rgba(231, 198, 106, 0.7);
+                font:
+                    700 46px/1 'Didot',
+                    'Bodoni 72',
+                    serif;
+                letter-spacing: 0.1em;
+                white-space: nowrap;
+                text-align: center;
+                color: #f2e3b3;
+            }
+            .mean {
+                position: absolute;
+                left: 110px;
+                right: 110px;
+                top: 1262px;
+                text-align: center;
+                font:
+                    italic 400 33px/1.3 'Baskerville',
+                    Georgia,
+                    serif;
+                color: #eadfc4;
+            }
+            .mean b {
+                font:
+                    700 21px/1 'Didot',
+                    serif;
+                font-style: normal;
+                letter-spacing: 0.22em;
+                color: #e7c66a;
+                margin-right: 8px;
+            }
+            .mean p {
+                margin: 0 0 10px;
+            }
+            .src {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 34px;
+                text-align: center;
+                font:
+                    400 19px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.12em;
+                color: #9c8fb0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <svg class="lines" viewBox="0 0 736 1176" width="736" height="1176">
+                <g stroke="#e7c66a" fill="none" stroke-linecap="round">
+                    <!-- rays behind the candle -->
+                    <g stroke-width="2" opacity="0.75" id="rays"></g>
+                    <!-- the cleared circle on the ground -->
+                    <ellipse
+                        cx="368"
+                        cy="888"
+                        rx="250"
+                        ry="66"
+                        stroke-width="2.5"
+                        stroke-dasharray="3 10"
+                    />
+                    <ellipse cx="368" cy="888" rx="300" ry="84" stroke-width="1.5" opacity="0.5" />
+                    <!-- a crescent and stars -->
+                    <path
+                        d="M118 170 a44 44 0 1 0 44 60 a34 34 0 1 1 -44 -60z"
+                        fill="#e7c66a"
+                        stroke="none"
+                    />
+                    <g fill="#e7c66a" stroke="none">
+                        <path d="M604 150 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6z" />
+                        <path d="M560 250 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" />
+                        <path d="M170 330 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" />
+                        <path d="M628 380 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" />
+                        <path d="M110 470 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" />
+                    </g>
+                </g>
+            </svg>
+            <div class="inner"></div>
+            <div class="num">XII</div>
+            <canvas id="candle"></canvas>
+            <canvas id="bull"></canvas>
+            <div id="bears"></div>
+            <div class="title">THE GOD CANDLE</div>
+        </div>
+        <div class="mean">
+            <p>
+                <b>UPRIGHT</b>The chart clears. Every bear near you is gone, and nothing spawns for
+                four seconds.
+            </p>
+            <p><b>REVERSED</b>You opened the crate with no bears around.</p>
+        </div>
+        <div class="src">BEARPROOF · BUILD #12 · DRAWN BY THE AI ON A NIGHT NOBODY VOTED</div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            const rays = document.getElementById('rays');
+            for (let i = 0; i < 36; i++) {
+                const a = (i / 36) * Math.PI * 2;
+                const r0 = 150 + (i % 2 ? 0 : 26),
+                    r1 = i % 2 ? 330 : 420;
+                const x0 = 368 + Math.cos(a) * r0,
+                    y0 = 450 + Math.sin(a) * r0,
+                    x1 = 368 + Math.cos(a) * r1,
+                    y1 = 450 + Math.sin(a) * r1;
+                rays.insertAdjacentHTML(
+                    'beforeend',
+                    `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} L${x1.toFixed(1)} ${y1.toFixed(1)}" />`
+                );
+            }
+            put(document.getElementById('candle'), 'god_candle', 2000, { max: 14, glow: false });
+            put(document.getElementById('bull'), 'bull', 2000, { max: 4, glow: false });
+            // the bears, pushed out to the rim of the cleared circle
+            const B = [
+                ['red_candle', 92, 836],
+                ['rug_puller', 70, 912],
+                ['grizzly', 150, 958],
+                ['paper_hands', 268, 976],
+                ['fud_cloud', 644, 836],
+                ['doomposter', 668, 912],
+                ['ponzi', 588, 960],
+                ['bag_holder', 462, 978]
+            ];
+            const wrap = document.getElementById('bears');
+            for (const [id, x, y] of B) {
+                const c = document.createElement('canvas');
+                put(c, id, 2000, { max: 3, glow: false });
+                c.className = 'bear';
+                c.style.left = x - c.width / 2 + 'px';
+                c.style.top = y - c.height / 2 + 'px';
+                wrap.append(c);
+            }
+            await ready();
+        </script>
+    </body>
+</html>

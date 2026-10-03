@@ -122,6 +122,13 @@ const jobs = [
     ['scripts/og/x/claw.html', 'content/x/img/106-the-claw-decides.png', 1200, 1500],
     ['scripts/og/x/rafters.html', 'content/x/img/108-the-rafters.png', 1200, 1500],
     ['scripts/og/x/costs.html', 'content/x/img/110-what-an-ai-dev-costs.png', 1200, 1500],
+    ['scripts/og/x/neon.html?d=3,12', 'content/x/img/111-last-call-nobody-voted.png', 1200, 1500],
+    [
+        'scripts/og/x/neon.html?s=HOLDERS%2C%20IT%27S%20YOUR%20CALL',
+        'content/x/img/112-last-call-your-call.png',
+        1200,
+        1500
+    ],
     [
         'scripts/og/x/cheque.html?d=%7B%22no%22%3A%20%220005%22%2C%20%22date%22%3A%20%222%20OCT%202026%22%2C%20%22payee%22%3A%20%22Yuki%22%2C%20%22amount%22%3A%20%2229.54%22%2C%20%22words%22%3A%20%22Twenty-nine%20and%2054%2F100%20%24ANSEM%22%2C%20%22memo%22%3A%20%22%231%20on%201%20Oct%20with%20288%2C590%20%2B%20the%20bounty%22%2C%20%22tx%22%3A%20%22TX%204YGm%E2%80%A6F5VJ%20%2B%202owM%E2%80%A6W7zJ%20%C2%B7%20WALLET%20GD9H%E2%80%A6hRo5%20%C2%B7%200005%22%2C%20%22wallet%22%3A%20%22AUTHORISED%20%C2%B7%20THE%20AI%27S%20PRIZE%20WALLET%20%C2%B7%20GD9H%E2%80%A6hRo5%22%2C%20%22also%22%3A%20%5B%5B%22%231%22%2C%20%22Yuki%22%2C%20%2213.99%22%5D%2C%20%5B%22BOUNTY%22%2C%20%22Yuki%22%2C%20%2215.55%22%5D%2C%20%5B%22%232%22%2C%20%22greedelf%22%2C%20%229.33%22%5D%2C%20%5B%22TOTAL%22%2C%20%223%20transfers%22%2C%20%2238.86%20%24ANSEM%22%5D%5D%2C%20%22foot%22%3A%20%22Bought%20with%200.0464%20SOL%20in%20one%20swap%20on%202%20Oct%2C%2000%3A15%20UTC%20%C2%B7%2022%20players%20cleared%20the%20bounty%20and%20the%20pot%20had%20room%20for%20one%20share%2C%20best%20score%20first%20%C2%B7%20free%20to%20play%22%7D',
         'content/x/img/101-the-daily-pot-cheque.png',

@@ -1,0 +1,297 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/scripts/og/x/x.css" />
+        <style>
+            /* The last half hour of a build vote as neon signs on a brick wall. ?b=<build>&o=<a|b|c option names>
+               &s=<small sign text>. The three options come from the night's ballot (agent/proposals/build-N.json);
+               the small sign is "NOBODY HAS VOTED YET" only while /api/vote shows no voters. */
+            html,
+            body {
+                width: 1200px;
+                height: 1500px;
+                background:
+                    radial-gradient(
+                        ellipse 70% 34% at 50% 27%,
+                        rgba(255, 79, 163, 0.34),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 60% 26% at 50% 58%,
+                        rgba(64, 224, 255, 0.2),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 80% 24% at 50% 88%,
+                        rgba(125, 255, 181, 0.12),
+                        transparent 70%
+                    ),
+                    repeating-linear-gradient(
+                        0deg,
+                        rgba(0, 0, 0, 0.55) 0 4px,
+                        transparent 4px 60px
+                    ),
+                    repeating-linear-gradient(
+                        90deg,
+                        rgba(0, 0, 0, 0.5) 0 4px,
+                        transparent 4px 150px
+                    ),
+                    linear-gradient(180deg, #2b1512, #1c0d0c);
+            }
+            .wall {
+                position: absolute;
+                inset: 0;
+                /* every other course of bricks shifts by half a brick */
+                background: repeating-linear-gradient(
+                    0deg,
+                    transparent 0 60px,
+                    rgba(28, 13, 12, 0.001) 60px 120px
+                );
+            }
+            .course {
+                position: absolute;
+                left: 0;
+                right: 0;
+                height: 56px;
+                background:
+                    repeating-linear-gradient(
+                            90deg,
+                            rgba(0, 0, 0, 0.5) 0 4px,
+                            transparent 4px 150px
+                        )
+                        75px 0,
+                    #241210;
+            }
+            .vig {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    ellipse 75% 70% at 50% 45%,
+                    transparent 40%,
+                    rgba(0, 0, 0, 0.72) 100%
+                );
+                pointer-events: none;
+            }
+            .glowp {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 62% 30% at 50% 27%,
+                        rgba(255, 79, 163, 0.26),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 52% 16% at 50% 50%,
+                        rgba(64, 224, 255, 0.16),
+                        transparent 70%
+                    );
+                mix-blend-mode: screen;
+                pointer-events: none;
+            }
+            .tube {
+                position: absolute;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-family: 'Futura', 'Avenir Next', sans-serif;
+                font-weight: 700;
+                color: transparent;
+                white-space: nowrap;
+            }
+            .big {
+                font-size: 330px;
+                line-height: 0.86;
+                letter-spacing: 0.02em;
+                -webkit-text-stroke: 9px #ff5aa8;
+                filter: drop-shadow(0 0 10px #ff5aa8) drop-shadow(0 0 34px rgba(255, 79, 163, 0.85))
+                    drop-shadow(0 0 90px rgba(255, 79, 163, 0.55));
+            }
+            .core {
+                -webkit-text-stroke: 3px #ffe3f1;
+                filter: none;
+            }
+            .script {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 742px;
+                text-align: center;
+                font:
+                    700 132px/1 'Snell Roundhand',
+                    'Brush Script MT',
+                    cursive;
+                color: #dffbff;
+                text-shadow:
+                    0 0 8px #6fe9ff,
+                    0 0 26px #40e0ff,
+                    0 0 70px rgba(64, 224, 255, 0.8);
+            }
+            .signs {
+                position: absolute;
+                left: 90px;
+                right: 90px;
+                top: 936px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 26px;
+            }
+            .sg {
+                height: 150px;
+                border-radius: 22px;
+                display: grid;
+                place-items: center;
+                text-align: center;
+                font:
+                    700 38px/1.02 'Futura',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.04em;
+                background: rgba(0, 0, 0, 0.35);
+            }
+            .sg.p {
+                color: #f0d9ff;
+                box-shadow:
+                    inset 0 0 0 5px #c77dff,
+                    0 0 18px #c77dff,
+                    0 0 60px rgba(199, 125, 255, 0.55);
+                text-shadow:
+                    0 0 8px #c77dff,
+                    0 0 28px #c77dff;
+            }
+            .sg.r {
+                color: #ffe0d6;
+                box-shadow:
+                    inset 0 0 0 5px #ff6b4a,
+                    0 0 18px #ff6b4a,
+                    0 0 60px rgba(255, 107, 74, 0.55);
+                text-shadow:
+                    0 0 8px #ff6b4a,
+                    0 0 28px #ff6b4a;
+            }
+            .sg.g {
+                color: #fff3c9;
+                box-shadow:
+                    inset 0 0 0 5px #ffcf3f,
+                    0 0 18px #ffcf3f,
+                    0 0 60px rgba(255, 207, 63, 0.55);
+                text-shadow:
+                    0 0 8px #ffcf3f,
+                    0 0 28px #ffcf3f;
+            }
+            .sg small {
+                display: block;
+                margin-top: 8px;
+                font:
+                    700 19px/1 'Futura',
+                    sans-serif;
+                letter-spacing: 0.14em;
+                opacity: 0.9;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1144px;
+                text-align: center;
+                font:
+                    700 66px/1 'Futura',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.08em;
+                color: #eafff2;
+                text-shadow:
+                    0 0 8px #7dffb5,
+                    0 0 26px #16e08a,
+                    0 0 70px rgba(22, 224, 138, 0.8);
+            }
+            .small i {
+                font-style: normal;
+                color: rgba(160, 200, 175, 0.28);
+                text-shadow: none;
+            }
+            .closes {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1262px;
+                text-align: center;
+                font:
+                    700 44px/1 'Futura',
+                    'Avenir Next',
+                    sans-serif;
+                letter-spacing: 0.12em;
+                color: #fff;
+                text-shadow:
+                    0 0 8px #fff,
+                    0 0 24px rgba(255, 255, 255, 0.7);
+            }
+            .plaque {
+                position: absolute;
+                left: 50%;
+                bottom: 54px;
+                transform: translateX(-50%);
+                padding: 12px 22px 9px;
+                border-radius: 6px;
+                background: linear-gradient(180deg, #b9a27a, #8a744d);
+                box-shadow:
+                    inset 0 0 0 2px rgba(255, 255, 255, 0.25),
+                    0 6px 14px rgba(0, 0, 0, 0.6);
+                font:
+                    700 24px/1 'Futura',
+                    sans-serif;
+                letter-spacing: 0.2em;
+                color: #2b1e0c;
+                white-space: nowrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="courses"></div>
+        <div class="glowp"></div>
+        <div class="tube big" style="top: 96px">LAST</div>
+        <div class="tube big core" style="top: 96px">LAST</div>
+        <div class="tube big" style="top: 392px">CALL</div>
+        <div class="tube big core" style="top: 392px">CALL</div>
+        <div class="script">30 minutes left</div>
+        <div class="signs" id="signs"></div>
+        <div class="small" id="small"></div>
+        <div class="closes" id="closes"></div>
+        <div class="plaque" id="plaque"></div>
+        <div class="vig"></div>
+        <script type="module">
+            import { ready } from '/scripts/og/x/x.js';
+            const q = new URLSearchParams(location.search);
+            const build = q.get('b') || '12';
+            const opts = (q.get('o') || 'MYSTERY CRATE|LIQUIDATION RISK|HONEYPOT').split('|');
+            const tags = (q.get('t') || "A PLAYER'S IDEA||").split('|');
+            const small = q.get('s') || 'NOBODY HAS VOTED YET';
+            // staggered brick courses
+            const c = document.getElementById('courses');
+            for (let y = 60; y < 1500; y += 120) {
+                c.insertAdjacentHTML(
+                    'beforeend',
+                    `<div class="course" style="top:${y + 4}px"></div>`
+                );
+            }
+            const cls = ['p', 'r', 'g'];
+            document.getElementById('signs').innerHTML = opts
+                .map(
+                    (o, i) =>
+                        `<div class="sg ${cls[i]}"><div>${o.replace(' ', '<br />')}${tags[i] ? `<small>${tags[i]}</small>` : ''}</div></div>`
+                )
+                .join('');
+            // a few letters of the small sign are out, the way a tired neon sign looks
+            const dead = (q.get('d') || '').split(',').filter(Boolean).map(Number);
+            document.getElementById('small').innerHTML = [...small]
+                .map((ch, i) => (dead.includes(i) ? `<i>${ch}</i>` : ch))
+                .join('');
+            document.getElementById('closes').textContent =
+                q.get('c') || 'THE VOTE CLOSES AT 21:00 UTC';
+            document.getElementById('plaque').textContent =
+                `BEARPROOF · BUILD #${build} · HOLDERS VOTE`;
+            await ready();
+        </script>
+    </body>
+</html>

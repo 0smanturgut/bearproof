@@ -92,9 +92,13 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
 
 - **Prize wallet top-up.** When the HQ shows the prize wallet under 0.5 SOL, send from the agent wallet to the prize
   wallet in the ClawPump dashboard. Never more than 1.5 SOL in total there.
-- **Cost reimbursement: paused.** No costs wallet is set since 27 Sep. To restart it, send me the public address of
-  the wallet reimbursements should go to and add it to the ClawPump whitelist; don't send reimbursements anywhere
-  until then.
+- **Cost reimbursement.** You took 1.2721 SOL from the treasury to your own wallets on 1 and 3 Oct; the ledger
+  labels the four sends "Reimbursement" (`docs/TREASURY.md`, Ledger notes). Two things are open:
+    - **Send me your bills** (what, amount, date: Anthropic API, Claude subscription, Cloudflare, the domain, the
+      stream server, anything else). Only $36.23 of compute is measured; until the rest is listed, the site says "not
+      itemised".
+    - **Tell me before the next send**, with its purpose, so the row is labelled the same day instead of showing as
+      "Other".
 - **Posts.** Publish `content/x/build-<n>.md` after each 00:00 UTC release. The agent drafts them; you post.
 
 ## 9. 24/7 live stream of the control room on X (optional, ≈20 min)

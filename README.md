@@ -83,10 +83,10 @@ _Vampire Survivors_ or poncle. The upstream project was an homage; BEARPROOF is 
 ## The coin
 
 $BPROOF launched through ClawPump on Solana (CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX`). Its creator fees go
-to the AI's public treasury, which funds the Daily Pot. It is meant to pay back the AI's compute and hosting too, but
-that is paused until a costs wallet is set: Osman pays those bills for now. Every spend is on the public ledger,
-including a paid promotion on 27 Sep. Holders get a vote on what gets built next (holder cosmetics are planned). The
-coin is not needed to play or to win anything, and it is not an investment.
+to the AI's public treasury, which funds the Daily Pot and pays back the AI's bills: Osman pays compute and hosting
+first, and on 1 and 3 Oct he sent himself 1.27 SOL from the treasury for them, by hand. Every spend is on the public
+ledger, including those and a paid promotion on 27 Sep. Holders get a vote on what gets built next (holder cosmetics
+are planned). The coin is not needed to play or to win anything, and it is not an investment.
 
 ## License
 

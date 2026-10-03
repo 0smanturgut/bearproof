@@ -1312,7 +1312,7 @@ function fund(ctx, env, s, lt) {
         );
         wrap(
             ctx,
-            'Compute and hosting are billed off-chain. Paying them back from the treasury is paused until a costs wallet is set.',
+            'Compute and hosting are billed to the operator off-chain. He pays himself back from the treasury by hand.',
             W - 2 * m,
             'mono',
             P ? 20 : 21

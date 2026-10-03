@@ -42,3 +42,27 @@ test('ledger notes: relabel by signature, add the onward transfer, keep newest f
     assert.match(out[0].solscan, /solscan\.io\/tx\/C$/);
     assert.equal(applyNotes(entries).length, 2, 'no notes, no change');
 });
+
+test('ledger notes: the 1 and 3 Oct sends to the operator say who took them and whose statement the purpose is', () => {
+    const sigs = [
+        'qncm3YHKRu48HAuTUN565VEdccvjqJaXai2mA4fZSGccSiWTZ6b5RWGBUg7MGghPPN1BGStiYS18K4FgytqRB3L',
+        '22AkZ7xWcss9EtKgeZojffyqu9G61EGWScN5L6NZbKfTb1XteT3BxTRYYWAnXFuc73ELT7Brsd9fqUrazgxXry5M',
+        '4VxVbnHi3ie5V4vbJPM2WA6bTfBjKjFfXCRkHs7WXUGRQyb7Tv9N7WyqnWVHquDY4n9M5XA2SiibhF64382ym7Bs',
+        '52463o9P613ffUv8UrMCt13qbVCwKNbWY3K4DbYncEXYK1TBnS7CePsLmLedkvRPv62GWtyEFghU5u677PjQvzCG'
+    ];
+    const out = applyNotes(
+        sigs.map((tx, i) => ({
+            ts: `2026-10-0${i ? 3 : 1}T21:0${i}:00.000Z`,
+            category: 'other',
+            memo: 'outgoing to …',
+            tx,
+            amountSol: 1
+        }))
+    );
+    for (const e of out) {
+        assert.equal(e.category, 'reimbursement');
+        assert.match(e.memo, /^operator reimbursement: /);
+        assert.match(e.memo, /operator(’s)? .*own wallet/, 'names the recipient as the operator');
+        assert.match(e.memo, /He says|his statement/, 'the purpose is attributed, not asserted');
+    }
+});

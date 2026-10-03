@@ -51,7 +51,8 @@ The daily ritual is the product: a new build, a new challenge, a new devlog, eve
 ### 1. Founder and team
 
 - **Osman** (operator): independent Solana, web and game developer. _[Osman: add one or two lines on past projects.]_
-  He set up the accounts, funds hosting until the treasury can, launched the coin, posts the daily update, and
+  He set up the accounts, pays the bills first and is paid back from the treasury (by hand, on the ledger), launched
+  the coin, posts the daily update, and
   holds the emergency revert and payout kill switches. He does not write the daily features; if he ever does, the
   commit is labelled `human`.
 - **The AI** (the developer): the Build Agent, Claude running headless in GitHub Actions on a schedule, with a

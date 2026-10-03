@@ -20,6 +20,28 @@ export const LEDGER_NOTES = {
             {
                 category: 'buyback',
                 memo: 'buyback: the treasury bought 1,107,008 $BPROOF (0.11% of supply) for 0.1 SOL; the operator made it through ClawPump, and the tokens are held in the treasury wallet'
+            },
+        // 1 Oct 19:33 UTC and 3 Oct 21:06–21:14 UTC: four sends from the treasury to the operator's own wallets,
+        // made by him in the ClawPump dashboard. On 4 Oct he said he took them to pay himself back for the bills he
+        // had covered since day 1. The amounts are on-chain; the purpose is his statement (docs/TREASURY.md).
+        qncm3YHKRu48HAuTUN565VEdccvjqJaXai2mA4fZSGccSiWTZ6b5RWGBUg7MGghPPN1BGStiYS18K4FgytqRB3L: {
+            category: 'reimbursement',
+            memo: 'operator reimbursement: the operator sent 1 SOL from the treasury to his own wallet (3iu3…cjoD), by hand. He says it pays him back for the project bills he covered out of pocket; of those, only AI compute is measured (labelled 4 Oct)'
+        },
+        '22AkZ7xWcss9EtKgeZojffyqu9G61EGWScN5L6NZbKfTb1XteT3BxTRYYWAnXFuc73ELT7Brsd9fqUrazgxXry5M':
+            {
+                category: 'reimbursement',
+                memo: 'operator reimbursement: 0.01 SOL from the treasury to the operator’s own wallet (3hup…f7Q8), by hand; same purpose as the 1 Oct row, by his statement (labelled 4 Oct)'
+            },
+        '4VxVbnHi3ie5V4vbJPM2WA6bTfBjKjFfXCRkHs7WXUGRQyb7Tv9N7WyqnWVHquDY4n9M5XA2SiibhF64382ym7Bs':
+            {
+                category: 'reimbursement',
+                memo: 'operator reimbursement: 0.2 SOL from the treasury to the operator’s own wallet (28Rp…NeE4, where the 27 Sep send also went), by hand; same purpose as the 1 Oct row, by his statement (labelled 4 Oct)'
+            },
+        '52463o9P613ffUv8UrMCt13qbVCwKNbWY3K4DbYncEXYK1TBnS7CePsLmLedkvRPv62GWtyEFghU5u677PjQvzCG':
+            {
+                category: 'reimbursement',
+                memo: 'operator reimbursement: 0.0621 SOL from the treasury to the operator’s own wallet (4fmU…N2tA), by hand; same purpose as the 1 Oct row, by his statement. It left 0.002 SOL in the treasury (labelled 4 Oct)'
             }
     },
     // [{ tx, ts (ISO), direction, amountSol, category, memo }]

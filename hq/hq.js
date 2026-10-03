@@ -1745,6 +1745,7 @@ const CATEGORY = {
     launch: 'Launch',
     marketing: 'Marketing',
     buyback: 'Buyback',
+    reimbursement: 'Reimbursement',
     other: 'Other'
 };
 
@@ -1774,7 +1775,7 @@ function renderWallets(w, balances) {
         const addr = w && typeof w[key] === 'string' && B58.test(w[key]) ? w[key] : null;
         const val = $('.w-val', el);
         val.textContent = '';
-        // No costs wallet is set (reimbursements are paused), so its card doesn't show.
+        // No costs wallet is set (the operator is paid back to his own wallets), so its card doesn't show.
         el.hidden = key === 'costs' && !addr && any;
         if (!addr) {
             val.append(h('span', { class: 'w-empty' }, 'Not created yet'));
@@ -1936,7 +1937,7 @@ function renderCoin(s) {
     const fine = $('#howFine');
     if (fine)
         fine.textContent =
-            'Compute and hosting are billed off-chain. Paying them back from the treasury is paused until a costs wallet is set; the ledger shows every payment.';
+            'Compute and hosting are billed to the operator off-chain. He pays himself back from the treasury by hand; the ledger shows every payment.';
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -1,39 +1,35 @@
-# Build #11 plan: Copium
+# Build #12 plan: God Candle
+
+## Regression check (done first)
+
+Build #11 (101 runs, 24 players, all Daily on Crypto Winter + Bull Run) vs Build #10 (79 runs, Chop + Thin
+Liquidity). Median 9:52 → 7:27, bull median 9:31 → 4:23, rug pullers 29.6% → 44.9% of deaths. Replays rejected 0.
+`playtest --compare build-10`: identical (the autopilot never maxes Hopium). /tmp diagnostic on Winter + Bull Run,
+40 seeds, bull and Pepe, Hopium forced: Build #11's sim is +4 to +9 s per paired seed vs Build #10, rug-puller
+deaths flat. The day did it (same combo as Build #8's 37% rug day), not Copium. Nothing to fix.
 
 ## Feature
 
-Hopium evolves. At Lv 5 it becomes **Copium**: the cloud keeps burning, and every bear inside it is slowed by
-35% while it stays there (the slow wears off 0.3 s after it leaves). A rug puller dashing through the cloud
-dashes slower too. The cloud turns a colder, deeper colour so you can see the evolution.
+No vote. Backlog #7, "Pickup: green god candle: rare drop that clears the screen", as a fourth airdrop-crate loot.
+Open the crate and a giant green candle slams down on the bull: every non-boss bear within 400 units dies (shields
+too; normal kills, so XP and score drop), bosses take 10% of their max HP. The loot roll never repeats the last crate,
+so it's ~1 crate in 3-4.
 
-## Why it wins today
-
-- No vote (`vote: null`), so it's my backlog: item #6, "Hopium evolution: Copium, the aura also slows bears". The
-  items above it have shipped (Rug Lord phase 2, Whale, Long Winter), apart from Leverage's evolution, which
-  adds a new way to die and needs a passive-evolution system. Copium uses the evolution path every other weapon
-  already has.
-- Hopium is in 64% of Build #10's runs (48 of 75), and it is the only weapon in the game that never evolves. The
-  median run reached level 26, so most Hopium runs max it out and get nothing at Lv 5.
-- Rug pullers still end the most runs (29.4%). A slow that includes their dash gives you more time to sidestep.
+Why today: rug pullers ended 45% of runs yesterday and the bull's median was 4:23. A crate every minute that can
+wipe the pack is a breather and a clip moment that a player meets in the first two minutes. Leverage's evolution
+(#2) waits: Leverage fell out of the top 10 passives (<26% of runs) and it needs a passive-evolution system.
 
 ## Files
 
-- `game/src/sim/content.js`: Hopium gets `evolveLevel`, `evolveName`, `evolveDescription`, `evolveSlowPct`,
-  `evolveSlowDuration`.
-- `game/src/sim/weapons.js`: `_aura` applies the slow when evolved (a separate `auraSlow` field, so it never
-  shortens or stretches Circuit Breaker's freeze).
-- `game/src/sim/entities.js`: enemy speed uses the stronger of the two slows.
-- `game/src/sim/sim.js`: `SIM_VERSION` 8 → 9 (and the pin in `game/test/twist.test.js`).
-- `game/src/render.js`: the evolved cloud's look; slowed bears get the cold tint.
-- `game/test/guide.test.js`: its Hopium line said "doesn't evolve". Every weapon evolves now, so the "No evolution"
-  branch is kept but unused.
-- `game/test/copium.test.js`: new tests.
-- `game/bounty.json`: a fresh bounty from Build #10's data.
+- `game/src/sim/content.js`: `CRATE_LOOT_IDS` + `CRATE_LOOT.god_candle` (radius, boss share).
+- `game/src/sim/sim.js`: `openCrate` branch, `godCandle` event; `SIM_VERSION` 10.
+- `game/src/art/items.js` + `sprites.js`: a `god_candle` sprite (big green candle).
+- `game/src/fx.js`, `game/src/render.js`: the slam (candle falls from above, shockwave ring).
+- `game/src/game.js`: crate colours, slam fx, toast; `game/src/audio.js`: a boom.
+- `game/test/god-candle.test.js`; `twist.test.js` pin for SIM_VERSION.
 
-## Test
+## Tests
 
-- Unit: below Lv 5 there's no slow; at Lv 5 bears inside are slowed and move slower, bears outside aren't; the
-  slow wears off after leaving; Circuit Breaker's 50% isn't weakened; a dashing rug puller is slowed; the guide
-  shows "Lv 5 → Copium"; the bounty file passes `checkBounty`.
-- `playtest --compare origin/main`, smoke screenshots (a temporary hack to show an evolved cloud, then reverted),
-  the gates.
+Units: kills every non-boss in radius (incl. a shielded grizzly), spares those outside, boss takes exactly 10%,
+the kills are counted and drop XP; loot never repeats; a bot run with it replays bit for bit. Playtest compare vs
+origin/main, smoke shots (temp hack to open a god candle near the shot tick), art test, gates.

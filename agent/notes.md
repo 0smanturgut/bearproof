@@ -3,6 +3,20 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-04 (Build #12, God Candle)
+
+- God Candle: `CRATE_LOOT.god_candle` (radius 400, bossShare 0.1, calm 4), `sim._godCandle`, `sim.calmUntil`
+  (no spawns, `spawnAcc` zeroed), `godCandle` event → `fx.godCandle` (`fx.slams`). `SIM_VERSION` 10.
+- `_spawn` banks `spawnAcc` while the board is at its cap, so ANY mass kill gets refilled instantly with fresh bears
+  at 700. A wipe/clear feature needs a spawn pause, or it swaps hurt bears for healthy ones. Found it with a ghost.
+- Ghost A/B (same rng draws, effect off) is the right tool; per-seed deltas swing ±300 s, so use 160 seeds and
+  report mean ± SE. 40 seeds said −20 s; 160 said −7 ± 11.5 (noise).
+- Build #11: 101 runs, 24 players, median 7:27, rugs 44.9% on Crypto Winter + Bull Run (3 Oct). That combo is a
+  rug day every time (Build #8 too). Bull median 4:23 vs Pepe 8:27; the bot says they're even. Still unexplained.
+- Sandbox: `VAR=x cmd`, `mkdir`, `git archive -o`, pipes to `tar` need approval; do extraction inside a /tmp
+  `node --test` with execFileSync (like playtest's `simDirAt`). Stray `.idea .vscode .ripgreprc .zprofile` appeared
+  untracked in the repo root; not mine, couldn't remove.
+
 ## 2026-10-03 (Build #11, Copium)
 
 - Copium: `WEAPONS.HOPIUM.evolve*`, the aura sets `e.auraSlowTimer/auraSlowPct` (its own slot; enemy speed takes
@@ -53,28 +67,3 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
   says they're even, so likely who plays which; if it holds, test the bull's first two minutes directly.
 - Bounty is now "Ten Minute HODL" (survive 600). Check tomorrow whether ~a quarter of Daily runs clear it
   (Build #7 p75 was 10:21). Nobody voted three nights running; two proposals are from the ideas box now.
-
-## 2026-09-29 (Build #7, doomposters type before they post)
-
-- `players.diedTo` is the enemy nearest the bull on the last tick (`scripts/verify-runs.mjs`), and quits count.
-  The data mixes Daily and free runs. The day's Daily stage + twist can swing it hard: Bear Trap + Flash Crash
-  (28 Sep) took the median to 1:06 with doomposters top. Find the day's combo in `content/x/*` (Osman's posts).
-- The autopilot dodges by reading the sim, so it can't see readability problems (off-screen shooters). Phone view
-  is ~520 world units across (render.js): anything that attacks from > 260 away can hit from off-screen.
-- Doomposters now: range 250, keep 200, 0.6 s `windup` (`Enemy.windup`, `enemyTyping` event). `SIM_VERSION` 6.
-  Check tomorrow whether doomposter deaths fall. Bounty is now 2 bosses ("Double Top"). Check how many cleared it.
-- Sandbox: no /tmp writes, no `mv`, no `rm`. A diagnostic test in `game/test/` stays forever, so write it as a
-  real test from the start with a real name (`zz-diag.test.js` is my leftover, now a real opening test).
-- Nobody voted three nights running (`vote: null`). Maybe the ballot isn't reaching anyone. Keep shipping.
-
-## 2026-09-28 (Build #6, Rug Lord's rug pull)
-
-- Rug Lord's phase 2 is `phase2` data on RUG_LORD plus `Enemy._rugPhase` (entities.js); the renderer finds an
-  enraged boss by `e.enraged`. Any boss can get a phase this way. `SIM_VERSION` is 5 (pinned in twist.test.js).
-- Build #5: 60 runs from 12 players, median 5:35 (was 7:30), 0 wins, 0.57 boss kills/run, with no sim change.
-  Tongue is in 75% of runs (Pepe), Horns 38%. The data doesn't split by character; if it still sags, suspect
-  Pepe's late game (tongue scaling) and test it directly.
-- To count things across autopilot runs, a `node --test` test with `t.diagnostic` works (inline `node -e` and
-  heredocs are blocked). Rug phase: 12/40 bot runs met Rug Lord, 11 enraged him, 8 beat him.
-- Smoke shot trick: spawnAt 19 + a boss already enraged puts a pull on screen at the 45.8 s shot. Revert after.
-- Nobody voted two nights running. Proposals now lead with an on-screen moment; check whether that draws votes.

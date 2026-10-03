@@ -1132,6 +1132,22 @@ export class Renderer {
             this._blit('airdrop', X(d.x), Y(y), { frame: 0 });
         }
 
+        // God Candle: it falls out of the sky onto the bull, stands for a moment, and fades
+        for (const g of fx.slams) {
+            const k = Math.min(1, g.t / g.dur);
+            const fade = g.t > g.dur ? 1 - (g.t - g.dur) / g.hold : 1;
+            const img = SPRITES.god_candle;
+            const half = (img.h * this.k) / s; // half its drawn height (scale 2), in world units
+            const y = g.y - half * 0.85 - (1 - k * k) * 420;
+            this._shadow(X(g.x), Y(g.y), 60 * s * (0.3 + 0.7 * k), (0.3 + 0.7 * k) * fade);
+            this._blit('god_candle', X(g.x), Y(y), {
+                frame: Math.floor(t * 8),
+                alpha: Math.max(0, fade),
+                sx: 2,
+                sy: 2
+            });
+        }
+
         // particles
         for (const p of fx.particles) {
             const a = Math.max(0, p.life / p.max);

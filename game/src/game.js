@@ -503,10 +503,16 @@ export class Game {
                     this._sfx('crate', 0);
                     if (!this.attract) {
                         this.ui.toast(loot.toast, 'gold', 1800);
-                        this.haptics.levelUp();
+                        if (e.id !== 'god_candle') this.haptics.levelUp(); // its slam buzzes harder
                     }
                     break;
                 }
+                case 'godCandle':
+                    fx.godCandle(e.x, e.y, e.r);
+                    if (e.wiped) fx.number(e.x, e.y - 70, `${e.wiped} BEARS REKT`, 'info');
+                    this._sfx('godCandle', 0);
+                    if (!this.attract) this.haptics.bossSpawn();
+                    break;
                 case 'crateGone':
                     fx.burst(e.x, e.y, 'rgba(255,59,92,', 6, 70, 10, 'smoke');
                     fx.number(e.x, e.y - 20, 'LOOTED BY BEARS', 'info');

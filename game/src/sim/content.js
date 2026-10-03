@@ -74,9 +74,11 @@ export const SIM = Object.freeze({
 
 /**
  * What an airdrop crate holds. A crate's loot is rolled when it drops, never the same as the one before.
- * `duration` is in seconds; `cooldownMult` scales every weapon's cooldown while the printer runs.
+ * `duration` is in seconds; `cooldownMult` scales every weapon's cooldown while the printer runs. The god candle
+ * kills every bear within `radius` of the bull (shields don't help) and takes `bossShare` of a boss's max HP; then
+ * no new bears spawn for `calm` s (otherwise the spawner refills the wiped slots at once).
  */
-export const CRATE_LOOT_IDS = ['magnet', 'shield', 'printer'];
+export const CRATE_LOOT_IDS = ['magnet', 'shield', 'printer', 'god_candle'];
 
 export const CRATE_LOOT = {
     magnet: {
@@ -99,6 +101,16 @@ export const CRATE_LOOT = {
         description: '10 s of weapons firing twice as fast.',
         duration: 10,
         cooldownMult: 0.5
+    },
+    god_candle: {
+        id: 'god_candle',
+        name: 'God Candle',
+        toast: 'GOD CANDLE: CHART CLEARED',
+        description:
+            'A giant green candle wipes out every bear near you and holds the rest off for 4 s. Bosses lose 10%.',
+        radius: 400,
+        bossShare: 0.1,
+        calm: 4
     }
 };
 

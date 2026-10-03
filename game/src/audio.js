@@ -194,6 +194,16 @@ export class AudioEngine {
             180 + notes.length * 70
         );
     }
+    /** God Candle: a rising whoosh as it falls, then a huge low slam and a bright major chord on top. */
+    godCandle() {
+        this.tone({ freq: 300, dur: 0.28, type: 'sine', volume: 0.12, sweep: 1200 });
+        setTimeout(() => {
+            this.tone({ noise: true, dur: 0.35, volume: 0.3, release: 0.25 });
+            this.tone({ freq: 90, dur: 0.6, type: 'sawtooth', volume: 0.26, sweep: -50 });
+            for (const f of [523, 659, 784, 1047])
+                this.tone({ freq: f, dur: 0.6, type: 'triangle', volume: 0.08, release: 0.3 });
+        }, 300);
+    }
     /** A jackpot candle lands: a small coin clink. */
     coin() {
         this.tone({ freq: 2200 + Math.random() * 500, dur: 0.04, type: 'triangle', volume: 0.06 });

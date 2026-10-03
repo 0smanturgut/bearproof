@@ -25,6 +25,33 @@ export function xpCandleBig(f) {
     return s.render();
 }
 
+/**
+ * 16×44 God Candle (the crate loot that clears the chart): a towering green candle with gold-lit wicks and a
+ * crown of light on top. A shine slides down the body, 4 frames.
+ */
+export function godCandle(f) {
+    const s = new PixelSprite(16, 44);
+    s.line(8, 2, 8, 9, M.gold, { w: 2, lum: 0.75, glow: '#FFC53D' });
+    s.line(8, 36, 8, 43, M.bullDeep, { w: 2, lum: 0.7 });
+    s.box(2.5, 8.5, 11, 28, M.bull, { r: 1.2, bevel: 2.5, glow: '#16E08A', bias: 0.1 });
+    // the shine: a two-pixel streak that walks down the left face
+    const y0 = 11 + (f % 4) * 6;
+    for (let y = y0; y < y0 + 5; y++) s.px(4, y, '#D8FFD0', { glow: '#D8FFD0' });
+    for (let y = y0 + 1; y < y0 + 4; y++) s.px(5, y, '#FFFFFF', { glow: '#FFFFFF' });
+    // the crown of light: rays around the top wick that pulse in and out
+    const ray = f % 2 ? 1 : 0;
+    s.px(8, 0, '#FFF6D6', { glow: '#FFE08A' });
+    s.px(8, 1, '#FFE08A', { glow: '#FFC53D' });
+    for (const [x, y] of [
+        [5 - ray, 3 - ray],
+        [11 + ray, 3 - ray],
+        [4 - ray, 6],
+        [12 + ray, 6]
+    ])
+        s.px(x, y, '#FFE08A', { glow: '#FFC53D' });
+    return s.render();
+}
+
 /** 8×14 green candle projectile (points up; the renderer rotates it). */
 export function greenCandleShot() {
     const s = new PixelSprite(8, 14);

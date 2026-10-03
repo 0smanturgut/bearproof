@@ -18,6 +18,7 @@ export class Fx {
         this.rings = [];
         this.lines = [];
         this.drops = [];
+        this.slams = [];
         this.swipes = [];
         this.corpses = [];
         this.pings = [];
@@ -34,6 +35,7 @@ export class Fx {
             'rings',
             'lines',
             'drops',
+            'slams',
             'swipes',
             'corpses',
             'pings'
@@ -198,6 +200,11 @@ export class Fx {
         this.drops.push({ x, y, t: 0, dur: 0.3 });
     }
 
+    /** God Candle: a giant candle falls on (x, y), then a shockwave the size of the cleared radius `r`. */
+    godCandle(x, y, r) {
+        this.slams.push({ x, y, r, t: this.calm ? 0.3 : 0, dur: 0.3, hold: 0.5 });
+    }
+
     swipe(x, y, r, evolved) {
         this.swipes.push({ x, y, r, evolved, t: 0, dur: 0.2, dir: Math.random() < 0.5 ? 1 : -1 });
     }
@@ -242,6 +249,7 @@ export class Fx {
             this.rings,
             this.lines,
             this.drops,
+            this.slams,
             this.swipes,
             this.corpses,
             this.pings
@@ -270,6 +278,20 @@ export class Fx {
             }
         }
         this.drops = this.drops.filter((d) => d.t < d.dur + 0.05);
+        for (const g of this.slams) {
+            if (g.t >= g.dur && !g.landed) {
+                g.landed = true;
+                this.ring(g.x, g.y, 20, g.r, 0.55, '22,224,138', 10, true);
+                this.ring(g.x, g.y, 10, g.r * 0.6, 0.4, '255,224,138', 5);
+                this.burst(g.x, g.y, '#7BF5A6', 30, 420, 3.5, 'spark');
+                this.burst(g.x, g.y, '#FFE08A', 14, 260, 3, 'ember');
+                this.burst(g.x, g.y + 10, 'rgba(160,190,170,', 10, 140, 12, 'dust');
+                this.addShake(0.9);
+                this.addKick(1);
+                this.addFlash('22,224,138', 0.55, 1.4);
+            }
+        }
+        this.slams = this.slams.filter((g) => g.t < g.dur + g.hold);
         this.shake = Math.max(0, this.shake - 2.2 * dt);
         this.kick = Math.max(0, this.kick - 6 * dt);
         this.flash.a = Math.max(0, this.flash.a - this.flash.decay * dt);

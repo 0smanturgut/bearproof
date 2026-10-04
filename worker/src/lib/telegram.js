@@ -20,6 +20,30 @@ export class TelegramError extends Error {
     }
 }
 
+/**
+ * The group's settings. TELEGRAM_CHAT and TELEGRAM_URL come from wrangler.jsonc; while either is empty there, the
+ * CONFIG key `tg:config` ({ "chat": "@name", "url": "https://t.me/name" }) fills it in. That makes naming the
+ * group an operator switch like the others in CONFIG: one KV write, live within a minute, no deploy (so it can be
+ * done during the nightly build window too). The values are checked for shape before they are used.
+ */
+export async function withGroup(env) {
+    if (env.TELEGRAM_CHAT && env.TELEGRAM_URL) return env;
+    let kv = null;
+    try {
+        kv = JSON.parse((await env.CONFIG.get('tg:config')) || 'null');
+    } catch {
+        kv = null;
+    }
+    if (!kv || typeof kv !== 'object') return env;
+    const chat = /^(@[A-Za-z0-9_]{4,32}|-?\d{5,20})$/.test(kv.chat) ? kv.chat : '';
+    const url = /^https:\/\/t\.me\/[A-Za-z0-9_+-]{3,64}$/.test(kv.url) ? kv.url : '';
+    return {
+        ...env,
+        TELEGRAM_CHAT: env.TELEGRAM_CHAT || chat,
+        TELEGRAM_URL: env.TELEGRAM_URL || url
+    };
+}
+
 /** The site's public origin, for links in messages the cron writes (no request to read it from). */
 export function site(env) {
     return env.SITE_URL || 'https://bearproof.app';

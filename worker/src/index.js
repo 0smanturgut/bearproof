@@ -41,6 +41,7 @@ import { pot } from './routes/pot.js';
 import { dailyPotFrom } from './dailypot.js';
 import { scheduled } from './cron.js';
 import { feedback } from './community.js';
+import { withGroup } from './lib/telegram.js';
 import { telegramWebhook } from './routes/telegram.js';
 
 // Until 26 Sep, browsers that cached build files "immutable" before D47 get their HTTP cache for this site
@@ -168,7 +169,7 @@ async function stats(env) {
                 ? { measured: spent.usd, meteredRuns: spent.runs, chat: spent.chat }
                 : null,
             // Where people talk to the AI. Null until the group exists.
-            community: { telegram: env.TELEGRAM_URL || null },
+            community: { telegram: (await withGroup(env)).TELEGRAM_URL || null },
             playersToday: players ? players.n : null,
             topScoreToday: top ? { score: top.score, verified: top.status === 'verified' } : null,
             generatedAt: new Date(now).toISOString()

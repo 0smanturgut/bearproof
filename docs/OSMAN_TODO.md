@@ -192,8 +192,9 @@ this key it still posts, moderates and takes `/idea` and `/bug`; it just says it
 - the group link, like `t.me/bearproof`
 - the bot's username, like `@bearproof_bot`
 
-I put the group's name in `wrangler.jsonc` and deploy. Within 15 minutes the bot introduces itself in the group,
-pins today's build, and the HQ shows "Talk to the AI on Telegram". From then on it runs by itself.
+I switch the group on (one setting, no deploy, so any hour works). Within 15 minutes the bot introduces itself in
+the group, pins today's build, and the HQ shows "Talk to the AI on Telegram". From then on it runs by itself.
+To have tonight's build read the chat, the group has to be on before 20:30 UTC.
 
 **Good to know**
 

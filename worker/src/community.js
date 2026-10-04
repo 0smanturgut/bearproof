@@ -16,7 +16,7 @@ import { all, first } from './lib/db.js';
 import { json } from './lib/http.js';
 import { cleanText, textProblem } from './lib/requests.js';
 import { displayName } from './lib/runs.js';
-import { fit, foreignAddresses, site, tg, webhookSecret } from './lib/telegram.js';
+import { fit, foreignAddresses, site, tg, webhookSecret, withGroup } from './lib/telegram.js';
 import {
     postDay,
     postDigest,
@@ -341,7 +341,8 @@ export async function bugReports(env, since) {
  * GET /api/feedback: what the chat told the AI. The latest digest, the last day's bug reports, and how busy the
  * group is today. Everything here was written by players or summarised from what they wrote: untrusted text.
  */
-export async function feedback(env) {
+export async function feedback(rawEnv) {
+    const env = await withGroup(rawEnv);
     const now = Date.now();
     const [digest, bugs, today] = await Promise.all([
         latestDigest(env),
@@ -628,8 +629,9 @@ async function retention(env, now) {
 }
 
 /** Everything the cron does for the group. Each step fails on its own; none of them can stop the others. */
-export async function communityTick(env, now = Date.now(), live = LIVE) {
-    if (!env.TELEGRAM_BOT_TOKEN) return { status: 'off' };
+export async function communityTick(rawEnv, now = Date.now(), live = LIVE) {
+    if (!rawEnv.TELEGRAM_BOT_TOKEN) return { status: 'off' };
+    const env = await withGroup(rawEnv);
     await ensureSetup(env).catch(warn('setup'));
     if (!env.TELEGRAM_CHAT) return { status: 'no-chat' };
     const digest = await makeDigest(env, now).catch(warn('digest'));

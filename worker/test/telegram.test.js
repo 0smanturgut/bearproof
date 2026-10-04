@@ -18,7 +18,8 @@ import {
     readMessage,
     tidyReply,
     violation,
-    webhookSecret
+    webhookSecret,
+    withGroup
 } from '../src/lib/telegram.js';
 import { factsText, heardInChat, whole } from '../src/lib/words.js';
 import {
@@ -1216,6 +1217,46 @@ test('announcements: nothing is claimed while the bot can’t post, and a day wi
         env.sent()[1].text,
         /^<b>No new build today\.<\/b> Build #12 “God Candle” stays live\./
     );
+});
+
+test('the group can be named in CONFIG, without a deploy; wrangler.jsonc wins when it is set', async () => {
+    const env = makeEnv({ TELEGRAM_CHAT: '', TELEGRAM_URL: '' });
+    assert.equal((await withGroup(env)).TELEGRAM_CHAT, '');
+    assert.equal(await handleUpdate(env, message('hello'), NOW, gather), 'seen');
+
+    await env.CONFIG.put(
+        'tg:config',
+        JSON.stringify({ chat: '@bearproof_test', url: 'https://t.me/bearproof_test' })
+    );
+    const named = await withGroup(env);
+    assert.deepEqual(
+        [named.TELEGRAM_CHAT, named.TELEGRAM_URL],
+        ['@bearproof_test', 'https://t.me/bearproof_test']
+    );
+    assert.equal(named.DB, env.DB);
+    assert.equal(await handleUpdate(env, message('hello again'), NOW, gather), 'stored');
+    assert.equal((await (await feedback(env)).json()).telegram, 'https://t.me/bearproof_test');
+    assert.ok((await communityTick(env, NOW, { gather })).posted.includes('intro'));
+
+    const fixed = makeEnv();
+    await fixed.CONFIG.put(
+        'tg:config',
+        JSON.stringify({ chat: '@someone_else', url: 'https://t.me/someone_else' })
+    );
+    assert.equal((await withGroup(fixed)).TELEGRAM_CHAT, '@bearproof_test');
+
+    // A malformed value is ignored, not trusted.
+    const bad = makeEnv({ TELEGRAM_CHAT: '', TELEGRAM_URL: '' });
+    await bad.CONFIG.put(
+        'tg:config',
+        JSON.stringify({ chat: 'not a chat', url: 'https://evil.io/x' })
+    );
+    assert.deepEqual(
+        [(await withGroup(bad)).TELEGRAM_CHAT, (await withGroup(bad)).TELEGRAM_URL],
+        ['', '']
+    );
+    await bad.CONFIG.put('tg:config', '{broken');
+    assert.equal((await withGroup(bad)).TELEGRAM_CHAT, '');
 });
 
 test('the tick: off without a token, waits for the group’s name, then runs everything', async () => {

@@ -34,7 +34,8 @@ import {
     tidyReply,
     userKey,
     violation,
-    webhookSecret
+    webhookSecret,
+    withGroup
 } from '../lib/telegram.js';
 import { factsText, fmtUsd, utcTime } from '../lib/words.js';
 import {
@@ -424,7 +425,8 @@ async function place(env, chat) {
 }
 
 /** Handle one update. Returns a short word for what happened (the tests read it; nothing else does). */
-export async function handleUpdate(env, update, now = Date.now(), gather = gatherLive) {
+export async function handleUpdate(rawEnv, update, now = Date.now(), gather = gatherLive) {
+    const env = await withGroup(rawEnv);
     const moved = update?.my_chat_member;
     if (moved?.chat) {
         const c = moved.chat;

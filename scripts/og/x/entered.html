@@ -1,0 +1,318 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The Telegram announcement as an arcade splash: "THE AI HAS ENTERED THE CHAT". Almost no text on
+               purpose; the post explains the rest. Two players' bubbles hold the game's own sprites (a rug puller,
+               an airdrop crate), and the AI's bubble is typing. Facts: BEARPROOF joined the public Telegram group
+               t.me/bearproofapp as the bot @bearproobot on 4 Oct 2026 (docs/DECISIONS.md D62). No Telegram logo:
+               the arrow by the address is a plain pixel triangle. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #eaf0f5;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .bg,
+            .bg > * {
+                position: absolute;
+                inset: 0;
+            }
+            .grid {
+                background:
+                    linear-gradient(rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 / 60px 60px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 /
+                        60px 60px;
+            }
+            .glow {
+                background:
+                    radial-gradient(
+                        ellipse 62% 26% at 52% 77%,
+                        rgba(22, 224, 138, 0.3),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 80% 30% at 50% 30%,
+                        rgba(22, 224, 138, 0.13),
+                        transparent 70%
+                    );
+            }
+            .vig {
+                background: radial-gradient(
+                    ellipse 78% 72% at 50% 46%,
+                    transparent 52%,
+                    rgba(0, 0, 0, 0.72) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #16e08a;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #16e08a,
+                    0 0 40px rgba(22, 224, 138, 0.55);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 178px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 226px;
+                line-height: 0.83;
+                letter-spacing: 0.01em;
+                color: #f4f8fb;
+                text-shadow: 9px 9px 0 #0c2a22;
+            }
+            h1 span {
+                color: #16e08a;
+                text-shadow:
+                    9px 9px 0 #06402b,
+                    0 0 60px rgba(22, 224, 138, 0.6);
+            }
+            /* a terminal cursor after the last word */
+            h1 i {
+                display: inline-block;
+                width: 0.3em;
+                height: 0.56em;
+                margin-left: 0.09em;
+                background: #16e08a;
+                box-shadow:
+                    9px 9px 0 #06402b,
+                    0 0 50px rgba(22, 224, 138, 0.6);
+            }
+            svg.scene {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .sp {
+                position: absolute;
+            }
+            .punct {
+                position: absolute;
+                font-size: 112px;
+                line-height: 1;
+                color: #eaf0f5;
+            }
+            .addr {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 1296px;
+                height: 112px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 26px;
+                font-size: 104px;
+                line-height: 1;
+                letter-spacing: 0.02em;
+                color: #f4f8fb;
+                background: rgba(8, 13, 22, 0.9);
+                box-shadow:
+                    0 0 0 4px #16e08a,
+                    0 0 50px rgba(22, 224, 138, 0.25);
+            }
+            .addr svg {
+                flex: none;
+            }
+            .bot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1432px;
+                text-align: center;
+                font:
+                    400 23px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.22em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg">
+            <div class="grid"></div>
+            <canvas id="chart" width="1200" height="1500"></canvas>
+            <div class="glow"></div>
+            <div class="vig"></div>
+        </div>
+
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>BIG UPDATE</div>
+        </div>
+
+        <h1><span>THE AI</span><br />HAS ENTERED<br />THE CHAT<i></i></h1>
+
+        <svg class="scene" id="scene" width="1200" height="1500" viewBox="0 0 1200 1500"></svg>
+        <canvas class="sp" id="s1"></canvas>
+        <canvas class="sp" id="s2"></canvas>
+        <canvas class="sp" id="s3"></canvas>
+        <canvas class="sp" id="av"></canvas>
+        <div class="punct" id="p1">?!</div>
+
+        <div class="addr">
+            <svg width="56" height="70" viewBox="0 0 8 10" shape-rendering="crispEdges">
+                <path d="M0 0h2v1h2v1h2v2h2v2h-2v2h-2v1h-2v1h-2z" fill="#16e08a" />
+            </svg>
+            t.me/bearproofapp
+        </div>
+        <div class="bot">THE BOT INSIDE IS @BEARPROOBOT</div>
+
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+
+            // the bear market behind everything: a faint run of red candles, falling to the right
+            {
+                const c = $('chart').getContext('2d');
+                let seed = 12;
+                const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+                let y = 300;
+                for (let i = 0; i < 27; i++) {
+                    const x = 30 + i * 44;
+                    const up = rnd() < 0.24;
+                    const body = 40 + rnd() * 110;
+                    const open = y;
+                    const close = up ? y - body * 0.6 : y + body;
+                    y = close + (rnd() - 0.4) * 20;
+                    const hi = Math.min(open, close) - rnd() * 46,
+                        lo = Math.max(open, close) + rnd() * 46;
+                    c.fillStyle = up ? 'rgba(22,224,138,0.085)' : 'rgba(255,59,92,0.115)';
+                    c.fillRect(x + 12, hi, 4, lo - hi);
+                    c.fillRect(x, Math.min(open, close), 28, Math.abs(close - open));
+                    if (y > 1180) y = 1180;
+                }
+            }
+
+            /** A rectangle with two-step pixel corners, as an SVG path. */
+            const px = (x, y, w, h, s) =>
+                `M${x + 2 * s} ${y}H${x + w - 2 * s}V${y + s}H${x + w - s}V${y + 2 * s}H${x + w}V${y + h - 2 * s}H${x + w - s}V${y + h - s}H${x + w - 2 * s}V${y + h}H${x + 2 * s}V${y + h - s}H${x + s}V${y + h - 2 * s}H${x}V${y + 2 * s}H${x + s}V${y + s}H${x + 2 * s}Z`;
+            const S = $('scene');
+            const add = (html) => S.insertAdjacentHTML('beforeend', html);
+
+            // two players' messages, above: one on each side
+            const P = [
+                { x: 84, y: 800, w: 400, h: 124, tail: 1 },
+                { x: 760, y: 856, w: 356, h: 124, tail: -1 }
+            ];
+            for (const b of P) {
+                add(`<path d="${px(b.x - 5, b.y - 5, b.w + 10, b.h + 10, 12)}" fill="#3a4a69" />`);
+                add(`<path d="${px(b.x, b.y, b.w, b.h, 12)}" fill="#141d2f" />`);
+                add(
+                    `<rect x="${b.x + 24}" y="${b.y}" width="${b.w - 48}" height="6" fill="#1f2c47" />`
+                );
+                // a two-step tail under the bubble, on the side nearer the middle
+                const t = b.tail > 0 ? b.x + b.w - 96 : b.x + 60;
+                const d = b.tail > 0 ? 1 : -1;
+                add(
+                    `<rect x="${t}" y="${b.y + b.h}" width="36" height="17" fill="#3a4a69" /><rect x="${t + d * 12 + (d > 0 ? 12 : 0)}" y="${b.y + b.h + 17}" width="24" height="12" fill="#3a4a69" />`
+                );
+                add(
+                    `<rect x="${t + 5}" y="${b.y + b.h - 6}" width="26" height="18" fill="#141d2f" />`
+                );
+            }
+
+            // the AI's message, below and centred: typing
+            const A = { x: 300, y: 1066, w: 660, h: 172 };
+            add(`<path d="${px(A.x, A.y, A.w, A.h, 16)}" fill="#16e08a" />`);
+            add(
+                `<rect x="${A.x + 32}" y="${A.y}" width="${A.w - 64}" height="10" fill="#7dffb5" />`
+            );
+            add(
+                `<rect x="${A.x + 32}" y="${A.y + A.h - 10}" width="${A.w - 64}" height="10" fill="#0c9d60" />`
+            );
+            [1, 0.6, 0.3].forEach((o, i) => {
+                const d = 62,
+                    gap = 54,
+                    x0 = A.x + (A.w - (3 * d + 2 * gap)) / 2 + i * (d + gap),
+                    y0 = A.y + (A.h - d) / 2;
+                add(`<path d="${px(x0, y0, d, d, 8)}" fill="#05080f" opacity="${o}" />`);
+            });
+
+            // avatar: the bull emblem in a pixel frame, with an "online" dot
+            const V = { x: 150, y: 1118, w: 120, h: 120 };
+            add(`<path d="${px(V.x - 6, V.y - 6, V.w + 12, V.h + 12, 12)}" fill="#16e08a" />`);
+            add(`<path d="${px(V.x, V.y, V.w, V.h, 12)}" fill="#0a111d" />`);
+            add(
+                `<rect x="${V.x + V.w - 20}" y="${V.y - 14}" width="34" height="34" fill="#05080f" /><rect x="${V.x + V.w - 14}" y="${V.y - 8}" width="22" height="22" fill="#16e08a" />`
+            );
+
+            // sprites
+            const place = (id, sprite, k, cx, cy) => {
+                const c = $(id);
+                put(c, sprite, 2000, { max: k, glow: false });
+                c.style.left = Math.round(cx - c.width / 2) + 'px';
+                c.style.top = Math.round(cy - c.height / 2) + 'px';
+                return c;
+            };
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            place('av', 'emblem', 6, V.x + V.w / 2, V.y + V.h / 2);
+            place('s1', 'rug_puller', 4, P[0].x + 122, P[0].y + P[0].h / 2);
+            const q = $('p1');
+            q.style.left = P[0].x + 232 + 'px';
+            q.style.top = P[0].y + 2 + 'px';
+            place('s2', 'airdrop', 4, P[1].x + 118, P[1].y + P[1].h / 2);
+            place('s3', 'heart', 5, P[1].x + 238, P[1].y + P[1].h / 2);
+            await Promise.all([...document.images].map((i) => i.decode()));
+            window.ready = true;
+        </script>
+    </body>
+</html>

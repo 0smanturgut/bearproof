@@ -88,11 +88,26 @@ execFileSync(
     ['wrangler', 'd1', 'migrations', 'apply', 'bearproof-db', '--local', '--persist-to', state],
     { stdio: 'ignore', env: { ...process.env, CI: '1' } }
 );
+// The group is named the way the operator does it: the CONFIG key, not a deploy (wrangler.jsonc leaves it empty).
+execFileSync(
+    'npx',
+    [
+        'wrangler',
+        'kv',
+        'key',
+        'put',
+        '--binding=CONFIG',
+        '--local',
+        '--persist-to',
+        state,
+        'tg:config',
+        JSON.stringify({ chat: '@bearproof_local', url: 'https://t.me/bearproof_local' })
+    ],
+    { stdio: 'ignore', env: { ...process.env, CI: '1' } }
+);
 const vars = {
     TELEGRAM_BOT_TOKEN: TOKEN,
     TELEGRAM_API: `http://127.0.0.1:${MOCK}`,
-    TELEGRAM_CHAT: '@bearproof_local',
-    TELEGRAM_URL: 'https://t.me/bearproof_local',
     SITE_URL: BASE,
     ANTHROPIC_API_KEY: 'local-test-key',
     ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK}`

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import Anthropic from '@anthropic-ai/sdk';
 import { fakeD1, fakeKV } from './helpers/d1.js';
-import { ask, costUsd } from '../src/lib/claude.js';
+import { FALLBACKS, ask, costUsd } from '../src/lib/claude.js';
 import { PERSONA } from '../src/lib/persona.js';
 import {
     NO_PRICE,
@@ -24,6 +24,7 @@ import {
 import { factsText, heardInChat, whole } from '../src/lib/words.js';
 import {
     announcements,
+    claudeCheck,
     planTitle,
     cleanDigest,
     communityTick,
@@ -452,6 +453,11 @@ test('claude: when the fallback beta is refused, the call is repeated without it
     );
     assert.deepEqual(seen, ['beta', 'plain']);
     assert.equal(out.text, 'ok');
+    assert.equal(out.beta, false);
+    // Refused once, it isn't asked for again: the next call goes straight to the plain endpoint.
+    await ask({ CLAUDE: client }, { system: 's', messages: [] });
+    assert.deepEqual(seen, ['beta', 'plain', 'plain']);
+    FALLBACKS.on = true;
     await assert.rejects(
         ask(
             {
@@ -463,6 +469,50 @@ test('claude: when the fallback beta is refused, the call is repeated without it
         ),
         /down/
     );
+});
+
+test('self-check: both ways of asking Claude are tried once and the outcome is kept in CONFIG', async () => {
+    const claude = fakeClaude((params) => (params.output_config?.format ? '{"ok":true}' : 'OK'));
+    const env = makeEnv({ CLAUDE: claude });
+    const first = await claudeCheck(env, NOW);
+    assert.deepEqual(
+        [first.ok, first.text, first.schema, first.fallbackBeta, first.asked, first.served],
+        [true, true, true, true, 'claude-opus-5-5', 'claude-opus-5-5']
+    );
+    assert.equal(claude.asked.length, 2);
+    assert.deepEqual(JSON.parse(env.CONFIG.map.get('tg:claude')), first);
+    assert.equal(await claudeCheck(env, NOW + 60000), null, 'passed: not asked again');
+    assert.equal(claude.asked.length, 2);
+    const usage = await env.DB.prepare(
+        'SELECT replies, digests, input_tokens, usd FROM tg_usage'
+    ).first();
+    assert.deepEqual([usage.replies, usage.digests, usage.input_tokens], [0, 0, 2000]);
+    assert.ok(usage.usd > 0, 'the check is metered like any other call');
+
+    const down = makeEnv({
+        CLAUDE: {
+            beta: {
+                messages: {
+                    create: async () =>
+                        Promise.reject(
+                            Object.assign(new Error('401 invalid x-api-key sk-ant-abc123'), {
+                                status: 401
+                            })
+                        )
+                }
+            }
+        }
+    });
+    const failed = await claudeCheck(down, NOW);
+    assert.equal(failed.ok, false);
+    assert.equal(failed.error, '401 401 invalid x-api-key [key]');
+    assert.equal(
+        await claudeCheck(down, NOW + 10 * 60000),
+        null,
+        'a failure is retried after an hour, not every run'
+    );
+    assert.equal((await claudeCheck(down, NOW + 61 * 60000)).ok, false);
+    assert.equal(await claudeCheck(makeEnv(), NOW), null, 'no key, no check');
 });
 
 // --- words and posts ---------------------------------------------------------------

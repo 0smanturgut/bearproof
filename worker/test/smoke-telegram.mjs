@@ -59,7 +59,13 @@ const mock = http.createServer((req, res) => {
                     model: 'claude-opus-5-5',
                     content: [
                         { type: 'thinking', thinking: '', signature: 'x' },
-                        { type: 'text', text: 'Mock answer: the crates are in **Build #12**.' }
+                        {
+                            type: 'text',
+                            // The self-check asks for JSON once; everything else gets a chat answer.
+                            text: body.output_config?.format
+                                ? '{"ok":true}'
+                                : 'Mock answer: the crates are in **Build #12**.'
+                        }
                     ],
                     stop_reason: 'end_turn',
                     usage: { input_tokens: 1500, output_tokens: 50 }
@@ -198,6 +204,11 @@ try {
         'cron: a local site never registers a webhook',
         !telegram.some((c) => c.method === 'setWebhook')
     );
+    check(
+        'cron: the self-check asks Claude both ways (text, then JSON by schema)',
+        !!(await seen(claude, (c) => c.body.output_config?.format?.type === 'json_schema')) &&
+            claude.some((c) => !c.body.output_config?.format)
+    );
     const intro = await seen(telegram, sentText(/^<b>I’m BEARPROOF\.<\/b>/));
     check('cron: the bot introduces itself in the group', !!intro);
     check(
@@ -262,7 +273,7 @@ try {
         text: `${name} where are the crates?`,
         entities: [{ type: 'mention', offset: 0, length: name.length }]
     });
-    const asked = await seen(claude, () => true);
+    const asked = await seen(claude, (c) => Array.isArray(c.body.system));
     check('chat: a mention reaches Claude', !!asked, log.slice(-800));
     check(
         'chat: on Opus 5.5, low effort, with the fallback beta',
@@ -324,7 +335,8 @@ try {
 if (process.env.DUMP) {
     for (const c of telegram.filter((x) => x.method === 'sendMessage'))
         console.log(`\n--- sendMessage\n${c.params.text}`);
-    console.log(`\n--- FACTS\n${claude[0]?.body.system?.[1]?.text}`);
-    console.log(`\n--- user turn\n${claude[0]?.body.messages?.[0]?.content}`);
+    const chat = claude.find((c) => Array.isArray(c.body.system));
+    console.log(`\n--- FACTS\n${chat?.body.system?.[1]?.text}`);
+    console.log(`\n--- user turn\n${chat?.body.messages?.[0]?.content}`);
 }
 await finish(fail ? 1 : 0);

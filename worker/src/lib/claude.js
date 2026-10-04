@@ -38,13 +38,16 @@ export function costUsd(model, usage) {
     );
 }
 
+// Whether to ask for the server-side fallback. Switched off for the isolate once the API refuses the beta.
+export const FALLBACKS = { on: true };
+
 export function claudeReady(env) {
     return !!(env.CLAUDE || env.ANTHROPIC_API_KEY);
 }
 
 /**
  * Ask Claude once. `system` is a string or text blocks (put cache_control on the stable one), `schema` asks
- * for JSON that matches it. Returns { text, refused, truncated, model, usage, usd }; throws on API errors.
+ * for JSON that matches it. Returns { text, refused, beta, truncated, model, usage, usd }; throws on API errors.
  */
 export async function ask(
     env,
@@ -73,15 +76,24 @@ export async function ask(
         ...(Object.keys(config).length ? { output_config: config } : {})
     };
     let res;
-    try {
-        res = await client.beta.messages.create({
-            ...params,
-            betas: [FALLBACK_BETA],
-            fallbacks: 'default'
-        });
-    } catch (err) {
-        if (!(err instanceof Anthropic.BadRequestError)) throw err;
+    let beta = false;
+    if (FALLBACKS.on) {
+        try {
+            res = await client.beta.messages.create({
+                ...params,
+                betas: [FALLBACK_BETA],
+                fallbacks: 'default'
+            });
+            beta = true;
+        } catch (err) {
+            if (!(err instanceof Anthropic.BadRequestError)) throw err;
+        }
+    }
+    if (!res) {
         res = await client.messages.create(params);
+        // The request is fine without the beta, so the beta was what the API refused: stop asking for it
+        // (in this isolate) instead of paying a failed round trip on every call.
+        FALLBACKS.on = false;
     }
     const refused = res.stop_reason === 'refusal';
     const text = refused
@@ -94,6 +106,7 @@ export async function ask(
     return {
         text,
         refused,
+        beta,
         truncated: res.stop_reason === 'max_tokens',
         model: res.model || model,
         usage: res.usage || {},

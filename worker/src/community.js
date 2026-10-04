@@ -10,7 +10,7 @@
  * money or changes a vote: the bot reads the same data the site shows, and writes only its own tables.
  */
 
-import { ask, claudeReady } from './lib/claude.js';
+import { CHAT_MODEL, ask, claudeReady } from './lib/claude.js';
 import { utcDate } from './lib/daily.js';
 import { all, first } from './lib/db.js';
 import { json } from './lib/http.js';
@@ -152,7 +152,7 @@ export async function say(env, post, extra = {}) {
 
 /**
  * Add one Claude call to the day's usage, and keep the day's row in compute_costs equal to it, so "Spent on
- * compute" on the HQ includes the chat. `what` is 'reply' or 'digest'.
+ * compute" on the HQ includes the chat. `what` is 'reply', 'digest' or 'check' (the self-check: tokens only).
  */
 export async function meter(env, out, what, now = Date.now()) {
     const day = utcDate(now);
@@ -190,6 +190,71 @@ export async function meter(env, out, what, now = Date.now()) {
             `Telegram chat, ${day}: ${t.replies} replies and ${t.digests} digest, ${t.input_tokens} tokens in / ${t.output_tokens} out by the API's own usage report, at list price`
         )
         .run();
+}
+
+// --- Self-check ------------------------------------------------------------------------
+
+/**
+ * Ask Claude two tiny questions, the way the chat and the digest do (plain text, then JSON bound to a schema),
+ * and keep the outcome in CONFIG (tg:claude). A wrong key, a retired model or a refused parameter then shows up
+ * here, before a member of the group finds it. Runs once per model; after a failure, once an hour until it
+ * passes. The few tokens it uses are metered like any other call.
+ */
+export async function claudeCheck(env, now = Date.now()) {
+    if (!claudeReady(env)) return null;
+    const model = env.TELEGRAM_CHAT_MODEL || CHAT_MODEL;
+    let prev = null;
+    try {
+        prev = JSON.parse((await env.CONFIG.get('tg:claude')) || 'null');
+    } catch {
+        prev = null;
+    }
+    if (prev?.ok && prev.asked === model) return null;
+    if (prev && !prev.ok && prev.asked === model && now - prev.at < HOUR) return null;
+    const result = { ok: false, asked: model, at: now };
+    try {
+        const said = await ask(env, {
+            system: 'Reply with the single word OK.',
+            messages: [{ role: 'user', content: 'ping' }],
+            maxTokens: 1000,
+            effort: 'low'
+        });
+        await meter(env, said, 'check', now).catch(warn('meter'));
+        const json = await ask(env, {
+            system: 'Answer in JSON.',
+            messages: [{ role: 'user', content: 'Set ok to true.' }],
+            maxTokens: 1000,
+            effort: 'low',
+            schema: {
+                type: 'object',
+                properties: { ok: { type: 'boolean' } },
+                required: ['ok'],
+                additionalProperties: false
+            }
+        });
+        await meter(env, json, 'check', now).catch(warn('meter'));
+        let parsed = null;
+        try {
+            parsed = JSON.parse(json.text);
+        } catch {
+            parsed = null;
+        }
+        Object.assign(result, {
+            ok: !said.refused && said.text.length > 0 && parsed?.ok === true,
+            served: said.model,
+            text: said.text.length > 0,
+            schema: parsed?.ok === true,
+            fallbackBeta: said.beta && json.beta
+        });
+    } catch (err) {
+        // The SDK's messages never carry the key; anything shaped like one is cut out anyway.
+        result.error = `${err?.status ?? ''} ${String(err?.message || err)}`
+            .replace(/sk-ant-[A-Za-z0-9_-]+/g, '[key]')
+            .trim()
+            .slice(0, 200);
+    }
+    await env.CONFIG.put('tg:claude', JSON.stringify(result));
+    return result;
 }
 
 // --- The nightly digest ------------------------------------------------------------
@@ -633,6 +698,7 @@ export async function communityTick(rawEnv, now = Date.now(), live = LIVE) {
     if (!rawEnv.TELEGRAM_BOT_TOKEN) return { status: 'off' };
     const env = await withGroup(rawEnv);
     await ensureSetup(env).catch(warn('setup'));
+    await claudeCheck(env, now).catch(warn('claude check'));
     if (!env.TELEGRAM_CHAT) return { status: 'no-chat' };
     const digest = await makeDigest(env, now).catch(warn('digest'));
     const posted = (await announcements(env, now, live).catch(warn('announcements'))) || [];

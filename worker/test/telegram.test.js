@@ -11,6 +11,7 @@ import {
     cleanName,
     esc,
     findUrls,
+    fit,
     foreignAddresses,
     isOurChat,
     parseCommand,
@@ -22,6 +23,7 @@ import {
 import { factsText, whole } from '../src/lib/words.js';
 import {
     announcements,
+    planTitle,
     cleanDigest,
     communityTick,
     ensureSetup,
@@ -366,6 +368,19 @@ test('the bot’s own words: plain text, no foreign address or link, no investme
     assert.equal(tidyReply('   ', env), null);
     assert.ok(tidyReply('word '.repeat(400), env).length <= 901);
     assert.equal(esc('<b>&</b>'), '&lt;b&gt;&amp;&lt;/b&gt;');
+});
+
+test('a post longer than one Telegram message loses whole lines from the end, never half a tag', () => {
+    assert.equal(fit('short'), 'short');
+    const long = Array.from(
+        { length: 60 },
+        (_, i) => `${i + 1}. <b>Option</b>: ${'x'.repeat(100)}`
+    ).join('\n');
+    const out = fit(long);
+    assert.ok(out.length <= 4000);
+    assert.ok(out.endsWith('\n…'));
+    assert.equal(out.split('<b>').length, out.split('</b>').length);
+    assert.match(out.split('\n').at(-2), /^\d+\. <b>Option<\/b>: x{100}$/);
 });
 
 // --- lib/claude.js -------------------------------------------------------------------
@@ -1098,6 +1113,11 @@ test('announcements: hello once, the day’s build pinned, the ballot, and never
         .bind(evening - 60000)
         .run();
     await env.DB.prepare(
+        "INSERT INTO agent_events (run_id, build, ts, type, text) VALUES ('77', 13, ?1, 'plan', '# Build #13 plan: Rug <Radar> ## Regression check (done first) Build #12 vs Build #11.')"
+    )
+        .bind(evening - 120000)
+        .run();
+    await env.DB.prepare(
         "INSERT INTO agent_events (run_id, build, ts, type, text) VALUES ('77', 13, ?1, 'cost', 'Measured cost of tonight''s work: $3.10.')"
     )
         .bind(evening - 90000)
@@ -1112,10 +1132,26 @@ test('announcements: hello once, the day’s build pinned, the ballot, and never
         .slice(-3)
         .map((m) => m.text);
     assert.match(late[0], /Winner: “Honeypot” \(2 wallets voted\)/);
-    assert.match(late[1], /^<b>Tonight’s build is done\.<\/b> Build #13 is done[\s\S]*\$3\.10/);
+    assert.match(
+        late[1],
+        /^<b>Built tonight: Rug &lt;Radar&gt;\.<\/b> Build #13 is done[\s\S]*\$3\.10/
+    );
     assert.match(late[2], /Creator fees reached the treasury: 0\.120 SOL\./);
     assert.equal(env.sent().at(-1).chat_id, CHAT);
     assert.deepEqual(await announcements(env, evening + 15 * 60000, live), []);
+});
+
+test('the night post names what was built, from the plan’s first heading', () => {
+    assert.equal(
+        planTitle('# Build #12 plan: God Candle ## Regression check (done first) Build #11'),
+        'God Candle'
+    );
+    assert.equal(
+        planTitle('# Build #5 plan: the AI\'s bounty ("Triple Top")'),
+        'the AI\'s bounty ("Triple Top")'
+    );
+    assert.equal(planTitle('Some other text'), null);
+    assert.equal(planTitle(undefined), null);
 });
 
 test('announcements: nothing is claimed while the bot can’t post, and a day without a build says so', async () => {

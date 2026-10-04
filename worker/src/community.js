@@ -16,7 +16,7 @@ import { all, first } from './lib/db.js';
 import { json } from './lib/http.js';
 import { cleanText, textProblem } from './lib/requests.js';
 import { displayName } from './lib/runs.js';
-import { foreignAddresses, site, tg, webhookSecret } from './lib/telegram.js';
+import { fit, foreignAddresses, site, tg, webhookSecret } from './lib/telegram.js';
 import {
     postDay,
     postDigest,
@@ -140,7 +140,7 @@ export async function announceChat(env) {
 export async function say(env, post, extra = {}) {
     return tg(env, 'sendMessage', {
         chat_id: await announceChat(env),
-        text: post.text,
+        text: fit(post.text),
         parse_mode: 'HTML',
         link_preview_options: { is_disabled: true },
         ...(post.markup ? { reply_markup: post.markup } : {}),
@@ -487,6 +487,12 @@ async function yesterdayRecap(env, now) {
     };
 }
 
+/** What the night's plan says it built: the title in its first heading ("# Build #12 plan: God Candle"). */
+export function planTitle(text) {
+    const m = /^#\s*Build #\d+ plan:\s*(.+?)(?:\s+#|$)/.exec(String(text || '').trim());
+    return m ? m[1].trim().slice(0, 80) : null;
+}
+
 export async function announcements(env, now = Date.now(), live = LIVE) {
     const today = utcDate(now);
     const m = minuteOfDay(now);
@@ -562,7 +568,20 @@ export async function announcements(env, now = Date.now(), live = LIVE) {
             "SELECT text FROM agent_events WHERE run_id = ?1 AND type = 'cost' ORDER BY id DESC LIMIT 1",
             ended.run_id
         );
-        const post = postNight({ type: ended.type, text: ended.text, cost: cost?.text }, env);
+        const plan = await first(
+            env,
+            "SELECT text FROM agent_events WHERE run_id = ?1 AND type = 'plan' ORDER BY id DESC LIMIT 1",
+            ended.run_id
+        );
+        const post = postNight(
+            {
+                type: ended.type,
+                text: ended.text,
+                cost: cost?.text,
+                title: planTitle(plan?.text)
+            },
+            env
+        );
         if (await announce(env, `night:${ended.run_id}`, post, now)) posted.push('night');
     }
 

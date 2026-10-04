@@ -26,6 +26,7 @@ import {
     cleanMessage,
     esc,
     findUrls,
+    fit,
     isOurChat,
     parseCommand,
     readMessage,
@@ -84,7 +85,7 @@ export async function telegramWebhook(request, env, ctx) {
 function reply(env, msg, post, { html = true } = {}) {
     return tg(env, 'sendMessage', {
         chat_id: msg.chatId,
-        text: post.text,
+        text: fit(post.text),
         ...(html ? { parse_mode: 'HTML' } : {}),
         link_preview_options: { is_disabled: true },
         reply_parameters: { message_id: msg.id, allow_sending_without_reply: true },

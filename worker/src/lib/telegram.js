@@ -101,6 +101,26 @@ export function link(text, url) {
     return `<a href="${esc(url).replace(/"/g, '&quot;')}">${esc(text)}</a>`;
 }
 
+// Telegram refuses a message over 4096 characters.
+export const TEXT_MAX = 4000;
+
+/**
+ * A post that fits in one Telegram message: whole lines are dropped from the end (no tag in these posts spans a
+ * line), so a ballot with a dozen long requests is cut short instead of failing to send every 15 minutes.
+ */
+export function fit(text) {
+    const s = String(text);
+    if (s.length <= TEXT_MAX) return s;
+    const kept = [];
+    let size = 0;
+    for (const line of s.split('\n')) {
+        if (size + line.length + 1 > TEXT_MAX - 2) break;
+        kept.push(line);
+        size += line.length + 1;
+    }
+    return `${kept.join('\n')}\n…`;
+}
+
 /** Rows of URL buttons under a message: [[{ text, url }, ...], ...]. */
 export function buttons(rows) {
     return { inline_keyboard: rows.filter((r) => r.length) };

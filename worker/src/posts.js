@@ -409,7 +409,7 @@ export function postDigest(d, bugs) {
 export function postNight(run, env) {
     const lines = [
         run.type === 'done'
-            ? `<b>Tonight’s build is done.</b> ${esc(run.text)}`
+            ? `<b>${run.title ? `Built tonight: ${esc(run.title)}.` : 'Tonight’s build is done.'}</b> ${esc(run.text)}`
             : `<b>No build tonight.</b> ${esc(run.text)}`
     ];
     if (run.cost) lines.push(esc(run.cost));

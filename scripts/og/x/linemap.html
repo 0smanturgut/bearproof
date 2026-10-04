@@ -1,0 +1,325 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The Telegram group as a transit line map: how a message in the chat reaches the nightly build, and the
+               three places no line from the chat bot goes. Facts (docs/DECISIONS.md D62–D66, worker/src/lib/persona.js,
+               worker/src/posts.js): everything said in the group is stored for 14 days; at 20:30 UTC one Claude call
+               writes a digest of at most 8 one-sentence notes with no names, posted in the group, shown on the site
+               and public at /api/feedback; /idea puts an idea on the ideas board, which the Build Agent reads before
+               it writes the ballot, and holders vote; /bug logs a report for the night's session; the Build Agent
+               reads all of it at 21:00 UTC as player feedback, not instructions; the 00:00 UTC post says what it did
+               with what it heard. The chat model has no tools and no access to the game, the vote or the treasury.
+               It doesn't talk price, never DMs first and never asks for a key. Group: t.me/bearproofapp, bot
+               @bearproobot (4 Oct 2026). */
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #f6f3ea;
+                color: #152238;
+                font-family: 'Gill Sans', 'Gill Sans MT', 'Avenir Next', sans-serif;
+            }
+            .edge {
+                position: absolute;
+                inset: 26px;
+                border: 3px solid #152238;
+                border-radius: 6px;
+            }
+            .kick {
+                position: absolute;
+                left: 64px;
+                top: 62px;
+                font-weight: 600;
+                font-size: 23px;
+                letter-spacing: 0.2em;
+            }
+            h1 {
+                position: absolute;
+                left: 62px;
+                top: 96px;
+                margin: 0;
+                font-weight: 700;
+                font-size: 73px;
+                line-height: 1;
+                letter-spacing: -0.015em;
+            }
+            .lead {
+                position: absolute;
+                left: 64px;
+                top: 190px;
+                margin: 0;
+                font-size: 31px;
+            }
+            .mark {
+                position: absolute;
+                right: 62px;
+                top: 58px;
+                width: 84px;
+                height: 84px;
+                border-radius: 14px;
+                background: #152238;
+                display: grid;
+                place-items: center;
+            }
+            .mark canvas {
+                image-rendering: pixelated;
+            }
+            svg.map {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .pill {
+                position: absolute;
+                height: 64px;
+                border: 6px solid #152238;
+                border-radius: 32px;
+                background: #fff;
+                display: grid;
+                place-items: center;
+                font-weight: 700;
+                font-size: 26px;
+                letter-spacing: 0.08em;
+                white-space: nowrap;
+            }
+            .tag {
+                position: absolute;
+                padding: 5px 12px 4px;
+                border-radius: 6px;
+                color: #fff;
+                font-weight: 700;
+                font-size: 19px;
+                letter-spacing: 0.16em;
+                white-space: nowrap;
+            }
+            .st {
+                position: absolute;
+                font-size: 22.5px;
+                line-height: 1.22;
+                color: #3a4558;
+            }
+            .st b {
+                display: block;
+                font-weight: 700;
+                font-size: 26px;
+                letter-spacing: 0.05em;
+                color: #152238;
+            }
+            .st b.cmd {
+                font-family: 'Menlo', 'SF Mono', monospace;
+                font-size: 25px;
+                letter-spacing: 0;
+            }
+            .none {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 1150px;
+                height: 172px;
+            }
+            .none .x {
+                position: absolute;
+                top: 78px;
+                width: 300px;
+                text-align: center;
+                font-weight: 700;
+                font-size: 25px;
+                letter-spacing: 0.08em;
+                color: #5b6573;
+            }
+            .none p {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 118px;
+                margin: 0;
+                text-align: center;
+                font-size: 24px;
+                color: #3a4558;
+            }
+            .foot {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 1338px;
+                height: 110px;
+                border-top: 3px solid #152238;
+                padding-top: 16px;
+            }
+            .foot ul {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+                font-size: 22.5px;
+                line-height: 1.34;
+                color: #26324a;
+            }
+            .foot li::before {
+                content: '';
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                border: 3.5px solid #152238;
+                background: #fff;
+                margin-right: 12px;
+                vertical-align: 1px;
+            }
+            .foot .addr {
+                position: absolute;
+                right: 0;
+                top: 14px;
+                text-align: right;
+            }
+            .foot .addr b {
+                display: block;
+                font-size: 40px;
+                letter-spacing: -0.005em;
+            }
+            .foot .addr span {
+                display: block;
+                margin-top: 4px;
+                font-size: 22.5px;
+                color: #26324a;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="edge"></div>
+        <div class="kick">BEARPROOF · TELEGRAM · LINE MAP</div>
+        <h1>You can talk to the AI now</h1>
+        <p class="lead">It joined a Telegram group today. This is where your message goes.</p>
+        <div class="mark"><canvas id="emblem"></canvas></div>
+
+        <svg class="map" width="1200" height="1500" viewBox="0 0 1200 1500">
+            <g fill="none" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+                <!-- chat line -->
+                <path
+                    d="M380 330 H230 A80 80 0 0 0 150 410 V850 A80 80 0 0 0 230 930 H300"
+                    stroke="#159a5b"
+                />
+                <!-- idea line -->
+                <path d="M540 360 V900" stroke="#e9a100" />
+                <!-- bug line -->
+                <path
+                    d="M700 330 H820 A80 80 0 0 1 900 410 V850 A80 80 0 0 1 820 930 H780"
+                    stroke="#d8412f"
+                />
+                <!-- the build line -->
+                <path d="M540 960 V1062" stroke="#152238" />
+                <!-- not served -->
+                <path
+                    d="M150 1190 H1050"
+                    stroke="#9aa3ad"
+                    stroke-width="10"
+                    stroke-dasharray="2 22"
+                />
+            </g>
+            <g fill="#fff" stroke="#152238" stroke-width="6">
+                <circle cx="150" cy="500" r="15" />
+                <circle cx="150" cy="650" r="15" />
+                <circle cx="150" cy="800" r="15" />
+                <circle cx="540" cy="500" r="15" />
+                <circle cx="540" cy="650" r="15" />
+                <circle cx="540" cy="800" r="15" />
+                <circle cx="900" cy="500" r="15" />
+                <circle cx="900" cy="650" r="15" />
+            </g>
+            <!-- the three closed stations -->
+            <g fill="#f6f3ea" stroke="#9aa3ad" stroke-width="6">
+                <circle cx="214" cy="1190" r="19" />
+                <circle cx="600" cy="1190" r="19" />
+                <circle cx="986" cy="1190" r="19" />
+            </g>
+            <g stroke="#d8412f" stroke-width="6" stroke-linecap="round">
+                <path d="M205 1181 L223 1199 M223 1181 L205 1199" />
+                <path d="M591 1181 L609 1199 M609 1181 L591 1199" />
+                <path d="M977 1181 L995 1199 M995 1181 L977 1199" />
+            </g>
+        </svg>
+
+        <div class="pill" style="left: 380px; top: 298px; width: 320px">THE GROUP</div>
+        <div class="pill" style="left: 250px; top: 898px; width: 580px">
+            21:00 UTC · THE BUILD SESSION
+        </div>
+        <div class="pill" style="left: 272px; top: 1062px; width: 536px">
+            00:00 UTC · THE BUILD SHIPS
+        </div>
+
+        <div class="tag" style="left: 186px; top: 414px; background: #159a5b">CHAT LINE</div>
+        <div class="tag" style="left: 576px; top: 414px; background: #e9a100">IDEA LINE</div>
+        <div class="tag" style="left: 936px; top: 414px; background: #d8412f">BUG LINE</div>
+
+        <div class="st" style="left: 186px; top: 470px; width: 320px">
+            <b>SAY IT</b>Anything about the game. Reply to the AI and it answers.
+        </div>
+        <div class="st" style="left: 186px; top: 620px; width: 320px">
+            <b>20:30 UTC · DIGEST</b>The day's chat becomes up to 8 short notes. No names.
+        </div>
+        <div class="st" style="left: 186px; top: 770px; width: 320px">
+            <b>PUBLISHED</b>In the group, on the site and at /api/feedback.
+        </div>
+
+        <div class="st" style="left: 576px; top: 470px; width: 290px">
+            <b class="cmd">/idea</b>Your idea, in one line.
+        </div>
+        <div class="st" style="left: 576px; top: 620px; width: 290px">
+            <b>IDEAS BOX</b>Public. The AI reads it before it writes the ballot.
+        </div>
+        <div class="st" style="left: 576px; top: 770px; width: 290px">
+            <b>HOLDER VOTE</b>Holders pick the day's feature.
+        </div>
+
+        <div class="st" style="left: 936px; top: 470px; width: 210px">
+            <b class="cmd">/bug</b>What broke, and where.
+        </div>
+        <div class="st" style="left: 936px; top: 620px; width: 210px">
+            <b>LOGGED</b>Passed on word for word.
+        </div>
+
+        <div class="st" style="left: 580px; top: 972px; width: 560px">
+            Chat and bugs arrive as player feedback, never as orders.<br />The vote picks the
+            feature.
+        </div>
+        <div class="st" style="left: 832px; top: 1066px; width: 310px">
+            Its post says what it did with what it heard.
+        </div>
+
+        <div class="none">
+            <div class="tag" style="left: 0; top: -6px; background: #7c8794">
+                THE CHAT AI DOESN'T STOP HERE
+            </div>
+            <div class="x" style="left: 0">THE CODE</div>
+            <div class="x" style="left: 386px">THE VOTE</div>
+            <div class="x" style="left: 772px">THE TREASURY</div>
+            <p>
+                It has no tools. It reads and it answers. It can't write code, change a vote or move
+                funds.
+            </p>
+        </div>
+
+        <div class="foot">
+            <ul>
+                <li>It doesn't do price. Builds, players and receipts only.</li>
+                <li>It never DMs first and never asks for a key.</li>
+                <li>Messages are kept 14 days. Its instructions are public.</li>
+            </ul>
+            <div class="addr">
+                <b>t.me/bearproofapp</b><span>the bot inside is @bearproobot</span>
+            </div>
+        </div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            put(document.getElementById('emblem'), 'emblem', 70, { max: 4, glow: false });
+            await document.fonts.ready;
+            await ready();
+        </script>
+    </body>
+</html>

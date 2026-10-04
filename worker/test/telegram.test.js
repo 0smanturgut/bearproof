@@ -20,7 +20,7 @@ import {
     violation,
     webhookSecret
 } from '../src/lib/telegram.js';
-import { factsText, whole } from '../src/lib/words.js';
+import { factsText, heardInChat, whole } from '../src/lib/words.js';
 import {
     announcements,
     planTitle,
@@ -571,6 +571,44 @@ test('a devlog summary cut at 280 characters keeps only its finished sentences',
         'No sentence ever finishes in this one and it just keeps going…'
     );
     assert.equal(whole(null), '');
+});
+
+test('the day post closes the loop: it quotes the devlog’s "Heard in the chat" section', () => {
+    const body = [
+        'Shipped: Rug Radar.',
+        '',
+        '## Heard in the chat',
+        '',
+        'Three people said rug pullers come from **off screen**. The data agrees (45% of deaths), so the',
+        'radar ships tonight. See [the playtest](https://x.test) below.',
+        '',
+        '## Playtest',
+        '',
+        'playtest: median run 3:35 → 3:47'
+    ].join('\n');
+    assert.equal(
+        heardInChat(body),
+        'Three people said rug pullers come from off screen. The data agrees (45% of deaths), so the radar ships tonight. See the playtest below.'
+    );
+    assert.equal(
+        heardInChat('## Heard in the chat\n\nNothing changed tonight’s plan.'),
+        'Nothing changed tonight’s plan.'
+    );
+    assert.equal(heardInChat('Shipped: a thing.\n\n## Playtest\n\nnone'), null);
+    assert.equal(heardInChat(null), null);
+    const long = heardInChat(
+        `## Heard in the chat\n\n${'A full sentence about the game. '.repeat(30)}`
+    );
+    assert.ok(long.length <= 320 && long.endsWith('.'));
+    const f = facts({ entry: { build: 12, summary: 'Shipped: Rug Radar.', body } });
+    const post = postDay(f, {}, { fresh: true, voters: 2, yesterday: null }).text;
+    assert.match(post, /\nHeard in here: Three people said rug pullers come from off screen\./);
+    assert.equal(
+        postDay(facts(), {}, { fresh: true, voters: 2, yesterday: null }).text.includes(
+            'Heard in here'
+        ),
+        false
+    );
 });
 
 // --- the webhook -----------------------------------------------------------------------

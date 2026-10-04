@@ -21,6 +21,24 @@ export function whole(summary) {
     return end > 40 ? s.slice(0, end + 1) : s;
 }
 
+/**
+ * The devlog's "## Heard in the chat" section as one plain paragraph (what the Build Agent says it did with the
+ * Telegram group's feedback), or null when the devlog has none. Clipped to finished sentences.
+ */
+export function heardInChat(body) {
+    const m = /^##\s+Heard in the chat[ \t]*\n+([\s\S]*?)(?=\n##\s|$(?![\s\S]))/m.exec(
+        String(body || '')
+    );
+    if (!m) return null;
+    const text = m[1]
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+        .replace(/[*_`]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (!text) return null;
+    return text.length > 320 ? whole(`${text.slice(0, 320).replace(/\s+\S*$/, '')}…`) : text;
+}
+
 /** "3h 12m" until `ms`. */
 export function until(ms, now) {
     const min = Math.max(0, Math.round((ms - now) / 60000));

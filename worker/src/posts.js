@@ -9,6 +9,7 @@ import {
     fmtInt,
     fmtSol,
     fmtUsd,
+    heardInChat,
     madeBy,
     until,
     utcTime,
@@ -313,6 +314,9 @@ export function postDay(f, env, info) {
                       ? ' Nobody voted, so it came from the backlog.'
                       : ' The devlog says why this one.')
         );
+        // What the Build Agent says it did with the group's feedback (its devlog, "Heard in the chat").
+        const heard = heardInChat(f.entry?.body);
+        if (heard) lines.push(`Heard in here: ${esc(heard)}`);
     } else {
         lines.push(
             `<b>No new build today.</b> Build #${f.live.n} “${esc(f.live.title)}” stays live.`

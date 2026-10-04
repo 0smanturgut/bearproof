@@ -810,6 +810,89 @@ export function sybil(f) {
     return s.render();
 }
 
+/**
+ * 30×34 pump and dump: a balloon on stubby legs, blown up on hype. The frames are not a walk cycle but the four
+ * swell stages (the renderer picks one from `e.pump`): small and green with a chart pumping up its side, then red,
+ * stretched and sweating, a second from dumping.
+ */
+export function pumpDump(f) {
+    const s = new PixelSprite(30, 34);
+    const st = Math.min(3, Math.max(0, f));
+    const r = [5.5, 8, 10.5, 13][st];
+    const green = st < 2;
+    const body = green ? M.bull : M.bear;
+    const cx = 15;
+    const cy = 30 - r - 2.5; // the balloon sits on its knot, the knot on the legs
+    // stubby legs and the knot they hang from
+    const ky = cy + r;
+    s.capsule(13, ky + 0.5, 11.5, 32, 1, 0.9, M.bearDark, { g: 'legs' });
+    s.capsule(17, ky + 0.5, 18.5, 32, 1, 0.9, M.bearDark, { g: 'legs' });
+    s.box(10, 32, 3, 1.6, M.hoof, { shade: 'flat', lum: 0.5 });
+    s.box(17, 32, 3, 1.6, M.hoof, { shade: 'flat', lum: 0.5 });
+    s.poly(
+        [
+            [cx - 1.6, ky + 1.6],
+            [cx + 1.6, ky + 1.6],
+            [cx, ky - 0.6]
+        ],
+        body,
+        { lum: 0.35 }
+    );
+    // the balloon, a touch taller than wide: its own sphere shading (auto lighting would dent it round the face)
+    s.ellipse(cx, cy, r, r * 1.06, body);
+    // shine
+    const hx = Math.round(cx - r * 0.5);
+    const hy = Math.round(cy - r * 0.55);
+    s.px(hx, hy, '#FFFFFF').px(hx + 1, hy - 1, '#FFFFFF');
+    if (st > 1) s.px(hx - 1, hy + 1, green ? '#D8FFD0' : '#FFC9BF');
+    // face
+    const ey = Math.round(cy - r * 0.15);
+    const gap = Math.max(2, Math.round(r * 0.4));
+    if (green) angryEyes(s, cx - gap - 1, cx + gap - 1, ey, { iris: C.gold, brow: '#03140F' });
+    else {
+        // big bulging eyes, so they still read on red
+        s.patch(cx - gap - 2, ey - 2, ['BBB.', '.WWW', '.WWP', '.WWW'], {
+            B: '#1A040C',
+            W: C.eyeWhite,
+            P: C.ink
+        });
+        s.patch(cx + gap - 1, ey - 2, ['.BBB', 'WWW.', 'PWW.', 'WWW.'], {
+            B: '#1A040C',
+            W: C.eyeWhite,
+            P: C.ink
+        });
+    }
+    const my = ey + Math.max(2, Math.round(r * 0.35));
+    if (green) {
+        // a smug grin
+        s.px(cx - 2, my, C.ink)
+            .px(cx - 1, my + 1, C.ink)
+            .px(cx, my + 1, C.ink)
+            .px(cx + 1, my, C.ink);
+    } else {
+        // gritted teeth, about to blow
+        s.patch(cx - 3, my, ['XXXXXX', 'XWXWXX', 'XXXXXX'], { X: C.ink, W: C.eyeWhite });
+    }
+    if (green) {
+        // a little chart pumping up the belly
+        const by = Math.round(cy + r * 0.55);
+        const bx = cx - Math.round(r * 0.45);
+        const pts = st === 0 ? [0, 1, 2] : [0, 0, 1, 1, 2, 3, 4];
+        pts.forEach((h, i) => s.px(bx + i, by - h, '#D8FFD0', { glow: C.green }));
+    } else {
+        // strain: stretch marks, and sweat flying off
+        s.px(Math.round(cx + r * 0.6), Math.round(cy + r * 0.3), '#FFC9BF');
+        s.px(Math.round(cx + r * 0.5), Math.round(cy + r * 0.45), '#FFC9BF');
+        s.px(Math.round(cx - r * 0.7), Math.round(cy + r * 0.4), '#FFC9BF');
+        s.px(Math.round(cx + r) + 1, Math.round(cy - r * 0.6), '#46B8F0', { glow: '#46B8F0' });
+        if (st === 3) {
+            s.px(Math.round(cx - r) - 1, Math.round(cy - r * 0.3), '#46B8F0', { glow: '#46B8F0' });
+            s.px(Math.round(cx + r) + 2, Math.round(cy - r * 0.6) - 1, '#9BE2FF');
+        }
+    }
+    return s.render();
+}
+
 // ---------------------------------------------------------------- brand
 
 /**

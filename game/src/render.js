@@ -38,7 +38,8 @@ export const KILL_COLORS = {
     ponzi: '#FFC53D',
     downline: '#FFC53D',
     margin_call: '#FF3B5C',
-    sybil: '#A3ACB8'
+    sybil: '#A3ACB8',
+    pump_dump: '#FF7E86'
 };
 
 // Things that hover: their shadow sits lower and smaller.
@@ -498,6 +499,15 @@ export class Renderer {
             frame = (t * 20) % 2 < 1 ? 1 : 3;
             if (Math.floor(t * 12) % 2 === 0) tint = '#FFFFFF';
             sxs *= 1 + Math.sin(t * 40) * 0.06;
+        }
+        if (def.pumper) {
+            // the frames are swell stages; between them it breathes in, and fully pumped it throbs and flashes
+            frame = Math.min(3, Math.floor(e.pump * 4));
+            const full = e.pump >= 1;
+            const beat = Math.sin(t * (full ? 26 : 7) + e.uid);
+            sxs *= 1 + beat * (full ? 0.07 : 0.03);
+            sys *= 1 - beat * (full ? 0.05 : 0.02);
+            if (full && !tint && Math.floor(t * 10) % 2 === 0) tint = '#FFFFFF';
         }
         const flip = e.facing > 0 ? false : true;
         // Side-view art faces right; enemies walk toward the bull, so mirror when they head left.

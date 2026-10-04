@@ -44,8 +44,8 @@ import { Weapon } from './weapons.js';
  * they shoot, from closer. 7: Whale Alert (a whale crosses at 1:30, shoving bears and dropping candles).
  * 8: Boss Jackpot (a boss kill pays triple score and rains its XP as a ring of falling gold candles).
  * 9: Copium (Hopium evolves at Lv 5 and slows bears in the cloud). 10: God Candle (a fourth crate loot that
- * wipes every bear near the bull). */
-export const SIM_VERSION = 10;
+ * wipes every bear near the bull). 11: Pump and Dump (a bear from 2:30 that swells and pops into red candles). */
+export const SIM_VERSION = 11;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -185,8 +185,9 @@ export class Simulation {
             }
         }
         if (w !== this.wave) {
+            // a window can split a wave (a new bear joins mid-wave); only a new label is a new wave
+            if (w.label !== this.wave.label) this.emit({ t: 'wave', label: w.label });
             this.wave = w;
-            this.emit({ t: 'wave', label: w.label });
         }
     }
 
@@ -320,6 +321,29 @@ export class Simulation {
                 );
             }
         }
+        if (e.def.pumper) this._dump(e, born);
+    }
+
+    /** Pump and Dump pops: 2 red candles if popped early, up to 6 at the top, in a ring around the body. */
+    _dump(e, born) {
+        const def = e.def;
+        const n = def.dumpMin + Math.floor((def.dumpMax - def.dumpMin) * e.pump + 1e-9);
+        const child = enemyDef(def.dumpInto);
+        const r = e.size + 8;
+        for (let k = 0; k < n; k++) {
+            const a = (k / n) * Math.PI * 2;
+            born.push(
+                new Enemy(
+                    e.x + cos(a) * r,
+                    e.y + sin(a) * r,
+                    child,
+                    this.hpMult,
+                    this.enemyDmgMult,
+                    this
+                )
+            );
+        }
+        this.emit({ t: 'dump', x: e.x, y: e.y, n, r, self: !!e.selfDestructed });
     }
 
     _spawn(dt) {

@@ -404,7 +404,7 @@ export const PASSIVES = {
 };
 
 // ---------------------------------------------------------------------------
-// Enemies: the bear market. Archetype flags: ranged, dasher, splitter, shielded, bomber, cloner.
+// Enemies: the bear market. Archetype flags: ranged, dasher, splitter, shielded, bomber, cloner, pumper.
 // `score` defaults to `exp`. `description` and `tip` are display only (the Field Guide); the sim never reads them.
 // ---------------------------------------------------------------------------
 export const ENEMIES = {
@@ -566,6 +566,31 @@ export const ENEMIES = {
         damage: 12,
         exp: 30,
         size: 15
+    },
+    PUMP_DUMP: {
+        id: 'pump_dump',
+        name: 'Pump and Dump',
+        sprite: 'pump_dump',
+        description:
+            'Once it gets close it swells for 6 s. Pop it and red candles spill out: 2 early, 6 at the top. Fully pumped and next to you, it dumps on you by itself.',
+        tip: 'Pop it while it is still small and green. Once it turns red, keep your distance.',
+        // Once within `pumpRange` of the bull (about on screen) it grows from `size` to `pumpSize` over `pumpTime`
+        // s. On death it spills `dumpMin` + (dumpMax − dumpMin) × pump of `dumpInto`; fully pumped within
+        // `dumpRange` of the bull, it dumps by itself (no XP). Half as common as other bears in a pool.
+        pumper: true,
+        spawnWeight: 0.5,
+        pumpRange: 380,
+        pumpTime: 6,
+        pumpSize: 26,
+        dumpInto: 'red_candle',
+        dumpMin: 2,
+        dumpMax: 6,
+        dumpRange: 40,
+        hp: 45,
+        speed: 80,
+        damage: 14,
+        exp: 26,
+        size: 14
     }
 };
 
@@ -699,36 +724,53 @@ export const WAVES = [
     },
     {
         from: 120,
-        to: 180,
+        to: 150,
         pool: ['rug_puller', 'fud_cloud', 'ponzi', 'doomposter', 'margin_call'],
+        spawnMult: 1.3,
+        label: 'Ponzi Unwinds'
+    },
+    {
+        // same wave, same label (no new toast): Pump and Dump joins at 2:30
+        from: 150,
+        to: 180,
+        pool: ['rug_puller', 'fud_cloud', 'ponzi', 'doomposter', 'margin_call', 'pump_dump'],
         spawnMult: 1.3,
         label: 'Ponzi Unwinds'
     },
     {
         from: 180,
         to: 240,
-        pool: ['rug_puller', 'grizzly', 'fud_cloud', 'ponzi', 'margin_call'],
+        pool: ['rug_puller', 'grizzly', 'fud_cloud', 'ponzi', 'margin_call', 'pump_dump'],
         spawnMult: 1.4,
         label: 'Grizzly Country'
     },
     {
         from: 240,
         to: 300,
-        pool: ['grizzly', 'fud_cloud', 'ponzi', 'doomposter', 'sybil'],
+        pool: ['grizzly', 'fud_cloud', 'ponzi', 'doomposter', 'sybil', 'pump_dump'],
         spawnMult: 1.5,
         label: 'Pressure'
     },
     {
         from: 300,
         to: 420,
-        pool: ['rug_puller', 'grizzly', 'fud_cloud', 'ponzi', 'doomposter', 'margin_call', 'sybil'],
+        pool: [
+            'rug_puller',
+            'grizzly',
+            'fud_cloud',
+            'ponzi',
+            'doomposter',
+            'margin_call',
+            'sybil',
+            'pump_dump'
+        ],
         spawnMult: 1.6,
         label: 'Contagion'
     },
     {
         from: 420,
         to: 600,
-        pool: ['grizzly', 'ponzi', 'doomposter', 'fud_cloud', 'rug_puller', 'sybil'],
+        pool: ['grizzly', 'ponzi', 'doomposter', 'fud_cloud', 'rug_puller', 'sybil', 'pump_dump'],
         spawnMult: 1.75,
         label: 'Capitulation'
     },
@@ -743,7 +785,8 @@ export const WAVES = [
             'rug_puller',
             'paper_hands',
             'margin_call',
-            'sybil'
+            'sybil',
+            'pump_dump'
         ],
         spawnMult: 2.0,
         label: 'Max Pain'
@@ -979,7 +1022,9 @@ export function bossesFor(id) {
 export function pickWeighted(pool, stageId, rnd) {
     const weights = getStage(stageId).poolWeights;
     let total = 0;
-    const cum = pool.map((id) => (total += Math.max(0, weights[id] ?? 1)));
+    const cum = pool.map(
+        (id) => (total += Math.max(0, weights[id] ?? ENEMY_BY_ID[id]?.spawnWeight ?? 1))
+    );
     const r = rnd() * total;
     for (let i = 0; i < pool.length; i++) if (r < cum[i]) return pool[i];
     return pool[pool.length - 1];

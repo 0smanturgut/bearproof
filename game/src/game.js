@@ -420,6 +420,18 @@ export class Game {
                     fx.addShake(0.25);
                     this._sfx('explosion', 0.08);
                     break;
+                case 'dump':
+                    // Pump and Dump pops: a red ring out to where the candles land, red confetti
+                    fx.ring(e.x, e.y, 6, e.r + 18, 0.3, '255,59,92', 5, true);
+                    fx.burst(e.x, e.y, '#FF3B5C', 6 + e.n * 2, 240, 3.5, 'spark');
+                    fx.burst(e.x, e.y, '#16E08A', 5, 140, 3);
+                    if (e.self) {
+                        // it dumped on you: shout it
+                        fx.number(e.x, e.y - 30, 'DUMPED', 'hurt');
+                        fx.addShake(0.3);
+                    } else if (e.n >= 5) fx.number(e.x, e.y - 30, `x${e.n}`, 'info');
+                    this._sfx('dump', 0.06);
+                    break;
                 case 'clone':
                     fx.burst(e.x, e.y, '#B8C0CC', 8, 160, 3);
                     fx.burst(e.x, e.y, 'rgba(180,190,205,', 5, 60, 10, 'smoke');

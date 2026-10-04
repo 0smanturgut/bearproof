@@ -219,6 +219,7 @@ export class Enemy {
         this.rugPull = 0;
         this.rugAngle = 0;
         this.windup = 0; // ranged: seconds of typing left before the shot goes out
+        this.pump = 0; // pumper: 0 → 1 as it swells
     }
 
     _shoot(angle, sim) {
@@ -274,6 +275,18 @@ export class Enemy {
             vx = tx * this.speed * slow;
             vy = ty * this.speed * slow;
         } else {
+            if (def.pumper) {
+                // Pump: once near the bull, swells to `pumpSize` over `pumpTime` s. Dump: fully pumped and close,
+                // it pops by itself.
+                if (d < (def.pumpRange || 380) || this.pump > 0)
+                    this.pump = Math.min(1, this.pump + dt / (def.pumpTime || 6));
+                this.size = def.size + (def.pumpSize - def.size) * this.pump;
+                if (this.pump >= 1 && d < (def.dumpRange || 60) + this.size + p.size) {
+                    this.hp = 0;
+                    this.selfDestructed = true;
+                    return;
+                }
+            }
             if (def.cloner && !this.isClone) {
                 this.cloneTimer -= dt;
                 if (this.cloneTimer <= 0 && sim.enemies.length < SIM.MAX_ENEMIES) {

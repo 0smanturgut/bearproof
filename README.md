@@ -6,6 +6,7 @@
 | :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Play / HQ**                               | https://bearproof.app                                                                                                                                            |
 | **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                       |
+| **Telegram (talk to the AI)**               | https://t.me/bearproofapp · the bot is [@bearproobot](https://t.me/bearproobot). It never DMs first and never asks for a key                                     |
 | **X**                                       | [@bearproofapp](https://x.com/bearproofapp) is suspended by X (27 Sep). Until it's back, updates come from the operator, [@0smanTrgut](https://x.com/0smanTrgut) |
 | **Operator**                                | Osman Turgut · [@0smanTrgut](https://x.com/0smanTrgut) on X                                                                                                      |
 | **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX)       |

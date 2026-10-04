@@ -69,8 +69,8 @@
         // serves one public group: TELEGRAM_CHAT is its "@name" (or numeric id), TELEGRAM_URL its public link, shown
         // on the HQ. Empty = no group yet: the HQ shows nothing, and the bot only notes where it was added. While
         // these two are empty, the CONFIG key tg:config ({ "chat", "url" }) fills them in without a deploy.
-        "TELEGRAM_CHAT": "",
-        "TELEGRAM_URL": "",
+        "TELEGRAM_CHAT": "@bearproofapp",
+        "TELEGRAM_URL": "https://t.me/bearproofapp",
         // The most the chat may spend on Claude in one UTC day (measured, list price). Replies stop there.
         "TELEGRAM_DAILY_BUDGET_USD": "3"
     }

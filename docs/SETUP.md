@@ -103,7 +103,7 @@ npx wrangler kv key put --binding=CONFIG --remote build_override 3
 npx wrangler kv key delete --binding=CONFIG --remote build_override
 # Payout kill switch (M3).
 npx wrangler kv key put --binding=CONFIG --remote payouts_enabled false
-# Name the Telegram group without a deploy (used while TELEGRAM_CHAT / TELEGRAM_URL are empty in wrangler.jsonc).
+# Name the Telegram group without a deploy (only read while TELEGRAM_CHAT / TELEGRAM_URL are empty in wrangler.jsonc).
 npx wrangler kv key put --binding=CONFIG --remote tg:config '{"chat":"@bearproof","url":"https://t.me/bearproof"}'
 # Take the bot out of the group's business at once: it stops posting, answering and moderating.
 npx wrangler kv key delete --binding=CONFIG --remote tg:config

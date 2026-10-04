@@ -16,7 +16,7 @@ import { RUN_ID } from '../lib/runs.js';
 
 const STATUSES = new Set(['verified', 'rejected', 'unverifiable']);
 
-function timingSafeEqual(a, b) {
+export function timingSafeEqual(a, b) {
     const x = new TextEncoder().encode(String(a));
     const y = new TextEncoder().encode(String(b));
     let diff = x.length ^ y.length;

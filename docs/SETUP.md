@@ -52,13 +52,19 @@ Live URL: **https://bearproof.app**
 
 ### Secrets (never in git, never in logs)
 
-| Secret             | Used by                                   | How to set                                                               |
-| ------------------ | ----------------------------------------- | ------------------------------------------------------------------------ |
-| `DAILY_SEED_SALT`  | `/api/daily` HMAC seed                    | `openssl rand -hex 32 \| npx wrangler secret put DAILY_SEED_SALT` (done) |
-| `TURNSTILE_SECRET` | run submission bot check                  | `npx wrangler secret put TURNSTILE_SECRET`                               |
-| `HELIUS_API_KEY`   | treasury balance + ledger reads           | `npx wrangler secret put HELIUS_API_KEY`                                 |
-| `INGEST_TOKEN`     | Build Agent → devlog/cost ingest          | `openssl rand -hex 32 \| npx wrangler secret put INGEST_TOKEN`           |
-| `PRIZE_WALLET_KEY` | daily prize payouts (M3, hot wallet only) | `npx wrangler secret put PRIZE_WALLET_KEY`                               |
+| Secret               | Used by                                   | How to set                                                                 |
+| -------------------- | ----------------------------------------- | -------------------------------------------------------------------------- |
+| `DAILY_SEED_SALT`    | `/api/daily` HMAC seed                    | `openssl rand -hex 32 \| npx wrangler secret put DAILY_SEED_SALT` (done)   |
+| `TURNSTILE_SECRET`   | run submission bot check                  | `npx wrangler secret put TURNSTILE_SECRET`                                 |
+| `HELIUS_API_KEY`     | treasury balance + ledger reads           | `npx wrangler secret put HELIUS_API_KEY`                                   |
+| `INGEST_TOKEN`       | Build Agent → devlog/cost ingest          | `openssl rand -hex 32 \| npx wrangler secret put INGEST_TOKEN`             |
+| `PRIZE_WALLET_KEY`   | daily prize payouts (M3, hot wallet only) | `npx wrangler secret put PRIZE_WALLET_KEY`                                 |
+| `TELEGRAM_BOT_TOKEN` | the Telegram bot (from @BotFather)        | `npx wrangler secret put TELEGRAM_BOT_TOKEN`                               |
+| `ANTHROPIC_API_KEY`  | the bot's replies and the chat digest     | `npx wrangler secret put ANTHROPIC_API_KEY` (its own key, not the agent's) |
+
+The Telegram bot needs no dashboard setup: once `TELEGRAM_BOT_TOKEN` exists, the next cron run registers the webhook
+and the command list. `TELEGRAM_CHAT` and `TELEGRAM_URL` in `wrangler.jsonc` name the one group it serves; without
+the Anthropic key it still posts, moderates and takes `/idea` and `/bug`, and says its replies aren't switched on.
 
 GitHub Actions secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `ANTHROPIC_API_KEY` (or a UsePod token),
 `INGEST_TOKEN`.

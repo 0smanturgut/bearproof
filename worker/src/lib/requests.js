@@ -24,6 +24,11 @@ const OFF_LIMITS =
 const HATE =
     /\b(n[i1]gg(er|a)s?|f[a4]gg?(ot)?s?|k[i1]kes?|retards?|tr[a4]nn(y|ies)|chinks?|sp[i1]cs?)\b/i;
 
+/** True when the text carries a slur from the short list above. */
+export function isHate(text) {
+    return HATE.test(String(text));
+}
+
 /** Trim, drop control characters, collapse whitespace, NFC. */
 export function cleanText(raw) {
     if (typeof raw !== 'string') return '';

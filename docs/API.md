@@ -42,8 +42,10 @@ and the replay status. `?v=<status>` on the image is a cache key; final statuses
 
 ### `GET /api/stats`
 
-HQ number strip: `{ day, buildsShipped, liveBuild, nextBuildAt, treasury, token, computeSpentUsd, playersToday,
-topScoreToday, generatedAt }`. `playersToday` = distinct browsers that called `POST /api/session` this UTC day.
+HQ number strip: `{ day, buildsShipped, liveBuild, nextBuildAt, treasury, token, computeSpentUsd, community,
+playersToday, topScoreToday, generatedAt }`. `playersToday` = distinct browsers that called `POST /api/session` this
+UTC day. `computeSpentUsd` = `{ measured, meteredRuns, chat }`: every measured Claude cost, how many Build Agent runs
+it covers, and the part the Telegram chat used. `community.telegram` is the group's link, or `null` until it exists.
 Edge 15 s.
 
 ### `GET /api/leaderboard?date=YYYY-MM-DD` (daily board, default today)
@@ -153,6 +155,15 @@ places, bounty: { name, text, cleared } | null, rule: { text, details } }`. `pla
 the pot pays at its current size; `bounty.cleared` = players whose verified run cleared it so far. Fees are
 measured on-chain and err low; the final pot is worked out after the day closes. Edge 60 s.
 
+### `GET /api/feedback`
+
+What the Telegram group told the AI: `{ telegram, digest: { day, writtenAt, messages, people, items: [{ kind,
+text, people }] } | null, bugs: [{ ts, text }], today: { messages, people } }`. `digest` is the latest one: a
+Claude call writes it at 20:30 UTC from the chat since the previous digest, and the Worker drops any item that fails
+the ideas-box filters. `kind`: `bug | balance | idea | praise | complaint | question`. `bugs` are the last 24 hours
+of `/bug` reports, word for word. The Build Agent reads this at 21:00 UTC as untrusted player feedback
+(`agent/context.mjs`, `community`). No names or handles. Edge 60 s.
+
 ## Writes
 
 Bodies are JSON (`content-type: application/json`). The browser creates a random UUID v4 once and keeps it in
@@ -190,6 +201,13 @@ handles or talk of keys, wallets, payouts or the pipeline. Errors: `not_enough_t
 
 `{ playerId, address }`: the public Solana address to pay if this player's run is a day's verified #1
 (`address: ''` removes it). Stored only for that and never returned by any endpoint.
+
+### `POST /api/telegram/webhook` (Telegram)
+
+Telegram delivers the group's updates here. The request must carry `X-Telegram-Bot-Api-Secret-Token`, a value
+derived from the bot token and registered by the cron; anything else gets 401, and 404 while no bot token is set.
+Answers `{ ok: true }` at once and works in the background (`worker/src/routes/telegram.js`): house rules,
+commands, and Claude's replies to mentions. Nothing here can change a run, a vote or a payout.
 
 ### `POST /api/internal/requests/:id/status` (operator)
 
@@ -264,3 +282,5 @@ Rate limit: `RL_SUBMIT` (12/min) per player and per IP hash.
 - Unit: `npm test` (`worker/test/*.test.js`).
 - End to end against `wrangler dev`: `bash worker/test/smoke-api.sh http://localhost:8799` (setup steps in the
   script header). It refuses non-local URLs because it writes fake runs.
+- The Telegram bot, end to end: `npm run build && node worker/test/smoke-telegram.mjs`. It starts `wrangler dev` on
+  a throwaway database with a mock Bot API and a mock Claude API, so no real bot, chat or key is involved.

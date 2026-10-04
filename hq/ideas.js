@@ -54,11 +54,51 @@
         for (const idea of ideas) {
             const li = el('li', null, idea.text);
             const when = ago(idea.ts);
-            if (when) li.appendChild(el('time', null, when));
+            // An idea sent with /idea in the Telegram group lands in the same box.
+            const where = idea.via === 'telegram' ? 'via Telegram' : '';
+            if (when || where)
+                li.appendChild(el('time', null, [when, where].filter(Boolean).join(' · ')));
             list.appendChild(li);
         }
         const today = Number(data.today || 0);
         $('#ideaMeta').textContent = `${today} today · ${data.perIp || 3} per person a day`;
+    }
+
+    const HEARD = {
+        bug: 'Bug',
+        balance: 'Balance',
+        idea: 'Idea',
+        praise: 'Liked',
+        complaint: 'Disliked',
+        question: 'Asked'
+    };
+
+    /**
+     * What the AI took from the Telegram group: the latest 20:30 UTC digest (GET /api/feedback). Hidden until a
+     * digest with something in it exists. The text is a model's summary of players' words: textContent only.
+     */
+    async function loadHeard() {
+        try {
+            const r = await fetch('/api/feedback', { headers: { accept: 'application/json' } });
+            if (!r.ok) return;
+            const d = (await r.json()).digest;
+            if (!d || !Array.isArray(d.items) || !d.items.length) return;
+            const list = $('#heardList');
+            list.textContent = '';
+            for (const item of d.items.slice(0, 8)) {
+                const li = el('li', null, String(item.text || ''));
+                const n = Number(item.people) || 1;
+                li.appendChild(
+                    el('time', null, (HEARD[item.kind] || 'Note') + (n > 1 ? ` · ${n} people` : ''))
+                );
+                list.appendChild(li);
+            }
+            $('#heardMeta').textContent =
+                `${ago(d.writtenAt)} · ${Number(d.messages) || 0} messages, ${Number(d.people) || 0} people`;
+            $('#heard').hidden = false;
+        } catch {
+            /* nothing heard, nothing shown */
+        }
     }
 
     async function load() {
@@ -69,6 +109,7 @@
             if (!data || !Array.isArray(data.ideas)) return;
             $('#ideaForm').hidden = false;
             render(data);
+            loadHeard();
         } catch {
             /* no box until the server answers */
         }

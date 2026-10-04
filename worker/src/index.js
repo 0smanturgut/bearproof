@@ -5,6 +5,7 @@
  *   /b/<n>/      immutable game build n (static asset)
  *   /play        302 to the live build (or the build pinned for ?challenge=YYYY-MM-DD)
  *   /api/*       JSON API (routes here and in ./routes/, documented in docs/API.md)
+ *   /api/telegram/webhook   the Telegram group's bot (routes/telegram.js, community.js)
  *
  * Every number the API returns is either real data or `null` with a reason. Nothing is invented.
  */
@@ -39,6 +40,8 @@ import { winners } from './routes/winners.js';
 import { pot } from './routes/pot.js';
 import { dailyPotFrom } from './dailypot.js';
 import { scheduled } from './cron.js';
+import { feedback } from './community.js';
+import { telegramWebhook } from './routes/telegram.js';
 
 // Until 26 Sep, browsers that cached build files "immutable" before D47 get their HTTP cache for this site
 // cleared once (a cookie marks it done), so they pick up the Build #2 hotfix. Storage (prefs, player id) stays.
@@ -145,9 +148,13 @@ async function stats(env) {
         "SELECT claimed_score AS score, status FROM runs WHERE challenge_date = ? AND status != 'rejected' ORDER BY claimed_score DESC LIMIT 1",
         today
     );
+    // Build Agent runs are rows 'gh-<run>'; the Telegram chat's Claude usage is one row a day, 'tg-<date>'.
     const spent = await first(
         env,
-        'SELECT COALESCE(SUM(usd), 0) AS usd, COUNT(*) AS runs FROM compute_costs WHERE measured = 1'
+        `SELECT COALESCE(SUM(usd), 0) AS usd,
+                COALESCE(SUM(CASE WHEN id LIKE 'tg-%' THEN usd ELSE 0 END), 0) AS chat,
+                COALESCE(SUM(CASE WHEN id LIKE 'tg-%' THEN 0 ELSE 1 END), 0) AS runs
+           FROM compute_costs WHERE measured = 1`
     );
     return json(
         {
@@ -157,7 +164,11 @@ async function stats(env) {
             nextBuildAt: new Date(nextUtcMidnight(now)).toISOString(),
             treasury: env.TREASURY_WALLET ? await treasuryStats(env) : null,
             token: env.TOKEN_MINT ? { mint: env.TOKEN_MINT } : null,
-            computeSpentUsd: spent ? { measured: spent.usd, meteredRuns: spent.runs } : null,
+            computeSpentUsd: spent
+                ? { measured: spent.usd, meteredRuns: spent.runs, chat: spent.chat }
+                : null,
+            // Where people talk to the AI. Null until the group exists.
+            community: { telegram: env.TELEGRAM_URL || null },
             playersToday: players ? players.n : null,
             topScoreToday: top ? { score: top.score, verified: top.status === 'verified' } : null,
             generatedAt: new Date(now).toISOString()
@@ -238,6 +249,8 @@ export default {
                         return edgeCached(request, ctx, 60, () => winners(env));
                     case '/api/pot':
                         return edgeCached(request, ctx, 60, () => pot(env));
+                    case '/api/feedback':
+                        return edgeCached(request, ctx, 60, () => feedback(env));
                 }
                 if (pathname.startsWith('/api/run/'))
                     return getRun(pathname.slice('/api/run/'.length), env);
@@ -254,6 +267,7 @@ export default {
                 if (pathname === '/api/vote/request') return postRequest(request, env);
                 if (pathname === '/api/ideas') return postIdea(request, env);
                 if (pathname === '/api/payout-address') return setPayoutAddress(request, env);
+                if (pathname === '/api/telegram/webhook') return telegramWebhook(request, env, ctx);
                 if (pathname === '/api/internal/payout/selftest')
                     return payoutSelftest(request, env);
                 if (pathname === '/api/internal/agent/events') return postAgentEvents(request, env);

@@ -63,6 +63,14 @@
         // are paused until the operator names one (and adds it to the ClawPump whitelist).
         "COSTS_WALLET": "",
         "TURNSTILE_SITE_KEY": "0x4AAAAAAFBfsyRdhquSMqN7",
-        "REPO_URL": "https://github.com/0smanturgut/bearproof"
+        "REPO_URL": "https://github.com/0smanturgut/bearproof",
+        "SITE_URL": "https://bearproof.app",
+        // The Telegram group (docs/DECISIONS.md D62). The bot wakes up when the TELEGRAM_BOT_TOKEN secret is set, and
+        // serves one public group: TELEGRAM_CHAT is its "@name" (or numeric id), TELEGRAM_URL its public link, shown
+        // on the HQ. Empty = no group yet: the HQ shows nothing, and the bot only notes where it was added.
+        "TELEGRAM_CHAT": "",
+        "TELEGRAM_URL": "",
+        // The most the chat may spend on Claude in one UTC day (measured, list price). Replies stop there.
+        "TELEGRAM_DAILY_BUDGET_USD": "3"
     }
 }

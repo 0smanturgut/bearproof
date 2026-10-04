@@ -4,7 +4,7 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Thu 24 Sep 2026, 16:45 UTC. Build #2 is live; tonight 21:00 UTC the Build Agent makes Build #3 on its own, live at bearproof.app/live._
+_Last updated: Sun 4 Oct 2026. New: **step 10, the Telegram group** (about 10 minutes, the only open step that blocks something)._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
@@ -140,6 +140,72 @@ Skip steps 2–6 below (they're the OBS-from-your-Mac route).
    (Ctrl+C stops it). If X ends the broadcast after some hours, press Go live again; the key stays the same.
 
 Pin the broadcast (or a post linking it) during the 21:00–00:00 UTC session: that's when the console is live.
+
+## 10. Telegram group: where people talk to the AI (≈10 min)
+
+The code is live and waiting. The bot wakes up the moment its token exists; until then nothing on the site
+mentions Telegram. What it does is in `docs/DECISIONS.md` D62–D66. Four things need your accounts.
+
+**A. Create the bot (2 min, in Telegram)**
+
+1. In Telegram's search, type `BotFather`, open the one with the blue check, press **Start**.
+2. Send `/newbot`.
+3. It asks for a name. Send: `BEARPROOF`
+4. It asks for a username. Send: `bearproof_bot`. If it's taken, try `bearproofapp_bot`, then `bearproof_ai_bot`.
+5. BotFather answers with a line "Use this token to access the HTTP API" and a long code under it. That code is a
+   secret. **Don't paste it in chat.** Copy it, then in the Terminal tab run this, paste the code when it asks, and
+   press Enter (nothing shows while you paste, that's normal):
+
+```bash
+npx wrangler secret put TELEGRAM_BOT_TOKEN
+```
+
+**B. Give the bot its voice (2 min, on a computer)**
+
+The replies come from Claude, so the Worker needs its own Anthropic key (separate from the Build Agent's, so either
+can be switched off alone).
+
+1. Open console.anthropic.com → **API keys** → **Create Key**. Name: `bearproof-telegram`. Press **Create Key** (or
+   **Add**), then **Copy**.
+2. In the Terminal tab run this and paste the key when it asks:
+
+```bash
+npx wrangler secret put ANTHROPIC_API_KEY
+```
+
+The bot stops answering at $3 of measured usage a day (the announcements and the digest keep working). Without
+this key it still posts, moderates and takes `/idea` and `/bug`; it just says its replies aren't switched on.
+
+**C. Create the group (3 min, in Telegram)**
+
+1. Pencil icon → **New Group**. Add one member: search the bot's username from step A and tick it. **Next**.
+2. Group name: `BEARPROOF`. For the photo use `hq/assets/brand/avatar.png` from this folder. **Create**.
+3. Open the group, tap its name at the top → **Edit** (the pencil).
+4. **Group Type** → **Public**. Public link: `bearproof`. If it's taken, try `bearproofapp`, then `bearproof_hq`.
+   Save.
+5. Same Edit screen → **Administrators** → **Add Admin** → pick the bot → leave every switch as it is (Delete
+   Messages, Ban Users and Pin Messages are on by default) → **Done** / **Save**.
+6. Optional, same Edit screen → **Permissions** → **Slow Mode** → `10s`. It stops floods; admins aren't slowed.
+
+**D. Send me two things (in chat, not secret)**
+
+- the group link, like `t.me/bearproof`
+- the bot's username, like `@bearproof_bot`
+
+I put the group's name in `wrangler.jsonc` and deploy. Within 15 minutes the bot introduces itself in the group,
+pins today's build, and the HQ shows "Talk to the AI on Telegram". From then on it runs by itself.
+
+**Good to know**
+
+- You're an admin there, so the bot never removes your messages. It removes, from everyone else: addresses that
+  aren't ours, links outside our pages / X / YouTube / Solscan, the usual wallet and "support" scam lines, and
+  forwards from channels. `/rules` in the group lists them.
+- It posts **every treasury movement** as it lands on the ledger, in the same words as the /live feed. That includes
+  your own sends from the treasury. Tell me the purpose before a send (step 8), so the row and the post are
+  labelled right the first time.
+- It never talks price, and it won't confirm or promise features: holders vote, the agent builds.
+- Later, optional: in BotFather, `/setuserpic` (same avatar) and `/setjoingroups` → **Disable** (the bot already
+  leaves any other group on its own).
 
 ## Helius API key ✅ done (23 Sep)
 

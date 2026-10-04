@@ -301,7 +301,15 @@ function renderStats(s) {
     if (s.computeSpentUsd && s.computeSpentUsd.meteredRuns > 0) {
         setV('sSpent', usd(s.computeSpentUsd.measured), '');
         const n = s.computeSpentUsd.meteredRuns;
-        setN('sSpentN', 'measured, ' + n + ' agent run' + (n === 1 ? '' : 's'));
+        // The Telegram chat's Claude usage is measured too (one row a day), and is part of the same total.
+        setN(
+            'sSpentN',
+            'measured, ' +
+                n +
+                ' agent run' +
+                (n === 1 ? '' : 's') +
+                (s.computeSpentUsd.chat > 0 ? ' + the Telegram chat' : '')
+        );
     } else {
         setV('sSpent', '—', 'empty');
         setN('sSpentN', 'metering starts with the Build Agent');
@@ -333,6 +341,18 @@ function renderStats(s) {
 
     renderMonitor(s);
     renderCoin(s);
+    renderCommunity(s);
+}
+
+/** The Telegram group: every [data-tg] link and line stays hidden until the group exists (stats.community). */
+function renderCommunity(s) {
+    const raw = s && s.community && s.community.telegram;
+    const url =
+        typeof raw === 'string' && /^https:\/\/t\.me\/[A-Za-z0-9_+-]{3,64}$/.test(raw) ? raw : null;
+    for (const el of document.querySelectorAll('[data-tg]')) {
+        if (url && el.tagName === 'A') el.href = url;
+        el.hidden = !url;
+    }
 }
 
 async function loadStats() {

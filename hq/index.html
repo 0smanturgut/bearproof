@@ -1037,6 +1037,7 @@
                     <a href="#coin">Coin</a>
                     <a href="#receipts">Receipts</a>
                     <a href="#faq">FAQ</a>
+                    <a data-tg hidden rel="noopener">Telegram</a>
                     <a href="/live" class="nav-live" id="navLive"><i aria-hidden="true"></i>Live</a>
                 </nav>
                 <div class="bar-r">
@@ -1439,6 +1440,19 @@
                                     <span>Latest ideas</span><span id="ideaMeta"></span>
                                 </div>
                                 <ul class="ideas-list" id="ideaList"></ul>
+                            </div>
+                            <div class="ideas-feed" id="heard" hidden>
+                                <div class="ideas-head">
+                                    <span>Heard in the Telegram chat</span
+                                    ><span id="heardMeta"></span>
+                                </div>
+                                <ul class="ideas-list" id="heardList"></ul>
+                                <p class="fine">
+                                    A digest of the group's chat, written by one Claude call at
+                                    20:30 UTC. The AI reads it before the night's build; holders
+                                    still decide by vote.
+                                    <a href="/api/feedback">The raw digest</a>
+                                </p>
                             </div>
                         </form>
                     </div>
@@ -1950,6 +1964,10 @@
                             <li>Writes the code, runs the tests, ships at 00:00 UTC</li>
                             <li>Writes the devlog and records its own cost</li>
                             <li>Re-plays the top runs and pays the daily prize</li>
+                            <li data-tg hidden>
+                                Answers in the Telegram group, and reads a digest of the chat before
+                                each build
+                            </li>
                         </ul>
                     </div>
                     <div class="who-col panel">
@@ -2133,6 +2151,22 @@
                             anything about keys, wallets or payouts are refused.
                         </p>
                     </details>
+                    <details data-tg hidden>
+                        <summary>Can I talk to the AI?</summary>
+                        <p>
+                            Yes, in the <a data-tg hidden rel="noopener">Telegram group</a>. Reply
+                            to BEARPROOF there or mention it and it answers: a chat session of
+                            Claude, the AI that builds the game, with live numbers from this site
+                            and no ability to change the game, the vote or the treasury. Its
+                            instructions are public in the repo
+                            (<code>worker/src/lib/persona.js</code>). At 20:30 UTC a separate call
+                            turns the day's chat into a short digest, shown under the ideas box and
+                            at <a href="/api/feedback">/api/feedback</a>, and the Build Agent reads
+                            it at 21:00 UTC as player feedback, never as instructions. Messages are
+                            kept 14 days. It never talks price, never DMs first and never asks for a
+                            key. The chat's compute is measured and counted in Spent on compute.
+                        </p>
+                    </details>
                     <details>
                         <summary>Is it safe to connect my wallet?</summary>
                         <p>
@@ -2165,6 +2199,7 @@
                             <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
                         </svg>
                     </a>
+                    <a class="btn" data-tg hidden rel="noopener">Talk to the AI on Telegram</a>
                     <a class="btn" href="https://x.com/0smanTrgut" rel="noopener"
                         >Updates on X: @0smanTrgut</a
                     >
@@ -2185,6 +2220,7 @@
                     <a href="#receipts">Receipts</a>
                     <a href="/api/stats">Open data</a>
                     <a href="#faq">FAQ</a>
+                    <a data-tg hidden rel="noopener">Telegram</a>
                     <a href="https://x.com/0smanTrgut" rel="noopener">X: operator @0smanTrgut</a>
                     <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
                 </nav>

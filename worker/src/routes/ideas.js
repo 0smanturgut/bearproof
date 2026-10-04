@@ -5,6 +5,8 @@
  *   POST /api/ideas   { text, turnstileToken }   8–200 chars, 3 per IP per UTC day, 100 per UTC day
  *   GET  /api/ideas[?hours=24][&limit=50]         the latest visible ideas, newest first (limit up to the daily cap)
  *
+ * /idea in the Telegram group puts an idea in the same box (routes/telegram.js), 3 per person per UTC day.
+ *
  * The text is a player's and untrusted: the same filters as holder requests, shown with textContent, and handed to
  * the agent marked untrusted.
  */
@@ -28,7 +30,7 @@ export function checkIdea(raw) {
     return problem ? { ok: false, message: problem } : { ok: true, text };
 }
 
-function ideaId() {
+export function ideaId() {
     const bytes = crypto.getRandomValues(new Uint8Array(10));
     return 'idea-' + Array.from(bytes, (b) => (b % 36).toString(36)).join('');
 }
@@ -91,7 +93,7 @@ export async function getIdeas(request, env) {
     const limit = Math.min(IDEAS_PER_DAY, Math.max(1, Number(params.get('limit')) || 50));
     const rows = await all(
         env,
-        'SELECT id, ts, text FROM ideas WHERE hidden = 0 AND ts >= ?1 ORDER BY ts DESC LIMIT ?2',
+        'SELECT id, ts, text, source FROM ideas WHERE hidden = 0 AND ts >= ?1 ORDER BY ts DESC LIMIT ?2',
         since,
         limit
     );
@@ -102,7 +104,13 @@ export async function getIdeas(request, env) {
         utcDate(Date.now())
     );
     return json({
-        ideas: rows.map((r) => ({ id: r.id, ts: new Date(r.ts).toISOString(), text: r.text })),
+        ideas: rows.map((r) => ({
+            id: r.id,
+            ts: new Date(r.ts).toISOString(),
+            text: r.text,
+            // 'telegram' when it was sent with /idea in the group.
+            ...(r.source === 'telegram' ? { via: 'telegram' } : {})
+        })),
         today: today?.n ?? 0,
         cap: IDEAS_PER_DAY,
         perIp: IDEAS_PER_IP

@@ -2,3 +2,10 @@
 DAILY_SEED_SALT="local-dev-salt-not-secret"
 INGEST_TOKEN="local-ingest-token"
 TURNSTILE_SECRET="1x0000000000000000000000000000000AA"
+# Telegram (optional, local only): a made-up token plus a mock Bot API, so `wrangler dev` never talks to the real bot.
+# TELEGRAM_BOT_TOKEN=local-test-token
+# TELEGRAM_API=http://127.0.0.1:8799
+# TELEGRAM_CHAT=@bearproof_local
+# SITE_URL=http://127.0.0.1:8787
+# ANTHROPIC_API_KEY=local-test-key
+# ANTHROPIC_BASE_URL=http://127.0.0.1:8799

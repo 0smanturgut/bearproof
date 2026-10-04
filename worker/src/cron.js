@@ -3,7 +3,8 @@
  *   1. snapshot ClawPump's creator-fee earnings once per UTC day (for the prize policy),
  *   2. settle yesterday's Daily Challenge: pick the verified winner and pay the capped $ANSEM prize,
  *   3. resume a payout that stopped half-way (swap done, transfer not yet),
- *   4. read the treasury's balance and new transactions from chain into the public ledger (lib/treasury.js).
+ *   4. read the treasury's balance and new transactions from chain into the public ledger (lib/treasury.js),
+ *   5. the Telegram group: the nightly chat digest and the announcements (community.js), beside the steps above.
  *
  * Guards: `payouts_enabled` must be "true" in CONFIG (kill switch), the coin and the prize wallet must exist,
  * and each day is claimed once in `daily_winners` before any money moves, so a prize can never be paid twice.
@@ -271,6 +272,12 @@ async function advancePayout(env, row) {
 export async function scheduled(event, env, ctx) {
     const now = Date.now();
     const today = utcDate(now);
+    // The Telegram group runs beside the money steps, never in their way: it can't delay or fail a payout.
+    ctx.waitUntil(
+        import('./community.js')
+            .then((m) => m.communityTick(env, now))
+            .catch((err) => console.warn('[cron] telegram', err?.message || err))
+    );
     try {
         await snapshotFees(env, today);
     } catch (err) {

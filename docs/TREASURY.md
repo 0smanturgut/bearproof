@@ -92,14 +92,15 @@ While it can't be read, no day from 27 Sep on is settled at all, so a day is nev
 
 ## What is automated, and what isn't (kept true)
 
-| Step                                    | Who                                                                                           | How it is labelled |
-| --------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------ |
-| Fees → treasury                         | ClawPump, hourly                                                                              | `chain`            |
-| Treasury → prize wallet (daily top-up)  | **Operator**, in the ClawPump dashboard, until an automated `agent_send` path proves reliable | `operator`         |
-| Treasury → the operator (reimbursement) | **Operator**, same, to his own wallets; each one is in the ledger notes below                 | `operator`         |
-| Treasury → anyone else                  | **Operator**, same; the purpose goes in the ledger notes below                                | `operator`         |
-| Winner verification + payout            | Worker cron after 00:00 UTC                                                                   | `agent`            |
-| Ledger rows                             | Worker cron from Solana RPC, one row per treasury transaction with a Solscan link             | `chain`            |
+| Step                                       | Who                                                                                           | How it is labelled |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------- | ------------------ |
+| Fees → treasury                            | ClawPump, hourly                                                                              | `chain`            |
+| Treasury → prize wallet (daily top-up)     | **Operator**, in the ClawPump dashboard, until an automated `agent_send` path proves reliable | `operator`         |
+| Treasury → the operator (reimbursement)    | **Operator**, same, to his own wallets; each one is in the ledger notes below                 | `operator`         |
+| Treasury → anyone else                     | **Operator**, same; the purpose goes in the ledger notes below                                | `operator`         |
+| Winner verification + payout               | Worker cron after 00:00 UTC                                                                   | `agent`            |
+| Ledger rows                                | Worker cron from Solana RPC, one row per treasury transaction with a Solscan link             | `chain`            |
+| Telegram posts about prizes and the ledger | Worker cron, in the words of the /live feed; it reads the ledger and moves nothing            | `agent`            |
 
 Ledger rules (`worker/src/lib/treasury.js`): an inflow counts as creator fees only when it comes from a known ClawPump
 fee address (CONFIG `ledger:fee_sources`); anything else is "other" with the sender shown. Memos on incoming transfers

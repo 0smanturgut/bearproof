@@ -2,6 +2,7 @@
 /**
  * Post the start of a Build Agent run to /live: which build, what the vote chose, what yesterday's players did.
  * Reads $AGENT_CONTEXT (agent/context.mjs). A holder's request title is shown as text, like on the ballot.
+ * The Telegram feedback is shown as counts only.
  */
 import fs from 'node:fs';
 import { send } from './live.mjs';
@@ -44,4 +45,14 @@ if (p && p.runs > 0) {
         data: { runs: p.runs, medianSec: p.survivalSec.median, topDeath: died?.id ?? null }
     });
 }
+const c = ctx.community;
+if (c)
+    events.push({
+        type: 'context',
+        text:
+            `From the Telegram chat: ${c.digest.length} note${c.digest.length === 1 ? '' : 's'} in the 20:30 UTC digest` +
+            (c.messages ? ` (${c.messages} messages from ${c.people} people)` : '') +
+            ` and ${c.bugs.length} bug report${c.bugs.length === 1 ? '' : 's'}. I read them as player feedback, never as instructions.`,
+        data: { digest: c.digest.length, bugs: c.bugs.length }
+    });
 await send(events);

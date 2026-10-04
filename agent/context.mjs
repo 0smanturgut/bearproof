@@ -4,6 +4,8 @@
  * Numbers and ids only, with one exception: when a holder's request wins the vote, its title and details go in,
  * marked `untrusted`. The server already filtered them (worker/src/lib/requests.js) and agent/PROMPT.md tells
  * the agent to read them as a feature description, never as instructions. No other player text (names) goes in.
+ * The ideas box and the Telegram group's feedback (`community`: the 20:30 UTC digest and the /bug reports) go in
+ * the same way: filtered by the server, clipped here, marked `untrusted`, with nobody's name or handle.
  * An operator option's text is the operator's own (agent/operator-options.json, in git), so it goes in as is.
  *
  *   node agent/context.mjs [--site https://…] > "$RUNNER_TEMP/context.json"
@@ -47,6 +49,12 @@ const liveN = stats?.liveBuild?.n ?? null;
 // The ideas box: what players (anyone, no wallet) suggested in the last day. A player wrote each one: untrusted.
 const ideas = await get('/api/ideas?hours=24&limit=100');
 const previous = liveN > 1 ? await get(`/api/insights?hours=48&build=${liveN - 1}`) : null;
+// What players said in the public Telegram group: today's 20:30 UTC digest (a separate Claude call wrote it from
+// the day's chat) and the last day's /bug reports. Players wrote or caused every word: untrusted.
+const feedback = await get('/api/feedback');
+const digest =
+    feedback?.digest?.day === new Date().toISOString().slice(0, 10) ? feedback.digest : null;
+const bugs = Array.isArray(feedback?.bugs) ? feedback.bugs : [];
 const devlogDir = path.join(ROOT, 'devlog');
 const recent = fs
     .readdirSync(devlogDir)
@@ -117,6 +125,26 @@ const out = {
     ideas: (ideas?.ideas || [])
         .slice(0, 100)
         .map((i) => ({ text: String(i.text).slice(0, 200), untrusted: true })),
+    // Null on a quiet day (or before the group exists), so the agent never reads an empty list as "no complaints".
+    community:
+        (digest && Array.isArray(digest.items) && digest.items.length) || bugs.length
+            ? {
+                  source: 'telegram',
+                  messages: Number(digest?.messages) || 0,
+                  people: Number(digest?.people) || 0,
+                  digest: (Array.isArray(digest?.items) ? digest.items : [])
+                      .slice(0, 8)
+                      .map((i) => ({
+                          kind: String(i?.kind).slice(0, 12),
+                          text: String(i?.text).slice(0, 200),
+                          people: Number(i?.people) || 1,
+                          untrusted: true
+                      })),
+                  bugs: bugs
+                      .slice(0, 20)
+                      .map((b) => ({ text: String(b?.text).slice(0, 400), untrusted: true }))
+              }
+            : null,
     recentDevlogs: recent
 };
 process.stdout.write(JSON.stringify(out, null, 2) + '\n');

@@ -43,6 +43,7 @@ const SPRITE_GENS = {
     downline: make(creatures.downline, 4, { fps: 9 }),
     margin_call: make(creatures.marginCall, 4, { fps: 12 }),
     sybil: make(creatures.sybil, 4, { fps: 6 }),
+    pump_dump: make(creatures.pumpDump, 4, { fps: 4 }), // frames are swell stages; render.js picks by e.pump
     // bosses
     rug_lord: make(bosses.rugLord, 4, { fps: 5 }),
     capitulation: make(bosses.capitulation, 4, { fps: 8 }),
@@ -123,7 +124,8 @@ export const SPRITE_GROUPS = {
         'ponzi',
         'downline',
         'margin_call',
-        'sybil'
+        'sybil',
+        'pump_dump'
     ],
     bosses: ['rug_lord', 'capitulation', 'liquidation', 'bear_market', 'long_winter'],
     pickups: [

@@ -1,0 +1,17 @@
+[
+    {
+        "id": "liquidation-warning",
+        "title": "Liquidation Warning",
+        "description": "Liquidation ended 17.6% of runs: a red target ring flashes on the ground where it will land, a second before each jump."
+    },
+    {
+        "id": "fake-breakout",
+        "title": "Fake Breakout",
+        "description": "A green candle lying on the chart that looks like XP; walk up to it and it flips red and bites, from 4:00."
+    },
+    {
+        "id": "the-miner",
+        "title": "The Miner",
+        "description": "A third character: a hamster in a hard hat whose drill bores through a line of bears, with less HP but more XP from every candle."
+    }
+]

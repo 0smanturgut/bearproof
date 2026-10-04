@@ -1,35 +1,27 @@
-# Build #12 plan: God Candle
+# Build #13 plan: Pump and Dump
 
-## Regression check (done first)
+**Feature.** A new bear, Pump and Dump: a balloon on stubby legs that swells as it walks at you (green while it
+pumps, red when it's about to dump). Pop it and red candles spill out: 2 if you pop it early, up to 6 at full size.
+If it reaches you fully pumped, it dumps on its own: 6 red candles at point blank and no XP for you. In the wave
+pools from 2:30.
 
-Build #11 (101 runs, 24 players, all Daily on Crypto Winter + Bull Run) vs Build #10 (79 runs, Chop + Thin
-Liquidity). Median 9:52 → 7:27, bull median 9:31 → 4:23, rug pullers 29.6% → 44.9% of deaths. Replays rejected 0.
-`playtest --compare build-10`: identical (the autopilot never maxes Hopium). /tmp diagnostic on Winter + Bull Run,
-40 seeds, bull and Pepe, Hopium forced: Build #11's sim is +4 to +9 s per paired seed vs Build #10, rug-puller
-deaths flat. The day did it (same combo as Build #8's 37% rug day), not Copium. Nothing to fix.
+**Why today.** It won the holder vote (1 wallet voted). Build #12's regression check found nothing to fix first.
 
-## Feature
+**Regression check.** Build #12 vs #11: median 7:19 → 8:15, deaths shifted to Liquidation/bag holders (a different
+Daily stage; Liquidation at 10:00 means it wasn't Winter). `playtest --compare build-11`: 3:35 → 3:47; bull with
+Daily twists on 80 seeds 4:43 → 4:45, no early deaths. Nothing to fix.
 
-No vote. Backlog #7, "Pickup: green god candle: rare drop that clears the screen", as a fourth airdrop-crate loot.
-Open the crate and a giant green candle slams down on the bull: every non-boss bear within 400 units dies (shields
-too; normal kills, so XP and score drop), bosses take 10% of their max HP. The loot roll never repeats the last crate,
-so it's ~1 crate in 3-4.
+**Files.**
 
-Why today: rug pullers ended 45% of runs yesterday and the bull's median was 4:23. A crate every minute that can
-wipe the pack is a breather and a clip moment that a player meets in the first two minutes. Leverage's evolution
-(#2) waits: Leverage fell out of the top 10 passives (<26% of runs) and it needs a passive-evolution system.
+- `game/src/sim/content.js`: `ENEMIES.PUMP_DUMP` (pumper archetype), new 2:30–3:00 wave window, pump_dump in later
+  pools.
+- `game/src/sim/entities.js`: swell (pump 0→1 over 6 s, size 14→26) and self-dump when fully pumped and close.
+- `game/src/sim/sim.js`: dump candles on death (2 + 4×pump), `dump` event, wave toast only on a new label,
+  `SIM_VERSION` 11.
+- `game/src/art/creatures.js` + `sprites.js`: `pumpDump` sprite, 4 frames = 4 swell stages.
+- `game/src/render.js`: frame by swell, wobble when full. `game/src/game.js`/fx/audio: pop burst + sound.
+- `game/test/pump-dump.test.js`.
 
-## Files
-
-- `game/src/sim/content.js`: `CRATE_LOOT_IDS` + `CRATE_LOOT.god_candle` (radius, boss share).
-- `game/src/sim/sim.js`: `openCrate` branch, `godCandle` event; `SIM_VERSION` 10.
-- `game/src/art/items.js` + `sprites.js`: a `god_candle` sprite (big green candle).
-- `game/src/fx.js`, `game/src/render.js`: the slam (candle falls from above, shockwave ring).
-- `game/src/game.js`: crate colours, slam fx, toast; `game/src/audio.js`: a boom.
-- `game/test/god-candle.test.js`; `twist.test.js` pin for SIM_VERSION.
-
-## Tests
-
-Units: kills every non-boss in radius (incl. a shielded grizzly), spares those outside, boss takes exactly 10%,
-the kills are counted and drop XP; loot never repeats; a bot run with it replays bit for bit. Playtest compare vs
-origin/main, smoke shots (temp hack to open a god candle near the shot tick), art test, gates.
+**Tests.** Swell rate and size; kill early → 2 candles, kill full → 6; self-dump at full near the bull gives no XP
+and 6 candles; never in pools before 2:30, present after; bot run replays bit for bit. Then playtest --compare
+origin/main, smoke shots, determinism.

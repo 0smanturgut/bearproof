@@ -140,6 +140,15 @@ signature in `worker/src/lib/ledger-notes.js`, after checking the transaction on
   The amounts are on-chain; the purpose is his statement. The three sends on 3 Oct left 0.002 SOL in the treasury.
   `28Rp…NeE4` is also the address the 27 Sep send above went to. Shown as "outgoing to …" until 4 Oct, then labelled
   Reimbursement.
+- **5 Oct 00:39 UTC, 25,905,043.96 $BPROOF and 0.2 SOL to `25FF…L3Vv`** (tx `ocgVED…xuDsicjQ` and
+  `4GRMNN…TwoRC`): the re-lock. The first Streamflow lock (`7GRzRv3S…2fJB`) released 24,798,035.65 tokens to the
+  treasury at 00:22:36 UTC. The operator said the ClawPump treasury wallet returned an error when he tried to lock
+  from it, so he moved all of the treasury's tokens (that release and the 1,107,008.31 from the 29 Sep buyback) and
+  0.2 SOL for fees to a new wallet he made for this. At 00:44:52 UTC that wallet locked them in Streamflow
+  `BhKhjz…kuyT`: 25,776,163.15 after Streamflow's fees (2.58% of supply), opening on 31 Dec 2026, 21:00 UTC. Checked
+  on-chain: sender and recipient are `25FF…L3Vv`, not the treasury, and the lock can't be cancelled or transferred.
+  So in 2027 the tokens open to a wallet the operator holds, not to the ClawPump treasury wallet. Shown as "moved
+  25,905,044 $BPROOF" and "outgoing to …" until 5 Oct, then labelled as the re-lock.
 
 ## Live addresses (23 Sep 2026)
 

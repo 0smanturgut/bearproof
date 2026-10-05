@@ -42,6 +42,20 @@ export const LEDGER_NOTES = {
             {
                 category: 'reimbursement',
                 memo: 'operator reimbursement: 0.0621 SOL from the treasury to the operator’s own wallet (4fmU…N2tA), by hand; same purpose as the 1 Oct row, by his statement. It left 0.002 SOL in the treasury (labelled 4 Oct)'
+            },
+        // 5 Oct 00:39 UTC: the first Streamflow lock had released 24,798,035.65 $BPROOF to the treasury at 00:22 UTC.
+        // The operator moved all of the treasury's tokens and 0.2 SOL to a new wallet, 25FF…L3Vv, which locked
+        // 25,776,163.15 in Streamflow (BhKhjz…kuyT) at 00:44:52 UTC, until 31 Dec 2026 21:00 UTC; he said the
+        // ClawPump treasury wallet returned an error when he tried to lock from it. Checked on-chain: sender =
+        // recipient = 25FF…L3Vv, not cancellable, not transferable.
+        ocgVEDrL1CqHBL6bKgDcu2ajnVPyVyt5yu5ZxRRHikjPVqq2E9TSnRTYr2cCj4fQyQ6skZPXPvSFbzQxuDsicjQ: {
+            category: 'launch',
+            memo: 're-lock: the operator moved all of the treasury’s $BPROOF (25,905,043.96: the launch buy the first lock released at 00:22 UTC, and the 29 Sep buyback) to a new wallet he made for this (25FF…L3Vv), because the ClawPump treasury wallet couldn’t create a lock. At 00:44 UTC that wallet locked 25,776,163.15 in Streamflow until 31 Dec 2026, 21:00 UTC; it can’t be cancelled or transferred (labelled 5 Oct)'
+        },
+        '4GRMNNvGfZ7RoDQdoEFua5WEbh35VP7BHmGbvbbWFfyZAguzF5XVHoDX6TFJPHd4ZqRcfwSMYTo4cjBSgjqTwoRC':
+            {
+                category: 'launch',
+                memo: 're-lock: 0.2 SOL to the same new wallet (25FF…L3Vv) for the lock’s fees; Streamflow took 0.168 SOL, and 0.032 SOL was still in that wallet at 00:51 UTC (labelled 5 Oct)'
             }
     },
     // [{ tx, ts (ISO), direction, amountSol, category, memo }]

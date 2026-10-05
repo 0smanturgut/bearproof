@@ -3,10 +3,14 @@
     <head>
         <meta charset="utf-8" />
         <style>
-            /* The treasury's launch buy going back into a lock, as one big pixel padlock. Facts: 24,798,035.65
-               $BPROOF (2.48% of supply) were in the Streamflow contract 7GRzRv3S…2fJB ("Founder allocation",
-               sender = recipient = the treasury) and released on 5 Oct 2026, 00:22 UTC; the operator said on 5 Oct
-               he will lock them again until 1 Jan 2027. Post it only once the new lock exists. ?u=<until> ?n=<amount>. */
+            /* The treasury's tokens back in a lock, as one big pixel padlock. On-chain (checked 5 Oct 2026, 00:47 UTC):
+               the first lock (Streamflow 7GRzRv3S…2fJB) released 24,798,035.65 $BPROOF to the treasury at 00:22:36 UTC;
+               at 00:39 UTC the treasury sent all its tokens (that release plus the 1,107,008.31 bought back on 29
+               Sep, 25,905,043.96 in all) and 0.2 SOL to a new wallet, 25FFxm…L3Vv, because the ClawPump treasury
+               wallet could not create a lock; at 00:44:52 UTC that wallet locked them in Streamflow BhKhjz…kuyT:
+               25,776,163.15 after Streamflow's fees (2.58% of supply), sender = recipient = 25FFxm…L3Vv, not
+               cancellable, not transferable, opening 31 Dec 2026 21:00:00 UTC (1 Jan 2027, 00:00 in Istanbul).
+               ?u=<until> ?n=<amount> ?s=<small line>. */
             @font-face {
                 font-family: 'Jersey 10';
                 src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
@@ -176,7 +180,7 @@
         <canvas id="lock"></canvas>
         <div class="until" id="until"></div>
         <div class="amt" id="amt"></div>
-        <div class="small">THE TREASURY'S LAUNCH BUY, BACK IN A LOCK</div>
+        <div class="small" id="small"></div>
         <script type="module">
             import { put } from '/scripts/og/x/x.js';
             const $ = (id) => document.getElementById(id);
@@ -187,7 +191,9 @@
             const q = new URLSearchParams(location.search);
             put($('mark'), 'emblem', 2000, { max: 4, glow: false });
             $('until').textContent = q.get('u') || 'UNTIL 1 JAN 2027';
-            $('amt').textContent = q.get('n') || '24.8M TOKENS · 2.48% OF SUPPLY';
+            $('amt').textContent = q.get('n') || '25.8M TOKENS · 2.58% OF SUPPLY';
+            $('small').textContent =
+                q.get('s') || 'OPENS 31 DEC 2026, 21:00 UTC · MIDNIGHT IN ISTANBUL';
 
             // one big padlock on a 26×30 grid
             const P = 22,

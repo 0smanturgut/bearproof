@@ -1,0 +1,321 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The Build #14 ballot as an arcade select screen. Three tiles: Liquidation Warning (the game's
+               Liquidation boss over a red target ring), Fake Breakout (the game's green XP candle, its shadow gone red)
+               and The Miner (a locked silhouette: that character has no sprite yet). The art is concept art and the
+               image says so. Options: agent/proposals/build-13.json. The vote closes 21:00 UTC. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #eaf0f5;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .bg,
+            .bg > * {
+                position: absolute;
+                inset: 0;
+            }
+            .rays {
+                background: repeating-conic-gradient(
+                    from 0deg at 50% 62%,
+                    rgba(245, 197, 66, 0.07) 0 6deg,
+                    transparent 6deg 12deg
+                );
+            }
+            .glow {
+                background:
+                    radial-gradient(
+                        ellipse 70% 34% at 50% 60%,
+                        rgba(245, 197, 66, 0.16),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 80% 30% at 50% 22%,
+                        rgba(22, 224, 138, 0.1),
+                        transparent 70%
+                    );
+            }
+            .vig {
+                background: radial-gradient(
+                    ellipse 80% 74% at 50% 48%,
+                    transparent 50%,
+                    rgba(0, 0, 0, 0.78) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 176px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 196px;
+                line-height: 0.84;
+                letter-spacing: 0.01em;
+                color: #f4f8fb;
+                text-shadow: 9px 9px 0 #101826;
+            }
+            h1 span {
+                color: #f5c542;
+                text-shadow:
+                    9px 9px 0 #4a3a0a,
+                    0 0 60px rgba(245, 197, 66, 0.55);
+            }
+            .tiles {
+                position: absolute;
+                left: 58px;
+                right: 58px;
+                top: 566px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 26px;
+            }
+            .tile {
+                position: relative;
+                height: 640px;
+                background: linear-gradient(180deg, #111a2c, #0a101c);
+                box-shadow:
+                    0 0 0 5px #05080f,
+                    0 0 0 10px var(--c),
+                    0 0 46px color-mix(in srgb, var(--c) 45%, transparent);
+            }
+            .tile .no {
+                position: absolute;
+                left: 14px;
+                top: 6px;
+                font-size: 76px;
+                line-height: 1;
+                color: var(--c);
+            }
+            .tile .art {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 60px;
+                height: 380px;
+                display: grid;
+                place-items: center;
+            }
+            .tile .name {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 190px;
+                display: grid;
+                place-items: center;
+                text-align: center;
+                font-size: 78px;
+                line-height: 0.88;
+                letter-spacing: 0.02em;
+                color: #05080f;
+                background: var(--c);
+            }
+            .ring {
+                position: absolute;
+                left: 50%;
+                bottom: 14px;
+                width: 250px;
+                height: 70px;
+                margin-left: -125px;
+                border-radius: 50%;
+                border: 8px dashed #ff3b5c;
+                box-shadow:
+                    0 0 30px rgba(255, 59, 92, 0.7),
+                    inset 0 0 30px rgba(255, 59, 92, 0.4);
+            }
+            #a1 {
+                position: relative;
+                top: -22px;
+            }
+            #a2 {
+                position: relative;
+                filter: drop-shadow(26px 22px 0 #ff3b5c)
+                    drop-shadow(0 0 30px rgba(22, 224, 138, 0.6));
+            }
+            .q {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 92px;
+                text-align: center;
+                font-size: 250px;
+                line-height: 1;
+                color: #f5c542;
+                text-shadow: 0 0 40px rgba(245, 197, 66, 0.6);
+            }
+            .foot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1262px;
+                text-align: center;
+                font-size: 112px;
+                line-height: 1;
+                letter-spacing: 0.02em;
+                color: #f4f8fb;
+                text-shadow: 7px 7px 0 #101826;
+            }
+            .foot span {
+                color: #f5c542;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1396px;
+                text-align: center;
+                font:
+                    400 23px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.2em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg">
+            <div class="rays"></div>
+            <div class="glow"></div>
+            <div class="vig"></div>
+        </div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>VOTE · BUILD #14</div>
+        </div>
+        <h1>CHOOSE THE<br /><span>NEXT BUILD</span></h1>
+        <div class="tiles">
+            <div class="tile" style="--c: #ff3b5c">
+                <div class="no">1</div>
+                <div class="art">
+                    <div class="ring"></div>
+                    <canvas id="a1"></canvas>
+                </div>
+                <div class="name">LIQUIDATION<br />WARNING</div>
+            </div>
+            <div class="tile" style="--c: #16e08a">
+                <div class="no">2</div>
+                <div class="art"><canvas id="a2"></canvas></div>
+                <div class="name">FAKE<br />BREAKOUT</div>
+            </div>
+            <div class="tile" style="--c: #f5c542">
+                <div class="no">3</div>
+                <div class="art">
+                    <svg
+                        id="a3"
+                        width="300"
+                        height="270"
+                        viewBox="0 0 20 18"
+                        shape-rendering="crispEdges"
+                    ></svg>
+                </div>
+                <div class="q">?</div>
+                <div class="name">THE<br />MINER</div>
+            </div>
+        </div>
+        <div class="foot">CLOSES <span>21:00 UTC</span></div>
+        <div class="small">HOLDERS VOTE · CONCEPT ART, NONE OF THESE IS IN THE GAME YET</div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            put($('a1'), 'liquidation', 2000, { max: 5, glow: false });
+            put($('a2'), 'xp_candle', 2000, { max: 19, glow: false });
+            // the third character has no sprite yet: a locked silhouette in a hard hat, with a drill
+            const ROWS = [
+                '......######........',
+                '.....########.......',
+                '....##########......',
+                '...############.....',
+                '..##############....',
+                '....##########......',
+                '...############.....',
+                '...############.....',
+                '..##############....',
+                '..##############.#..',
+                '..################..',
+                '..#################.',
+                '..################..',
+                '..##############.#..',
+                '...############.....',
+                '...############.....',
+                '....###....###......',
+                '....###....###......'
+            ];
+            let rects = '';
+            ROWS.forEach((row, y) =>
+                [...row].forEach(
+                    (ch, x) =>
+                        (rects +=
+                            ch === '#' ? `<rect x="${x}" y="${y}" width="1" height="1" />` : '')
+                )
+            );
+            $('a3').innerHTML = `<g fill="#1b2538">${rects}</g>`;
+            window.ready = true;
+        </script>
+    </body>
+</html>

@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* What ended the bull's runs in a day, as a graveyard: one tombstone per killer, its height the number
+               of runs (a bar chart from a zero baseline), the killer's own sprite standing on it. Data: /api/insights
+               `diedTo` for the build that was live (verified runs only; "died to" is the bear nearest the bull on the
+               last tick, and a quit counts as a death). ?d=<json> { date, build, ended, rows: [[sprite, label, runs]] }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: linear-gradient(180deg, #060914 0%, #0b1226 58%, #101a30 100%);
+                color: #eaf0f5;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            #sky,
+            svg.yard {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #ff3b5c;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #ff3b5c,
+                    0 0 40px rgba(255, 59, 92, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            h1 {
+                position: absolute;
+                left: 60px;
+                top: 150px;
+                margin: 0;
+                font-weight: 400;
+                font-size: 330px;
+                line-height: 0.9;
+                letter-spacing: 0.02em;
+                color: #dfe6f0;
+                text-shadow: 11px 11px 0 #1a2338;
+            }
+            .sub {
+                position: absolute;
+                left: 68px;
+                top: 452px;
+                font:
+                    400 27px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.22em;
+                color: #9aa6b8;
+            }
+            .sp {
+                position: absolute;
+            }
+            #ghost {
+                position: absolute;
+                opacity: 0.62;
+                filter: brightness(0) invert(1) drop-shadow(0 0 22px rgba(160, 200, 255, 0.9));
+            }
+            .num {
+                position: absolute;
+                width: 150px;
+                text-align: center;
+                font-size: 118px;
+                line-height: 1;
+                color: #262d3d;
+            }
+            .num.hot {
+                color: #a3152e;
+            }
+            .who {
+                position: absolute;
+                width: 176px;
+                text-align: center;
+                font:
+                    400 19px/1.25 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.1em;
+                color: #b9c4d4;
+            }
+            .note {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1440px;
+                text-align: center;
+                font:
+                    400 19px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.12em;
+                color: #6f7b8f;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="sky" width="1200" height="1500"></canvas>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <h1>R.I.P.</h1>
+        <div class="sub" id="sub"></div>
+        <canvas id="ghost"></canvas>
+        <svg
+            class="yard"
+            id="yard"
+            width="1200"
+            height="1500"
+            viewBox="0 0 1200 1500"
+            shape-rendering="crispEdges"
+        ></svg>
+        <div id="layer"></div>
+        <div class="note">
+            VERIFIED RUNS · THE BEAR NEAREST THE BULL WHEN A RUN ENDED · A QUIT COUNTS TOO
+        </div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"date":"4 OCT","build":12,"ended":105,"rows":[["rug_puller","RUG PULLER",18],["liquidation","LIQUIDATION",16],["bag_holder","BAG HOLDER",14],["grizzly","GRIZZLY",13],["sybil","SYBIL",8],["bear_market","THE BEAR MARKET",7]]}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').innerHTML = `<i></i>${D.ended} RUNS ENDED`;
+            $('sub').textContent = `WHAT KILLED THE BULL · ${D.date} · BUILD #${D.build}`;
+
+            // sky: stars and a pixel moon
+            {
+                const c = $('sky').getContext('2d');
+                let seed = 21;
+                const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+                for (let i = 0; i < 90; i++) {
+                    const s = rnd() < 0.2 ? 6 : 4;
+                    c.fillStyle = `rgba(220,232,255,${0.25 + rnd() * 0.6})`;
+                    c.fillRect(Math.round(rnd() * 1200), Math.round(rnd() * 900), s, s);
+                }
+                const mx = 930,
+                    my = 330,
+                    R = 118,
+                    P = 12;
+                for (let y = -R; y <= R; y += P)
+                    for (let x = -R; x <= R; x += P) {
+                        const d = Math.hypot(x + P / 2, y + P / 2);
+                        if (d > R) continue;
+                        const crater =
+                            Math.hypot(x - 30, y + 26) < 30 ||
+                            Math.hypot(x + 46, y - 34) < 22 ||
+                            Math.hypot(x + 10, y - 70) < 16;
+                        c.fillStyle = crater ? '#cfc79a' : '#efe9c2';
+                        c.fillRect(mx + x, my + y, P, P);
+                    }
+                const g = c.createRadialGradient(mx, my, R, mx, my, R * 2.6);
+                g.addColorStop(0, 'rgba(239,233,194,0.2)');
+                g.addColorStop(1, 'rgba(239,233,194,0)');
+                c.fillStyle = g;
+                c.fillRect(mx - R * 3, my - R * 3, R * 6, R * 6);
+            }
+            // the bull's ghost, drifting up toward the moon
+            {
+                const g = $('ghost');
+                put(g, 'bull', 2000, { max: 5, glow: false });
+                g.style.left = '596px';
+                g.style.top = '236px';
+            }
+
+            const GROUND = 1296,
+                W = 150,
+                GAP = 26.4,
+                X0 = 84,
+                UNIT = 27; // px per run
+            const yard = $('yard'),
+                layer = $('layer');
+            const add = (h) => yard.insertAdjacentHTML('beforeend', h);
+            // ground
+            add(
+                `<rect x="0" y="${GROUND}" width="1200" height="${1500 - GROUND}" fill="#08110d" />`
+            );
+            add(`<rect x="0" y="${GROUND}" width="1200" height="8" fill="#1f4a33" />`);
+            add(`<rect x="0" y="${GROUND + 8}" width="1200" height="8" fill="#12301f" />`);
+            const max = Math.max(...D.rows.map((r) => r[2]));
+            D.rows.forEach(([sprite, label, runs], i) => {
+                const x = Math.round(X0 + i * (W + GAP)),
+                    h = runs * UNIT,
+                    y = GROUND - h,
+                    s = 14;
+                const hot = runs === max;
+                // a stone with a stepped, rounded top; lit from the left by the moon
+                const path = `M${x} ${GROUND}V${y + 3 * s}H${x + s}V${y + 2 * s}H${x + 2 * s}V${y + s}H${x + 3 * s}V${y}H${x + W - 3 * s}V${y + s}H${x + W - 2 * s}V${y + 2 * s}H${x + W - s}V${y + 3 * s}H${x + W}V${GROUND}Z`;
+                add(`<path d="${path}" fill="${hot ? '#b9a4aa' : '#8f99aa'}" />`);
+                add(
+                    `<rect x="${x}" y="${y + 3 * s}" width="12" height="${h - 3 * s}" fill="${hot ? '#d9c6cb' : '#b3bdcc'}" />`
+                );
+                add(
+                    `<rect x="${x + W - 16}" y="${y + 3 * s}" width="16" height="${h - 3 * s}" fill="${hot ? '#8a747b' : '#6a7486'}" />`
+                );
+                add(
+                    `<rect x="${x + 3 * s}" y="${y}" width="${W - 6 * s}" height="8" fill="${hot ? '#d9c6cb' : '#b3bdcc'}" />`
+                );
+                // grass at the foot
+                for (const gx of [8, 40, 96, 128])
+                    add(
+                        `<rect x="${x + gx}" y="${GROUND - 10}" width="8" height="10" fill="#1f4a33" /><rect x="${x + gx + 8}" y="${GROUND - 18}" width="8" height="18" fill="#2a6344" />`
+                    );
+                const n = document.createElement('div');
+                n.className = 'num' + (hot ? ' hot' : '');
+                n.textContent = runs;
+                n.style.left = x + 'px';
+                n.style.top = y + Math.max(52, Math.min(h - 150, 70)) + 'px';
+                layer.append(n);
+                // the killer stands on its stone
+                const c = document.createElement('canvas');
+                c.className = 'sp';
+                put(c, sprite, 2000, {
+                    max: /liquidation|bear_market|capitulation|rug_lord|long_winter/.test(sprite)
+                        ? 2
+                        : sprite === 'grizzly'
+                          ? 3
+                          : 4,
+                    glow: false
+                });
+                c.style.left = Math.round(x + W / 2 - c.width / 2) + 'px';
+                c.style.top = y - c.height + 6 + 'px';
+                if (hot) c.style.filter = 'drop-shadow(0 0 22px rgba(255,59,92,0.85))';
+                layer.append(c);
+                const w = document.createElement('div');
+                w.className = 'who';
+                w.innerHTML = label.replace('THE BEAR MARKET', 'THE BEAR<br />MARKET');
+                w.style.left = x - 13 + 'px';
+                w.style.top = GROUND + 40 + 'px';
+                layer.append(w);
+            });
+            window.ready = true;
+        </script>
+    </body>
+</html>

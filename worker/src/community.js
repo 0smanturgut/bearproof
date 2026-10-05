@@ -406,9 +406,8 @@ export async function bugReports(env, since) {
  * GET /api/feedback: what the chat told the AI. The latest digest, the last day's bug reports, and how busy the
  * group is today. Everything here was written by players or summarised from what they wrote: untrusted text.
  */
-export async function feedback(rawEnv) {
+export async function feedback(rawEnv, now = Date.now()) {
     const env = await withGroup(rawEnv);
-    const now = Date.now();
     const [digest, bugs, today] = await Promise.all([
         latestDigest(env),
         bugReports(env, now - DAY),

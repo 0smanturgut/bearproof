@@ -883,7 +883,7 @@ test('commands answer from the facts; /idea lands in the ideas box, three a day;
         gather
     );
     assert.match(env.sent().at(-1).text, /^Logged for the operator/);
-    const out = await (await feedback(env)).json();
+    const out = await (await feedback(env, NOW)).json();
     assert.deepEqual(
         out.bugs.map((b) => b.text),
         ['the game froze when I opened a crate on Build #12, phone']
@@ -1127,7 +1127,7 @@ test('digest: written once at 20:30 UTC from the day’s chat, never outside the
     assert.equal(/Ali|Bo|user4/.test(log), false, 'no names or handles reach the digest model');
 
     assert.equal(await makeDigest(env, at + 15 * 60000), null, 'once a day');
-    const out = await (await feedback(env)).json();
+    const out = await (await feedback(env, at)).json();
     assert.deepEqual(out.digest.items, [
         { kind: 'balance', text: 'Grizzlies feel too tanky before 3:00.', people: 2 }
     ]);

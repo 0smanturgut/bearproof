@@ -220,6 +220,11 @@ export class Enemy {
         this.rugAngle = 0;
         this.windup = 0; // ranged: seconds of typing left before the shot goes out
         this.pump = 0; // pumper: 0 → 1 as it swells
+        // Charge bosses: seconds of crouching left before the jump, the marked landing spot and its hit radius.
+        this.leapWarn = 0;
+        this.leapX = 0;
+        this.leapY = 0;
+        this.leapR = 0;
     }
 
     _shoot(angle, sim) {
@@ -354,6 +359,16 @@ export class Enemy {
             }
         }
 
+        if (this.leapWarn > 0) {
+            // Crouched over the ring: holds still, then lands on the marked spot.
+            vx = 0;
+            vy = 0;
+            this.leapWarn -= dt;
+            if (this.leapWarn <= 0) {
+                this.leapWarn = 0;
+                sim.bossLand(this);
+            }
+        }
         this.x += vx * dt;
         this.y += vy * dt;
         if (vx > 1) this.facing = 1;

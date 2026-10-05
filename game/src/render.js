@@ -307,6 +307,11 @@ export class Renderer {
 
         // --- Rug Lord's second phase: a red glow under him, and the rug under the bull while he pulls it
         for (const e of sim.enemies) if (e.enraged && e.hp > 0) this._drawRug(e, p, X, Y, t, fx);
+        // --- Liquidation Warning: a charge boss's landing spot, while it crouches
+        for (const e of sim.enemies) {
+            if (e.leapWarn > 0 && e.hp > 0)
+                this._drawLeapWarn(e, X(e.leapX), Y(e.leapY), t, fx.calm);
+        }
 
         // --- creatures: shadows first, then back-to-front by y (the bull sorts in with the bears)
         const list = [];
@@ -509,6 +514,13 @@ export class Renderer {
             sys *= 1 - beat * (full ? 0.05 : 0.02);
             if (full && !tint && Math.floor(t * 10) % 2 === 0) tint = '#FFFFFF';
         }
+        if (e.leapWarn > 0) {
+            // crouched to jump: squashed low and wide, and it flashes red in the last third
+            const k = 1 - e.leapWarn / (def.chargeWarn || 1);
+            sxs *= 1 + 0.1 * k;
+            sys *= 1 - 0.14 * k;
+            if (k > 0.66 && !tint && Math.floor(t * 14) % 2 === 0) tint = '#FF3B5C';
+        }
         const flip = e.facing > 0 ? false : true;
         // Side-view art faces right; enemies walk toward the bull, so mirror when they head left.
         const alpha = (e.isClone ? 0.55 : 1) * Math.min(1, k0 * 1.4);
@@ -654,6 +666,51 @@ export class Renderer {
         });
         this._blit('supply_crate', x, y, { frame: Math.floor(t * 4), rot: sway });
         glows.push(['supply_crate', x, y, Math.floor(t * 4), false, 0.8]);
+    }
+
+    /** Liquidation Warning: a red target on the landing spot. The outer ring is the hit zone (inside it, the
+     * landing hits you); an inner ring closes in on it as the crouch runs out, and the fill blinks faster. */
+    _drawLeapWarn(boss, sx, sy, t, calm) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const r = boss.leapR * s;
+        const warn = boss.def.chargeWarn || 1;
+        const k = 1 - boss.leapWarn / warn; // 0 = just marked, 1 = landing now
+        const blink = calm ? 1 : Math.floor(t * (6 + 14 * k)) % 2 ? 0.55 : 1;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(255,59,92,${(0.1 + 0.22 * k) * blink})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.lineWidth = Math.max(2, s * 3);
+        ctx.strokeStyle = `rgba(255,59,92,${0.6 + 0.4 * blink * k})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.stroke();
+        // the closing ring: from twice the size down to the edge
+        ctx.lineWidth = Math.max(1, s * 2);
+        ctx.strokeStyle = `rgba(255,140,160,${0.35 + 0.5 * k})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r * (2 - k), 0, TAU);
+        ctx.stroke();
+        // crosshair ticks on the edge, and a dot in the middle
+        ctx.fillStyle = 'rgba(255,59,92,0.95)';
+        const w = Math.max(2, 3 * s);
+        const l = 9 * s;
+        for (let i = 0; i < 4; i++) {
+            const a = (i * TAU) / 4;
+            const cx = sx + Math.cos(a) * (r - l / 2);
+            const cy = sy + Math.sin(a) * (r - l / 2);
+            const horiz = i % 2 === 0;
+            ctx.fillRect(
+                Math.round(cx - (horiz ? l : w) / 2),
+                Math.round(cy - (horiz ? w : l) / 2),
+                horiz ? l : w,
+                horiz ? w : l
+            );
+        }
+        ctx.fillRect(Math.round(sx - w / 2), Math.round(sy - w / 2), w, w);
     }
 
     /** Enraged Rug Lord: a pulsing red glow under him; during a warning the rug blinks under the bull, during a

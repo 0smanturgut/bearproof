@@ -209,6 +209,16 @@ export class AudioEngine {
         this.tone({ noise: true, dur: 0.05, volume: 0.24, release: 0.04 });
         this.tone({ freq: 900, dur: 0.32, type: 'square', volume: 0.07, sweep: -760 });
     }
+    /** A charge boss crouches over its ring: a two-beep margin-call alarm, the second one higher. */
+    leapWarn() {
+        this.tone({ freq: 660, dur: 0.12, type: 'square', volume: 0.08 });
+        setTimeout(() => this.tone({ freq: 880, dur: 0.16, type: 'square', volume: 0.08 }), 180);
+    }
+    /** It lands: a deep thud with a crunch of noise on top. */
+    leapLand() {
+        this.tone({ freq: 90, dur: 0.35, type: 'sine', volume: 0.3, sweep: -50 });
+        this.tone({ noise: true, dur: 0.12, volume: 0.18, release: 0.1 });
+    }
     /** A jackpot candle lands: a small coin clink. */
     coin() {
         this.tone({ freq: 2200 + Math.random() * 500, dur: 0.04, type: 'triangle', volume: 0.06 });

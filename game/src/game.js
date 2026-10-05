@@ -440,8 +440,16 @@ export class Game {
                     fx.ring(e.x, e.y, 10, 110, 0.4, '255,59,92', 6, true);
                     fx.burst(e.x, e.y, '#FF3B5C', 16, 240, 3, 'spark');
                     break;
+                case 'chargeWarn':
+                    // the ring itself is drawn from the boss's state (render.js), so replays show it too
+                    this._sfx('leapWarn', 0.3);
+                    break;
                 case 'charge':
-                    fx.addShake(0.3);
+                    fx.ring(e.x, e.y, e.r * 0.5, e.r * 1.4, 0.35, '255,59,92', 6, true);
+                    fx.burst(e.x, e.y + 10, 'rgba(160,140,110,', 10, 180, 9, 'dust');
+                    fx.addShake(e.hit ? 0.7 : 0.35);
+                    if (e.hit) fx.number(e.x, e.y - e.r, 'LIQUIDATED', 'hurt');
+                    this._sfx('leapLand', 0.1);
                     break;
                 case 'rugPhase':
                     fx.ring(e.x, e.y, 20, 240, 0.6, '255,59,92', 8, true);

@@ -44,8 +44,9 @@ import { Weapon } from './weapons.js';
  * they shoot, from closer. 7: Whale Alert (a whale crosses at 1:30, shoving bears and dropping candles).
  * 8: Boss Jackpot (a boss kill pays triple score and rains its XP as a ring of falling gold candles).
  * 9: Copium (Hopium evolves at Lv 5 and slows bears in the cloud). 10: God Candle (a fourth crate loot that
- * wipes every bear near the bull). 11: Pump and Dump (a bear from 2:30 that swells and pops into red candles). */
-export const SIM_VERSION = 11;
+ * wipes every bear near the bull). 11: Pump and Dump (a bear from 2:30 that swells and pops into red candles).
+ * 12: Liquidation Warning (charge bosses crouch 1 s over a marked landing spot, and never jump past the bull). */
+export const SIM_VERSION = 12;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -508,14 +509,37 @@ export class Simulation {
             }
             this.emit({ t: 'summon', x: boss.x, y: boss.y, id: boss.id });
         } else if (def.ability === 'charge') {
-            const dx = this.player.x - boss.x;
-            const dy = this.player.y - boss.y;
+            // Liquidation Warning: mark the spot (up to `chargeDistance` toward the bull, never past him), crouch
+            // for `chargeWarn` s, then land there. The ring is the contact radius: inside it, the landing hits.
+            const p = this.player;
+            const dx = p.x - boss.x;
+            const dy = p.y - boss.y;
             const d = hypot(dx, dy) || 1;
-            const dist = def.chargeDistance || 120;
-            boss.x += (dx / d) * dist;
-            boss.y += (dy / d) * dist;
-            this.emit({ t: 'charge', x: boss.x, y: boss.y, id: boss.id });
+            const dist = Math.min(def.chargeDistance || 120, d);
+            boss.leapX = boss.x + (dx / d) * dist;
+            boss.leapY = boss.y + (dy / d) * dist;
+            boss.leapR = boss.size + p.size;
+            if (def.chargeWarn > 0) {
+                boss.leapWarn = def.chargeWarn;
+                this.emit({
+                    t: 'chargeWarn',
+                    x: boss.leapX,
+                    y: boss.leapY,
+                    r: boss.leapR,
+                    in: def.chargeWarn,
+                    id: boss.id
+                });
+            } else this.bossLand(boss);
         }
+    }
+
+    /** A charge boss lands on its marked spot. `hit`: the bull was inside the ring. */
+    bossLand(boss) {
+        const p = this.player;
+        boss.x = boss.leapX;
+        boss.y = boss.leapY;
+        const hit = hypot(p.x - boss.x, p.y - boss.y) < boss.leapR;
+        this.emit({ t: 'charge', x: boss.x, y: boss.y, r: boss.leapR, id: boss.id, hit });
     }
 
     // --- Combat hooks used by weapons and entities -------------------------

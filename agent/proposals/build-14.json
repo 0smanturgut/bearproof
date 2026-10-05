@@ -1,0 +1,17 @@
+[
+    {
+        "id": "running-of-the-bulls",
+        "title": "Running of the Bulls",
+        "description": "The bull's own power move: every 20 s it charges forward and tramples every bear in a line (the bull's median run was 1:57, Pepe's 9:09)."
+    },
+    {
+        "id": "exit-scam",
+        "title": "Exit Scam",
+        "description": "From 3:00, a bear in a hoodie grabs XP candles off the floor and runs for the edge of the screen; catch it and it drops the whole bag."
+    },
+    {
+        "id": "ape-mode",
+        "title": "Ape Mode",
+        "description": "A new crate loot: for 6 s the bull grows to three times its size, and any bear it touches is flattened."
+    }
+]

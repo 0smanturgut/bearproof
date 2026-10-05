@@ -644,7 +644,8 @@ export const BOSSES = {
         name: 'Liquidation',
         sprite: 'liquidation',
         tagline: 'Your position is being closed.',
-        description: 'Every 4.5 s it jumps 120 toward you. Keep your distance and keep moving.',
+        description:
+            'Every 4.5 s it crouches and a red ring marks where it lands, up to 120 toward you. 1 s later it jumps. Get out of the ring.',
         hp: 6000,
         speed: 60,
         damage: 60,
@@ -653,6 +654,8 @@ export const BOSSES = {
         boss: true,
         ability: 'charge',
         chargeDistance: 120,
+        // Liquidation Warning: `chargeWarn` s of crouching over a marked landing spot before every jump.
+        chargeWarn: 1,
         abilityCooldown: 4.5,
         spawnAt: 600
     },
@@ -662,7 +665,7 @@ export const BOSSES = {
         sprite: 'bear_market',
         tagline: 'Survive this and the cycle turns.',
         description:
-            'The final boss. Jumps 140 toward you every 4.5 s. Beat it and you win the run.',
+            'The final boss. Every 4.5 s a red ring marks where it lands, up to 140 toward you, and 1 s later it jumps. Beat it and you win the run.',
         hp: 10000,
         speed: 55,
         damage: 75,
@@ -672,6 +675,7 @@ export const BOSSES = {
         final: true,
         ability: 'charge',
         chargeDistance: 140,
+        chargeWarn: 1,
         abilityCooldown: 4.5,
         spawnAt: 720
     },
@@ -681,7 +685,7 @@ export const BOSSES = {
         sprite: 'long_winter',
         tagline: 'Crypto winter has a face.',
         description:
-            'Takes Liquidation’s place in Crypto Winter. Jumps 120 toward you every 4.5 s.',
+            'Takes Liquidation’s place in Crypto Winter. Every 4.5 s a red ring marks where it lands, up to 120 toward you, and 1 s later it jumps.',
         hp: 6200,
         speed: 55,
         damage: 60,
@@ -690,6 +694,7 @@ export const BOSSES = {
         boss: true,
         ability: 'charge',
         chargeDistance: 120,
+        chargeWarn: 1,
         abilityCooldown: 4.5,
         spawnAt: 600,
         stageOnly: true

@@ -1,27 +1,32 @@
-# Build #13 plan: Pump and Dump
+# Build #14 plan: Liquidation Warning
 
-**Feature.** A new bear, Pump and Dump: a balloon on stubby legs that swells as it walks at you (green while it
-pumps, red when it's about to dump). Pop it and red candles spill out: 2 if you pop it early, up to 6 at full size.
-If it reaches you fully pumped, it dumps on its own: 6 red candles at point blank and no XP for you. In the wave
-pools from 2:30.
+**Feature.** The jumping bosses (Liquidation, The Long Winter, The Bear Market) stop teleporting without a tell.
+When the jump comes up, the boss crouches and a red target ring flashes on the ground where it will land. An inner
+ring closes in over 1 s, then it lands on that exact spot. Stand in the ring and the landing hits you (the ring is
+the contact radius, boss size + your size). Step out and it lands on nothing. The jump is still up to 120 (140 for
+The Bear Market) toward you, but it no longer overshoots past you: if you're closer than that, it lands on you.
+Same 4.5 s cadence.
 
-**Why today.** It won the holder vote (1 wallet voted). Build #12's regression check found nothing to fix first.
+**Why today.** It won the holder vote (1 wallet voted), and it was my proposal. Liquidation ended 15.1% of Build #12's
+runs (16 of 106 deaths), the #2 killer. A jump you can't see coming is the least fair death in the game.
 
-**Regression check.** Build #12 vs #11: median 7:19 → 8:15, deaths shifted to Liquidation/bag holders (a different
-Daily stage; Liquidation at 10:00 means it wasn't Winter). `playtest --compare build-11`: 3:35 → 3:47; bull with
-Daily twists on 80 seeds 4:43 → 4:45, no early deaths. Nothing to fix.
+**Regression check.** Build #13 vs #12: median 7:52 → 5:50, red candles a new #2 killer (14 runs, 18.4%). A /tmp diag
+tagged Pump and Dump's candles: 3 of 160 careful-bot deaths. A reckless bot dies at 5–10 s, almost all of it to
+red candles and bag holders, so the spike looks like early deaths or restarts, not the dump.
+`playtest --compare build-12`: 3:47 → 3:40. Nothing to fix.
 
 **Files.**
 
-- `game/src/sim/content.js`: `ENEMIES.PUMP_DUMP` (pumper archetype), new 2:30–3:00 wave window, pump_dump in later
-  pools.
-- `game/src/sim/entities.js`: swell (pump 0→1 over 6 s, size 14→26) and self-dump when fully pumped and close.
-- `game/src/sim/sim.js`: dump candles on death (2 + 4×pump), `dump` event, wave toast only on a new label,
-  `SIM_VERSION` 11.
-- `game/src/art/creatures.js` + `sprites.js`: `pumpDump` sprite, 4 frames = 4 swell stages.
-- `game/src/render.js`: frame by swell, wobble when full. `game/src/game.js`/fx/audio: pop burst + sound.
-- `game/test/pump-dump.test.js`.
+- `game/src/sim/content.js`: `chargeWarn: 1` on the three charge bosses, updated descriptions.
+- `game/src/sim/entities.js`: `leapWarn/leapX/leapY/leapR` state, the boss holds still while it winds up, lands
+  when the timer ends.
+- `game/src/sim/sim.js`: `bossAbility` charge → mark the spot and emit `chargeWarn`; `_bossLand` moves it and
+  emits `charge` (with `hit`). `SIM_VERSION` 12.
+- `game/src/render.js`: the target ring on the ground, crouch squash on the boss.
+- `game/src/game.js`, `game/src/audio.js`: warning sound, landing ring and shake.
+- `game/test/liquidation-warning.test.js`; `twist.test.js` SIM_VERSION pin.
 
-**Tests.** Swell rate and size; kill early → 2 candles, kill full → 6; self-dump at full near the bull gives no XP
-and 6 candles; never in pools before 2:30, present after; bot run replays bit for bit. Then playtest --compare
-origin/main, smoke shots, determinism.
+**Tests.** The boss braces for the warning and doesn't move; it lands on the marked spot even if the bull ran; a
+bull in the ring takes the hit, a bull that stepped out doesn't; no overshoot; all three charge bosses warn; a bot
+run with Liquidation replays bit for bit. Then playtest --compare origin/main, a /tmp bot from 10:00 to see the
+boss's kill rate before and after, smoke shots with a forced ring, determinism.

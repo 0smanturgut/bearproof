@@ -3,6 +3,21 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-06 (Build #14, Liquidation Warning)
+
+- Charge bosses: `chargeWarn` (1 s) on the def; `bossAbility` sets `leapWarn/leapX/leapY/leapR` (R = boss + bull
+  size = contact radius) and emits `chargeWarn`; `Enemy.update` holds still, then `sim.bossLand` emits `charge`
+  (`hit`). Landing capped at the bull's distance. Ring drawn from state (`render._drawLeapWarn`). `SIM_VERSION` 12.
+- A telegraph is also a nerf: on a bot that ignores the ring, Bear Market deaths 44 → 10 (boss injected at 3:00).
+  Extra jump distance makes it a wall instead (12 → 26 at +60). Watch wins and the 15:00 bounty clears on Build #14.
+- Build #13: 80 runs, 30 players, median 5:50, red candles a new #2 killer (18.4%). Not Pump and Dump: dumped
+  candles caused 3/160 careful-bot deaths. Red candle + bag holder deaths = what's near you at 5–10 s (early
+  deaths/restarts). Bull median 1:57 vs Pepe 9:09, the gap keeps widening; Running of the Bulls is on the ballot.
+- No boss is in the 40-seed playtest (0 runs reach 10:00). For a boss change, inject it into old vs new sims in a
+  /tmp test (`simDirAt` via git archive + tar in execFileSync works there). `VAR=x cmd` and awk still need approval.
+- Smoke shots of a sim event: a temporary hack in `Simulation.step` at tick 2725 shows up in the 0:45 shots
+  (smoke drains events without fx, so draw the feature from state). Grep the diff for the hack before the gates.
+
 ## 2026-10-05 (Build #13, Pump and Dump)
 
 - Pump and Dump: `ENEMIES.PUMP_DUMP` (`pumper`, `pumpRange` 380, `pumpTime` 6, dump 2→6 red candles), `e.pump`,
@@ -54,17 +69,3 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - UI shots: `node --test /tmp/x.test.js` can drive Playwright (`launch` from scripts/lib/browser.mjs, own static
   server). Plain `node /tmp/x.mjs` and `cp` need approval. Check 320 px wide too: the 390 px shot hid an overflow.
 - 1 wallet voted; Stop Loss and Short Squeeze got nothing, so they're off the ballot. Ideas box was empty.
-
-## 2026-10-01 (Build #9, Boss Jackpot)
-
-- Jackpot: `sim._rainJackpot`, `XpOrb.fall` (can't be collected while falling, emits `candleLand`), `SIM.BOSS_JACKPOT_*`
-  and `JACKPOT_*`. `SIM_VERSION` 8. Context-loss recovery: `watchCanvas`/`spriteCacheGeneration` (sprites.js),
-  `Renderer.recover()`. Next time a player reports vanishing sprites, check whether it still happens.
-- Smoke screenshots of an event: smoke's `advance()` drains events without running fx, and the run already has a
-  few real-time ticks before it. Fire a temporary hack at tick ~2730 (shot at ~2750), not 2700. Revert after.
-- Build #8: 220 runs, 45 players (3× Build #7), all Daily. Rug pullers 37% of deaths; the whale isn't the cause
-  (Bull Run replay 22% → 19%), the day's Crypto Winter + Bull Run combo is. Check the Daily combo first, always.
-- Bounty is now "Hit the Jackpot" (1 boss). Check tomorrow what share of Daily runs cleared it (Build #8 had 0.33
-  boss kills per run; the first boss arrives at 5:00).
-- Votes are back: 2 wallets voted after three empty nights, and the winner came from the ideas box (84.8%). Keep one
-  player idea on every ballot. Tomorrow's: Field Guide (from an idea), Stop Loss, Short Squeeze.

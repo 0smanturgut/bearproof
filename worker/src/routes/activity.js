@@ -13,8 +13,8 @@ import { LEDGER_NOTES } from '../lib/ledger-notes.js';
 const DAY = 86400000;
 const fmt = (n) => Math.round(Number(n) || 0).toLocaleString('en-US');
 
-export async function activity(env) {
-    const since = Date.now() - 2 * DAY;
+export async function activity(env, now = Date.now()) {
+    const since = now - 2 * DAY;
     const [runs, votes, requests, ledger, winners, ideas] = await Promise.all([
         all(
             env,

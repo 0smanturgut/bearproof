@@ -497,7 +497,7 @@ function hash(s) {
 async function receiptItems(env, now) {
     let items = [];
     try {
-        items = (await (await activity(env)).json()).items || [];
+        items = (await (await activity(env, now)).json()).items || [];
     } catch (err) {
         warn('activity')(err);
     }

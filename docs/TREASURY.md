@@ -83,7 +83,9 @@ While it can't be read, no day from 27 Sep on is settled at all, so a day is nev
   the prize wallet. Each transfer carries a small priority fee (at most 0.000016 SOL) and is sent again every few
   seconds until it confirms or its blockhash expires, since on 28 Sep two of four payout transactions expired unseen.
 - **Short wallet**: if the prize wallet can't cover a day (the pot plus 0.01 SOL and 0.0025 SOL per recipient), the
-  payout waits for the operator's top-up and the HQ says so; nothing is lost. The pot is 40% of fees that already
+  payout waits for the operator's top-up and the HQ says so, with what the wallet held at the last check and what
+  the day needs; after half an hour the Telegram bot says the same in the group, once per waiting day (D68). Nothing
+  is lost. The pot is 40% of fees that already
   came in, so it is small when fees are small (0.09 SOL for 25 Sep, 0.41 SOL for launch day). The 1 SOL cap only
   bites above 2.5 SOL of fees in a day. If a single day ever needs more than the 1.5 SOL ceiling (only after very
   high fees plus rollovers), the operator tops up exactly what that payout needs.
@@ -149,6 +151,19 @@ signature in `worker/src/lib/ledger-notes.js`, after checking the transaction on
   on-chain: sender and recipient are `25FF…L3Vv`, not the treasury, and the lock can't be cancelled or transferred.
   So in 2027 the tokens open to a wallet the operator holds, not to the ClawPump treasury wallet. Shown as "moved
   25,905,044 $BPROOF" and "outgoing to …" until 5 Oct, then labelled as the re-lock.
+- **4 Oct 16:53 UTC, 0.2 SOL to `3hup…f7Q8`** (tx `2b8AT4…u63xZRD6`) **and 21:36 UTC, 0.2 SOL back from it** (tx
+  `3StCep…pEexWL67H`): out and back. The operator sent 0.2 SOL from the treasury to his own wallet in the ClawPump
+  dashboard, and that wallet returned 0.2 SOL the same day. He gave no purpose, so the two rows say only what the
+  chain shows; the treasury is down the 0.000005 SOL network fee. Shown as "outgoing to …" and "incoming from …"
+  until 6 Oct.
+- **5 Oct 20:19 UTC, 0.2707 SOL to `21NB…SnKb`** (tx `4DhzYb…HBrPY26hf`): a prize wallet top-up that didn't go
+  straight there. `21NB…SnKb` is a wallet the operator made that day (first funded from `3hup…f7Q8` at 15:43 UTC).
+  From it, 0.05 SOL went to `3A2h…BybK` at 20:19:28 UTC (an address with no other transaction, and not a project
+  wallet) and 0.2 SOL went to the prize wallet at 21:38:30 UTC. The 4 Oct Daily Pot had been waiting since 00:15 UTC,
+  because the prize wallet held 0.0421 SOL and the day needed 0.0835; the cron paid it at 21:45 UTC, 21.5 hours
+  late. By 6 Oct, 00:20 UTC, 0.0707 SOL of the send had not reached the prize wallet: 0.05 SOL in `3A2h…BybK` and 0.0207
+  SOL in `21NB…SnKb`. The row stays "Other", not "Sweep", until it does. A send straight from the treasury to the
+  prize wallet needs no note: the sync labels it "prize wallet top-up" by itself.
 
 ## Live addresses (23 Sep 2026)
 

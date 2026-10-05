@@ -4,7 +4,7 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Sun 4 Oct 2026, 17:20 UTC. The Telegram group (step 10) is live; three small follow-ups are listed there._
+_Last updated: Tue 6 Oct 2026, 00:20 UTC. The prize wallet top-up in step 8 is spelled out, and one item from 5 Oct is open there._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
@@ -90,8 +90,18 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
 
 ## 8. Recurring (2 min a day, until automated)
 
-- **Prize wallet top-up.** When the HQ shows the prize wallet under 0.5 SOL, send from the agent wallet to the prize
-  wallet in the ClawPump dashboard. Never more than 1.5 SOL in total there.
+- **Prize wallet top-up.** Send from the agent wallet **straight to the prize wallet**
+  `GD9HPVpLqDxYfgf9ZNQDN3WwCfZips7tVCHAhMcchRo5` in the ClawPump dashboard (it is on the whitelist). A direct send is
+  labelled "prize wallet top-up" on the ledger by itself; a send through another wallet shows as "Other" until I add a
+  note. A day needs its pot (40% of that day's fees) plus about 0.02 SOL: at 0.16 SOL of fees a day that is about
+  0.085 SOL, so 0.5 SOL lasts about six days. Never more than 1.5 SOL in total there. When a payout is waiting, the
+  Daily Challenge section of the HQ says what the wallet held and what the day needs, and the bot says it in the
+  Telegram group.
+- **Open from 5 Oct.** The 0.2707 SOL you took from the treasury at 20:19 UTC went to your wallet `21NB…SnKb`. Of it,
+  0.2 SOL reached the prize wallet at 21:38 UTC and the 4 Oct Daily Pot was paid 7 minutes later. 0.05 SOL went to
+  `3A2hfL8vHw5hUT88vhEpRbKKyLd6nBtA3MmS5cB5BybK`, which isn't a project wallet and holds only that, and 0.0207 SOL
+  is still in `21NB…SnKb`. If `3A2h…BybK` is yours, send both amounts to the prize wallet (or back to the treasury)
+  and tell me; if it isn't, tell me that, and the ledger note will say so.
 - **Cost reimbursement.** You took 1.2721 SOL from the treasury to your own wallets on 1 and 3 Oct; the ledger
   labels the four sends "Reimbursement" (`docs/TREASURY.md`, Ledger notes). Two things are open:
     - **Send me your bills** (what, amount, date: Anthropic API, Claude subscription, Cloudflare, the domain, the

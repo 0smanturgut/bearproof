@@ -30,7 +30,8 @@ import {
     communityTick,
     ensureSetup,
     feedback,
-    makeDigest
+    makeDigest,
+    waitingPayouts
 } from '../src/community.js';
 import {
     postCa,
@@ -38,6 +39,7 @@ import {
     postDigest,
     postHeard,
     postHelp,
+    postPayoutWaiting,
     postPlay,
     postReceipts,
     postToday,
@@ -569,6 +571,20 @@ test('facts block and posts: every number is there, nothing is undefined, player
             env
         ),
         postVoteClosed({ closed: true, forBuild: 13, voters: 0, winner: null }, env),
+        postPayoutWaiting(
+            {
+                date: '2026-10-04',
+                potSol: 0.063477844,
+                shares: 4,
+                heldSol: 0.0421,
+                needSol: 0.0835
+            },
+            env
+        ),
+        postPayoutWaiting(
+            { date: '2026-10-04', potSol: 0.02, shares: 1, heldSol: null, needSol: null },
+            env
+        ),
         postDigest(
             {
                 day: '2026-10-04',
@@ -1228,6 +1244,86 @@ test('announcements: hello once, the day’s build pinned, the ballot, and never
     assert.match(late[2], /Creator fees reached the treasury: 0\.120 SOL\./);
     assert.equal(env.sent().at(-1).chat_id, CHAT);
     assert.deepEqual(await announcements(env, evening + 15 * 60000, live), []);
+});
+
+test('announcements: a payout the prize wallet can’t cover is said once, after half an hour, with the numbers', async () => {
+    const env = makeEnv();
+    const quiet = {
+        gather: async () => facts({ live: null, vote: null, board: null }),
+        voteResult: async () => new Response('{}', { status: 503 })
+    };
+    await announcements(env, NOW, quiet); // the hello is out of the way
+    const settled = Date.parse('2026-10-05T00:15:35Z');
+    const note = {
+        policy: 'daily-pot',
+        step: 'claimed',
+        recipients: [1, 2, 3, 4].map((n) => ({ playerId: `p${n}`, lamports: 15869461 })),
+        waiting: 'prize wallet holds 0.0421 SOL, needs 0.0835: waiting for a top-up'
+    };
+    await env.DB.prepare(
+        `INSERT INTO daily_winners (date, run_id, player_id, score, payout_status, payout_token, payout_amount, note, created_at)
+         VALUES ('2026-10-04', 'r1', 'p1', 340587, 'pending', 'ANSEM', '63477844', ?1, ?2)`
+    )
+        .bind(JSON.stringify(note), settled)
+        .run();
+    const after = (min) => settled + min * 60000;
+    // `chain`: what the prize wallet holds when it is read again (null: the RPC didn't answer).
+    const said = async (at, chain) =>
+        (await announcements(env, at, { ...quiet, prizeSol: async () => chain })).filter((k) =>
+            k.startsWith('payout-wait')
+        );
+
+    assert.deepEqual(await said(after(15), 0.0421), [], 'a top-up may be minutes away');
+    assert.deepEqual(
+        await said(after(45), 0.2421),
+        [],
+        'topped up since the cron looked: the payout is on its way'
+    );
+    assert.deepEqual(await said(after(45), 0.0431), ['payout-wait:2026-10-04']);
+    const text = env.sent().at(-1).text;
+    assert.match(text, /^<b>The 4 Oct Daily Pot is settled, and its payout is waiting\.<\/b>/);
+    assert.match(
+        text,
+        /0\.063 SOL for 4 shares\. The prize wallet held 0\.043 SOL at the last check, and this payout needs 0\.084 SOL/
+    );
+    assert.match(text, /operator tops that wallet up from the treasury by hand/);
+    assert.equal(
+        /[1-9A-HJ-NP-Za-km-z]{32,44}/.test(text),
+        false,
+        'a post that says a wallet needs money carries no address to copy'
+    );
+    assert.deepEqual(await said(after(60), 0.0421), [], 'once');
+
+    // The next day, with the chain unreadable: the cron's own numbers are used.
+    await env.DB.prepare(
+        `INSERT INTO daily_winners (date, run_id, player_id, score, payout_status, payout_token, payout_amount, note, created_at)
+         VALUES ('2026-10-05', 'r2', 'p1', 300000, 'pending', 'ANSEM', '20000000', ?1, ?2)`
+    )
+        .bind(
+            JSON.stringify({
+                ...note,
+                recipients: note.recipients.slice(0, 1),
+                waiting: 'prize wallet holds 0.0100 SOL, needs 0.0325: waiting for a top-up'
+            }),
+            settled + 86400000
+        )
+        .run();
+    assert.deepEqual(await said(after(24 * 60 + 31), null), ['payout-wait:2026-10-05']);
+    assert.match(
+        env.sent().at(-1).text,
+        /0\.020 SOL for 1 share\. The prize wallet held 0\.010 SOL .* needs 0\.033 SOL/
+    );
+
+    // Days inside the grace, paid days and the old #1-only rule are not this post's business.
+    assert.deepEqual(
+        (await waitingPayouts(env, after(20))).map((w) => w.date),
+        []
+    );
+    assert.deepEqual(await waitingPayouts(env, after(31)), [
+        { date: '2026-10-04', potSol: 0.063477844, shares: 4, heldSol: 0.0421, needSol: 0.0835 }
+    ]);
+    await env.DB.prepare("UPDATE daily_winners SET payout_status = 'paid'").run();
+    assert.deepEqual(await waitingPayouts(env, after(3000)), []);
 });
 
 test('the night post names what was built, from the plan’s first heading', () => {

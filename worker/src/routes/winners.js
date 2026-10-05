@@ -52,6 +52,17 @@ const POT_RULE = {
     details: POT_RULE_DETAILS
 };
 
+/**
+ * A payout that waits for the prize wallet, with the numbers the cron wrote when it last looked (dailypot.js:
+ * "prize wallet holds 0.0421 SOL, needs 0.0835: waiting for a top-up"), so the shortfall is on the page.
+ */
+export function waitingWhy(waiting) {
+    const m = /holds ([\d.]+) SOL, needs ([\d.]+)/.exec(String(waiting || ''));
+    return m
+        ? `Payout waiting for the prize wallet top-up: at the last check it held ${m[1]} SOL, and this day needs ${m[2]} SOL.`
+        : 'Payout waiting for the prize wallet top-up.';
+}
+
 /** A Daily Pot day as the public sees it: who got what, never where it went. */
 function potDay(note, names) {
     const token = note.token || 'ANSEM';
@@ -65,7 +76,7 @@ function potDay(note, names) {
         tx: r.status === 'sent' ? r.tx : null
     }));
     const why = note.waiting
-        ? 'Payout waiting for the prize wallet top-up.'
+        ? waitingWhy(note.waiting)
         : !payouts.length
           ? note.pot?.reason === 'fees not measured yet'
               ? WHY['fees not measured yet']
@@ -84,7 +95,9 @@ function potDay(note, names) {
                   cleared: note.bounty.cleared ?? null
               }
             : null,
-        why
+        why,
+        // Settled, but no transfer has started: the HQ says "Waiting" beside each name instead of "Sending…".
+        ...(note.waiting ? { waiting: true } : {})
     };
 }
 

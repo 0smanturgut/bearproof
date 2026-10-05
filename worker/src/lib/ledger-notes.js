@@ -56,6 +56,28 @@ export const LEDGER_NOTES = {
             {
                 category: 'launch',
                 memo: 're-lock: 0.2 SOL to the same new wallet (25FF…L3Vv) for the lock’s fees; Streamflow took 0.168 SOL, and 0.032 SOL was still in that wallet at 00:51 UTC (labelled 5 Oct)'
+            },
+        // 4 Oct 16:53 UTC, 0.2 SOL from the treasury to the operator's own wallet 3hup…f7Q8, in the ClawPump
+        // dashboard; 21:36 UTC the same day, 0.2 SOL from that wallet back to the treasury. Both checked on-chain.
+        // The operator has given no purpose, so the rows say only what the chain shows.
+        '2b8AT4VtREWwajUraUj1LgWEnbftPsnVmKGkFJ5zedCbJzFaJWbQTufuAxEbjth7MogHg9QpauAezk6Yu63xZRD6':
+            {
+                category: 'other',
+                memo: 'out and back: 0.2 SOL from the treasury to the operator’s own wallet (3hup…f7Q8), by hand. That wallet sent 0.2 SOL back at 21:36 UTC the same day, so the treasury is down only the 0.000005 SOL network fee (labelled 6 Oct)'
+            },
+        '3StCepSeeWGfeJtBUEY7gAAJsuytM9QYsJLqemfKyCxKEyYK8FGu94oNBizBUdDkKRxxWvWcsCjqF9DpEexWL67H':
+            {
+                category: 'other',
+                memo: 'out and back: the 0.2 SOL that went to the operator’s own wallet (3hup…f7Q8) at 16:53 UTC, sent back by that wallet (labelled 6 Oct)'
+            },
+        // 5 Oct 20:19 UTC, 0.2707 SOL from the treasury to 21NB…SnKb, a wallet first funded by 3hup…f7Q8 that
+        // day at 15:43 UTC. The operator said he was sending money to the prize wallet. On-chain: 21NB…SnKb sent
+        // 0.05 SOL to 3A2h…BybK (a new address with no other transaction) at 20:19:28 UTC and 0.2 SOL to the prize
+        // wallet at 21:38:30 UTC; the cron paid the waiting 4 Oct Daily Pot at 21:45 UTC. docs/TREASURY.md.
+        '4DhzYbY2Ak2GuMaPkq4KPqcV6kjLkYqjGDrXaxDwvvLnKySMPRckDDzkJ9VvzQ8LcEMxL1RurPmfyumHBrPY26hf':
+            {
+                category: 'other',
+                memo: 'prize wallet top-up, sent through a new wallet of the operator’s (21NB…SnKb) instead of straight to the prize wallet. 0.2 SOL reached the prize wallet at 21:38 UTC, and the 4 Oct Daily Pot that was waiting for it was paid at 21:45 UTC. The other 0.0707 SOL had not reached it by 6 Oct, 00:20 UTC: 0.05 SOL went to another new address (3A2h…BybK) at 20:19 UTC, and 0.0207 SOL stayed in 21NB…SnKb (labelled 6 Oct)'
             }
     },
     // [{ tx, ts (ISO), direction, amountSol, category, memo }]

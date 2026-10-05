@@ -439,6 +439,24 @@ export function postReceiptRows(items, env) {
     };
 }
 
+/**
+ * A settled Daily Pot whose payout is held up by a short prize wallet. `w`: { date, potSol, shares, heldSol,
+ * needSol }; the last two are what the cron read when it last looked (null when it left no numbers).
+ */
+export function postPayoutWaiting(w, env) {
+    return {
+        text: [
+            `<b>The ${day(w.date)} Daily Pot is settled, and its payout is waiting.</b>`,
+            `${fmtSol(w.potSol)} for ${w.shares} share${w.shares === 1 ? '' : 's'}. ` +
+                (w.heldSol !== null && w.needSol !== null
+                    ? `The prize wallet held ${fmtSol(w.heldSol)} at the last check, and this payout needs ${fmtSol(w.needSol)} (the pot plus a reserve for network fees).`
+                    : 'The prize wallet is short for it.'),
+            'The operator tops that wallet up from the treasury by hand. The payout starts by itself within 15 minutes of the top-up, and the transactions are posted here.'
+        ].join('\n'),
+        markup: buttons([[page(env, 'Prizes', '#challenge')]])
+    };
+}
+
 export function postLead(row, env) {
     return {
         text: `<b>New #1 on today’s Daily Challenge:</b> ${esc(row.name)} with ${fmtInt(row.score)} in ${fmtClock(row.timeMs / 1000)}, re-played and verified.`,

@@ -1543,8 +1543,11 @@ function renderRules(details) {
     for (const d of details || []) ul.append(h('li', null, d));
 }
 
-/** One paid Daily Pot recipient: "#1 name" or "Bounty · name", the amount and its transaction. */
-function payoutLine(p) {
+/**
+ * One Daily Pot recipient: "#1 name" or "Bounty · name", then the amount and its transaction once it is sent.
+ * `waiting`: the day's payout hasn't started, because the prize wallet is short.
+ */
+function payoutLine(p, waiting) {
     return h(
         'li',
         null,
@@ -1560,7 +1563,11 @@ function payoutLine(p) {
                   tokenAmount(p.amountRaw, p.token),
                   solscanLink(p.tx)
               )
-            : h('span', { class: 'w-what' }, p.status === 'failed' ? 'Transfer failed' : 'Sending…')
+            : h(
+                  'span',
+                  { class: 'w-what' },
+                  p.status === 'failed' ? 'Transfer failed' : waiting ? 'Waiting' : 'Sending…'
+              )
     );
 }
 
@@ -1641,7 +1648,9 @@ async function loadWinners() {
             // The newest Daily Pot day lists every recipient with its transaction.
             if (payouts.length && !expanded) {
                 expanded = true;
-                li.append(h('ul', { class: 'w-pay' }, ...payouts.map(payoutLine)));
+                li.append(
+                    h('ul', { class: 'w-pay' }, ...payouts.map((p) => payoutLine(p, r.waiting)))
+                );
             }
             list.append(li);
             continue;

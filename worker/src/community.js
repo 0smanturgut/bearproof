@@ -15,6 +15,7 @@ import { utcDate } from './lib/daily.js';
 import { all, first } from './lib/db.js';
 import { json } from './lib/http.js';
 import { cleanText, textProblem } from './lib/requests.js';
+import { rpc } from './lib/rpc.js';
 import { displayName } from './lib/runs.js';
 import { fit, foreignAddresses, site, tg, webhookSecret, withGroup } from './lib/telegram.js';
 import {
@@ -23,6 +24,7 @@ import {
     postIntro,
     postLead,
     postNight,
+    postPayoutWaiting,
     postReceiptRows,
     postVoteClosed,
     postVoteLastCall,
@@ -48,7 +50,15 @@ const LIVE = {
     voteResult: (env) =>
         import('./routes/vote.js').then((m) =>
             m.voteResult(new Request(`${site(env)}/api/vote/result`), env)
-        )
+        ),
+    // The prize wallet's SOL right now, read from chain; null when it can't be read.
+    prizeSol: (env) =>
+        env.PRIZE_WALLET
+            ? rpc(env, 'getBalance', [env.PRIZE_WALLET, { commitment: 'confirmed' }]).then(
+                  (r) => r.value / 1e9,
+                  () => null
+              )
+            : Promise.resolve(null)
 };
 
 // --- Identity and setup --------------------------------------------------------
@@ -517,6 +527,40 @@ async function receiptItems(env, now) {
         });
 }
 
+const WAIT_GRACE = 30 * 60000; // a top-up that lands right after the day is settled isn't news
+
+/**
+ * Settled Daily Pot days whose payout the cron left waiting for the prize wallet for half an hour or more.
+ * dailypot.js writes `note.waiting` with the balance it read and what the day needs; `heldSol` and `needSol` are
+ * those numbers (null when the note carries none).
+ */
+export async function waitingPayouts(env, now) {
+    const rows = await all(
+        env,
+        "SELECT date, payout_amount, note, created_at FROM daily_winners WHERE payout_status = 'pending' ORDER BY date LIMIT 5"
+    );
+    const out = [];
+    for (const r of rows || []) {
+        let note = {};
+        try {
+            note = JSON.parse(r.note || '{}');
+        } catch {
+            continue;
+        }
+        if (note.policy !== 'daily-pot' || !note.waiting || now - r.created_at < WAIT_GRACE)
+            continue;
+        const m = /holds ([\d.]+) SOL, needs ([\d.]+)/.exec(note.waiting);
+        out.push({
+            date: r.date,
+            potSol: (Number(r.payout_amount) || 0) / 1e9,
+            shares: (note.recipients || []).length,
+            heldSol: m ? Number(m[1]) : null,
+            needSol: m ? Number(m[2]) : null
+        });
+    }
+    return out;
+}
+
 async function yesterdayRecap(env, now) {
     const y = utcDate(now - DAY);
     let operators = [];
@@ -664,6 +708,18 @@ export async function announcements(env, now = Date.now(), live = LIVE) {
             warn('receipts')(err);
             for (const i of fresh) await release(env, i.key).catch(warn('release'));
         }
+    }
+
+    // A payout held up by a short prize wallet is said once per day it concerns, so the winners know why
+    // nothing has arrived. The cron's note is as old as its last run, so the wallet is read again first: if it
+    // covers the day by now, the payout is on its way and there is nothing to say.
+    for (const w of await waitingPayouts(env, now)) {
+        const key = `payout-wait:${w.date}`;
+        if (await first(env, 'SELECT key FROM tg_announcements WHERE key = ?', key)) continue;
+        const held = live.prizeSol ? await live.prizeSol(env).catch(() => null) : null;
+        if (held !== null && w.needSol !== null && held >= w.needSol) continue;
+        const post = postPayoutWaiting({ ...w, heldSol: held ?? w.heldSol }, env);
+        if (await announce(env, key, post, now)) posted.push(key);
     }
 
     // A new verified #1 on today's board: at most one post every three hours.

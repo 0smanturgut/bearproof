@@ -102,7 +102,7 @@ export async function activity(env, now = Date.now()) {
             items.push({
                 ts: l.ts,
                 kind: 'ledger',
-                text: `Treasury out: ${sol(l.amount_lamports)} SOL, ${note.memo}.`,
+                text: `Treasury ${l.direction === 'in' ? 'in' : 'out'}: ${sol(l.amount_lamports)} SOL, ${note.memo}.`,
                 tx: l.tx_signature
             });
             continue;
@@ -111,14 +111,24 @@ export async function activity(env, now = Date.now()) {
             const day =
                 (String(l.memo || '').match(/prize:(\d{4}-\d{2}-\d{2})/) || [])[1] || 'the day';
             if (/:send$/.test(l.memo || '')) continue; // the prize line below says it
+            // A Daily Pot share: one transfer per recipient, in $ANSEM (no SOL amount on the row) or, after two
+            // failed swaps, in SOL.
+            const share = /:(?:place-(\d+)|bounty)$/.exec(l.memo || '');
+            const paid = l.token_amount
+                ? `${ansem(l.token_amount)} $ANSEM`
+                : `${sol(l.amount_lamports)} SOL`;
             items.push({
                 ts: l.ts,
                 kind: 'ledger',
                 text: /:buy$/.test(l.memo || '')
-                    ? `Prize wallet bought ${ansem(l.token_amount)} $ANSEM with ${sol(l.amount_lamports)} SOL for the ${day} winner.`
+                    ? `Prize wallet bought ${ansem(l.token_amount)} $ANSEM with ${sol(l.amount_lamports)} SOL for the ${day} payout.`
                     : /sol-fallback/.test(l.memo || '')
                       ? `Prize wallet paid ${sol(l.amount_lamports)} SOL to the ${day} winner (the $ANSEM swap failed twice).`
-                      : `Prize wallet out: ${sol(l.amount_lamports)} SOL, ${l.memo || 'prize'}.`,
+                      : share
+                        ? share[1]
+                            ? `Prize wallet sent ${paid} to #${share[1]} of the ${day} Daily Challenge.`
+                            : `Prize wallet sent ${paid} to a player who cleared the ${day} bounty.`
+                        : `Prize wallet out: ${paid}, ${l.memo || 'prize'}.`,
                 tx: l.tx_signature || null
             });
             continue;

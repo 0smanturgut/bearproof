@@ -1,0 +1,276 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The two characters' median runs as a fighting game's health bars: each bar is that character's median
+               survival, on one scale (the longer one is a full bar). Data: /api/insights `characters` for the build
+               that was live (verified runs only). ?d=<json> { build, date, bull: [seconds, runs], pepe: [seconds, runs] }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #eaf0f5;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .bg,
+            .bg > * {
+                position: absolute;
+                inset: 0;
+            }
+            .split {
+                background: linear-gradient(
+                    90deg,
+                    rgba(255, 59, 92, 0.16) 0%,
+                    rgba(255, 59, 92, 0.05) 46%,
+                    rgba(22, 224, 138, 0.05) 54%,
+                    rgba(22, 224, 138, 0.16) 100%
+                );
+            }
+            .floor {
+                top: 1150px;
+                background:
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 30%),
+                    repeating-linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0.045) 0 4px,
+                        transparent 4px 120px
+                    ),
+                    #080d17;
+                border-top: 6px solid #1b2740;
+            }
+            .vig {
+                background: radial-gradient(
+                    ellipse 80% 74% at 50% 50%,
+                    transparent 52%,
+                    rgba(0, 0, 0, 0.78) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            /* the HUD: two bars that drain toward the outside, a clock between them */
+            .bar {
+                position: absolute;
+                top: 232px;
+                width: 468px;
+                height: 70px;
+                background: #1a0d14;
+                box-shadow:
+                    0 0 0 6px #f4f8fb,
+                    0 0 0 12px #05080f;
+            }
+            .bar i {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+            }
+            .bar.l {
+                left: 64px;
+            }
+            .bar.l i {
+                right: 0;
+                background: linear-gradient(180deg, #ff7a90, #ff3b5c 45%, #b3122d);
+            }
+            .bar.r {
+                right: 64px;
+            }
+            .bar.r i {
+                left: 0;
+                background: linear-gradient(180deg, #7dffc4, #16e08a 45%, #0b8f56);
+            }
+            .clock {
+                position: absolute;
+                left: 50%;
+                top: 208px;
+                width: 132px;
+                height: 118px;
+                margin-left: -66px;
+                display: grid;
+                place-items: center;
+                background: #05080f;
+                font-size: 92px;
+                line-height: 1;
+                color: #f5c542;
+                box-shadow:
+                    0 0 0 6px #f5c542,
+                    0 0 0 12px #05080f;
+            }
+            .who {
+                position: absolute;
+                top: 330px;
+                font-size: 76px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .who.l {
+                left: 64px;
+                color: #ff7a90;
+            }
+            .who.r {
+                right: 64px;
+                color: #7dffc4;
+            }
+            .time {
+                position: absolute;
+                top: 420px;
+                width: 520px;
+                text-align: center;
+                font-size: 330px;
+                line-height: 0.9;
+                letter-spacing: 0.01em;
+            }
+            .time.l {
+                left: 36px;
+                color: #ff3b5c;
+                text-shadow:
+                    10px 10px 0 #3d0a16,
+                    0 0 70px rgba(255, 59, 92, 0.4);
+            }
+            .time.r {
+                right: 36px;
+                color: #16e08a;
+                text-shadow:
+                    10px 10px 0 #06301d,
+                    0 0 70px rgba(22, 224, 138, 0.4);
+            }
+            .fighter {
+                position: absolute;
+            }
+            #pepe {
+                transform: scaleX(-1);
+            }
+            .foot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1262px;
+                text-align: center;
+                font-size: 112px;
+                line-height: 1;
+                letter-spacing: 0.02em;
+                color: #f4f8fb;
+                text-shadow: 7px 7px 0 #101826;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1400px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.16em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg">
+            <div class="split"></div>
+            <div class="floor"></div>
+            <div class="vig"></div>
+        </div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <div class="bar l"><i id="bl"></i></div>
+        <div class="bar r"><i id="br"></i></div>
+        <div class="clock">VS</div>
+        <div class="who l">THE BULL</div>
+        <div class="who r">PEPE</div>
+        <div class="time l" id="tl"></div>
+        <div class="time r" id="tr"></div>
+        <canvas class="fighter" id="bull"></canvas>
+        <canvas class="fighter" id="pepe"></canvas>
+        <div class="foot">MEDIAN RUN</div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"build":13,"date":"5 OCT","bull":[193.88,74],"pepe":[545.6,39]}'
+            );
+            const clock = (s) =>
+                `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').innerHTML = `<i></i>BUILD #${D.build} · ${D.date}`;
+            const max = Math.max(D.bull[0], D.pepe[0]);
+            $('bl').style.width = (100 * D.bull[0]) / max + '%';
+            $('br').style.width = (100 * D.pepe[0]) / max + '%';
+            $('tl').textContent = clock(D.bull[0]);
+            $('tr').textContent = clock(D.pepe[0]);
+            const FLOOR = 1150;
+            const stand = (id, sprite, cx, k) => {
+                const c = $(id);
+                put(c, sprite, 2000, { max: k, glow: false });
+                c.style.left = Math.round(cx - c.width / 2) + 'px';
+                c.style.top = FLOOR - c.height + 14 + 'px';
+            };
+            stand('bull', 'bull', 300, 10);
+            stand('pepe', 'pepe', 900, 10);
+            $('small').textContent =
+                `VERIFIED RUNS · HALF END BEFORE THIS · ${D.bull[1]} AS THE BULL, ${D.pepe[1]} AS PEPE`;
+            window.ready = true;
+        </script>
+    </body>
+</html>

@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The Build Agent's regression check on Build #13, as a booking photo. Red candles became the #2 killer
+               on Build #13, and its own new bear, Pump and Dump, spills red candles, so it was the first suspect. The
+               agent tagged every candle a dump spawns and played 320 bot runs: dumped candles caused 3 deaths, all
+               with the careful autopilot (3 of its 160); none of the reckless bot's (devlog/build-14.md, "Regression
+               check"). The sprite is the game's own, fully pumped; the height marks are its size in game pixels.
+               ?n=<runs red candles ended on Build #13's day> ?d=<date on the board>. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #0a101c;
+                color: #eaf0f5;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .wall {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(180deg, #18233a 0%, #121b2e 62%, #0b111d 100%);
+            }
+            .line {
+                position: absolute;
+                left: 0;
+                right: 0;
+                height: 6px;
+                background: #0a101c;
+                opacity: 0.85;
+            }
+            .tick {
+                position: absolute;
+                left: 34px;
+                font:
+                    400 26px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.1em;
+                color: #51607c;
+            }
+            .tick.r {
+                left: auto;
+                right: 34px;
+            }
+            .spot {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 62% 46% at 50% 50%,
+                        rgba(255, 255, 255, 0.11),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 90% 80% at 50% 50%,
+                        transparent 55%,
+                        rgba(0, 0, 0, 0.78) 100%
+                    );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #16e08a;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #16e08a,
+                    0 0 40px rgba(22, 224, 138, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            #perp {
+                position: absolute;
+                left: 50%;
+                filter: drop-shadow(0 30px 0 rgba(0, 0, 0, 0.35))
+                    drop-shadow(0 0 60px rgba(255, 59, 92, 0.3));
+            }
+            .board {
+                position: absolute;
+                left: 50%;
+                top: 852px;
+                width: 780px;
+                margin-left: -390px;
+                padding: 20px 30px 22px;
+                background: #0b0f17;
+                border: 8px solid #dfe6f0;
+                box-shadow: 0 16px 0 rgba(0, 0, 0, 0.45);
+                text-align: center;
+            }
+            .board .a {
+                font:
+                    400 24px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.3em;
+                color: #9aa6b8;
+            }
+            .board .b {
+                margin-top: 10px;
+                font-size: 124px;
+                line-height: 0.9;
+                letter-spacing: 0.02em;
+                color: #f4f8fb;
+                white-space: nowrap;
+            }
+            .board .c {
+                margin-top: 12px;
+                display: flex;
+                justify-content: space-between;
+                font-size: 46px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+                color: #f5c542;
+            }
+            .stamp {
+                position: absolute;
+                left: 50%;
+                top: 1128px;
+                width: 880px;
+                margin-left: -440px;
+                padding: 0 0 14px;
+                text-align: center;
+                white-space: nowrap;
+                font-size: 196px;
+                line-height: 0.92;
+                letter-spacing: 0.02em;
+                color: #16e08a;
+                border: 16px solid #16e08a;
+                outline: 6px solid #16e08a;
+                outline-offset: 10px;
+                z-index: 2;
+                transform: rotate(-7deg);
+                text-shadow: 0 0 40px rgba(22, 224, 138, 0.45);
+                box-shadow:
+                    0 0 50px rgba(22, 224, 138, 0.25),
+                    inset 0 0 40px rgba(22, 224, 138, 0.18);
+                background: rgba(5, 8, 15, 0.72);
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1446px;
+                text-align: center;
+                font:
+                    400 20px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.1em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wall" id="wall"></div>
+        <div class="spot"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>CASE CLOSED</div>
+        </div>
+        <canvas id="perp"></canvas>
+        <div class="stamp">NOT GUILTY</div>
+        <div class="board">
+            <div class="a">BEAR MARKET P.D.</div>
+            <div class="b">PUMP AND DUMP</div>
+            <div class="c"><span id="case"></span><span id="date"></span></div>
+        </div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const q = new URLSearchParams(location.search);
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            // the suspect, fully pumped, 18 screen px to a game pixel
+            const K = 18;
+            const c = $('perp');
+            put(c, 'pump_dump', 2000, { max: K, frame: 3, glow: false });
+            const FEET = 1012;
+            c.style.marginLeft = -c.width / 2 + 'px';
+            c.style.top = FEET - c.height + 'px';
+            // height marks every 6 game pixels, from the floor up
+            const wall = $('wall');
+            for (let px = 6; px <= 36; px += 6) {
+                const y = FEET - px * K;
+                wall.insertAdjacentHTML(
+                    'beforeend',
+                    `<div class="line" style="top:${y - 3}px"></div><div class="tick" style="top:${y - 34}px">${px} PX</div><div class="tick r" style="top:${y - 34}px">${px} PX</div>`
+                );
+            }
+            $('case').textContent = 'CASE #13';
+            $('date').textContent = q.get('d') || '5 OCT 2026';
+            $('small').textContent =
+                `CHARGE: ${q.get('n') || 16} RUNS ENDED BY RED CANDLES · 320 TEST GAMES LATER: 3 BY A DUMPED ONE`;
+            window.ready = true;
+        </script>
+    </body>
+</html>

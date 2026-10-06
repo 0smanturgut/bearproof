@@ -1,0 +1,328 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The Build #15 ballot as a motorway gantry: three exits, one per option, and the bull on the road below.
+               Options: agent/proposals/build-14.json (Running of the Bulls, Exit Scam, Ape Mode). The pictograms are
+               the game's own sprites of what each option is about (the bull, XP candles, a supply crate); none of
+               the three features is in the game yet, and the image says so. The vote closes 21:00 UTC. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #eaf0f5;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            #scene,
+            #sky {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            .sign {
+                position: absolute;
+                top: 318px;
+                width: 344px;
+                height: 470px;
+                background: #0a6b3d;
+                border-radius: 26px;
+                box-shadow:
+                    inset 0 0 0 8px #0a6b3d,
+                    inset 0 0 0 16px #f4f8fb,
+                    0 0 0 4px #04130c,
+                    0 26px 60px rgba(0, 0, 0, 0.6),
+                    0 0 70px rgba(22, 224, 138, 0.18);
+                text-align: center;
+            }
+            .sign .tab {
+                position: absolute;
+                right: 22px;
+                top: -62px;
+                height: 70px;
+                padding: 0 22px;
+                background: #0a6b3d;
+                border-radius: 16px 16px 0 0;
+                box-shadow:
+                    inset 0 0 0 6px #0a6b3d,
+                    inset 0 0 0 11px #f4f8fb,
+                    0 0 0 4px #04130c;
+                font-size: 50px;
+                line-height: 70px;
+                letter-spacing: 0.04em;
+                color: #f4f8fb;
+            }
+            .sign .art {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 40px;
+                height: 150px;
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                gap: 10px;
+            }
+            .sign .name {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 184px;
+                height: 170px;
+                display: grid;
+                place-items: center;
+                font-size: 98px;
+                line-height: 0.82;
+                letter-spacing: 0.01em;
+                color: #f4f8fb;
+            }
+            .sign .name.long {
+                font-size: 70px;
+                line-height: 0.9;
+            }
+            .fade {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 300px;
+                background: linear-gradient(180deg, transparent, rgba(5, 8, 15, 0.94) 52%, #05080f);
+            }
+            .sign svg {
+                position: absolute;
+                left: 50%;
+                bottom: 28px;
+                margin-left: -36px;
+            }
+            #bull {
+                position: absolute;
+                filter: drop-shadow(0 0 34px rgba(22, 224, 138, 0.55));
+            }
+            .foot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1318px;
+                text-align: center;
+                font-size: 112px;
+                line-height: 1;
+                letter-spacing: 0.02em;
+                color: #f4f8fb;
+                text-shadow: 7px 7px 0 #05080f;
+            }
+            .foot span {
+                color: #f5c542;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1440px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.2em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="sky" width="1200" height="1500"></canvas>
+        <svg
+            id="scene"
+            width="1200"
+            height="1500"
+            viewBox="0 0 1200 1500"
+            shape-rendering="crispEdges"
+        ></svg>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>VOTE · BUILD #15</div>
+        </div>
+        <div class="sign" style="left: 60px">
+            <div class="tab">EXIT 1</div>
+            <div class="art"><canvas id="a1"></canvas></div>
+            <div class="name long">RUNNING OF<br />THE BULLS</div>
+            <svg width="72" height="78" viewBox="0 0 80 86">
+                <path d="M26 0h28v44h26L40 86 0 44h26z" fill="#f4f8fb" />
+            </svg>
+        </div>
+        <div class="sign" style="left: 428px">
+            <div class="tab">EXIT 2</div>
+            <div class="art" id="a2"></div>
+            <div class="name">EXIT<br />SCAM</div>
+            <svg width="72" height="78" viewBox="0 0 80 86">
+                <path d="M26 0h28v44h26L40 86 0 44h26z" fill="#f4f8fb" />
+            </svg>
+        </div>
+        <div class="sign" style="left: 796px">
+            <div class="tab">EXIT 3</div>
+            <div class="art"><canvas id="a3"></canvas></div>
+            <div class="name">APE<br />MODE</div>
+            <svg width="72" height="78" viewBox="0 0 80 86">
+                <path d="M26 0h28v44h26L40 86 0 44h26z" fill="#f4f8fb" />
+            </svg>
+        </div>
+        <canvas id="bull"></canvas>
+        <div class="fade"></div>
+        <div class="foot">CLOSES <span>21:00 UTC</span></div>
+        <div class="small">HOLDERS VOTE · NONE OF THESE THREE IS IN THE GAME YET</div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            put($('a1'), 'bull', 2000, { max: 5, glow: false });
+            for (const k of [7, 9, 7]) {
+                const c = document.createElement('canvas');
+                put(c, 'xp_candle_big', 2000, { max: k, glow: false });
+                $('a2').append(c);
+            }
+            put($('a3'), 'supply_crate', 2000, { max: 7, glow: false });
+
+            const HZ = 930, // horizon
+                VX = 600; // vanishing point
+            // sky: stars, and the horizon as a row of candles, red then green
+            {
+                const c = $('sky').getContext('2d');
+                const g = c.createLinearGradient(0, 0, 0, HZ);
+                g.addColorStop(0, '#05080f');
+                g.addColorStop(1, '#0d1730');
+                c.fillStyle = g;
+                c.fillRect(0, 0, 1200, HZ);
+                let seed = 15;
+                const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+                for (let i = 0; i < 80; i++) {
+                    const s = rnd() < 0.2 ? 6 : 4;
+                    c.fillStyle = `rgba(220,232,255,${0.2 + rnd() * 0.55})`;
+                    c.fillRect(Math.round(rnd() * 1200), Math.round(rnd() * (HZ - 160)), s, s);
+                }
+                let y = HZ - 70;
+                for (let x = 6; x < 1200; x += 30) {
+                    const up = x > 560 ? rnd() < 0.72 : rnd() < 0.3;
+                    const h = 26 + Math.round(rnd() * 58);
+                    y = Math.max(
+                        HZ - 150,
+                        Math.min(HZ - 30, y + (up ? -1 : 1) * (10 + rnd() * 18))
+                    );
+                    c.fillStyle = up ? 'rgba(22,224,138,0.5)' : 'rgba(255,59,92,0.5)';
+                    c.fillRect(x + 8, y - 14, 4, h + 28);
+                    c.fillRect(x, y, 20, h);
+                }
+                c.fillStyle = '#05080f';
+                c.fillRect(0, HZ, 1200, 1500 - HZ);
+                const glow = c.createRadialGradient(VX, HZ, 10, VX, HZ, 520);
+                glow.addColorStop(0, 'rgba(22,224,138,0.22)');
+                glow.addColorStop(1, 'rgba(22,224,138,0)');
+                c.fillStyle = glow;
+                c.fillRect(0, HZ - 520, 1200, 1040);
+            }
+            // the road and the gantry
+            const svg = $('scene');
+            const add = (h) => svg.insertAdjacentHTML('beforeend', h);
+            const X = (x0, y) => VX + ((x0 - VX) * (y - HZ)) / (1500 - HZ); // a line from (x0, bottom) to the vanishing point
+            add(`<path d="M-140 1500L${VX - 14} ${HZ}H${VX + 14}L1340 1500Z" fill="#101623" />`);
+            add(
+                `<path d="M-140 1500L${VX - 14} ${HZ}h8L-90 1500Z" fill="#f5c542" opacity="0.85" />`
+            );
+            add(
+                `<path d="M1340 1500L${VX + 14} ${HZ}h-8L1290 1500Z" fill="#f5c542" opacity="0.85" />`
+            );
+            for (const x0 of [353, 847]) {
+                // dashed lane lines, longer and wider as they come closer
+                for (let i = 0; i < 9; i++) {
+                    const a = HZ + 14 + Math.pow(i / 9, 1.9) * (1500 - HZ);
+                    const b = Math.min(1500, a + 16 + Math.pow(i / 9, 1.6) * 120);
+                    const wa = 1 + ((a - HZ) / (1500 - HZ)) * 9,
+                        wb = 1 + ((b - HZ) / (1500 - HZ)) * 9;
+                    add(
+                        `<path d="M${X(x0, a) - wa} ${a}L${X(x0, a) + wa} ${a}L${X(x0, b) + wb} ${b}L${X(x0, b) - wb} ${b}Z" fill="#dfe6f0" opacity="0.9" />`
+                    );
+                }
+            }
+            // posts and the truss the three signs hang from
+            for (const x of [18, 1154]) {
+                add(`<rect x="${x}" y="196" width="28" height="900" fill="#3b4558" />`);
+                add(`<rect x="${x}" y="196" width="8" height="900" fill="#5b667c" />`);
+                add(`<rect x="${x - 10}" y="1086" width="48" height="22" fill="#2a3242" />`);
+            }
+            add(`<rect x="18" y="196" width="1164" height="14" fill="#5b667c" />`);
+            add(`<rect x="18" y="252" width="1164" height="14" fill="#3b4558" />`);
+            for (let x = 46; x < 1154; x += 84)
+                add(
+                    `<path d="M${x} 210L${x + 42} 252L${x + 84} 210" fill="none" stroke="#4a556b" stroke-width="8" />`
+                );
+            for (const x of [232, 600, 968])
+                for (const dx of [-110, 110])
+                    add(`<rect x="${x + dx - 5}" y="266" width="10" height="56" fill="#4a556b" />`);
+            // the bull, in the middle lane
+            const b = $('bull');
+            put(b, 'bull', 2000, { max: 6, glow: false });
+            b.style.left = Math.round(600 - b.width / 2) + 'px';
+            b.style.top = 1080 + 'px';
+            add(
+                `<ellipse cx="600" cy="${1080 + b.height + 2}" rx="120" ry="14" fill="rgba(0,0,0,0.55)" />`
+            );
+            window.ready = true;
+        </script>
+    </body>
+</html>

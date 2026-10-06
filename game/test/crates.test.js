@@ -12,6 +12,7 @@ import { CRATE_LOOT, CRATE_LOOT_IDS, SIM, enemyDef } from '../src/sim/content.js
 function quiet(seed = 5) {
     const sim = new Simulation({ seed });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     return sim;
 }
 

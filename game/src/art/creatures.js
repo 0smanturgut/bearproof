@@ -667,6 +667,68 @@ export function doomposter(f) {
     return s.render();
 }
 
+/**
+ * 26×24 exit scammer: a bear in a black hoodie and shades, sprinting right with a sack of stolen green candles
+ * slung over its shoulder. Frames 0-3: a run cycle (the sack bounces against the stride).
+ */
+export function exitScam(f) {
+    const s = new PixelSprite(26, 24);
+    const run = (f / 4) * TAU;
+    const b = [0, -1, 0, -1][f % 4];
+    const sb = [-1, 0, 1, 0][f % 4]; // the sack lags the body
+    s.auto('sack', { R: 2.6, grad: 0.3 });
+    s.auto('body', { R: 2.2, grad: 0.3 });
+    s.auto('head', { R: 2, grad: 0.3 });
+    // legs mid-stride, white sneakers
+    const fx = Math.sin(run) * 3.6;
+    s.capsule(14.5, 15.5 + b, 14.5 + fx, 21.4, 1.4, 1.2, M.cloth, { g: 'legB', bias: -0.12 });
+    s.capsule(16.5, 15.5 + b, 16.5 - fx, 21.4, 1.4, 1.2, M.cloth, { g: 'legF' });
+    s.auto('legB', { R: 1, grad: 0.1 });
+    s.auto('legF', { R: 1, grad: 0.1 });
+    s.box(13.5 + fx, 21.6, 3.4, 1.6, M.paper, { shade: 'flat', lum: 0.55 });
+    s.box(15.5 - fx, 21.6, 3.4, 1.6, M.paper, { shade: 'flat', lum: 0.85 });
+    // the sack over its back, stuffed with green candles poking out of the neck
+    for (const [x, h] of [
+        [4, 3],
+        [6, 4],
+        [8, 3]
+    ]) {
+        for (let k = 0; k < h; k++) s.px(x, 4 - k + sb, C.green, { glow: C.green });
+        s.px(x, 4 - h + sb, C.mint, { glow: C.green });
+    }
+    s.ellipse(6.5, 11 + sb, 5.6, 6, M.burlap, { g: 'sack' });
+    s.ellipse(6.5, 5.6 + sb, 3, 1.4, M.burlap, { g: 'sack' });
+    s.px(5, 12 + sb, '#4E3217')
+        .px(8, 9 + sb, '#4E3217')
+        .px(6, 14 + sb, '#4E3217'); // patches
+    // hoodie body leaning into the run
+    s.ellipse(15.6, 12 + b, 4.4, 4.8, M.cloth, { g: 'body' });
+    // head in the hood, round bear ears sticking up through it
+    s.circle(13.8, 2.6 + b, 1.7, M.cloth, { g: 'head' });
+    s.circle(19.6, 2.2 + b, 1.7, M.cloth, { g: 'head' });
+    s.circle(17.6, 6.4 + b, 4.3, M.cloth, { g: 'head' });
+    s.px(13.8, 2.6 + b, '#9A5A30').px(19.6, 2.2 + b, '#9A5A30'); // fur inside the ears
+    // the face peeking out: brown fur, a pale snout, black shades with a glint, a smug grin
+    s.ellipse(19.8, 7.2 + b, 3.2, 3, M.fur, { shade: 'flat', lum: 0.62 });
+    s.ellipse(22, 8.8 + b, 1.8, 1.3, M.belly, { shade: 'flat', lum: 0.8 });
+    const fy = Math.round(6 + b);
+    // shades: two black lenses on a bridge, a white glint on the near one
+    s.patch(17, fy, ['LL.LL', 'LL.LL'], { L: C.ink });
+    s.px(19, fy, C.ink);
+    s.px(21, fy, '#E3E8EE');
+    s.px(23, fy + 2, C.ink); // nose
+    // smug grin
+    s.px(20, fy + 4, '#3A1E12')
+        .px(21, fy + 4, '#3A1E12')
+        .px(22, fy + 4, '#3A1E12');
+    s.px(23, fy + 3, '#3A1E12');
+    // arm up over the shoulder, fist gripping the sack's neck
+    s.capsule(15, 10 + b, 10.5, 6 + sb, 1.2, 1.1, M.cloth, { g: 'arm' });
+    s.auto('arm', { R: 0.9, grad: 0.2 });
+    s.circle(10, 5.8 + sb, 1.3, M.fur, { g: 'fist' });
+    return s.render();
+}
+
 /** 26×22 ponzi: a golden pyramid with an all-seeing eye, on tiny legs. */
 export function ponzi(f) {
     const s = new PixelSprite(26, 22);

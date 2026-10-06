@@ -44,6 +44,7 @@ const SPRITE_GENS = {
     margin_call: make(creatures.marginCall, 4, { fps: 12 }),
     sybil: make(creatures.sybil, 4, { fps: 6 }),
     pump_dump: make(creatures.pumpDump, 4, { fps: 4 }), // frames are swell stages; render.js picks by e.pump
+    exit_scam: make(creatures.exitScam, 4, { fps: 10 }),
     // bosses
     rug_lord: make(bosses.rugLord, 4, { fps: 5 }),
     capitulation: make(bosses.capitulation, 4, { fps: 8 }),
@@ -125,7 +126,8 @@ export const SPRITE_GROUPS = {
         'downline',
         'margin_call',
         'sybil',
-        'pump_dump'
+        'pump_dump',
+        'exit_scam'
     ],
     bosses: ['rug_lord', 'capitulation', 'liquidation', 'bear_market', 'long_winter'],
     pickups: [

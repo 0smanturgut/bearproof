@@ -67,7 +67,10 @@ export const SIM = Object.freeze({
     WHALE_DAZE: 1.2,
     WHALE_DAZE_SLOW: 0.5,
     WHALE_DROP_EVERY: 50,
-    WHALE_CANDLE: 12
+    WHALE_CANDLE: 12,
+    // Exit Scam: the first scammer walks in at 3:00, then one every SCAM_EVERY s (see ENEMIES.EXIT_SCAM).
+    SCAM_FIRST: 180,
+    SCAM_EVERY: 45
 });
 
 // ---------------------------------------------------------------- airdrop crates
@@ -404,7 +407,7 @@ export const PASSIVES = {
 };
 
 // ---------------------------------------------------------------------------
-// Enemies: the bear market. Archetype flags: ranged, dasher, splitter, shielded, bomber, cloner, pumper.
+// Enemies: the bear market. Archetype flags: ranged, dasher, splitter, shielded, bomber, cloner, pumper, thief.
 // `score` defaults to `exp`. `description` and `tip` are display only (the Field Guide); the sim never reads them.
 // ---------------------------------------------------------------------------
 export const ENEMIES = {
@@ -591,6 +594,30 @@ export const ENEMIES = {
         damage: 14,
         exp: 26,
         size: 14
+    },
+    EXIT_SCAM: {
+        id: 'exit_scam',
+        name: 'Exit Scammer',
+        sprite: 'exit_scam',
+        description:
+            'From 3:00, one every 45 s. Ignores you and pockets the XP candles on the floor. With 8 in the bag, or 10 s after the first grab, it runs for the exit.',
+        tip: 'Kill it and the whole bag spills out. Let it get away and that XP is gone.',
+        // Walks to the nearest landed candle within `seekRange` and pockets it on touch. Runs straight away from
+        // the bull at `fleeSpeed` once it holds `bagMax` candles, `greed` s after its first grab, or when there is
+        // nothing left to take; `escapeRange` from the bull it's gone, bag and all. Not in any wave: it spawns on
+        // its own clock (SIM.SCAM_FIRST, SIM.SCAM_EVERY).
+        thief: true,
+        seekRange: 600,
+        bagMax: 8,
+        greed: 10,
+        // slower than the bull (240), and the exit is well past the edge of a desktop view (~550): a chase works
+        fleeSpeed: 160,
+        escapeRange: 900,
+        hp: 45,
+        speed: 125,
+        damage: 8,
+        exp: 30,
+        size: 15
     }
 };
 

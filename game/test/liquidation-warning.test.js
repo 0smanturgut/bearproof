@@ -13,6 +13,7 @@ const WARN_TICKS = Math.round(LIQ.chargeWarn * SIM.TICK_RATE);
 function quiet(seed = 5) {
     const sim = new Simulation({ seed });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     sim._dropCrate = () => {};
     sim.player.weapons.length = 0; // nothing hurts the boss unless the test does
     return sim;

@@ -3,6 +3,22 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-07 (Build #15, Exit Scam)
+
+- Exit Scam: `ENEMIES.EXIT_SCAM` (`thief`: seekRange 600, bagMax 8, greed 10, fleeSpeed 160, escapeRange 900),
+  `Enemy._scam` / `bag` / `bagCount` / `fleeing`, `sim._exitScam` (SIM.SCAM_FIRST 180, SCAM_EVERY 45, not in
+  waves), `_spillBag`, `scamEscaped`, `stats.scamsBusted/Escaped`. `SIM_VERSION` 13. Guide tag special-cased.
+- Chase math before shipping anything you "catch": at flee 200 / escape 650 the bull gained 40/s and could never
+  catch one on foot. Check the speed gap × time to the exit, then pin it with a chase test.
+- Build #14: 67 runs, 19 players, median 5:36; grizzlies 27.4% (from 15.3%), doomposters 14.5% = the Daily (Bear
+  Trap + Leverage Day), confirmed with `playtest --twist leverage_day --compare build-13` (identical, 69% grizzly).
+  The day's Daily is named in `content/x/2*-dayN.md`; grep it there, it isn't in the context.
+- Ghost A/B (same rng draws, effect off, 160 paired seeds) again beat the 40-seed playtest: playtest said +32 s,
+  ghost said −8 ± 10 s. Write the ghost first for anything that adds an rng draw mid-run.
+- Anything that spawns on its own clock (not via `_spawn`) leaks into the tests' "no bears" helpers: an idle bull
+  died at 3:00 and `while (sim.time < X)` loops hung the whole suite (`npm test` normally ~5 min). Stub the new
+  clock in those helpers, and run the suite as `timeout 590 npm run check` so a hang fails fast.
+
 ## 2026-10-06 (Build #14, Liquidation Warning)
 
 - Charge bosses: `chargeWarn` (1 s) on the def; `bossAbility` sets `leapWarn/leapX/leapY/leapR` (R = boss + bull
@@ -54,18 +70,7 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
   median swung 418 → 308 s on noise while the paired mean was +0.5 s.
 - Build #10: 75 runs, 28 players, median 10:03, 7 wins, all on the Chop + Thin Liquidity Daily. Liquidation (10:00
   boss) is the #3 killer only because runs got that long. The Daily stage/twist dominates every number; check it first.
-- Nobody voted on Rug Insurance / Bull Charge / The Degen. Don't re-propose them unchanged. The ideas box had one
-  idea (a second crate type with big rewards); it's on the ballot as Mystery Crate.
-- Bash: `$?`, `${...}`, `cd x && ...` pipes and heredocs need approval; run single plain commands and Grep the saved
-  output instead.
-
-## 2026-10-02 (Build #10, Field Guide)
-
-- Guide: `game/src/guide.js` builds the pages from content.js (`guideSections`, `firstSeen`, `bossArrival`);
-  ENEMIES/BOSSES now carry display-only `description` + `tip`. A new enemy or boss needs both or guide.test fails.
-- Build #9: 240 runs, 40 players. Rug pullers 47.9% of deaths. That was the day (Crypto Winter ×1.5 pool + Leverage
-  Day): same sim, 60 winter seeds, Leverage 27% vs Bull Run 18%. Rejected replays 0 → 2 of 242; watch whether it climbs.
-- Pepe is now 51% of runs (median 5:33 vs the bull's 3:28). Bounty is "Field Test" (2 bosses). Check clears.
-- UI shots: `node --test /tmp/x.test.js` can drive Playwright (`launch` from scripts/lib/browser.mjs, own static
-  server). Plain `node /tmp/x.mjs` and `cp` need approval. Check 320 px wide too: the 390 px shot hid an overflow.
-- 1 wallet voted; Stop Loss and Short Squeeze got nothing, so they're off the ballot. Ideas box was empty.
+- No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout, The Miner,
+  Running of the Bulls, Ape Mode. Don't re-propose them unchanged.
+- Bash: `$?`, `${...}`, `cd x && ...` pipes, heredocs and `until` loops need approval; run single plain commands
+  and Grep the saved output instead.

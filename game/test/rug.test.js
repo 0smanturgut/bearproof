@@ -16,6 +16,7 @@ const DT = SIM.DT;
 function withLord(x, y, hpShare) {
     const sim = new Simulation({ seed: 11 });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     const lord = new Enemy(x, y, BOSSES.RUG_LORD, 1, 1, sim);
     lord.hp = lord.maxHp * hpShare;
     lord.abilityTimer = 1e9; // no summons: only the rug moves the bull here

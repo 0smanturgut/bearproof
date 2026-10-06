@@ -1,0 +1,17 @@
+[
+    {
+        "id": "bear-spray",
+        "title": "Bear Spray",
+        "description": "A new weapon: a cone of orange spray in front of you that knocks bears back and strips a grizzly's shield in one hit (grizzlies ended 27.4% of Build #14's runs)."
+    },
+    {
+        "id": "bull-trap",
+        "title": "Bull Trap",
+        "description": "From 4:00, a fat gold candle sits on the floor; grab it and the floor snaps shut: a ring of red candles closes in around you, and clearing it pays double XP."
+    },
+    {
+        "id": "thick-hide",
+        "title": "Thick Hide",
+        "description": "The bull's own edge: 120 HP instead of 100, and every Horns swing shoves bears back a step (the bull's median run was 3:13, Pepe's 8:07)."
+    }
+]

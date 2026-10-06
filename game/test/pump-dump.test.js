@@ -13,6 +13,7 @@ const PD = ENEMIES.PUMP_DUMP;
 function quiet(seed = 5) {
     const sim = new Simulation({ seed });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     sim._dropCrate = () => {};
     sim.player.weapons.length = 0; // nothing hurts it unless the test does
     return sim;

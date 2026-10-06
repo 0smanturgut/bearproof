@@ -432,6 +432,33 @@ export class Game {
                     } else if (e.n >= 5) fx.number(e.x, e.y - 30, `x${e.n}`, 'info');
                     this._sfx('dump', 0.06);
                     break;
+                case 'scamGrab':
+                    fx.ping(e.x, e.y + 4, '22,224,138');
+                    this._sfx('scamGrab', 0.08);
+                    break;
+                case 'scamRun':
+                    fx.burst(e.x, e.y + 14, 'rgba(160,140,110,', 6, 120, 8, 'dust');
+                    fx.number(e.x, e.y - 34, 'EXIT SCAM!', 'info');
+                    this._sfx('scamRun', 0.3);
+                    if (!this.attract) this.ui.toast('EXIT SCAM: CATCH IT', 'bear', 1600);
+                    break;
+                case 'scamBust':
+                    // the bag splits open: gold confetti out to where the candles land
+                    fx.ring(e.x, e.y, 6, e.r + 22, 0.35, '255,197,61', 5, true);
+                    fx.burst(e.x, e.y, '#FFC53D', 18, 260, 3, 'spark');
+                    fx.burst(e.x, e.y, '#16E08A', 10, 180, 3);
+                    fx.burst(e.x, e.y, '#C9964F', 8, 140, 3.5);
+                    fx.number(e.x, e.y - 44, 'BAG RECOVERED', 'jackpotLabel');
+                    fx.number(e.x, e.y - 20, `+${fmtNum(Math.round(e.v))} XP`, 'info');
+                    fx.addShake(0.2);
+                    this._sfx('scamBust', 0.1);
+                    if (!this.attract) this.haptics.levelUp();
+                    break;
+                case 'scamGone':
+                    this._sfx('scamGone', 0.3);
+                    if (!this.attract && e.n > 0)
+                        this.ui.toast(`EXIT SCAMMED: -${fmtNum(Math.round(e.v))} XP`, 'bear', 1800);
+                    break;
                 case 'clone':
                     fx.burst(e.x, e.y, '#B8C0CC', 8, 160, 3);
                     fx.burst(e.x, e.y, 'rgba(180,190,205,', 5, 60, 10, 'smoke');

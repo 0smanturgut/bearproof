@@ -13,6 +13,7 @@ const GC = CRATE_LOOT.god_candle;
 function quiet(seed = 5) {
     const sim = new Simulation({ seed });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     sim._dropCrate = () => {};
     sim.player.weapons.length = 0; // only the candle does damage here
     return sim;
@@ -129,6 +130,7 @@ test('god candle: the calm does not hold back a boss that is due', () => {
 test('god candle: shows up among the drops of a long run', () => {
     const sim = new Simulation({ seed: 11 });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     const loot = [];
     for (let i = 0; i < 40; i++) {
         sim.time = sim.nextCrateAt;

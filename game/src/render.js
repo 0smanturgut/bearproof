@@ -39,7 +39,8 @@ export const KILL_COLORS = {
     downline: '#FFC53D',
     margin_call: '#FF3B5C',
     sybil: '#A3ACB8',
-    pump_dump: '#FF7E86'
+    pump_dump: '#FF7E86',
+    exit_scam: '#A37038'
 };
 
 // Things that hover: their shadow sits lower and smaller.
@@ -342,6 +343,7 @@ export class Renderer {
         // doomposters typing: bubbles over the crowd, so nothing hides the tell
         for (const e of list) {
             if (e.windup > 0 && e.def.windup) this._drawTyping(e, X(e.x), Y(e.y), t, fx.calm);
+            if (e.bagCount > 0) this._drawBag(e, X(e.x), Y(e.y), t, fx.calm);
         }
         // Whale Alert: the whale swims over the crowd
         if (sim.whale && visible(sim.whale.x, sim.whale.y, 120)) {
@@ -392,6 +394,74 @@ export class Renderer {
         ctx.drawImage(this._vignette(W, H, theme.vignette), 0, 0);
         this._drawScreenFx(fx, W, H, p, theme, t);
         this._drawWhaleAlert(sim, Y, W, H, t);
+        this._drawScamArrows(sim, X, Y, W, H, t, fx.calm);
+    }
+
+    // ---------------------------------------------------------------- Exit Scam
+
+    /** Over a scammer with loot: a green candle and how many it holds; gold and bouncing once it runs. */
+    _drawBag(e, sx, sy, t, calm) {
+        const ctx = this.ctx;
+        const sd = SPRITES[e.def.sprite || e.id];
+        const u = Math.max(2, Math.round(this.k));
+        const hop = e.fleeing && !calm ? Math.round(Math.abs(Math.sin(t * 12)) * -2 * u) : 0;
+        const y = Math.round(sy - ((sd ? sd.h : 24) * this.k) / 2 - 5 * u + hop);
+        const label = `${e.bagCount}`;
+        ctx.font = `${Math.round(9 * u)}px "Jersey 10", monospace`;
+        const tw = Math.ceil(ctx.measureText(label).width);
+        const w = 4 * u + tw;
+        const x = Math.round(sx - w / 2);
+        const col = e.fleeing ? '#FFC53D' : '#16E08A';
+        ctx.fillStyle = 'rgba(7,9,12,0.85)';
+        ctx.fillRect(x - u, y - 4 * u, w + 2 * u, 8 * u);
+        // a little candle
+        ctx.fillStyle = col;
+        ctx.fillRect(x, y - 2 * u, 2 * u, 4 * u);
+        ctx.fillRect(x + u / 2, y - 3 * u, u, 6 * u);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, x + 3 * u, y + u / 2);
+    }
+
+    /** A running scammer off screen: a gold arrow on the screen edge, pointing at it. */
+    _drawScamArrows(sim, X, Y, W, H, t, calm) {
+        const ctx = this.ctx;
+        const k = this.k;
+        const pad = 22 * this.dpr;
+        for (const e of sim.enemies) {
+            if (!e.fleeing || e.hp <= 0 || e.despawned) continue;
+            const sx = X(e.x);
+            const sy = Y(e.y);
+            if (sx > 0 && sx < W && sy > 0 && sy < H) continue;
+            const a = Math.atan2(sy - H / 2, sx - W / 2);
+            const c = Math.cos(a);
+            const s = Math.sin(a);
+            // where the ray from the centre meets the padded screen edge
+            const f = Math.min(
+                Math.abs((W / 2 - pad) / (c || 1e-6)),
+                Math.abs((H / 2 - pad) / (s || 1e-6))
+            );
+            const ax = W / 2 + c * f;
+            const ay = H / 2 + s * f;
+            const pulse = calm ? 1 : 0.7 + 0.3 * Math.sin(t * 10);
+            const r = 7 * k * pulse;
+            ctx.fillStyle = '#FFC53D';
+            ctx.strokeStyle = '#07090C';
+            ctx.lineWidth = Math.max(2, k);
+            ctx.beginPath();
+            ctx.moveTo(ax + c * r, ay + s * r);
+            ctx.lineTo(ax - c * r * 0.6 - s * r * 0.8, ay - s * r * 0.6 + c * r * 0.8);
+            ctx.lineTo(ax - c * r * 0.6 + s * r * 0.8, ay - s * r * 0.6 - c * r * 0.8);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+            if (e.bagCount > 0) {
+                ctx.font = `${Math.round(8 * k)}px "Jersey 10", monospace`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${e.bagCount}`, ax - c * r * 1.9, ay - s * r * 1.9);
+            }
+        }
     }
 
     // ---------------------------------------------------------------- Whale Alert
@@ -493,7 +563,7 @@ export class Renderer {
         let tint = null;
         let sxs = pop;
         let sys = pop;
-        const fps = (sd.fps || 8) * (e.dashActive > 0 ? 2 : 1);
+        const fps = (sd.fps || 8) * (e.dashActive > 0 || e.fleeing ? 2 : 1);
         let frame = Math.floor(t * fps + e.uid * 0.37) % sd.frames.length;
         if (e.flashTimer > 0) {
             tint = '#FFFFFF';

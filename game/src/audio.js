@@ -254,6 +254,38 @@ export class AudioEngine {
         this.tone({ noise: true, dur: 0.16, volume: 0.1, release: 0.12 });
         this.tone({ freq: 420, dur: 0.1, type: 'sine', volume: 0.06, sweep: -260 });
     }
+    /** Exit Scam pockets a candle: a quick sly "swish" down. */
+    scamGrab() {
+        this.tone({ freq: 1600, dur: 0.06, type: 'triangle', volume: 0.07, sweep: -900 });
+    }
+    /** Exit Scam runs for it: a cartoon getaway, quick footsteps climbing in pitch. */
+    scamRun() {
+        for (let i = 0; i < 4; i++) {
+            setTimeout(
+                () => this.tone({ freq: 330 + i * 110, dur: 0.05, type: 'square', volume: 0.09 }),
+                i * 70
+            );
+        }
+    }
+    /** Busted: a drum hit, then the bag's coins pouring out. */
+    scamBust() {
+        this.tone({ freq: 120, dur: 0.14, type: 'triangle', volume: 0.22, sweep: -60 });
+        for (let i = 0; i < 5; i++) {
+            setTimeout(
+                () =>
+                    this.tone({ freq: 1800 + i * 160, dur: 0.05, type: 'triangle', volume: 0.07 }),
+                80 + i * 50
+            );
+        }
+    }
+    /** It got away: a sad two-note slide down. */
+    scamGone() {
+        this.tone({ freq: 520, dur: 0.18, type: 'square', volume: 0.08, sweep: -120 });
+        setTimeout(
+            () => this.tone({ freq: 360, dur: 0.32, type: 'square', volume: 0.08, sweep: -160 }),
+            200
+        );
+    }
     achievement() {
         this.tone({ freq: 880, dur: 0.08, type: 'triangle', volume: 0.18 });
         setTimeout(() => this.tone({ freq: 1174, dur: 0.1, type: 'triangle', volume: 0.2 }), 70);

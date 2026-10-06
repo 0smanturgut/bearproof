@@ -225,6 +225,57 @@ export class Enemy {
         this.leapX = 0;
         this.leapY = 0;
         this.leapR = 0;
+        // Exit Scam: the XP in the sack, how many candles that was, seconds since the first grab, and running?
+        this.bag = 0;
+        this.bagCount = 0;
+        this.greed = 0;
+        this.fleeing = false;
+    }
+
+    /** Exit Scam: pocket candles, then run. Returns the velocity, or null once it got away. */
+    _scam(dt, sim, tx, ty, d, slow) {
+        const def = this.def;
+        if (!this.fleeing) {
+            if (this.bagCount > 0) this.greed += dt;
+            if (this.bagCount >= def.bagMax || this.greed >= def.greed) this._run(sim);
+        }
+        if (!this.fleeing) {
+            let best = null;
+            let bestD = def.seekRange;
+            for (const o of sim.xp) {
+                if (o.dead || o.fall > 0 || o.vacuum) continue;
+                const od = hypot(o.x - this.x, o.y - this.y);
+                if (od < bestD) {
+                    best = o;
+                    bestD = od;
+                }
+            }
+            if (best && bestD < this.size + 6) {
+                best.dead = true;
+                this.bag += best.value;
+                this.bagCount++;
+                sim.emit({ t: 'scamGrab', x: best.x, y: best.y, n: this.bagCount });
+                return [0, 0];
+            }
+            if (best) {
+                const k = (this.speed * slow) / bestD;
+                return [(best.x - this.x) * k, (best.y - this.y) * k];
+            }
+            if (this.bagCount === 0) return [tx * this.speed * slow, ty * this.speed * slow];
+            this._run(sim); // nothing left to take
+        }
+        if (d > def.escapeRange) {
+            this.despawned = true;
+            sim.scamEscaped(this);
+            return null;
+        }
+        const v = def.fleeSpeed * slow;
+        return [-tx * v, -ty * v];
+    }
+
+    _run(sim) {
+        this.fleeing = true;
+        sim.emit({ t: 'scamRun', x: this.x, y: this.y, n: this.bagCount, v: this.bag });
     }
 
     _shoot(angle, sim) {
@@ -339,6 +390,10 @@ export class Enemy {
                         this.fireTimer = def.fireCooldown || 2;
                     }
                 }
+            } else if (def.thief) {
+                const v = this._scam(dt, sim, tx, ty, d, slow);
+                if (!v) return;
+                [vx, vy] = v;
             } else if (def.dasher) {
                 this.dashTimer -= dt;
                 if (this.dashActive > 0) {

@@ -45,8 +45,9 @@ import { Weapon } from './weapons.js';
  * 8: Boss Jackpot (a boss kill pays triple score and rains its XP as a ring of falling gold candles).
  * 9: Copium (Hopium evolves at Lv 5 and slows bears in the cloud). 10: God Candle (a fourth crate loot that
  * wipes every bear near the bull). 11: Pump and Dump (a bear from 2:30 that swells and pops into red candles).
- * 12: Liquidation Warning (charge bosses crouch 1 s over a marked landing spot, and never jump past the bull). */
-export const SIM_VERSION = 12;
+ * 12: Liquidation Warning (charge bosses crouch 1 s over a marked landing spot, and never jump past the bull).
+ * 13: Exit Scam (from 3:00 a scammer pockets loose candles and runs; kill it and the bag spills out). */
+export const SIM_VERSION = 13;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -86,6 +87,7 @@ export class Simulation {
         this.lastLoot = null;
         this.whale = null;
         this.whalePlan = null; // { dir, lane, spawned } once the alert has gone out
+        this.nextScamAt = SIM.SCAM_FIRST;
         this.delayed = [];
         this.spatial = new SpatialHash(64);
 
@@ -107,7 +109,9 @@ export class Simulation {
             bossKills: 0,
             damageTaken: 0,
             damageDealt: 0,
-            crates: 0
+            crates: 0,
+            scamsBusted: 0, // Exit Scam: scammers killed with something in the bag
+            scamsEscaped: 0
         };
         this.events = [];
     }
@@ -159,6 +163,7 @@ export class Simulation {
         this._dropCrate();
         this._whaleTick(dt);
         this._spawn(dt);
+        this._exitScam();
         if (p.dead) return this._end('liquidated');
 
         if (this.tick % SIM.TICK_RATE === 0) this.stats.score += SIM.SCORE_PER_SECOND;
@@ -323,6 +328,42 @@ export class Simulation {
             }
         }
         if (e.def.pumper) this._dump(e, born);
+        if (e.def.thief && e.bagCount > 0) this._spillBag(e);
+    }
+
+    /** Exit Scam busted: the whole bag spills out as a ring of candles around the body. */
+    _spillBag(e) {
+        const n = e.bagCount;
+        const r = e.size + 14;
+        for (let k = 0; k < n; k++) {
+            const a = (k / n) * Math.PI * 2;
+            this.xp.push(new XpOrb(e.x + cos(a) * r, e.y + sin(a) * r, e.bag / n));
+        }
+        this.stats.scamsBusted++;
+        this.emit({ t: 'scamBust', x: e.x, y: e.y, n, v: e.bag, r });
+    }
+
+    /** Exit Scam got away (called by the scammer as it leaves): the XP in its bag is gone. */
+    scamEscaped(e) {
+        this.stats.scamsEscaped++;
+        this.emit({ t: 'scamGone', x: e.x, y: e.y, n: e.bagCount, v: e.bag });
+    }
+
+    /** From SCAM_FIRST, one scammer every SCAM_EVERY s, just off screen like any bear. */
+    _exitScam() {
+        if (this.time < this.nextScamAt) return;
+        this.nextScamAt += SIM.SCAM_EVERY;
+        const a = this.rng.angle();
+        const e = new Enemy(
+            this.player.x + cos(a) * SIM.SPAWN_RADIUS,
+            this.player.y + sin(a) * SIM.SPAWN_RADIUS,
+            enemyDef('exit_scam'),
+            this.hpMult,
+            this.enemyDmgMult,
+            this
+        );
+        this.enemies.push(e);
+        this.emit({ t: 'scam', x: e.x, y: e.y });
     }
 
     /** Pump and Dump pops: 2 red candles if popped early, up to 6 at the top, in a ring around the body. */

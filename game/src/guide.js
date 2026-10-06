@@ -91,7 +91,10 @@ function enemyEntry(e) {
         if (b.summon === e.id) from.push(`called in by ${b.name}`);
     for (const s of Object.values(ENEMIES))
         if (s.splitInto === e.id) from.push(`splits out of ${s.name}`);
-    const seen = firstSeen(e.id);
+    // Exit Scam isn't in the waves; it walks in on its own clock
+    const seen = e.thief
+        ? `From ${clock(SIM.SCAM_FIRST)}, one every ${SIM.SCAM_EVERY} s`
+        : firstSeen(e.id);
     const when = [seen, ...from].filter(Boolean).join(' · ');
     return {
         id: e.id,

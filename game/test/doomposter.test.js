@@ -16,6 +16,7 @@ const DT = SIM.DT;
 function withPoster(x, y) {
     const sim = new Simulation({ seed: 5 });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     const e = new Enemy(x, y, DOOM, 1, 1, sim);
     e.fireTimer = 0;
     return { sim, e, p: sim.player };

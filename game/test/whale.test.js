@@ -15,6 +15,7 @@ const DT = SIM.DT;
 function quietSim(seed) {
     const sim = new Simulation({ seed });
     sim._spawn = () => {};
+    sim._exitScam = () => {};
     return sim;
 }
 

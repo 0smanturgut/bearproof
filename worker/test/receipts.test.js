@@ -154,3 +154,65 @@ test('activity: a relabelled treasury row keeps its direction', async () => {
     assert.match(by[out], /^Treasury out: 0\.200 SOL, out and back: /);
     assert.match(by[back], /^Treasury in: 0\.200 SOL, out and back: /);
 });
+
+test('a Daily Pot day counts the players it paid, not the shares: one player can take a place and a bounty share', async () => {
+    const env = makeEnv();
+    const share = (kind, playerId, amount, tx, place) => ({
+        kind,
+        ...(place ? { place } : {}),
+        playerId,
+        lamports: 1,
+        status: 'sent',
+        amount,
+        tx
+    });
+    const day = (date, recipients, total, at) =>
+        env.DB.prepare(
+            `INSERT INTO daily_winners (date, run_id, player_id, score, payout_status, payout_token, payout_amount, payout_tx, note, created_at)
+             VALUES (?1, 'r', ?2, 1000, 'paid', 'ANSEM', ?3, ?4, ?5, ?6)`
+        )
+            .bind(
+                date,
+                recipients[0].playerId,
+                total,
+                recipients[0].tx,
+                JSON.stringify({ policy: 'daily-pot', step: 'done', token: 'ANSEM', recipients }),
+                at
+            )
+            .run();
+    // 6 Oct: the place and the only bounty share both went to one player
+    await day(
+        '2026-10-06',
+        [share('place', 'p-g', '17554179', 'a1', 1), share('bounty', 'p-g', '11702785', 'a2')],
+        '29256964',
+        NOW - 3600000
+    );
+    // 5 Oct: five shares, three players
+    await day(
+        '2026-10-05',
+        [
+            share('place', 'p-y', '20502283', 'b1', 1),
+            share('place', 'p-s', '13668188', 'b2', 2),
+            share('bounty', 'p-y', '7593438', 'b3'),
+            share('bounty', 'p-s', '7593438', 'b4'),
+            share('bounty', 'p-g', '7593438', 'b5')
+        ],
+        '56950785',
+        NOW - 90000000
+    );
+    const { items } = await (await activity(env, NOW)).json();
+    const prize = items.filter((i) => i.kind === 'prize').map((i) => i.text);
+    assert.deepEqual(prize, [
+        'Daily Pot paid for 2026-10-06: 29.26 $ANSEM to 1 player, in 2 shares.',
+        'Daily Pot paid for 2026-10-05: 56.95 $ANSEM to 3 players, in 5 shares.'
+    ]);
+    const body = await (await winners(env)).json();
+    assert.deepEqual(
+        body.winners.map((w) => [w.date, w.playersPaid, w.payouts.length]),
+        [
+            ['2026-10-06', 1, 2],
+            ['2026-10-05', 3, 5]
+        ]
+    );
+    assert.equal('playerId' in body.winners[0].payouts[0], false, 'the count leaves, the ids stay');
+});

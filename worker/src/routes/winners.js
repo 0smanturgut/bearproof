@@ -96,6 +96,10 @@ function potDay(note, names) {
               }
             : null,
         why,
+        // One player can take a place and a bounty share: the players paid, counted once each.
+        playersPaid: new Set(
+            (note.recipients || []).filter((r) => r.status === 'sent').map((r) => r.playerId)
+        ).size,
         // Settled, but no transfer has started: the HQ says "Waiting" beside each name instead of "Sending…".
         ...(note.waiting ? { waiting: true } : {})
     };

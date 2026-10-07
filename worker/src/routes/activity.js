@@ -164,13 +164,19 @@ export async function activity(env, now = Date.now()) {
                 )
             )
             .sort((a, b) => b.ts - a.ts)[0];
+        // A Daily Pot day: how many players were paid, and in how many shares (one player can take a place and
+        // a bounty share, so the two differ).
         let pot = null;
+        let shares = 0;
         let passedOver = [];
         try {
             const note = JSON.parse(w.note || '{}');
             passedOver = Array.isArray(note.skipped) ? note.skipped : [];
-            if (note.policy === 'daily-pot')
-                pot = (note.recipients || []).filter((r) => r.status === 'sent').length;
+            if (note.policy === 'daily-pot') {
+                const sentTo = (note.recipients || []).filter((r) => r.status === 'sent');
+                shares = sentTo.length;
+                pot = new Set(sentTo.map((r) => r.playerId)).size;
+            }
         } catch {
             pot = null;
         }
@@ -186,7 +192,7 @@ export async function activity(env, now = Date.now()) {
                     ? passedOver.length
                         ? `Prize paid for ${w.date}: ${amount} to the best eligible run. ${passedOver.length === 1 ? 'The run above it was' : `The ${passedOver.length} runs above it were`} passed over (${[...new Set(passedOver.map((s) => s.why))].join('; ')}).`
                         : `Prize paid for ${w.date}: ${amount} to the verified #1.`
-                    : `Daily Pot paid for ${w.date}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}${w.payout_token === 'SOL' ? ' (in SOL: the $ANSEM swap failed twice)' : ''}.`,
+                    : `Daily Pot paid for ${w.date}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}${shares > pot ? `, in ${shares} shares` : ''}${w.payout_token === 'SOL' ? ' (in SOL: the $ANSEM swap failed twice)' : ''}.`,
             tx: w.payout_tx || null
         });
     }

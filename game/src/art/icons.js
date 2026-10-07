@@ -37,6 +37,27 @@ export function tongue() {
     return s.render();
 }
 
+/** Bear Spray: an orange can with a black cap, a pepper cloud puffing out of the nozzle up and to the right. */
+export function bearSpray() {
+    const s = S();
+    // the cloud first, so the can sits on top of its root
+    s.auto('p', { R: 1.2, grad: 0.25 });
+    s.circle(8.6, 4.2, 1.4, M.pepper, { g: 'p' });
+    s.circle(10.8, 2.8, 2.1, M.pepper, { g: 'p' });
+    s.circle(11.2, 6.4, 1.9, M.pepper, { g: 'p' });
+    s.circle(12.6, 4.5, 1.4, M.pepper, { g: 'p' });
+    s.px(13, 1, '#FFB05C').px(13, 9, '#FFB05C').px(9, 8, '#FFB05C');
+    s.px(10, 2, '#FFE2B8');
+    s.auto('c', { R: 1.4, grad: 0.3 });
+    s.box(1.5, 5.5, 5, 8, M.pepper, { g: 'c', r: 1, bevel: 1 });
+    s.box(1.5, 8, 5, 2.5, M.cloth, { shade: 'flat', lum: 0.15 });
+    s.px(3, 9, '#FFE2B8').px(4, 9, '#FFE2B8');
+    s.box(2.5, 3, 3, 2.5, M.cloth, { r: 0.5, bevel: 1 });
+    s.box(5, 3.5, 2, 1.2, M.metal, { shade: 'flat', lum: 0.7 });
+    s.px(2, 6, '#FFFFFF');
+    return s.render();
+}
+
 export function greenCandle() {
     const s = S();
     s.line(7, 0.5, 7, 3, M.bull, { lum: 0.7, w: 1.2 });

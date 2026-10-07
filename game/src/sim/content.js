@@ -304,6 +304,28 @@ export const WEAPONS = {
         evolveName: 'Liquidity Grab',
         evolveDescription: 'Three tongues in a fan.',
         evolveFan: 3
+    },
+    // A cone at the nearest bear. `coneAngle` is the full width in degrees; `knockback` is how far a hit bear is
+    // shoved (bosses don't move); `breaksShield` strips a shielded bear's whole shield before the hit lands.
+    BEAR_SPRAY: {
+        id: 'bear_spray',
+        name: 'Bear Spray',
+        icon: 'bear_spray',
+        description:
+            "A cone of pepper at the nearest bear. Shoves bears back and breaks a grizzly's shield.",
+        type: 'spray',
+        baseDamage: 14,
+        baseCooldown: 1.4,
+        baseRange: 150,
+        coneAngle: 60,
+        knockback: 70,
+        breaksShield: true,
+        evolveLevel: 5,
+        evolveName: 'Max Pain',
+        evolveDescription: 'A 100° cone, and sprayed bears move 40% slower for 1.5 s.',
+        evolveConeAngle: 100,
+        evolveSlowPct: 0.4,
+        evolveSlowDuration: 1.5
     }
 };
 

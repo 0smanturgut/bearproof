@@ -110,7 +110,49 @@ export class Weapon {
                 return this._drain(player, sim);
             case 'tongue':
                 return this._tongue(player, sim);
+            case 'spray':
+                return this._spray(player, sim);
         }
+    }
+
+    /** Bear Spray: a cone at the nearest bear. Breaks shields first, then hits, shoves, and (evolved) slows. */
+    _spray(player, sim) {
+        const range = this.getRange(player);
+        const target = sim.spatial.findNearest(player.x, player.y, range);
+        if (!target) return;
+        const base = this.getDamage(player);
+        const evolved = this.isEvolved();
+        const cone = evolved ? this.def.evolveConeAngle : this.def.coneAngle;
+        const half = (cone * Math.PI) / 360;
+        const cosHalf = cos(half);
+        const aim = atan2(target.y - player.y, target.x - player.x);
+        const ux = cos(aim);
+        const uy = sin(aim);
+        const slowPct = evolved ? this.def.evolveSlowPct || 0 : 0;
+        const slowDur = this.def.evolveSlowDuration || 0;
+        for (const e of sim.spatial.queryRect(player.x, player.y, range + 40)) {
+            if (e.hp <= 0) continue;
+            const dx = e.x - player.x;
+            const dy = e.y - player.y;
+            const d = hypot(dx, dy);
+            if (d > range + e.size) continue;
+            // inside the cone, or touching the bull (a bear on top of you can't dodge it)
+            if (d > e.size + player.size && dx * ux + dy * uy < d * cosHalf) continue;
+            if (this.def.breaksShield && e.shielded && e.shieldHp > 0) sim.breakShield(e);
+            this.hit(e, base, player, sim);
+            if (!e.boss && this.def.knockback) {
+                const k = d > 0.01 ? 1 / d : 0;
+                e.knock(k ? dx * k : ux, k ? dy * k : uy, this.def.knockback);
+            }
+            // never weakens a stronger freeze that's still running (Circuit Breaker's 50%)
+            const stronger = e.slowTimer > 0 && e.slowPct > slowPct;
+            if (slowPct > 0 && !stronger && (!e.slowTimer || e.slowTimer < slowDur)) {
+                e.slowTimer = slowDur;
+                e.slowPct = slowPct;
+            }
+        }
+        sim.emit({ t: 'spray', x: player.x, y: player.y, a: aim, half, r: range, evolved });
+        sim.emit({ t: 'fire', w: this.id, x: player.x, y: player.y });
     }
 
     /** Lash at the nearest bear: hits every bear whose body touches the line, out to full range. */

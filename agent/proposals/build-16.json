@@ -1,0 +1,17 @@
+[
+    {
+        "id": "mev-sandwich",
+        "title": "MEV Sandwich",
+        "description": "A new threat from 4:00: two bots appear on opposite sides of you with a red line between them and close in at once; step out of the line or get sandwiched for a big hit."
+    },
+    {
+        "id": "buy-the-dip",
+        "title": "Buy the Dip",
+        "description": "Drop under 30% HP and the screen flashes BUY THE DIP: for 5 s every kill heals you, once per minute (rug pullers and grizzlies ended 58% of Build #15's runs)."
+    },
+    {
+        "id": "horns-uppercut",
+        "title": "Horns Uppercut",
+        "description": "The bull's Horns hit above and below him too from Lv 3, so bears coming from the top of a phone screen get gored (the bull's median run was 6:57, Pepe's 9:38)."
+    }
+]

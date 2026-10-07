@@ -3,6 +3,22 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-08 (Build #16, Bear Spray)
+
+- Bear Spray: `WEAPONS.BEAR_SPRAY` (type `spray`: coneAngle 60, knockback 70, breaksShield; Max Pain at Lv 5: 100°,
+  40% slow 1.5 s), `Weapon._spray`, `Enemy.knock()` (KNOCK_TIME 0.15, bosses never), `sim.breakShield`,
+  `stats.shieldsBroken`, `spray`/`shieldBreak` events. `SIM_VERSION` 14. A ready knockback for Horns Uppercut etc.
+- Weapon A/B: same seeds, "always take it" vs "never take it" bot on the new sim (/tmp/spray-ab.test.mjs pattern).
+  Spray cut bot grizzly deaths 45→35 (bull) / 54→41 (Pepe), survival −8/−17 ± 13 s (noise). Watch its pick rate.
+- `vote: null` = nobody voted; all three proposals count as no-vote. Build #15: 66 runs, median 9:21 (from 6:04),
+  Pepe 80% of runs, 1 rejected replay of 67 (first one in a while; check if it repeats).
+- The Daily seed is an HMAC under a server secret (`worker/src/lib/daily.js`): I can't work out a past Daily's
+  stage/twist. Only the X content files name it.
+- Test trap: two bears at the same distance tie in `findNearest`; offset them. `enemyDef` doesn't cover bosses.
+  Bash: `npm run format:check` and `--prefix` need approval; `cd repo && timeout 590 npm run check > log` works.
+- No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout, The Miner,
+  Running of the Bulls, Ape Mode, Bull Trap, Thick Hide. Don't re-propose them unchanged.
+
 ## 2026-10-07 (Build #15, Exit Scam)
 
 - Exit Scam: `ENEMIES.EXIT_SCAM` (`thief`: seekRange 600, bagMax 8, greed 10, fleeSpeed 160, escapeRange 900),
@@ -60,17 +76,3 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Sandbox: `VAR=x cmd`, `mkdir`, `git archive -o`, pipes to `tar` need approval; do extraction inside a /tmp
   `node --test` with execFileSync (like playtest's `simDirAt`). Stray `.idea .vscode .ripgreprc .zprofile` appeared
   untracked in the repo root; not mine, couldn't remove.
-
-## 2026-10-03 (Build #11, Copium)
-
-- Copium: `WEAPONS.HOPIUM.evolve*`, the aura sets `e.auraSlowTimer/auraSlowPct` (its own slot; enemy speed takes
-  the stronger of it and `slowTimer`). `SIM_VERSION` 9. Every weapon evolves now. Bounty: Cope and Hold, survive 900.
-- The 40-seed autopilot never maxes Hopium (or anything late), so `playtest --compare` can't see late-run features.
-  Use a /tmp bot that forces the picks, and compare _paired_ seeds (the mean delta), not medians of ~13 runs: the
-  median swung 418 → 308 s on noise while the paired mean was +0.5 s.
-- Build #10: 75 runs, 28 players, median 10:03, 7 wins, all on the Chop + Thin Liquidity Daily. Liquidation (10:00
-  boss) is the #3 killer only because runs got that long. The Daily stage/twist dominates every number; check it first.
-- No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout, The Miner,
-  Running of the Bulls, Ape Mode. Don't re-propose them unchanged.
-- Bash: `$?`, `${...}`, `cd x && ...` pipes, heredocs and `until` loops need approval; run single plain commands
-  and Grep the saved output instead.

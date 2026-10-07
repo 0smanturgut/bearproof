@@ -131,6 +131,20 @@ export class AudioEngine {
     tongue() {
         this.tone({ freq: 260, dur: 0.07, type: 'sine', volume: 0.14, sweep: 520 });
     }
+    /** Bear Spray: a short aerosol hiss with a low pop of the valve under it. */
+    spray() {
+        this.tone({ noise: true, dur: 0.16, volume: 0.09, attack: 0.01, release: 0.08 });
+        this.tone({ freq: 140, dur: 0.05, type: 'triangle', volume: 0.08, sweep: -40 });
+    }
+    /** A grizzly's shield breaks: a bright glassy crack falling away. */
+    shieldBreak() {
+        this.tone({ freq: 1900, dur: 0.07, type: 'square', volume: 0.07, sweep: -900 });
+        setTimeout(
+            () => this.tone({ freq: 1250, dur: 0.12, type: 'triangle', volume: 0.1, sweep: -700 }),
+            40
+        );
+        this.tone({ noise: true, dur: 0.06, volume: 0.08 });
+    }
     explosion() {
         this.tone({ noise: true, dur: 0.25, volume: 0.22, release: 0.15 });
     }

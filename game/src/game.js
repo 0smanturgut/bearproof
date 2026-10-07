@@ -397,7 +397,22 @@ export class Game {
                         fx.ring(e.x, e.y, 20, e.r, 0.36, '70,184,240', 7, true);
                         fx.burst(e.x, e.y, '#BDEEFF', 14, e.r * 2, 3, 'spark');
                     }
-                    this._sfx(e.w === 'tongue' ? 'tongue' : 'shoot', 0.09);
+                    this._sfx(
+                        e.w === 'tongue' ? 'tongue' : e.w === 'bear_spray' ? 'spray' : 'shoot',
+                        0.09
+                    );
+                    break;
+                case 'spray':
+                    fx.spray(e.x, e.y, e.a, e.half, e.r, e.evolved);
+                    break;
+                case 'shieldBreak':
+                    // the grizzly's blue bubble pops: ice-blue shards and a ring off the shield's edge
+                    fx.ring(e.x, e.y, e.r, e.r + 26, 0.3, '70,200,255', 4);
+                    fx.burst(e.x, e.y, '#9BE2FF', 14, 240, 3, 'spark');
+                    fx.burst(e.x, e.y, '#E8FAFF', 6, 160, 3);
+                    fx.number(e.x, e.y - e.r - 18, 'SHIELD BROKEN', 'info');
+                    fx.addShake(0.15);
+                    this._sfx('shieldBreak', 0.06);
                     break;
                 case 'tongue':
                     fx.line(e.x1, e.y1 - 8, e.x2, e.y2, 0.14, '255,110,156', e.evolved ? 5 : 4);

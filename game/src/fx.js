@@ -103,6 +103,29 @@ export class Fx {
         }
     }
 
+    /** Bear Spray: an orange mist fanning out over the cone (`a` aim, `half` half-width, `r` reach). */
+    spray(x, y, a, half, r, evolved) {
+        const n = this.calm ? 6 : evolved ? 26 : 18;
+        for (let i = 0; i < n; i++) {
+            const ang = a + (Math.random() * 2 - 1) * half;
+            // at drag 3/s a 0.35–0.65 s puff drifts about a quarter of its speed: aim the cloud at the reach
+            const s = r * 4.2 * (0.6 + Math.random() * 0.45);
+            const life = 0.35 + Math.random() * 0.3;
+            this._push({
+                kind: i % 3 ? 'smoke' : 'spark',
+                x: x + Math.cos(a) * 10,
+                y: y - 6 + Math.sin(a) * 10,
+                vx: Math.cos(ang) * s,
+                vy: Math.sin(ang) * s,
+                life,
+                max: life,
+                size: i % 3 ? 7 + Math.random() * 6 : 2.5,
+                color: i % 3 ? (i % 2 ? 'rgba(255,122,26,' : 'rgba(255,176,92,') : '#FFB05C',
+                drag: 3
+            });
+        }
+    }
+
     /** A puff of dust at a footstep. */
     dust(x, y, dir = 0) {
         if (this.calm && Math.random() < 0.6) return;

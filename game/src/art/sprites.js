@@ -80,6 +80,7 @@ const ICON_GENS = {
     buyback: make(icons.buyback),
     dead_cat_bounce: make(icons.deadCatBounce),
     tongue: make(icons.tongue),
+    bear_spray: make(icons.bearSpray),
     thick_skin: make(icons.thickSkin),
     dca: make(icons.dca),
     cold_wallet: make(icons.coldWallet),
@@ -160,7 +161,8 @@ export const ICON_GROUPS = {
         'circuit_breaker',
         'buyback',
         'dead_cat_bounce',
-        'tongue'
+        'tongue',
+        'bear_spray'
     ],
     passives: [
         'thick_skin',

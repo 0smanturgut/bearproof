@@ -46,8 +46,9 @@ import { Weapon } from './weapons.js';
  * 9: Copium (Hopium evolves at Lv 5 and slows bears in the cloud). 10: God Candle (a fourth crate loot that
  * wipes every bear near the bull). 11: Pump and Dump (a bear from 2:30 that swells and pops into red candles).
  * 12: Liquidation Warning (charge bosses crouch 1 s over a marked landing spot, and never jump past the bull).
- * 13: Exit Scam (from 3:00 a scammer pockets loose candles and runs; kill it and the bag spills out). */
-export const SIM_VERSION = 13;
+ * 13: Exit Scam (from 3:00 a scammer pockets loose candles and runs; kill it and the bag spills out).
+ * 14: Bear Spray (a new weapon in the level-up pool: a cone that shoves bears and breaks shields). */
+export const SIM_VERSION = 14;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -111,7 +112,8 @@ export class Simulation {
             damageDealt: 0,
             crates: 0,
             scamsBusted: 0, // Exit Scam: scammers killed with something in the bag
-            scamsEscaped: 0
+            scamsEscaped: 0,
+            shieldsBroken: 0 // Bear Spray
         };
         this.events = [];
     }
@@ -584,6 +586,14 @@ export class Simulation {
     }
 
     // --- Combat hooks used by weapons and entities -------------------------
+
+    /** Bear Spray: a shielded bear loses its whole shield at once. */
+    breakShield(e) {
+        e.shieldHp = 0;
+        e.shielded = false;
+        this.stats.shieldsBroken++;
+        this.emit({ t: 'shieldBreak', x: e.x, y: e.y, r: e.size + 8 });
+    }
 
     /** Apply damage to an enemy and emit the number. Returns damage actually dealt. */
     damageEnemy(e, amount, crit, src, quiet = false) {

@@ -11,6 +11,9 @@
 import { SIM, enemyDef } from './content.js';
 import { atan2, cos, hypot, ipow, sin, wrapAngle } from './dmath.js';
 
+/** Seconds a Bear Spray shove takes. */
+const KNOCK_TIME = 0.15;
+
 let nextEntityId = 1;
 /** Reset per simulation so ids (used only for stable hashing/debug) are deterministic. */
 export function resetEntityIds() {
@@ -230,6 +233,17 @@ export class Enemy {
         this.bagCount = 0;
         this.greed = 0;
         this.fleeing = false;
+        // Bear Spray: a shove away from the bull, spread over KNOCK_TIME s (velocity on top of its own).
+        this.knockTimer = 0;
+        this.knockVx = 0;
+        this.knockVy = 0;
+    }
+
+    /** Shove `dist` units along the unit vector (ux, uy) over the next KNOCK_TIME s. */
+    knock(ux, uy, dist) {
+        this.knockTimer = KNOCK_TIME;
+        this.knockVx = (ux * dist) / KNOCK_TIME;
+        this.knockVy = (uy * dist) / KNOCK_TIME;
     }
 
     /** Exit Scam: pocket candles, then run. Returns the velocity, or null once it got away. */
@@ -428,6 +442,13 @@ export class Enemy {
         this.y += vy * dt;
         if (vx > 1) this.facing = 1;
         else if (vx < -1) this.facing = -1;
+        if (this.knockTimer > 0) {
+            // the last tick only carries the time that was left, so a shove always covers the same distance
+            const kt = Math.min(dt, this.knockTimer);
+            this.x += this.knockVx * kt;
+            this.y += this.knockVy * kt;
+            this.knockTimer -= dt;
+        }
 
         if (this.boss) {
             this.abilityTimer -= dt;

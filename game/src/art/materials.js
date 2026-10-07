@@ -78,6 +78,10 @@ export const M = {
     skin: mat(['#3A1E12', '#6E3F26', '#A8683E', '#D9955F', '#F2BE8A', '#FFE3C2'], {
         line: '#1E0F08'
     }),
+    // Bear Spray: hot pepper orange
+    pepper: mat(['#2E0E04', '#6A2408', '#B0450E', '#FF7A1A', '#FFB05C', '#FFE2B8'], {
+        line: '#170602'
+    }),
     wood: mat(['#24120A', '#4A2614', '#74401F', '#9E5E2E', '#C88645', '#E8B574'], {
         line: '#140A05'
     }),

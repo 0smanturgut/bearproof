@@ -1,0 +1,323 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* A winning streak ending, as a strip of days: one gold tile for each Daily Challenge the same player won
+               in a row, then the day somebody else took it. Data: /api/winners (the winner of each day) and
+               /api/leaderboard?date=<the last day> (the two scores). 6 Oct 2026: Yuki had won 30 Sep to 5 Oct, six
+               in a row; greedelf, second on five earlier days, won with 383,863 to Yuki's 376,737.
+               ?d=<json> { date, days: [labels of the streak], champ, by, score, second, note }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            svg {
+                image-rendering: pixelated;
+            }
+            .bg,
+            .bg > * {
+                position: absolute;
+                inset: 0;
+            }
+            .grid {
+                background:
+                    linear-gradient(rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 / 60px 60px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 /
+                        60px 60px;
+            }
+            .glow {
+                background:
+                    radial-gradient(
+                        ellipse 60% 30% at 50% 74%,
+                        rgba(22, 224, 138, 0.2),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 80% 24% at 50% 40%,
+                        rgba(245, 197, 66, 0.12),
+                        transparent 70%
+                    );
+            }
+            .vig {
+                background: radial-gradient(
+                    ellipse 80% 74% at 50% 50%,
+                    transparent 52%,
+                    rgba(0, 0, 0, 0.78) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #16e08a;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #16e08a,
+                    0 0 40px rgba(22, 224, 138, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 168px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 250px;
+                line-height: 0.84;
+                letter-spacing: 0.01em;
+                text-shadow: 10px 10px 0 #101826;
+            }
+            h1 span {
+                color: #ff3b5c;
+                text-shadow:
+                    10px 10px 0 #3d0a16,
+                    0 0 60px rgba(255, 59, 92, 0.45);
+            }
+            .days {
+                position: absolute;
+                left: 60px;
+                right: 60px;
+                top: 640px;
+                display: grid;
+                gap: 14px;
+            }
+            .day {
+                position: relative;
+                height: 168px;
+                background: linear-gradient(180deg, #ffd960, #f5c542 50%, #c8961e);
+                color: #05080f;
+                box-shadow:
+                    0 0 0 5px #05080f,
+                    0 10px 0 rgba(0, 0, 0, 0.4);
+                text-align: center;
+            }
+            .day b {
+                display: block;
+                padding-top: 20px;
+                font-weight: 400;
+                font-size: 78px;
+                line-height: 0.9;
+            }
+            .day em {
+                display: block;
+                font:
+                    400 20px/1.2 'JetBrains Mono',
+                    monospace;
+                font-style: normal;
+                letter-spacing: 0.12em;
+            }
+            .day svg {
+                position: absolute;
+                left: 50%;
+                top: -44px;
+                margin-left: -33px;
+            }
+            .who {
+                position: absolute;
+                left: 60px;
+                right: 60px;
+                top: 838px;
+                height: 60px;
+                border: 6px solid #f5c542;
+                border-top: 0;
+            }
+            .who span {
+                position: absolute;
+                left: 50%;
+                bottom: -40px;
+                transform: translateX(-50%);
+                padding: 0 26px;
+                background: #05080f;
+                font-size: 92px;
+                line-height: 1;
+                color: #f5c542;
+                white-space: nowrap;
+            }
+            .new {
+                position: absolute;
+                left: 60px;
+                right: 60px;
+                top: 992px;
+                height: 330px;
+                background: linear-gradient(180deg, #7dffc4, #16e08a 45%, #0b8f56);
+                color: #05080f;
+                box-shadow:
+                    0 0 0 6px #05080f,
+                    0 0 0 12px #16e08a,
+                    0 0 70px rgba(22, 224, 138, 0.5);
+            }
+            .new .d {
+                position: absolute;
+                left: 40px;
+                top: 26px;
+                font:
+                    400 26px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.2em;
+            }
+            .new .n {
+                position: absolute;
+                left: 40px;
+                top: 62px;
+                font-size: 210px;
+                line-height: 0.9;
+                letter-spacing: 0.01em;
+                white-space: nowrap;
+            }
+            .new .s {
+                position: absolute;
+                left: 44px;
+                bottom: 22px;
+                font-size: 84px;
+                line-height: 1;
+            }
+            .new svg {
+                position: absolute;
+                right: 44px;
+                top: 50%;
+                margin-top: -110px;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1400px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.16em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg">
+            <div class="grid"></div>
+            <div class="glow"></div>
+            <div class="vig"></div>
+        </div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <h1>STREAK<br /><span>OVER</span></h1>
+        <div class="days" id="days"></div>
+        <div class="who"><span id="who"></span></div>
+        <div class="new">
+            <div class="d" id="nd"></div>
+            <div class="n" id="nn"></div>
+            <div class="s" id="ns"></div>
+            <svg
+                id="crown"
+                width="264"
+                height="220"
+                viewBox="0 0 12 10"
+                shape-rendering="crispEdges"
+            ></svg>
+        </div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"date":"6 OCT","days":["30 SEP","1 OCT","2 OCT","3 OCT","4 OCT","5 OCT"],"champ":"YUKI","by":"GREEDELF","score":"383,863","second":"376,737","note":"BY 7,126 POINTS · GREEDELF HAD FINISHED SECOND FIVE TIMES"}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').innerHTML = `<i></i>DAILY · ${D.date}`;
+            const CROWN = [
+                '.y...yy...y.',
+                '.y...yy...y.',
+                '.yy.yyyy.yy.',
+                '.yyyyyyyyyy.',
+                '.yyyyyyyyyy.',
+                '.yryygyyryy.',
+                '.yyyyyyyyyy.',
+                '.dddddddddd.'
+            ];
+            const crown = (pal) => {
+                let h = '';
+                CROWN.forEach((row, y) =>
+                    [...row].forEach((ch, x) => {
+                        if (pal[ch])
+                            h += `<rect x="${x}" y="${y + 1}" width="1" height="1" fill="${pal[ch]}" />`;
+                    })
+                );
+                return h;
+            };
+            const days = $('days');
+            days.style.gridTemplateColumns = `repeat(${D.days.length}, 1fr)`;
+            for (const d of D.days) {
+                const [n, m] = d.split(' ');
+                days.insertAdjacentHTML(
+                    'beforeend',
+                    `<div class="day"><svg width="66" height="55" viewBox="0 0 12 10" shape-rendering="crispEdges">${crown({ y: '#f5c542', r: '#f5c542', g: '#f5c542', d: '#c8961e' })}</svg><b>${n}</b><em>${m}</em></div>`
+                );
+            }
+            $('who').textContent = `${D.champ} × ${D.days.length}`;
+            $('nd').textContent = `${D.date} · NEW CHAMPION`;
+            $('nn').textContent = D.by;
+            $('ns').textContent = `${D.score}  >  ${D.second}`;
+            $('crown').innerHTML = crown({
+                y: '#05080f',
+                r: '#ff3b5c',
+                g: '#f4f8fb',
+                d: '#05080f'
+            });
+            $('small').textContent = D.note;
+            window.ready = true;
+        </script>
+    </body>
+</html>

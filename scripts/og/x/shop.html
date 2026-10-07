@@ -1,0 +1,366 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The Build #16 ballot as an old role-playing game's item shop: three items on the list, Pepe behind
+               the counter, the price one vote. Options: agent/proposals/build-15.json (Bear Spray, Bull Trap, Thick
+               Hide). The spray can and the trap's teeth are drawn here; the candle, the heart and Pepe are the
+               game's own sprites. None of the three is in the game yet, and the image says so. The vote closes
+               21:00 UTC. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas,
+            svg {
+                image-rendering: pixelated;
+            }
+            .wall {
+                position: absolute;
+                inset: 0;
+                background:
+                    repeating-linear-gradient(
+                        90deg,
+                        rgba(0, 0, 0, 0.28) 0 6px,
+                        transparent 6px 150px
+                    ),
+                    repeating-linear-gradient(
+                        180deg,
+                        rgba(255, 255, 255, 0.03) 0 4px,
+                        transparent 4px 60px
+                    ),
+                    linear-gradient(180deg, #2a1c12, #1a110b);
+            }
+            .vig {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    ellipse 82% 76% at 50% 46%,
+                    transparent 50%,
+                    rgba(0, 0, 0, 0.8) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            /* the windows every such shop has: blue, a white frame, hard corners */
+            .win {
+                position: absolute;
+                background: linear-gradient(180deg, #2a44d8 0%, #101c8a 100%);
+                border-radius: 16px;
+                box-shadow:
+                    inset 0 0 0 6px #f4f8fb,
+                    inset 0 0 0 10px #0a1050,
+                    0 0 0 6px #05080f,
+                    0 18px 0 rgba(0, 0, 0, 0.4);
+            }
+            .title {
+                left: 70px;
+                top: 184px;
+                width: 520px;
+                height: 124px;
+                display: grid;
+                place-items: center;
+                font-size: 104px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+                padding-bottom: 8px;
+            }
+            .price {
+                right: 70px;
+                top: 184px;
+                width: 470px;
+                height: 124px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 38px 8px;
+                font-size: 76px;
+                line-height: 1;
+            }
+            .price span {
+                color: #f5c542;
+            }
+            .list {
+                left: 70px;
+                right: 70px;
+                top: 346px;
+                height: 716px;
+                padding: 34px 40px;
+                display: grid;
+                grid-template-rows: repeat(3, 1fr);
+            }
+            .row {
+                display: flex;
+                align-items: center;
+                gap: 36px;
+            }
+            .row + .row {
+                border-top: 4px dashed rgba(244, 248, 251, 0.22);
+            }
+            .slot {
+                flex: none;
+                width: 172px;
+                height: 172px;
+                display: grid;
+                place-items: center;
+                background: #0a1050;
+                box-shadow:
+                    inset 0 0 0 5px #f4f8fb,
+                    inset 0 0 30px rgba(0, 0, 0, 0.6);
+            }
+            .name {
+                font-size: 156px;
+                line-height: 0.9;
+                letter-spacing: 0.02em;
+                white-space: nowrap;
+                text-shadow: 7px 7px 0 #0a1050;
+            }
+            .no {
+                flex: none;
+                width: 76px;
+                font-size: 120px;
+                line-height: 1;
+                color: #f5c542;
+                text-align: center;
+            }
+            .counter {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1250px;
+                height: 250px;
+                background:
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 12%),
+                    repeating-linear-gradient(
+                        90deg,
+                        rgba(0, 0, 0, 0.22) 0 6px,
+                        transparent 6px 200px
+                    ),
+                    linear-gradient(180deg, #6b4423, #3a2412);
+                border-top: 10px solid #8a5a30;
+            }
+            #keeper {
+                position: absolute;
+            }
+            .say {
+                left: 380px;
+                right: 70px;
+                top: 1108px;
+                height: 196px;
+                padding: 24px 40px 0;
+                font-size: 84px;
+                line-height: 0.92;
+                letter-spacing: 0.02em;
+            }
+            .say b {
+                font-weight: 400;
+                color: #f5c542;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1420px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.2em;
+                color: #e8d9c4;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wall"></div>
+        <div class="vig"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>VOTE · BUILD #16</div>
+        </div>
+        <div class="win title">ITEM SHOP</div>
+        <div class="win price">PRICE <span>1 VOTE</span></div>
+        <div class="win list">
+            <div class="row">
+                <div class="no">1</div>
+                <div class="slot">
+                    <svg
+                        id="i1"
+                        width="152"
+                        height="152"
+                        viewBox="2 1 19 19"
+                        shape-rendering="crispEdges"
+                    ></svg>
+                </div>
+                <div class="name">BEAR SPRAY</div>
+            </div>
+            <div class="row">
+                <div class="no">2</div>
+                <div class="slot">
+                    <svg
+                        id="i2"
+                        width="152"
+                        height="152"
+                        viewBox="1 0 20 20"
+                        shape-rendering="crispEdges"
+                    ></svg>
+                </div>
+                <div class="name">BULL TRAP</div>
+            </div>
+            <div class="row">
+                <div class="no">3</div>
+                <div class="slot"><canvas id="i3"></canvas></div>
+                <div class="name">THICK HIDE</div>
+            </div>
+        </div>
+        <div class="counter"></div>
+        <canvas id="keeper"></canvas>
+        <div class="win say">WHAT'LL IT BE?<br /><b>CLOSES 21:00 UTC</b></div>
+        <div class="small">HOLDERS VOTE · NONE OF THESE THREE IS IN THE GAME YET</div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            const draw = (svg, rows, pal) => {
+                let h = '';
+                rows.forEach((row, y) =>
+                    [...row].forEach((ch, x) => {
+                        if (pal[ch])
+                            h += `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}" />`;
+                    })
+                );
+                svg.innerHTML = h;
+            };
+            // a can of bear spray: orange, a white band, and the spray leaving it
+            draw(
+                $('i1'),
+                [
+                    '......................',
+                    '......................',
+                    '....kkkk......o.......',
+                    '....kddk....o...o.....',
+                    '...kkddkk.o..o..o.o...',
+                    '...kOOOOkoo.o.o.o..o..',
+                    '...kOOOOk.o..o..o.o...',
+                    '...kOOOOk...o...o.....',
+                    '...kwwwwk.....o.......',
+                    '...kwrrwk.............',
+                    '...kwrrwk.............',
+                    '...kwwwwk.............',
+                    '...kOOOOk.............',
+                    '...kOOOOk.............',
+                    '...kOOOOk.............',
+                    '...kOOOOk.............',
+                    '...kOOOOk.............',
+                    '...kQQQQk.............',
+                    '...kkkkkk.............',
+                    '......................',
+                    '......................',
+                    '......................'
+                ],
+                {
+                    k: '#05080f',
+                    d: '#5b667c',
+                    O: '#ff8a3c',
+                    Q: '#c85f1c',
+                    w: '#f4f8fb',
+                    r: '#ff3b5c',
+                    o: '#ffb070'
+                }
+            );
+            // a fat gold candle sitting in an open trap
+            draw(
+                $('i2'),
+                [
+                    '......................',
+                    '..........kk..........',
+                    '..........kk..........',
+                    '.........kGGk.........',
+                    '........kGYYGk........',
+                    '........kGYYGk........',
+                    '........kGYYGk........',
+                    '........kGYYGk........',
+                    '........kGYYGk........',
+                    '........kGYYGk........',
+                    '.........kGGk.........',
+                    '..........kk..........',
+                    '..........kk..........',
+                    '..s..s..s.kk.s..s..s..',
+                    '.sSssSssSskksSssSssSs.',
+                    '.SSSSSSSSSSSSSSSSSSSS.',
+                    '.kSSSSSSSSSSSSSSSSSSk.',
+                    '..kkkkkkkkkkkkkkkkkk..',
+                    '......................',
+                    '......................',
+                    '......................',
+                    '......................'
+                ],
+                { k: '#05080f', G: '#c8961e', Y: '#f5c542', s: '#dfe6f0', S: '#8f99aa' }
+            );
+            put($('i3'), 'heart', 2000, { max: 12, glow: false });
+            // the shopkeeper, behind the counter
+            const k = $('keeper');
+            put(k, 'pepe', 2000, { max: 9, glow: false });
+            k.style.left = '56px';
+            k.style.top = 1266 - k.height + 46 + 'px';
+            window.ready = true;
+        </script>
+    </body>
+</html>

@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* One killer's share of a day's deaths, as a road sign: the yellow diamond with the killer's own sprite
+               as a black silhouette, and a plate under it with the share. Data: /api/insights `diedTo` for the build
+               that was live (verified runs; a run that was won isn't a death). 6 Oct 2026, Build #14: grizzlies
+               ended 19 of the 70 runs that ended, 27%.
+               ?d=<json> { sprite, pct, plate, build, date, note }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .bg,
+            .bg > * {
+                position: absolute;
+                inset: 0;
+            }
+            .sky {
+                background: linear-gradient(180deg, #05080f 0%, #0d1730 62%, #101a30 100%);
+            }
+            .beam {
+                background: radial-gradient(
+                    ellipse 58% 48% at 50% 44%,
+                    rgba(245, 197, 66, 0.2),
+                    transparent 70%
+                );
+            }
+            .vig {
+                background: radial-gradient(
+                    ellipse 80% 74% at 50% 48%,
+                    transparent 50%,
+                    rgba(0, 0, 0, 0.82) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            .pole {
+                position: absolute;
+                left: 50%;
+                top: 560px;
+                width: 34px;
+                height: 940px;
+                margin-left: -17px;
+                background: linear-gradient(90deg, #6f7b8f, #3b4558 60%, #2a3242);
+            }
+            .diamond {
+                position: absolute;
+                left: 50%;
+                top: 236px;
+                width: 600px;
+                height: 600px;
+                margin-left: -300px;
+                transform: rotate(45deg);
+                background: #f5c542;
+                border-radius: 44px;
+                box-shadow:
+                    inset 0 0 0 16px #f5c542,
+                    inset 0 0 0 30px #05080f,
+                    0 0 0 6px #05080f,
+                    0 0 90px rgba(245, 197, 66, 0.35);
+            }
+            #beast {
+                position: absolute;
+                left: 50%;
+            }
+            .plate {
+                position: absolute;
+                left: 50%;
+                top: 974px;
+                width: 760px;
+                margin-left: -380px;
+                padding: 10px 0 26px;
+                background: #f5c542;
+                color: #05080f;
+                border-radius: 26px;
+                text-align: center;
+                box-shadow:
+                    inset 0 0 0 10px #f5c542,
+                    inset 0 0 0 20px #05080f,
+                    0 0 0 6px #05080f,
+                    0 20px 0 rgba(0, 0, 0, 0.4);
+            }
+            .plate b {
+                display: block;
+                font-weight: 400;
+                font-size: 270px;
+                line-height: 0.92;
+            }
+            .plate span {
+                display: block;
+                font-size: 92px;
+                line-height: 0.9;
+                letter-spacing: 0.02em;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1436px;
+                text-align: center;
+                font:
+                    400 21px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.13em;
+                color: #b8c4d2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg">
+            <div class="sky"></div>
+            <div class="beam"></div>
+        </div>
+        <div class="pole"></div>
+        <div class="diamond"></div>
+        <canvas id="beast"></canvas>
+        <div class="plate"><b id="pct"></b><span id="plate"></span></div>
+        <div class="bg"><div class="vig"></div></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"sprite":"grizzly","pct":27,"plate":"OF RUNS END HERE","build":14,"date":"6 OCT","note":"GRIZZLIES ENDED 19 OF THE 70 RUNS THAT ENDED ON BUILD #14 · VERIFIED RUNS"}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').innerHTML = `<i></i>BUILD #${D.build} · ${D.date}`;
+            // the killer's own sprite, as the black figure on the sign
+            const tmp = document.createElement('canvas');
+            put(tmp, D.sprite, 2000, { max: 10, glow: false });
+            const c = $('beast');
+            c.width = tmp.width;
+            c.height = tmp.height;
+            const x = c.getContext('2d');
+            x.drawImage(tmp, 0, 0);
+            x.globalCompositeOperation = 'source-in';
+            x.fillStyle = '#05080f';
+            x.fillRect(0, 0, c.width, c.height);
+            c.style.marginLeft = -c.width / 2 + 'px';
+            c.style.top = Math.round(536 - c.height / 2) + 'px';
+            $('pct').textContent = D.pct + '%';
+            $('plate').textContent = D.plate;
+            $('small').textContent = D.note;
+            window.ready = true;
+        </script>
+    </body>
+</html>

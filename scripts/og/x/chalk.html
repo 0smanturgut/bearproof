@@ -1,0 +1,247 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* What broke on the night of Build #15, as a crime scene. The Exit Scammer spawns on its own clock, so a
+               test that had switched every other bear off still got one at 3:00: it walked up to the test's idle
+               bull and killed it, the test's loop waited on a run that had ended, and the first full run of the suite
+               hung until its time limit (devlog/build-15.md, "Tests"). The chalk line is the outline of the game's
+               own bull sprite; the scammer leaving the frame is the game's own sprite too. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #0a0f19;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .floor {
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(rgba(255, 255, 255, 0.04) 2px, transparent 2px) 0 0 / 75px 75px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 2px, transparent 2px) 0 0 /
+                        75px 75px,
+                    radial-gradient(ellipse 60% 44% at 46% 52%, #1b2436, #0a0f19 75%);
+            }
+            #scene {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .vig {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    ellipse 80% 72% at 46% 52%,
+                    transparent 46%,
+                    rgba(0, 0, 0, 0.82) 100%
+                );
+            }
+            .tape {
+                position: absolute;
+                height: 74px;
+                width: 1700px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 60px;
+                line-height: 70px;
+                letter-spacing: 0.06em;
+                white-space: nowrap;
+                overflow: hidden;
+                box-shadow:
+                    inset 0 6px 0 #05080f,
+                    inset 0 -6px 0 #05080f,
+                    0 14px 30px rgba(0, 0, 0, 0.55);
+            }
+            .tape.a {
+                left: -180px;
+                top: 262px;
+                transform: rotate(-8deg);
+            }
+            .tape.b {
+                left: -260px;
+                top: 1236px;
+                transform: rotate(5deg);
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #ff3b5c;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #ff3b5c,
+                    0 0 40px rgba(255, 59, 92, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            .mk {
+                position: absolute;
+                width: 78px;
+                height: 92px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 84px;
+                line-height: 88px;
+                text-align: center;
+                clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
+                filter: drop-shadow(10px 12px 0 rgba(0, 0, 0, 0.5));
+            }
+            #thief,
+            #candle {
+                position: absolute;
+            }
+            #thief {
+                filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.45));
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1436px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.14em;
+                color: #b8c4d2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="floor"></div>
+        <canvas id="scene" width="1200" height="1500"></canvas>
+        <canvas id="candle"></canvas>
+        <canvas id="thief"></canvas>
+        <div class="vig"></div>
+        <div class="tape a" id="t1"></div>
+        <div class="tape b" id="t2"></div>
+        <div class="mk" style="left: 196px; top: 866px">1</div>
+        <div class="mk" style="left: 742px; top: 1010px">2</div>
+        <div class="mk" style="left: 800px; top: 520px">3</div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>BUILD #15</div>
+        </div>
+        <div class="small">
+            THE AI'S NEW THIEF KILLED A TEST BULL AT 3:00 · THE TEST WAITED FOREVER
+        </div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('t1').textContent = $('t2').textContent = ' TEST SUITE · DO NOT CROSS ·'.repeat(8);
+
+            // the chalk line: every edge pixel of the bull's own sprite, one block each
+            const one = document.createElement('canvas');
+            put(one, 'bull', 2000, { max: 1, glow: false });
+            const w = one.width,
+                h = one.height;
+            const px = one.getContext('2d').getImageData(0, 0, w, h).data;
+            const on = (x, y) => x >= 0 && y >= 0 && x < w && y < h && px[(y * w + x) * 4 + 3] > 40;
+            const c = $('scene').getContext('2d');
+            const K = 19;
+            let seed = 15;
+            const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+            c.save();
+            c.translate(520, 800);
+            c.rotate(-0.32);
+            c.translate((-w * K) / 2, (-h * K) / 2);
+            for (let y = -1; y <= h; y++)
+                for (let x = -1; x <= w; x++) {
+                    if (on(x, y)) {
+                        // a faint dusting inside the line
+                        c.fillStyle = 'rgba(232,237,243,0.035)';
+                        c.fillRect(x * K, y * K, K, K);
+                        continue;
+                    }
+                    if (!(on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1))) continue;
+                    c.fillStyle = `rgba(232,237,243,${0.72 + rnd() * 0.28})`;
+                    c.fillRect(x * K + 2, y * K + 2, K - 4, K - 4);
+                    if (rnd() < 0.35) {
+                        c.fillStyle = 'rgba(232,237,243,0.25)';
+                        c.fillRect(x * K - 3 + rnd() * 6, y * K - 3 + rnd() * 6, K, K);
+                    }
+                }
+            c.restore();
+
+            // sneaker prints, from the body to where the thief is leaving
+            const from = [640, 760],
+                to = [1050, 560];
+            const ang = Math.atan2(to[1] - from[1], to[0] - from[0]);
+            for (let i = 0; i < 9; i++) {
+                const t = (i + 0.5) / 9;
+                const side = i % 2 ? 1 : -1;
+                const x = from[0] + (to[0] - from[0]) * t + Math.cos(ang + Math.PI / 2) * 22 * side,
+                    y = from[1] + (to[1] - from[1]) * t + Math.sin(ang + Math.PI / 2) * 22 * side;
+                c.save();
+                c.translate(x, y);
+                c.rotate(ang + Math.PI / 2);
+                c.fillStyle = `rgba(244,248,251,${0.85 - t * 0.35})`;
+                c.fillRect(-9, -20, 18, 24);
+                c.fillRect(-8, 8, 16, 12);
+                c.restore();
+            }
+            // what it dropped, and the thief itself on its way out of the picture
+            const cd = $('candle');
+            put(cd, 'xp_candle_big', 2000, { max: 7, glow: false });
+            cd.style.left = '820px';
+            cd.style.top = '1010px';
+            cd.style.transform = 'rotate(74deg)';
+            const th = $('thief');
+            put(th, 'exit_scam', 2000, { max: 9, glow: false });
+            th.style.left = 1200 - th.width + 44 + 'px';
+            th.style.top = '372px';
+            th.style.transform = 'scaleX(1)';
+            window.ready = true;
+        </script>
+    </body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The Build #17 ballot as an arcade cabinet's control panel: three big buttons, one per option.
+               Options: agent/proposals/build-16.json (MEV Sandwich, Buy the Dip, Horns Uppercut). None of the three
+               is in the game yet, and the image says so. The vote closes 21:00 UTC. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .panel {
+                position: absolute;
+                inset: 0;
+                background:
+                    repeating-linear-gradient(
+                        135deg,
+                        rgba(255, 255, 255, 0.025) 0 6px,
+                        transparent 6px 26px
+                    ),
+                    linear-gradient(180deg, #151d30, #0a101c);
+            }
+            .vig {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    ellipse 84% 76% at 50% 50%,
+                    transparent 52%,
+                    rgba(0, 0, 0, 0.8) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 170px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 230px;
+                line-height: 0.84;
+                text-shadow: 10px 10px 0 #05080f;
+            }
+            h1 span {
+                color: #f5c542;
+            }
+            .row {
+                position: absolute;
+                left: 70px;
+                right: 70px;
+                height: 250px;
+                display: flex;
+                align-items: center;
+                gap: 44px;
+                padding: 0 40px;
+                background: rgba(5, 8, 15, 0.55);
+                box-shadow:
+                    inset 0 0 0 5px #24304a,
+                    0 12px 0 rgba(0, 0, 0, 0.35);
+            }
+            .btn {
+                flex: none;
+                width: 190px;
+                height: 190px;
+                border-radius: 50%;
+                background:
+                    radial-gradient(circle at 36% 30%, #fff8 0 12%, transparent 13%),
+                    radial-gradient(circle at 50% 44%, var(--c) 0 62%, var(--d) 63% 100%);
+                box-shadow:
+                    0 0 0 12px #05080f,
+                    0 0 0 20px #3b4558,
+                    0 16px 0 20px rgba(0, 0, 0, 0.45),
+                    0 0 70px var(--c);
+            }
+            .name {
+                font-size: 132px;
+                line-height: 0.84;
+                padding-bottom: 14px;
+                letter-spacing: 0.01em;
+                text-shadow: 7px 7px 0 #05080f;
+            }
+            .foot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1318px;
+                text-align: center;
+                font-size: 100px;
+                line-height: 1;
+                text-shadow: 7px 7px 0 #05080f;
+            }
+            .foot span {
+                color: #f5c542;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1440px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.2em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="panel"></div>
+        <div class="vig"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>VOTE · BUILD #17</div>
+        </div>
+        <h1>PRESS <span>ONE</span></h1>
+        <div class="row" style="top: 420px">
+            <div class="btn" style="--c: #ff3b5c; --d: #8f1029"></div>
+            <div class="name">MEV<br />SANDWICH</div>
+        </div>
+        <div class="row" style="top: 710px">
+            <div class="btn" style="--c: #16e08a; --d: #0a7a4a"></div>
+            <div class="name">BUY<br />THE DIP</div>
+        </div>
+        <div class="row" style="top: 1000px">
+            <div class="btn" style="--c: #f5c542; --d: #9a7412"></div>
+            <div class="name">HORNS<br />UPPERCUT</div>
+        </div>
+        <div class="foot">CLOSES <span>21:00 UTC</span></div>
+        <div class="small">HOLDERS VOTE · NONE OF THESE THREE IS IN THE GAME YET</div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put(document.getElementById('mark'), 'emblem', 2000, { max: 4, glow: false });
+            window.ready = true;
+        </script>
+    </body>
+</html>

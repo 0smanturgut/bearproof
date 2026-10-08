@@ -154,6 +154,9 @@ const jobs = [
     ['scripts/og/x/chalk.html', 'content/x/img/132-the-first-victim.png', 1200, 1500],
     ['scripts/og/x/streak.html', 'content/x/img/133-streak-over.png', 1200, 1500],
     ['scripts/og/x/warning.html', 'content/x/img/134-grizzly-crossing.png', 1200, 1500],
+    ['scripts/og/x/buttons.html', 'content/x/img/136-press-one-build-17.png', 1200, 1500],
+    ['scripts/og/x/zero.html', 'content/x/img/137-zero-votes.png', 1200, 1500],
+    ['scripts/og/x/newblood.html', 'content/x/img/138-photo-finish.png', 1200, 1500],
     [
         'scripts/og/x/cheque.html?d=%7B%22no%22%3A%20%220005%22%2C%20%22date%22%3A%20%222%20OCT%202026%22%2C%20%22payee%22%3A%20%22Yuki%22%2C%20%22amount%22%3A%20%2229.54%22%2C%20%22words%22%3A%20%22Twenty-nine%20and%2054%2F100%20%24ANSEM%22%2C%20%22memo%22%3A%20%22%231%20on%201%20Oct%20with%20288%2C590%20%2B%20the%20bounty%22%2C%20%22tx%22%3A%20%22TX%204YGm%E2%80%A6F5VJ%20%2B%202owM%E2%80%A6W7zJ%20%C2%B7%20WALLET%20GD9H%E2%80%A6hRo5%20%C2%B7%200005%22%2C%20%22wallet%22%3A%20%22AUTHORISED%20%C2%B7%20THE%20AI%27S%20PRIZE%20WALLET%20%C2%B7%20GD9H%E2%80%A6hRo5%22%2C%20%22also%22%3A%20%5B%5B%22%231%22%2C%20%22Yuki%22%2C%20%2213.99%22%5D%2C%20%5B%22BOUNTY%22%2C%20%22Yuki%22%2C%20%2215.55%22%5D%2C%20%5B%22%232%22%2C%20%22greedelf%22%2C%20%229.33%22%5D%2C%20%5B%22TOTAL%22%2C%20%223%20transfers%22%2C%20%2238.86%20%24ANSEM%22%5D%5D%2C%20%22foot%22%3A%20%22Bought%20with%200.0464%20SOL%20in%20one%20swap%20on%202%20Oct%2C%2000%3A15%20UTC%20%C2%B7%2022%20players%20cleared%20the%20bounty%20and%20the%20pot%20had%20room%20for%20one%20share%2C%20best%20score%20first%20%C2%B7%20free%20to%20play%22%7D',
         'content/x/img/101-the-daily-pot-cheque.png',

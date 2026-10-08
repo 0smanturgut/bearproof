@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The night nobody voted: one big zero. /api/vote/result for the 7 Oct poll (Build #16): 0 wallets, so
+               the Build Agent picked from its own proposals. ?n=<wallets> ?b=<build> ?d=<date>. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .bg {
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 / 60px 60px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 /
+                        60px 60px,
+                    radial-gradient(
+                        ellipse 60% 44% at 50% 48%,
+                        rgba(255, 59, 92, 0.2),
+                        transparent 70%
+                    );
+            }
+            .vig {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    ellipse 80% 74% at 50% 50%,
+                    transparent 52%,
+                    rgba(0, 0, 0, 0.8) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                background: #ff3b5c;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #ff3b5c,
+                    0 0 40px rgba(255, 59, 92, 0.5);
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            .n {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 150px;
+                text-align: center;
+                font-size: 1100px;
+                line-height: 0.9;
+                color: #ff3b5c;
+                text-shadow:
+                    22px 22px 0 #3d0a16,
+                    0 0 120px rgba(255, 59, 92, 0.45);
+            }
+            .l {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1120px;
+                text-align: center;
+                font-size: 230px;
+                line-height: 0.86;
+                text-shadow: 10px 10px 0 #101826;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1420px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.16em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg"></div>
+        <div class="vig"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <div class="n" id="n"></div>
+        <div class="l">VOTES</div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const q = new URLSearchParams(location.search);
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').innerHTML = `<i></i>${q.get('d') || '7 OCT'} · BUILD #${q.get('b') || 16}`;
+            $('n').textContent = q.get('n') || '0';
+            $('small').textContent = 'NOBODY VOTED, SO THE AI PICKED THE BUILD ITSELF';
+            window.ready = true;
+        </script>
+    </body>
+</html>

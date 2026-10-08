@@ -1,0 +1,17 @@
+[
+    {
+        "id": "bear-raid",
+        "title": "Bear Raid",
+        "description": "From 5:00, red arrows flash on one edge, then a wall of grizzlies charges straight across the screen with one gap in the line: find it or get trampled (grizzlies already end 31% of runs)."
+    },
+    {
+        "id": "liquidation-cascade",
+        "title": "Liquidation Cascade",
+        "description": "Kill 30 bears inside 5 s and for the next 3 s every kill pops in a small blast that chains through the crowd, with a combo counter climbing on screen."
+    },
+    {
+        "id": "hodl-hamster",
+        "title": "The Hodl Hamster",
+        "description": "A new playable character: an original hamster that starts with a spinning wheel that rolls over bears around it, with more HP and slower feet (Pepe played 83% of Build #16's runs)."
+    }
+]

@@ -218,6 +218,17 @@ export class AudioEngine {
                 this.tone({ freq: f, dur: 0.6, type: 'triangle', volume: 0.08, release: 0.3 });
         }, 300);
     }
+    /** Buy the Dip: the chart drops (a falling note), then bounces back up in a quick bright V. */
+    dip() {
+        this.tone({ freq: 880, dur: 0.16, type: 'square', volume: 0.09, sweep: -520 });
+        setTimeout(() => this.tone({ freq: 440, dur: 0.1, type: 'triangle', volume: 0.16 }), 170);
+        setTimeout(() => this.tone({ freq: 660, dur: 0.1, type: 'triangle', volume: 0.18 }), 250);
+        setTimeout(() => this.tone({ freq: 990, dur: 0.22, type: 'triangle', volume: 0.2 }), 330);
+    }
+    /** A kill inside the dip heals: a tiny rising blip. */
+    dipHeal() {
+        this.tone({ freq: 700, dur: 0.05, type: 'sine', volume: 0.07, sweep: 500 });
+    }
     /** Pump and Dump pops: a sharp balloon crack, then the chart deflating (a falling whistle). */
     dump() {
         this.tone({ noise: true, dur: 0.05, volume: 0.24, release: 0.04 });

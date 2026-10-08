@@ -575,6 +575,23 @@ export class Game {
                     this._sfx('godCandle', 0);
                     if (!this.attract) this.haptics.bossSpawn();
                     break;
+                case 'dip':
+                    // Buy the Dip: the window and its countdown ring are drawn from sim state (render.js)
+                    fx.ring(p.x, p.y, 10, 160, 0.5, '22,224,138', 6, true);
+                    fx.burst(p.x, p.y, '#7BF5A6', 18, 280, 3, 'spark');
+                    fx.addFlash('22,224,138', 0.3, 2);
+                    fx.number(p.x, p.y - 48, 'BUY THE DIP', 'info');
+                    this._sfx('dip', 0);
+                    if (!this.attract) {
+                        this.ui.toast('BUY THE DIP: KILLS HEAL', 'bull', 1800);
+                        this.haptics.levelUp();
+                    }
+                    break;
+                case 'dipHeal':
+                    fx.ping(e.x, e.y, '22,224,138');
+                    if (e.v > 0) fx.number(p.x, p.y - 34, `+${Math.round(e.v) || 1}`, 'heal');
+                    this._sfx('dipHeal', 0.05);
+                    break;
                 case 'crateGone':
                     fx.burst(e.x, e.y, 'rgba(255,59,92,', 6, 70, 10, 'smoke');
                     fx.number(e.x, e.y - 20, 'LOOTED BY BEARS', 'info');

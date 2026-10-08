@@ -47,8 +47,9 @@ import { Weapon } from './weapons.js';
  * wipes every bear near the bull). 11: Pump and Dump (a bear from 2:30 that swells and pops into red candles).
  * 12: Liquidation Warning (charge bosses crouch 1 s over a marked landing spot, and never jump past the bull).
  * 13: Exit Scam (from 3:00 a scammer pockets loose candles and runs; kill it and the bag spills out).
- * 14: Bear Spray (a new weapon in the level-up pool: a cone that shoves bears and breaks shields). */
-export const SIM_VERSION = 14;
+ * 14: Bear Spray (a new weapon in the level-up pool: a cone that shoves bears and breaks shields).
+ * 15: Buy the Dip (under 30% HP, kills heal for 5 s, once a minute). */
+export const SIM_VERSION = 15;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -89,6 +90,8 @@ export class Simulation {
         this.whale = null;
         this.whalePlan = null; // { dir, lane, spawned } once the alert has gone out
         this.nextScamAt = SIM.SCAM_FIRST;
+        this.dipUntil = 0; // Buy the Dip: kills heal while time < dipUntil
+        this.dipReadyAt = 0; // and it can't fire again before this
         this.delayed = [];
         this.spatial = new SpatialHash(64);
 
@@ -113,7 +116,9 @@ export class Simulation {
             crates: 0,
             scamsBusted: 0, // Exit Scam: scammers killed with something in the bag
             scamsEscaped: 0,
-            shieldsBroken: 0 // Bear Spray
+            shieldsBroken: 0, // Bear Spray
+            dips: 0, // Buy the Dip: windows opened
+            dipHealed: 0 // and the HP they gave back
         };
         this.events = [];
     }
@@ -167,6 +172,7 @@ export class Simulation {
         this._spawn(dt);
         this._exitScam();
         if (p.dead) return this._end('liquidated');
+        this._buyTheDip();
 
         if (this.tick % SIM.TICK_RATE === 0) this.stats.score += SIM.SCORE_PER_SECOND;
         if (this.won) return this._end('won');
@@ -305,6 +311,7 @@ export class Simulation {
                 this.stats.score += e.exp;
                 this.xp.push(new XpOrb(e.x, e.y, e.exp));
             }
+            if (this.time < this.dipUntil) this._dipHeal(e);
         }
         this.emit({ t: 'kill', x: e.x, y: e.y, id: e.id, boss: e.boss, self: !!e.selfDestructed });
         if (e.boss) {
@@ -331,6 +338,26 @@ export class Simulation {
         }
         if (e.def.pumper) this._dump(e, born);
         if (e.def.thief && e.bagCount > 0) this._spillBag(e);
+    }
+
+    /** Buy the Dip: under DIP_AT of max HP, open a DIP_TIME s window where kills heal (once per DIP_COOLDOWN s). */
+    _buyTheDip() {
+        const p = this.player;
+        if (this.time < this.dipReadyAt || p.hp >= p.maxHp * SIM.DIP_AT) return;
+        this.dipUntil = this.time + SIM.DIP_TIME;
+        this.dipReadyAt = this.time + SIM.DIP_COOLDOWN;
+        this.stats.dips++;
+        this.emit({ t: 'dip', x: p.x, y: p.y, in: SIM.DIP_TIME });
+    }
+
+    /** A kill inside the Buy the Dip window heals the bull. `v` is what it actually gave back (0 at full HP). */
+    _dipHeal(e) {
+        const p = this.player;
+        const before = p.hp;
+        p.heal(SIM.DIP_HEAL);
+        const v = p.hp - before;
+        this.stats.dipHealed += v;
+        this.emit({ t: 'dipHeal', x: e.x, y: e.y, px: p.x, py: p.y, v });
     }
 
     /** Exit Scam busted: the whole bag spills out as a ring of candles around the body. */

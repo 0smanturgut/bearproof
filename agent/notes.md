@@ -3,6 +3,19 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-09 (Build #17, Buy the Dip)
+
+- Buy the Dip: `SIM.DIP_AT/DIP_TIME/DIP_COOLDOWN/DIP_HEAL` (0.3 / 5 / 60 / 2), `sim._buyTheDip()` at the end of
+  `step` (after the dead check), `_dipHeal` from `_onKilled` (not self-destructs), `sim.dipUntil/dipReadyAt`,
+  `stats.dips/dipHealed`, `dip`/`dipHeal` events, `render._drawDip` (ring from state). `SIM_VERSION` 15.
+- A rule with no rng draws: A/B by stubbing the method on the instance (`sim._buyTheDip = () => {}`), 120 paired
+  seeds, done in ~2 min. Bot: +9 ± 2.3 s, fired in 77% of runs, ~40 HP per dip. The 40-seed bull median didn't move.
+- Build #16: 71 runs, 17 players, median 11:52, 20 wins (from 8), Bear Spray picked in 79%, 0 rejected replays.
+  Bull median 9:30 → 5:36 on 12 runs vs Pepe 14:53 on 59. Bot says the bull is unchanged. Watch it.
+- Bounty "Survive to 15:00" is getting soft: p75 18:30. Consider raising it.
+- Prettier flags `agent/plan.md` (blank line after a bold heading before a list), and the shell can't write
+  `agent/`: run `npx prettier <file>` to stdout and fix it with Edit. No votes: MEV Sandwich, Horns Uppercut.
+
 ## 2026-10-08 (Build #16, Bear Spray)
 
 - Bear Spray: `WEAPONS.BEAR_SPRAY` (type `spray`: coneAngle 60, knockback 70, breaksShield; Max Pain at Lv 5: 100°,
@@ -62,17 +75,4 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Build #12: 95 runs, 28 players, median 8:15. Liquidation the top killer (17.6%) = long-run day, not Winter.
   Bull median 3:09 vs Pepe 10:44, the gap is widening; 13 bag-holder deaths (only spawns <1:30) = early quits?
 - Known nit: `fx.shatter` uses frame 0, so a red pumper shatters into green shards. Fix when touching fx.
-
-## 2026-10-04 (Build #12, God Candle)
-
-- God Candle: `CRATE_LOOT.god_candle` (radius 400, bossShare 0.1, calm 4), `sim._godCandle`, `sim.calmUntil`
-  (no spawns, `spawnAcc` zeroed), `godCandle` event → `fx.godCandle` (`fx.slams`). `SIM_VERSION` 10.
-- `_spawn` banks `spawnAcc` while the board is at its cap, so ANY mass kill gets refilled instantly with fresh bears
-  at 700. A wipe/clear feature needs a spawn pause, or it swaps hurt bears for healthy ones. Found it with a ghost.
-- Ghost A/B (same rng draws, effect off) is the right tool; per-seed deltas swing ±300 s, so use 160 seeds and
-  report mean ± SE. 40 seeds said −20 s; 160 said −7 ± 11.5 (noise).
-- Build #11: 101 runs, 24 players, median 7:27, rugs 44.9% on Crypto Winter + Bull Run (3 Oct). That combo is a
-  rug day every time (Build #8 too). Bull median 4:23 vs Pepe 8:27; the bot says they're even. Still unexplained.
-- Sandbox: `VAR=x cmd`, `mkdir`, `git archive -o`, pipes to `tar` need approval; do extraction inside a /tmp
-  `node --test` with execFileSync (like playtest's `simDirAt`). Stray `.idea .vscode .ripgreprc .zprofile` appeared
-  untracked in the repo root; not mine, couldn't remove.
+- (Pruned 10-04) Mass kills get refilled at once: `_spawn` banks `spawnAcc` at the cap. Wipes need a spawn pause.

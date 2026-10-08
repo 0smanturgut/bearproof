@@ -1,34 +1,28 @@
-# Build #16 plan: Bear Spray
+# Build #17 plan: Buy the Dip
 
-**Feature.** A new weapon for every character, Bear Spray: every 1.4 s it fires a short cone of orange pepper at the
-nearest bear (150 reach, 60° wide). Every bear in the cone takes damage and is knocked back about 70 (bosses don't
-budge). A grizzly hit by the spray loses its whole shield at once ("SHIELD BROKEN"), so the spray hit and everything
-after it land at full damage. At Lv 5 it evolves into **Max Pain**: a 100° cone, and sprayed bears move 40% slower
-for 1.5 s.
+**Feature.** Holder vote winner (1 wallet voted). When the bull drops under 30% HP, the screen flashes
+BUY THE DIP: for 5 s every kill heals him. Once it fires it can't fire again for 60 s. Works for every character.
 
-**Why today.** There was no holder vote for Build #16 (`vote: null`), so it's my call (`chosenBy: agent`). Backlog
-#1 (Rug Lord's second phase) and several others have shipped, so I'm taking my top proposal from last night. The data
-backs it: on Build #15, grizzlies ended 21 of 60 runs with a known cause (35%), up from 28.2% on Build #14, and they've
-been the #1 killer two builds running. The bot shows the same: grizzlies cause 61% of its deaths.
+**Why today.** It won the vote. The data fits: grizzlies (31.4%) and rug pullers (27.5%) ended 59% of Build #16's
+runs with a known cause, and those deaths happen in a crowd, which is exactly when a kill-heal window pays.
 
-**Regression check.** Build #15 (66 runs, 18 players) vs #14 (77 runs, 19 players): median 6:04 → 9:21, p75
-10:32 → 15:43, boss kills per run 1.06 → 1.45, wins 6 → 6. Grizzly share 28.2 → 35% (20 → 21 runs: the count is
-flat, the share rose because fewer deaths had other causes). 1 rejected replay (was 0). `playtest --compare build-14`: 3:40 → 4:12,
-grizzlies 53 → 61% of bot deaths. Exit Scam isn't in the top six killers. Nothing broken that I can find. I can't
-inspect the one rejected replay, but the determinism gate covers the scammer.
+**Regression check first.** Build #16 vs #15: median 9:34 → 11:52, wins 8 → 20, rejected replays 1 → 0, Bear Spray
+picked in 79% of runs. `playtest --compare build-15`: 4:12 → 4:14 (same as yesterday). Nothing to fix.
 
-**Files.**
+**Design (sim, no rng draws).**
 
-- `game/src/sim/content.js`: `WEAPONS.BEAR_SPRAY` (type `spray`).
-- `game/src/sim/weapons.js`: `_spray` (cone, knockback, shield break, evolved slow).
-- `game/src/sim/entities.js`: `Enemy.knock(...)`, knockback velocity in `update`.
-- `game/src/sim/sim.js`: `breakShield`, `SIM_VERSION` 14.
-- `game/src/art/materials.js` (an orange `pepper` ramp), `icons.js` + `sprites.js`: the `bear_spray` icon.
-- `game/src/fx.js` (`spray` particles), `game.js` (events), `audio.js` (hiss, shield shatter).
-- `game/test/bear-spray.test.js`; `twist.test.js` SIM_VERSION pin.
+- `SIM.DIP_AT` 0.3 (share of max HP), `DIP_TIME` 5, `DIP_COOLDOWN` 60, `DIP_HEAL` (HP per kill, tune with the bot).
+- `sim._buyTheDip()` each tick after damage: opens the window (`dipUntil`, `dipReadyAt`), emits `dip`.
+- `_onKilled`: inside the window, a real kill (not a self-destruct) heals and emits `dipHeal`.
+- `stats.dips`, `stats.dipHealed`. `SIM_VERSION` 15.
 
-**Tests.** It's a weapon every character can be offered; it hits bears in the cone and misses ones behind the bull
-or out of reach; hit bears are pushed away by the knockback, bosses aren't; a grizzly's shield is gone after one spray
-and the hit lands at full damage; the evolved cone is wider and slows; a bot run with the spray replays bit for bit.
-Then a /tmp bot that forces the spray to count shield breaks, playtest --compare origin/main, smoke shots,
-determinism.
+**Client.** `dip` event → toast + green flash + sound + haptic; `dipHeal` → green "+N" over the bull; a green
+pulsing ring around the bull while `sim.dipUntil > sim.time` (drawn from state); a countdown bar under the HP bar
+if cheap. Field Guide line if there's a rules section.
+
+**Files.** `game/src/sim/content.js`, `game/src/sim/sim.js`, `game/src/game.js`, `game/src/render.js`,
+`game/src/audio.js`, `game/test/buy-the-dip.test.js`, `game/test/twist.test.js` (version pin).
+
+**Tests.** Triggers under 30% and not above; heals per kill only inside 5 s; no re-trigger inside 60 s, re-triggers
+after; self-destructs don't heal; heal capped at max HP; bot runs replay bit for bit. Then a paired A/B (rule on vs
+off) on the bot, playtest vs origin/main, smoke shots, gates.

@@ -374,6 +374,8 @@ export class Renderer {
             this._drawCrateFalling(c, X(c.x), Y(c.y), t, fx.calm, glows);
         }
         this._drawLoot(p, X(p.x), Y(p.y), t);
+        if (sim.dipUntil > sim.time)
+            this._drawDip(sim.dipUntil - sim.time, X(p.x), Y(p.y), t, fx.calm);
 
         // --- bloom pass: everything that glows, in one additive batch
         ctx.globalCompositeOperation = 'lighter';
@@ -848,6 +850,41 @@ export class Renderer {
             ctx.setLineDash([]);
             ctx.globalCompositeOperation = 'source-over';
         }
+    }
+
+    /** Buy the Dip: a green glow on the bull, a ring that runs down with the window, and green pluses rising off
+     * him (still under reduced motion). `left`: seconds of the window left. */
+    _drawDip(left, sx, sy, t, calm) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const frac = Math.min(1, left / SIM.DIP_TIME);
+        const pulse = calm ? 0 : Math.sin(t * 9);
+        const r = (SIM.PLAYER_SIZE + 26) * s;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.4 + 0.12 * pulse;
+        const g = (r + 10 * s) * 1.2;
+        ctx.drawImage(this._blob('22,224,138'), sx - g, sy - g, g * 2, g * 2);
+        ctx.globalAlpha = 1;
+        // the countdown: a full ring at the start, gone when the window closes
+        ctx.strokeStyle = 'rgba(123,245,166,0.9)';
+        ctx.lineWidth = Math.max(2, s * 3);
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
+        ctx.stroke();
+        if (!calm) {
+            ctx.fillStyle = 'rgba(190,255,214,0.9)';
+            const u = Math.max(1, Math.round(2 * s));
+            for (let i = 0; i < 4; i++) {
+                const ph = (t * 0.9 + i / 4) % 1;
+                const px = sx + Math.cos(i * 2.1 + 0.6) * r * 0.75;
+                const py = sy + r * 0.4 - ph * r * 1.6;
+                ctx.globalAlpha = 1 - ph;
+                ctx.fillRect(Math.round(px - u * 1.5), Math.round(py - u / 2), u * 3, u);
+                ctx.fillRect(Math.round(px - u / 2), Math.round(py - u * 1.5), u, u * 3);
+            }
+            ctx.globalAlpha = 1;
+        }
+        ctx.globalCompositeOperation = 'source-over';
     }
 
     // ---------------------------------------------------------------- weapons

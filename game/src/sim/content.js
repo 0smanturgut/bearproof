@@ -70,7 +70,13 @@ export const SIM = Object.freeze({
     WHALE_CANDLE: 12,
     // Exit Scam: the first scammer walks in at 3:00, then one every SCAM_EVERY s (see ENEMIES.EXIT_SCAM).
     SCAM_FIRST: 180,
-    SCAM_EVERY: 45
+    SCAM_EVERY: 45,
+    // Buy the Dip: under DIP_AT of max HP, every kill heals DIP_HEAL for DIP_TIME s; then not again for
+    // DIP_COOLDOWN s (counted from the moment it fired).
+    DIP_AT: 0.3,
+    DIP_TIME: 5,
+    DIP_COOLDOWN: 60,
+    DIP_HEAL: 2
 });
 
 // ---------------------------------------------------------------- airdrop crates

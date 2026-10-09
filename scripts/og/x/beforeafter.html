@@ -1,0 +1,296 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas,
+            svg {
+                image-rendering: pixelated;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.1em;
+            }
+            /* Bear Spray's first day, as an old before-and-after advert. Wins in verified runs: Build #15's day and
+               Build #16's day, from /api/insights read just before each build was replaced (devlog/build-16.md and
+               build-17.md carry the same counts). The can is drawn here; the bears and the bull are the game's own
+               sprites. The small print says what the two numbers are: one day each, not a controlled test. ?d=<json> { before, after, runsBefore, runsAfter, pick }. */
+            body {
+                background: #ff8a3c;
+            }
+            .rays {
+                position: absolute;
+                inset: 0;
+                background: repeating-conic-gradient(
+                    from 0deg at 50% 46%,
+                    rgba(255, 255, 255, 0.16) 0 7deg,
+                    transparent 7deg 14deg
+                );
+            }
+            .brand {
+                color: #05080f;
+            }
+            .pill {
+                background: #05080f;
+                color: #ff8a3c;
+            }
+            .pill i {
+                background: #ff8a3c;
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 170px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 236px;
+                line-height: 0.84;
+                color: #05080f;
+                text-shadow: 8px 8px 0 #fff3c4;
+            }
+            .half {
+                position: absolute;
+                top: 596px;
+                width: 520px;
+                height: 640px;
+                box-shadow:
+                    0 0 0 8px #05080f,
+                    14px 18px 0 rgba(5, 8, 15, 0.35);
+                overflow: hidden;
+            }
+            #b {
+                left: 60px;
+                background: linear-gradient(180deg, #3a0c16, #1a060b);
+                transform: rotate(-2deg);
+            }
+            #a {
+                right: 60px;
+                background: linear-gradient(180deg, #0c3a2a, #06140f);
+                transform: rotate(2deg);
+            }
+            .half .tag {
+                position: absolute;
+                left: 0;
+                top: 0;
+                padding: 2px 22px 6px;
+                background: #05080f;
+                font-size: 64px;
+                line-height: 1;
+                letter-spacing: 0.06em;
+            }
+            .half .n {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 86px;
+                text-align: center;
+                font-size: 400px;
+                line-height: 0.9;
+            }
+            #b .n {
+                color: #ff3b5c;
+            }
+            #a .n {
+                color: #16e08a;
+                text-shadow: 0 0 60px rgba(22, 224, 138, 0.5);
+            }
+            .half .w {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 452px;
+                text-align: center;
+                font-size: 92px;
+                line-height: 1;
+            }
+            .half .r {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 34px;
+                text-align: center;
+                font:
+                    400 26px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.14em;
+                color: #b8c4d2;
+            }
+            #can {
+                position: absolute;
+                left: 474px;
+                top: 700px;
+                filter: drop-shadow(10px 14px 0 rgba(5, 8, 15, 0.4));
+            }
+            .burst {
+                position: absolute;
+                left: 50%;
+                top: 1262px;
+                transform: translateX(-50%) rotate(-3deg);
+                padding: 4px 34px 10px;
+                background: #05080f;
+                color: #fff3c4;
+                font-size: 96px;
+                line-height: 1;
+                white-space: nowrap;
+                box-shadow: 10px 10px 0 rgba(5, 8, 15, 0.3);
+            }
+            .burst b {
+                font-weight: 400;
+                color: #ff8a3c;
+            }
+            .small {
+                top: 1436px;
+                color: #05080f;
+                letter-spacing: 0.08em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="rays"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>BEAR SPRAY · DAY ONE</div>
+        </div>
+        <h1>IT WORKS.</h1>
+        <div class="half" id="b">
+            <div class="tag" style="color: #ff3b5c">BEFORE</div>
+            <div class="n" id="nb"></div>
+            <div class="w">WINS</div>
+            <div class="r" id="rb"></div>
+        </div>
+        <div class="half" id="a">
+            <div class="tag" style="color: #16e08a">AFTER</div>
+            <div class="n" id="na"></div>
+            <div class="w">WINS</div>
+            <div class="r" id="ra"></div>
+        </div>
+        <svg
+            id="can"
+            width="252"
+            height="420"
+            viewBox="2 1 9 20"
+            shape-rendering="crispEdges"
+        ></svg>
+        <div class="burst" id="burst"></div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"before":8,"after":22,"runsBefore":69,"runsAfter":75,"pick":"79%"}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('nb').textContent = D.before;
+            $('na').textContent = D.after;
+            $('rb').textContent = `OF ${D.runsBefore} RUNS · BUILD #15`;
+            $('ra').textContent = `OF ${D.runsAfter} RUNS · BUILD #16`;
+            $('burst').innerHTML = `IN <b>${D.pick}</b> OF RUNS ON DAY ONE`;
+            $('small').textContent =
+                'VERIFIED RUNS, ONE DAY EACH · WIN = 20:00 SURVIVED · NOT A CONTROLLED TEST';
+            const rows = [
+                '......................',
+                '......................',
+                '....kkkk..............',
+                '....kddk..............',
+                '...kkddkk.............',
+                '...kOOOOk.............',
+                '...kOOOOk.............',
+                '...kOOOOk.............',
+                '...kwwwwk.............',
+                '...kwrrwk.............',
+                '...kwrrwk.............',
+                '...kwwwwk.............',
+                '...kOOOOk.............',
+                '...kOOOOk.............',
+                '...kOOOOk.............',
+                '...kOOOOk.............',
+                '...kOOOOk.............',
+                '...kQQQQk.............',
+                '...kkkkkk.............'
+            ];
+            const pal = {
+                k: '#05080f',
+                d: '#5b667c',
+                O: '#fff3c4',
+                Q: '#d9c98f',
+                w: '#f4f8fb',
+                r: '#ff3b5c'
+            };
+            let h = '';
+            rows.forEach((row, y) =>
+                [...row].forEach((ch, x) => {
+                    if (pal[ch])
+                        h += `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}" />`;
+                })
+            );
+            $('can').innerHTML = h;
+            window.ready = true;
+        </script>
+    </body>
+</html>

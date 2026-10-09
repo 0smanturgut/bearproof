@@ -1,0 +1,272 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas,
+            svg {
+                image-rendering: pixelated;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.1em;
+            }
+            /* A Daily Challenge winner as a sports trading card. Data: /api/leaderboard?date=<day> (the scores),
+               /api/winners (the days this player won) and the runs table (the best verified Daily score before that
+               day). 8 Oct 2026: Yuki won with 469,657, a new all-time best; the best before that day was Yuki's own
+               395,750 of 7 Oct, and the whole top five of 8 Oct beat it. The crown and the frame are drawn here; the
+               emblem is the game's own. ?d=<json> { date, name, tag, score, rows: [[label, value]], note }. */
+            body {
+                background:
+                    radial-gradient(ellipse 70% 50% at 50% 50%, #17324a, #05080f 72%), #05080f;
+            }
+            .pill {
+                background: #f5c542;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .card {
+                position: absolute;
+                left: 150px;
+                top: 196px;
+                width: 900px;
+                height: 1180px;
+                transform: rotate(-2.5deg);
+                background: linear-gradient(135deg, #ffe58a, #f5c542 30%, #c8961e 60%, #ffe58a);
+                border-radius: 34px;
+                box-shadow:
+                    0 0 0 8px #05080f,
+                    26px 30px 0 rgba(0, 0, 0, 0.5),
+                    0 0 120px rgba(245, 197, 66, 0.35);
+            }
+            .in {
+                position: absolute;
+                inset: 30px;
+                background: linear-gradient(180deg, #0e2a3f 0%, #0a1826 58%, #05080f 100%);
+                border-radius: 16px;
+                box-shadow: inset 0 0 0 6px #05080f;
+                overflow: hidden;
+                color: #f4f8fb;
+            }
+            .shine {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                    115deg,
+                    transparent 30%,
+                    rgba(255, 255, 255, 0.1) 42%,
+                    transparent 54%
+                );
+            }
+            .rk {
+                position: absolute;
+                left: -90px;
+                top: 54px;
+                width: 420px;
+                padding: 2px 0 8px;
+                transform: rotate(-32deg);
+                background: #ff3b5c;
+                color: #05080f;
+                text-align: center;
+                font-size: 76px;
+                line-height: 1;
+                letter-spacing: 0.08em;
+                box-shadow: 0 8px 0 rgba(0, 0, 0, 0.35);
+            }
+            .yr {
+                position: absolute;
+                right: 34px;
+                top: 28px;
+                text-align: right;
+                font:
+                    400 26px/1.3 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.14em;
+                color: #b8c4d2;
+            }
+            #crown {
+                position: absolute;
+                left: 50%;
+                top: 96px;
+                margin-left: -132px;
+                filter: drop-shadow(0 0 40px rgba(245, 197, 66, 0.6));
+            }
+            .nm {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 300px;
+                text-align: center;
+                font-size: 290px;
+                line-height: 0.86;
+                white-space: nowrap;
+                text-shadow: 10px 10px 0 #05080f;
+            }
+            .sc {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 552px;
+                text-align: center;
+                font-size: 150px;
+                line-height: 1;
+                color: #f5c542;
+            }
+            .rows {
+                position: absolute;
+                left: 50px;
+                right: 50px;
+                top: 730px;
+                border-top: 5px solid #f5c542;
+            }
+            .row {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                padding: 22px 6px 24px;
+                border-bottom: 3px dashed rgba(244, 248, 251, 0.22);
+                font-size: 66px;
+                line-height: 1;
+            }
+            .row span {
+                font:
+                    400 27px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.14em;
+                color: #b8c4d2;
+            }
+            .small {
+                top: 1428px;
+                color: #8a97a5;
+                letter-spacing: 0.1em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <div class="card">
+            <div class="in">
+                <div class="shine"></div>
+                <div class="rk" id="rk"></div>
+                <div class="yr" id="yr"></div>
+                <svg
+                    id="crown"
+                    width="264"
+                    height="198"
+                    viewBox="0 0 12 9"
+                    shape-rendering="crispEdges"
+                ></svg>
+                <div class="nm" id="nm"></div>
+                <div class="sc" id="sc"></div>
+                <div class="rows" id="rows"></div>
+            </div>
+        </div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"date":"8 OCT","name":"YUKI","tag":"RECORD","score":"469,657","rows":[["THE OLD RECORD","395,750"],["AHEAD OF #2","24,080"],["DAILY WINS","8"]],"note":"ALL-TIME BEST DAILY SCORE · EVERY RUN RE-PLAYED ON THE SERVER · FREE TO PLAY"}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').innerHTML = `<i></i>DAILY · ${D.date}`;
+            $('rk').textContent = D.tag;
+            $('yr').innerHTML = 'DAILY CHALLENGE<br />#1';
+            $('nm').textContent = D.name;
+            $('sc').textContent = D.score;
+            $('rows').innerHTML = D.rows
+                .map(([a, b]) => `<div class="row"><span>${a}</span>${b}</div>`)
+                .join('');
+            $('small').textContent = D.note;
+            const CROWN = [
+                '.y...yy...y.',
+                '.y...yy...y.',
+                '.yy.yyyy.yy.',
+                '.yyyyyyyyyy.',
+                '.yyyyyyyyyy.',
+                '.yryygyyryy.',
+                '.yyyyyyyyyy.',
+                '.dddddddddd.'
+            ];
+            const pal = { y: '#f5c542', r: '#ff3b5c', g: '#16e08a', d: '#c8961e' };
+            let h = '';
+            CROWN.forEach((row, y) =>
+                [...row].forEach((ch, x) => {
+                    if (pal[ch])
+                        h += `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}" />`;
+                })
+            );
+            $('crown').innerHTML = h;
+            window.ready = true;
+        </script>
+    </body>
+</html>

@@ -1,0 +1,357 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas,
+            svg {
+                image-rendering: pixelated;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 2px 24px 4px 20px;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+            }
+            .pill i {
+                width: 20px;
+                height: 20px;
+                background: #05080f;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.1em;
+            }
+            /* The Build #18 ballot as three tarot cards on a reader's cloth. Options: agent/proposals/build-17.json
+               (Bear Raid, Liquidation Cascade, The Hodl Hamster). The grizzlies and the candles are the game's own
+               sprites; the hamster is drawn here, because it isn't in the game. None of the three is in the game yet,
+               and the image says so. The vote closes 21:00 UTC. */
+            body {
+                background:
+                    radial-gradient(ellipse 70% 50% at 50% 52%, #3a1458, #14081f 70%), #14081f;
+            }
+            .stars {
+                position: absolute;
+                inset: 0;
+            }
+            .pill {
+                background: #f5c542;
+                box-shadow:
+                    0 0 0 4px #14081f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 176px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 216px;
+                line-height: 0.9;
+                letter-spacing: 0.02em;
+                color: #f5c542;
+                text-shadow:
+                    8px 8px 0 #14081f,
+                    0 0 60px rgba(245, 197, 66, 0.4);
+            }
+            .card {
+                position: absolute;
+                top: 452px;
+                width: 348px;
+                height: 760px;
+                background: linear-gradient(180deg, #f6ecd2, #e6d6ae);
+                border-radius: 22px;
+                box-shadow:
+                    inset 0 0 0 8px #14081f,
+                    inset 0 0 0 14px #c8961e,
+                    0 24px 0 rgba(0, 0, 0, 0.45),
+                    0 0 70px rgba(245, 197, 66, 0.25);
+                color: #14081f;
+            }
+            .card .no {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 30px;
+                text-align: center;
+                font-size: 78px;
+                line-height: 1;
+                letter-spacing: 0.08em;
+            }
+            .card .art {
+                position: absolute;
+                left: 30px;
+                right: 30px;
+                top: 118px;
+                height: 440px;
+                overflow: hidden;
+                box-shadow: inset 0 0 0 5px #14081f;
+            }
+            .card .art canvas,
+            .card .art svg {
+                position: absolute;
+            }
+            .card .nm {
+                position: absolute;
+                left: 12px;
+                right: 12px;
+                top: 572px;
+                height: 160px;
+                display: grid;
+                place-items: center;
+                text-align: center;
+                font-size: 82px;
+                line-height: 0.82;
+                letter-spacing: 0.01em;
+            }
+            #c1 {
+                left: 50px;
+                transform: rotate(-4deg);
+            }
+            #c2 {
+                left: 426px;
+                top: 432px;
+            }
+            #c3 {
+                left: 802px;
+                transform: rotate(4deg);
+            }
+            #c1 .art {
+                background: linear-gradient(180deg, #2a0810, #5a0f1e);
+            }
+            #c2 .art {
+                background: radial-gradient(circle at 50% 50%, #5a3a00, #1a1204 75%);
+            }
+            #c3 .art {
+                background: linear-gradient(180deg, #0c3a2a, #06140f);
+            }
+            .close {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1286px;
+                text-align: center;
+                font-size: 104px;
+                line-height: 1;
+                letter-spacing: 0.03em;
+            }
+            .close b {
+                font-weight: 400;
+                color: #f5c542;
+            }
+            .small {
+                top: 1420px;
+                color: #c9b6e0;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas class="stars" id="stars" width="1200" height="1500"></canvas>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill"><i></i>VOTE · BUILD #18</div>
+        </div>
+        <h1>PICK A CARD</h1>
+        <div class="card" id="c1">
+            <div class="no">I</div>
+            <div class="art" id="a1"></div>
+            <div class="nm">BEAR<br />RAID</div>
+        </div>
+        <div class="card" id="c2">
+            <div class="no">II</div>
+            <div class="art" id="a2"></div>
+            <div class="nm" style="font-size: 66px">LIQUIDATION<br />CASCADE</div>
+        </div>
+        <div class="card" id="c3">
+            <div class="no">III</div>
+            <div class="art" id="a3">
+                <svg
+                    id="ham"
+                    width="264"
+                    height="264"
+                    viewBox="0 0 22 22"
+                    shape-rendering="crispEdges"
+                    style="left: 12px; top: 96px"
+                ></svg>
+            </div>
+            <div class="nm">THE HODL<br />HAMSTER</div>
+        </div>
+        <div class="close">VOTE CLOSES <b>21:00 UTC</b></div>
+        <div class="small">HOLDERS VOTE · NONE OF THE THREE IS IN THE GAME YET</div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            // stars on the cloth
+            let seed = 18;
+            const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+            const sc = $('stars').getContext('2d');
+            for (let i = 0; i < 150; i++) {
+                const s = rnd() < 0.15 ? 6 : 3;
+                sc.fillStyle = `rgba(245,197,66,${0.15 + rnd() * 0.5})`;
+                sc.fillRect(Math.round(rnd() * 1200), Math.round(rnd() * 1500), s, s);
+            }
+            const add = (host, id, x, y, max, opt = {}) => {
+                const c = document.createElement('canvas');
+                put(c, id, 2000, { max, glow: false, ...opt });
+                c.style.left = x + 'px';
+                c.style.top = y + 'px';
+                if (opt.flip) c.style.transform = 'scaleX(-1)';
+                host.append(c);
+                return c;
+            };
+            // I: a wall of grizzlies in a line, one gap, and the arrows that warn of it
+            const a1 = $('a1');
+            [0, 1, 3, 4].forEach((i) => add(a1, 'grizzly', 196, 6 + i * 86, 3));
+            const arrows = document.createElement('canvas');
+            arrows.width = 288;
+            arrows.height = 440;
+            const ac = arrows.getContext('2d');
+            ac.fillStyle = '#ff3b5c';
+            for (const y of [60, 146, 318, 404])
+                for (const x of [40, 96]) {
+                    ac.beginPath();
+                    ac.moveTo(x, y);
+                    ac.lineTo(x + 34, y - 24);
+                    ac.lineTo(x + 34, y + 24);
+                    ac.fill();
+                }
+            a1.append(arrows);
+            add(a1, 'bull', 30, 196, 3);
+            // II: a blast that chains from bear to bear
+            const a2 = $('a2');
+            const blast = document.createElement('canvas');
+            blast.width = 288;
+            blast.height = 440;
+            const bc = blast.getContext('2d');
+            const pts = [
+                [60, 360],
+                [150, 280],
+                [90, 190],
+                [200, 130],
+                [140, 50]
+            ];
+            bc.strokeStyle = '#f5c542';
+            bc.lineWidth = 8;
+            bc.beginPath();
+            pts.forEach(([x, y], i) => (i ? bc.lineTo(x, y) : bc.moveTo(x, y)));
+            bc.stroke();
+            pts.forEach(([x, y], i) => {
+                const r = 26 + i * 9;
+                bc.fillStyle = 'rgba(255,138,60,0.85)';
+                for (let k = 0; k < 8; k++) {
+                    const a = (k / 8) * Math.PI * 2;
+                    bc.fillRect(x + Math.cos(a) * r - 7, y + Math.sin(a) * r - 7, 14, 14);
+                }
+                bc.fillStyle = '#fff3c4';
+                bc.fillRect(x - r / 2, y - r / 2, r, r);
+            });
+            a2.append(blast);
+            const combo = document.createElement('div');
+            combo.textContent = '×30';
+            combo.style.cssText =
+                'position:absolute;right:14px;bottom:2px;font-size:120px;line-height:1;color:#f5c542;text-shadow:5px 5px 0 #14081f';
+            a2.append(combo);
+            // III: an original hamster in its wheel
+            const rows = [
+                '......................',
+                '......wwwwwwwwww......',
+                '....ww..........ww....',
+                '...w..............w...',
+                '..w....kk....kk....w..',
+                '..w...kppk..kppk...w..',
+                '.w....kHHkkkkHHk....w.',
+                '.w...kHHHHHHHHHHk...w.',
+                '.w...kHekHHHHkeHk...w.',
+                '.w...kHHHHnnHHHHk...w.',
+                '.w...kCCHHHHHHCCk...w.',
+                '.w....kHHccccHHk....w.',
+                '.w...kHHccccccHHk...w.',
+                '.w...kHHccccccHHk...w.',
+                '..w..kHHHccccHHHk..w..',
+                '..w...kkHHHHHHkk...w..',
+                '...w...kppkkppk...w...',
+                '....ww..........ww....',
+                '......wwwwwwwwww......',
+                '.........ssss.........',
+                '.......ssssssss.......',
+                '......................'
+            ];
+            const pal = {
+                w: '#16e08a',
+                k: '#14081f',
+                H: '#e8a04a',
+                c: '#fff0d0',
+                C: '#ffb3a0',
+                p: '#ffb3a0',
+                e: '#14081f',
+                n: '#ff6b8a',
+                s: '#0b8f56'
+            };
+            let h = '';
+            rows.forEach((row, y) =>
+                [...row].forEach((ch, x) => {
+                    if (pal[ch])
+                        h += `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}" />`;
+                })
+            );
+            $('ham').innerHTML = h;
+            window.ready = true;
+        </script>
+    </body>
+</html>

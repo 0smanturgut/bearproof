@@ -128,8 +128,24 @@ export class Player {
     getArmor() {
         return this._sum('armor');
     }
+    /** A passive evolves at PASSIVE_MAX_STACK if its def has an `evolveName`. Returns the def, else null. */
+    evolvedPassive(id) {
+        const p = this.passives[id];
+        return p && p.def.evolveName && p.count >= SIM.PASSIVE_MAX_STACK ? p.def : null;
+    }
+
+    /** Sum an `evolve*` field over every evolved passive. */
+    _evolveSum(key) {
+        let total = 0;
+        for (const id of this.passiveOrder) {
+            const def = this.evolvedPassive(id);
+            if (def && def[key] !== undefined) total += def[key];
+        }
+        return total;
+    }
+
     getCritChance() {
-        return this._sum('critChance');
+        return this._sum('critChance') + this._evolveSum('evolveCrit');
     }
     getDodgeChance() {
         return Math.min(0.6, this._sum('dodgeChance'));
@@ -138,7 +154,7 @@ export class Player {
         return Math.min(0.6, this._sum('damageReduction'));
     }
     getDamageTakenMult() {
-        return 1 + this._sum('damageTakenMult');
+        return 1 + this._sum('damageTakenMult') + this._evolveSum('evolveDamageTaken');
     }
 
     /** Returns the number of level-ups gained. */

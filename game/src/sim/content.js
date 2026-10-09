@@ -430,7 +430,17 @@ export const PASSIVES = {
         name: 'Leverage',
         icon: 'leverage',
         description: 'Damage +25%, but you take +15% damage. High risk, high reward.',
-        effect: { damageMult: 0.25, damageTakenMult: 0.15 }
+        effect: { damageMult: 0.25, damageTakenMult: 0.15 },
+        // Liquidation Risk: at PASSIVE_MAX_STACK, +evolveCrit crit chance, and every crit arcs on to the nearest
+        // bear not hit yet (within evolveChainRange of the last one), evolveChainJumps times, for the same damage.
+        // The catch: +evolveDamageTaken on top of the stacks' +75%, so 2x damage taken at 5.
+        evolveName: 'Liquidation Risk',
+        evolveDescription:
+            '+10% crit, and every crit chains to 2 more bears. But you take 2× damage.',
+        evolveCrit: 0.1,
+        evolveChainJumps: 2,
+        evolveChainRange: 140,
+        evolveDamageTaken: 0.25
     }
 };
 

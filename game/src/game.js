@@ -9,7 +9,7 @@ import { Simulation } from './sim/sim.js';
 import { BOSSES, CRATE_LOOT, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
-import { CHARACTER_IDS, TWISTS, WEAPONS, dailyTwistForSeed } from './sim/content.js';
+import { CHARACTER_IDS, PASSIVES, TWISTS, WEAPONS, dailyTwistForSeed } from './sim/content.js';
 import { createBot } from './sim/bot.js';
 import { Fx } from './fx.js';
 import { KILL_COLORS, Renderer } from './render.js';
@@ -354,7 +354,9 @@ export class Game {
                     if (!this.attract) this.haptics.levelUp();
                     break;
                 case 'evolve': {
-                    const name = Object.values(WEAPONS).find((w) => w.id === e.id)?.evolveName;
+                    const name = [...Object.values(WEAPONS), ...Object.values(PASSIVES)].find(
+                        (w) => w.id === e.id
+                    )?.evolveName;
                     this.ui.toast(
                         name ? `EVOLVED: ${name.toUpperCase()}` : 'EVOLVED',
                         'gold',
@@ -423,6 +425,12 @@ export class Game {
                     break;
                 case 'chain':
                     fx.line(e.x1, e.y1, e.x2, e.y2, 0.16, '255,197,61', 3, true);
+                    break;
+                case 'liquidation':
+                    // Liquidation Risk: a crit arcs on to the next bear, liquidation red, then gold on the jump
+                    fx.line(e.x1, e.y1, e.x2, e.y2, 0.2, e.k ? '255,197,61' : '255,84,64', 4, true);
+                    fx.burst(e.x2, e.y2, '#FF8C5C', 5, 150, 2.5, 'spark');
+                    this._sfx('liquidation', 0.07);
                     break;
                 case 'tether':
                     fx.line(e.x1, e.y1, e.x2, e.y2, 0.12, '22,224,138', 2.5, true);

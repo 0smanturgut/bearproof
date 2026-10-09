@@ -48,8 +48,9 @@ import { Weapon } from './weapons.js';
  * 12: Liquidation Warning (charge bosses crouch 1 s over a marked landing spot, and never jump past the bull).
  * 13: Exit Scam (from 3:00 a scammer pockets loose candles and runs; kill it and the bag spills out).
  * 14: Bear Spray (a new weapon in the level-up pool: a cone that shoves bears and breaks shields).
- * 15: Buy the Dip (under 30% HP, kills heal for 5 s, once a minute). */
-export const SIM_VERSION = 15;
+ * 15: Buy the Dip (under 30% HP, kills heal for 5 s, once a minute). 16: Liquidation Risk (Leverage evolves at 5
+ * stacks: +10% crit, crits chain to 2 more bears, 2x damage taken). */
+export const SIM_VERSION = 16;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -118,7 +119,8 @@ export class Simulation {
             scamsEscaped: 0,
             shieldsBroken: 0, // Bear Spray
             dips: 0, // Buy the Dip: windows opened
-            dipHealed: 0 // and the HP they gave back
+            dipHealed: 0, // and the HP they gave back
+            liquidations: 0 // Liquidation Risk: chain hits
         };
         this.events = [];
     }
@@ -627,7 +629,36 @@ export class Simulation {
         const dealt = e.takeDamage(amount);
         this.stats.damageDealt += dealt;
         if (!quiet) this.emit({ t: 'dmg', x: e.x, y: e.y - e.size, v: dealt, crit, src });
+        // God Candle's boss hit is only drawn as a crit; it doesn't chain
+        if (crit && src !== 'liquidation' && src !== 'god_candle')
+            this._liquidationChain(e, amount);
         return dealt;
+    }
+
+    /** Liquidation Risk (evolved Leverage): a crit arcs on through the nearest bears not hit yet, same damage. */
+    _liquidationChain(from, amount) {
+        const def = this.player.evolvedPassive('leverage');
+        if (!def) return;
+        const hit = new Set([from]);
+        let at = from;
+        for (let k = 0; k < def.evolveChainJumps; k++) {
+            let next = null;
+            let bestD2 = def.evolveChainRange * def.evolveChainRange;
+            for (const e of this.spatial.queryRect(at.x, at.y, def.evolveChainRange)) {
+                if (e.hp <= 0 || hit.has(e)) continue;
+                const d2 = (e.x - at.x) * (e.x - at.x) + (e.y - at.y) * (e.y - at.y);
+                if (d2 < bestD2) {
+                    bestD2 = d2;
+                    next = e;
+                }
+            }
+            if (!next) return;
+            hit.add(next);
+            this.stats.liquidations++;
+            this.emit({ t: 'liquidation', x1: at.x, y1: at.y, x2: next.x, y2: next.y, k });
+            this.damageEnemy(next, amount, true, 'liquidation');
+            at = next;
+        }
     }
 
     collectXp(orb) {
@@ -665,7 +696,9 @@ export class Simulation {
                 if (p.passiveOrder.length < SIM.MAX_PASSIVES)
                     live.push({ kind: 'passive', id: def.id, level: 1, isNew: true });
             } else if (owned.count < SIM.PASSIVE_MAX_STACK) {
-                live.push({ kind: 'passive', id: def.id, level: owned.count + 1 });
+                const card = { kind: 'passive', id: def.id, level: owned.count + 1 };
+                if (def.evolveName && card.level === SIM.PASSIVE_MAX_STACK) card.evolves = true;
+                live.push(card);
             } else {
                 maxed.push(def.id);
             }
@@ -696,6 +729,7 @@ export class Simulation {
             if (c.evolves) this.emit({ t: 'evolve', id: c.id });
         } else if (c.kind === 'passive') {
             p.addPassive(Object.values(PASSIVES).find((d) => d.id === c.id));
+            if (c.evolves) this.emit({ t: 'evolve', id: c.id });
         } else {
             p.heal(c.amount);
         }

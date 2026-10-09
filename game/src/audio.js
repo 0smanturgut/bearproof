@@ -229,6 +229,11 @@ export class AudioEngine {
     dipHeal() {
         this.tone({ freq: 700, dur: 0.05, type: 'sine', volume: 0.07, sweep: 500 });
     }
+    /** Liquidation Risk: a crit arcs to the next bear, a short electric zap that falls. */
+    liquidation() {
+        this.tone({ freq: 1400, dur: 0.07, type: 'square', volume: 0.06, sweep: -900 });
+        this.tone({ noise: true, dur: 0.03, volume: 0.08, release: 0.03 });
+    }
     /** Pump and Dump pops: a sharp balloon crack, then the chart deflating (a falling whistle). */
     dump() {
         this.tone({ noise: true, dur: 0.05, volume: 0.24, release: 0.04 });

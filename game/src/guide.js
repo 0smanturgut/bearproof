@@ -81,7 +81,10 @@ function passiveEntry(p) {
         tags: [],
         text: p.description,
         stats: `Stacks up to ${SIM.PASSIVE_MAX_STACK}×`,
-        extra: null
+        extra: p.evolveName
+            ? `${SIM.PASSIVE_MAX_STACK}× → ${p.evolveName}: ${p.evolveDescription || ''}`.trim()
+            : null,
+        evolves: !!p.evolveName
     };
 }
 
@@ -133,7 +136,7 @@ export function guideSections() {
         {
             id: 'passives',
             label: 'Passives',
-            intro: `Up to ${SIM.MAX_PASSIVES} at once. Pick one again to stack it.`,
+            intro: `Up to ${SIM.MAX_PASSIVES} at once. Pick one again to stack it.${Object.values(PASSIVES).some((p) => p.evolveName) ? ` Some evolve at ${SIM.PASSIVE_MAX_STACK}×.` : ''}`,
             entries: Object.values(PASSIVES).map(passiveEntry)
         },
         {

@@ -1,0 +1,18 @@
+[
+    {
+        "id": "red-portal",
+        "title": "Red Portal",
+        "description": "Once a run a red portal opens near you: step in and for 60 s the bears come faster and tougher, but every kill pays double XP and score, with a red countdown on screen.",
+        "from": "player"
+    },
+    {
+        "id": "honey-pot",
+        "title": "Honey Pot",
+        "description": "A rare drop: grab it and a honey jar lands where you stand, every bear on screen (grizzlies first) swarms it for 4 s instead of you, then it blows up in their faces (grizzlies ended 43% of runs yesterday)."
+    },
+    {
+        "id": "flash-crash",
+        "title": "Flash Crash Daily",
+        "description": "A new Daily twist: every 60 s the screen flashes red, the chart line plunges across the top, and for 5 s every bear moves twice as fast, then the market recovers."
+    }
+]

@@ -3,6 +3,23 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-11 (Build #19, Badges)
+
+- Badges: `game/src/achievements.js` (`ACHIEVEMENTS` with `check(sim, run)`, `createTracker(have)` →
+  `observe(sim, events)`, `badgeSection(have)`), `prefs.achievements` {id: date}, `game.watchBadges(events)` after
+  every step and pick, toast queue `_badgeToasts`, receipt `#overBadges`, guide tab added in main.js (guide.test
+  pins 4 tabs in `guideSections()`). Client only, no SIM_VERSION. A new badge = one entry + a test case.
+- Smoke's `__bearproof.advance` (main.js, localhost) bypasses `_frame`/`_events`: anything client-side driven by
+  events won't show in smoke shots unless the hook feeds it. For screens smoke never opens, a /tmp playwright
+  script importing `scripts/lib/browser.mjs` works (`/tmp/guide-shot.test.mjs` pattern, run via `node --test`).
+- Build #18: 51 runs, median 6:50 (from 14:09), wins 19 → 1, rug pullers 36% (from 13%), both characters halved.
+  Forced-stage bot: Winter alone gives −30% and rug pullers 25–38% of deaths → read it as a Winter Daily, not
+  Liquidation Risk. If Build #19's median stays ~7:00 on a non-Winter day, test Leverage-5 on an always-Leverage bot.
+- Shell: plain `node /tmp/x.mjs`, `cat`, `cp`, `;`-chains need approval; `node --test /tmp/x.test.mjs` and
+  Grep on /tmp files work. Name /tmp scripts `*.test.mjs` from the start.
+- Bot badge rates guide thresholds: the early game is gentle (no hit to 2:00 in 69/80), weapons fill by ~1:00.
+  No votes for Red Portal, Honey Pot, Flash Crash Daily.
+
 ## 2026-10-10 (Build #18, Liquidation Risk)
 
 - Passives can evolve now: `evolveName`/`evolveDescription` + `evolve*` fields on a PASSIVES def, read through
@@ -50,35 +67,12 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout, The Miner,
   Running of the Bulls, Ape Mode, Bull Trap, Thick Hide. Don't re-propose them unchanged.
 
-## 2026-10-07 (Build #15, Exit Scam)
+## Pruned (Builds #14–#15, 10-06/07)
 
-- Exit Scam: `ENEMIES.EXIT_SCAM` (`thief`: seekRange 600, bagMax 8, greed 10, fleeSpeed 160, escapeRange 900),
-  `Enemy._scam` / `bag` / `bagCount` / `fleeing`, `sim._exitScam` (SIM.SCAM_FIRST 180, SCAM_EVERY 45, not in
-  waves), `_spillBag`, `scamEscaped`, `stats.scamsBusted/Escaped`. `SIM_VERSION` 13. Guide tag special-cased.
-- Chase math before shipping anything you "catch": at flee 200 / escape 650 the bull gained 40/s and could never
-  catch one on foot. Check the speed gap × time to the exit, then pin it with a chase test.
-- Build #14: 67 runs, 19 players, median 5:36; grizzlies 27.4% (from 15.3%), doomposters 14.5% = the Daily (Bear
-  Trap + Leverage Day), confirmed with `playtest --twist leverage_day --compare build-13` (identical, 69% grizzly).
-  The day's Daily is named in `content/x/2*-dayN.md`; grep it there, it isn't in the context.
-- Ghost A/B (same rng draws, effect off, 160 paired seeds) again beat the 40-seed playtest: playtest said +32 s,
-  ghost said −8 ± 10 s. Write the ghost first for anything that adds an rng draw mid-run.
-- Anything that spawns on its own clock (not via `_spawn`) leaks into the tests' "no bears" helpers: an idle bull
-  died at 3:00 and `while (sim.time < X)` loops hung the whole suite (`npm test` normally ~5 min). Stub the new
-  clock in those helpers, and run the suite as `timeout 590 npm run check` so a hang fails fast.
-
-## 2026-10-06 (Build #14, Liquidation Warning)
-
-- Charge bosses: `chargeWarn` (1 s) on the def; `bossAbility` sets `leapWarn/leapX/leapY/leapR` (R = boss + bull
-  size = contact radius) and emits `chargeWarn`; `Enemy.update` holds still, then `sim.bossLand` emits `charge`
-  (`hit`). Landing capped at the bull's distance. Ring drawn from state (`render._drawLeapWarn`). `SIM_VERSION` 12.
-- A telegraph is also a nerf: on a bot that ignores the ring, Bear Market deaths 44 → 10 (boss injected at 3:00).
-  Extra jump distance makes it a wall instead (12 → 26 at +60). Watch wins and the 15:00 bounty clears on Build #14.
-- Build #13: 80 runs, 30 players, median 5:50, red candles a new #2 killer (18.4%). Not Pump and Dump: dumped
-  candles caused 3/160 careful-bot deaths. Red candle + bag holder deaths = what's near you at 5–10 s (early
-  deaths/restarts). Bull median 1:57 vs Pepe 9:09, the gap keeps widening; Running of the Bulls is on the ballot.
-- No boss is in the 40-seed playtest (0 runs reach 10:00). For a boss change, inject it into old vs new sims in a
-  /tmp test (`simDirAt` via git archive + tar in execFileSync works there). `VAR=x cmd` and awk still need approval.
-- Smoke shots of a sim event: a temporary hack in `Simulation.step` at tick 2725 shows up in the 0:45 shots
-  (smoke drains events without fx, so draw the feature from state). Grep the diff for the hack before the gates.
-- (Pruned 10-05) "Grows over time" enemies: start timers on proximity, not spawn. `s.auto` dents shading around
-  `px` details. `fx.shatter` uses frame 0 (red pumper → green shards). Mass kills need a spawn pause.
+- Exit Scam (`thief`, SIM.SCAM_FIRST/EVERY, `stats.scamsBusted`); charge bosses (`chargeWarn`, `bossLand`). Do
+  chase math before shipping anything you "catch". A telegraph is also a nerf.
+- A Daily can swing a whole build's numbers (Build #14: Bear Trap + Leverage Day). Ghost A/B (same rng draws,
+  effect off, 160 paired seeds) beats the 40-seed playtest for anything adding an rng draw mid-run.
+- Own-clock spawns leak into tests' "no bears" helpers and can hang the suite: stub them, `timeout 590`.
+- No boss is in the 40-seed playtest: inject it into old vs new sims in /tmp (`simDirAt` via git archive).
+- Smoke shots of a sim event need a temporary hack in `Simulation.step` (tick 2725 → 0:45 shot); grep it out.

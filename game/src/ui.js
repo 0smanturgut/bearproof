@@ -383,6 +383,11 @@ export class UI {
         $('nameForm').hidden = true;
         $('turnstileHint').hidden = true;
         this.overBounty(info.bounty || null);
+        const badges = info.badges || [];
+        $('overBadges').hidden = !badges.length;
+        $('overBadges').textContent = badges.length
+            ? `NEW ${badges.length > 1 ? 'BADGES' : 'BADGE'}: ${badges.map((b) => b.name.toUpperCase()).join(' · ')}`
+            : '';
         this.overNote('');
         this.show('screenOver');
         this.announce(`${title}. Score ${fmtNum(summary.score)}.`);
@@ -557,17 +562,22 @@ export class UI {
         list.dataset.tab = current.id;
         for (const e of current.entries) {
             const li = document.createElement('li');
-            li.className = 'guide-entry' + (e.evolves ? ' evolves' : '');
+            li.className =
+                'guide-entry' + (e.evolves ? ' evolves' : '') + (e.locked ? ' locked' : '');
             li.innerHTML = `
                 <div class="guide-art"><canvas aria-hidden="true"></canvas></div>
                 <div class="guide-body">
                     <b class="guide-name">${esc(e.name)}</b>
                     ${e.tags.map((t) => `<span class="guide-tag">${esc(t)}</span>`).join('')}
                     <p class="guide-text">${esc(e.text)}</p>
-                    <p class="guide-stats">${esc(e.stats)}</p>
+                    ${e.stats ? `<p class="guide-stats">${esc(e.stats)}</p>` : ''}
                     ${e.extra ? `<p class="guide-extra">${esc(e.extra)}</p>` : ''}
                 </div>`;
-            paintIcon(li.querySelector('canvas'), e.art, current.id === 'bosses' ? 1 : 2);
+            paintIcon(
+                li.querySelector('canvas'),
+                e.art,
+                e.scale || (current.id === 'bosses' ? 1 : 2)
+            );
             list.appendChild(li);
         }
         list.scrollTop = 0;

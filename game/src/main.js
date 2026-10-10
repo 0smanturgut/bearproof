@@ -20,6 +20,7 @@ import * as api from './api.js';
 import { createBot } from './sim/bot.js';
 import { bountyText, readBounty } from './bounty.js';
 import { guideSections } from './guide.js';
+import { badgeSection } from './achievements.js';
 import {
     CHARACTERS,
     CHARACTER_IDS,
@@ -128,7 +129,7 @@ async function boot() {
     $('btnSettingsBack').addEventListener('click', () => ui.show(back));
     $('btnGuide').addEventListener('click', () => {
         back = 'screenTitle';
-        ui.showGuide(guideSections());
+        ui.showGuide([...guideSections(), badgeSection(prefs.achievements)]);
     });
     $('btnGuideBack').addEventListener('click', () => ui.show(back));
 
@@ -278,12 +279,13 @@ function installDebugHooks(game) {
                     if (stopAtLevelUp) return 'levelup';
                     game.rec.pick(game.sim.tick, 0);
                     game.sim.choose(0);
+                    game.watchBadges(game.sim.drainEvents());
                     continue;
                 }
                 const code = bot ? bot.move(game.sim) : 0;
                 game.rec.tick(code);
                 game.sim.step(code);
-                game.sim.drainEvents();
+                game.watchBadges(game.sim.drainEvents()); // badges, without the effects
             }
             return game.sim.over ? 'over' : 'running';
         }

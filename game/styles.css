@@ -1160,6 +1160,12 @@ body.on-title .title-veil {
 .bounty-note.good {
     color: var(--bull);
 }
+.over-badges {
+    margin: 8px 0 0;
+    font: 700 11px/1.4 var(--mono);
+    letter-spacing: 0.04em;
+    color: var(--gold);
+}
 .title-row {
     display: flex;
     flex-wrap: wrap;
@@ -1856,7 +1862,8 @@ body.on-title .title-veil {
 }
 .guide-tabs {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 4px;
     width: 100%;
 }
@@ -1982,6 +1989,20 @@ body.on-title .title-veil {
 .guide-entry.evolves .guide-extra {
     color: var(--info);
 }
+.guide-list[data-tab='badges'] .guide-tag {
+    color: #04130d;
+    background: var(--gold);
+}
+.guide-entry.locked .guide-art canvas {
+    filter: grayscale(1) brightness(0.45);
+}
+.guide-entry.locked .guide-name {
+    color: var(--muted);
+}
+.guide-list[data-tab='badges'] .guide-entry.locked .guide-tag {
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.06);
+}
 .guide-list[data-tab='bears'] .guide-extra {
     color: var(--bull-2);
 }
@@ -1990,7 +2011,7 @@ body.on-title .title-veil {
         padding: 18px 10px;
     }
     .guide-tab {
-        font-size: 17px;
+        font-size: 15px;
     }
     .guide-entry {
         grid-template-columns: 44px 1fr;

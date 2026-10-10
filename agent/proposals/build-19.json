@@ -1,0 +1,17 @@
+[
+    {
+        "id": "bull-dash",
+        "title": "Bull Dash",
+        "description": "Double-tap (or Space) to dash a short way with a dust trail, about every 4 s: a sidestep for a rug puller's dash, and rug pullers ended 36% of yesterday's runs."
+    },
+    {
+        "id": "bear-flag",
+        "title": "Bear Flag",
+        "description": "A new bear carrying a red flag: while it lives, every bear near it runs 30% faster, so you have to cut through the crowd to take it down first."
+    },
+    {
+        "id": "fear-greed-meter",
+        "title": "Fear & Greed Meter",
+        "description": "A gauge at the top fills as you kill; at Extreme Greed, for 10 s you deal double damage, bears pour in 50% faster, and the screen goes gold."
+    }
+]

@@ -31,6 +31,7 @@ import * as api from './api.js';
 import { cleanName, playerId, savePrefs } from './prefs.js';
 import { turnstileToken } from './turnstile.js';
 import { bountyProgress, bountyText, clearsBounty } from './bounty.js';
+import { createTracker } from './achievements.js';
 
 const STEP = SIM.DT;
 const MAX_STEPS_PER_FRAME = 5;
@@ -107,6 +108,11 @@ export class Game {
         this._bossIntro = null;
         this._bountyDone = false;
         this._bountyToastAt = 0;
+        // Badges: only a player's own runs count (never the autopilot)
+        this.badges = this.attract ? null : createTracker(this.prefs.achievements);
+        this._badgeQueue = [];
+        this._badgesNew = [];
+        this._badgeToastAt = 0;
         this._runId++;
         this.ui.resetHud();
         this.ui.hideAll();
@@ -173,7 +179,7 @@ export class Game {
                     : encodeMove(...xy(this.input.move()));
                 this.rec.tick(code);
                 this.sim.step(code);
-                this._events(this.sim.drainEvents());
+                this._stepEvents();
                 this.acc -= STEP;
                 steps++;
                 if (this.sim.over) break;
@@ -204,6 +210,7 @@ export class Game {
         if (this.state !== 'title') {
             this.ui.updateHud(this.sim);
             this._bountyHud();
+            this._badgeToasts();
         }
         requestAnimationFrame((t) => this._frame(t));
     }
@@ -277,7 +284,37 @@ export class Game {
     _choose(i) {
         this.rec.pick(this.sim.tick, i);
         this.sim.choose(i);
-        this._events(this.sim.drainEvents());
+        this._stepEvents();
+    }
+
+    /** The sim's new events: effects first, then the badge watcher. */
+    _stepEvents() {
+        const events = this.sim.drainEvents();
+        this._events(events);
+        this.watchBadges(events);
+    }
+
+    /** Feed a step's events to the badge watcher; a new badge is saved at once and queued for a toast. */
+    watchBadges(events) {
+        if (!this.badges) return;
+        for (const a of this.badges.observe(this.sim, events)) {
+            const day = new Date().toISOString().slice(0, 10);
+            this.prefs.achievements = { ...this.prefs.achievements, [a.id]: day };
+            savePrefs(this.prefs);
+            this._badgesNew.push(a);
+            this._badgeQueue.push(a);
+        }
+    }
+
+    /** One badge toast at a time, a beat apart, only while the run is on screen. */
+    _badgeToasts() {
+        if (!this._badgeQueue?.length || this.state !== 'playing') return;
+        if (this.clock < this._badgeToastAt) return;
+        const a = this._badgeQueue.shift();
+        this.ui.toast(`BADGE: ${a.name.toUpperCase()}`, 'gold', 1800);
+        this._sfx('achievement', 0);
+        this.haptics.levelUp();
+        this._badgeToastAt = this.clock + 2.2;
     }
 
     // --- Events → juice -------------------------------------------------------
@@ -658,7 +695,8 @@ export class Game {
         const buildLine = `${this.mode === 'daily' ? `Daily Challenge ${this.daily.date}` : 'Free run'} · Build #${this.build.n}`;
         const bounty = this._bountyResult(summary);
         this.lastRun.bountyCleared = !!bounty?.done;
-        setTimeout(() => this.ui.showOver({ summary, title, sub, buildLine, bounty }), 700);
+        const badges = this._badgesNew;
+        setTimeout(() => this.ui.showOver({ summary, title, sub, buildLine, bounty, badges }), 700);
         setTimeout(() => this._maybeSubmit(), 750);
     }
 

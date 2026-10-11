@@ -273,7 +273,7 @@ export class Enemy {
             let best = null;
             let bestD = def.seekRange;
             for (const o of sim.xp) {
-                if (o.dead || o.fall > 0 || o.vacuum) continue;
+                if (o.dead || o.fall > 0 || o.vacuum || o.frozen) continue;
                 const od = hypot(o.x - this.x, o.y - this.y);
                 if (od < bestD) {
                     best = o;
@@ -473,6 +473,7 @@ export class Enemy {
                 sim.bossAbility(this);
             }
             if (def.phase2) this._rugPhase(dt, sim);
+            if (def.freezeRadius) sim.freezeCandles(this);
         }
     }
 
@@ -677,6 +678,7 @@ export class XpOrb {
         // A jackpot candle falls for `fall` s before it lands: until then it can't be picked up or pulled.
         this.fall = fall;
         this.fallMax = fall;
+        this.frozen = false; // Withdrawal Freeze: iced in place until the boss dies
     }
     update(dt, sim) {
         if (this.fall > 0) {
@@ -684,6 +686,7 @@ export class XpOrb {
             if (this.fall === 0) sim.emit({ t: 'candleLand', x: this.x, y: this.y });
             return;
         }
+        if (this.frozen) return;
         this.life -= dt;
         if (this.life <= 0) {
             this.dead = true;

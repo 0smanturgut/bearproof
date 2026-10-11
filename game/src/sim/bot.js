@@ -50,7 +50,7 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
                 }
                 // Airdrop crates beat candles: head for the nearest one unless it's a mob scene.
                 const crate = nearest(sim.crates || [], p, 520);
-                const orb = nearest(sim.xp, p, 420);
+                const orb = nearest(sim.xp, p, 420, (o) => !o.frozen);
                 if (crate && crowd < 2) {
                     const dx = crate.x - p.x;
                     const dy = crate.y - p.y;
@@ -101,10 +101,11 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
     };
 }
 
-function nearest(list, p, maxD = Infinity) {
+function nearest(list, p, maxD = Infinity, ok = null) {
     let best = null;
     let bd = maxD * maxD;
     for (const it of list) {
+        if (ok && !ok(it)) continue;
         const d2 = (it.x - p.x) ** 2 + (it.y - p.y) ** 2;
         if (d2 < bd) {
             bd = d2;

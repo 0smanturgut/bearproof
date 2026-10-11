@@ -763,6 +763,35 @@ export const BOSSES = {
         abilityCooldown: 4.5,
         spawnAt: 600,
         stageOnly: true
+    },
+    // Crypto Winter's mini-boss. `onlyStage`: it joins that stage's schedule and no other. While it lives, every
+    // landed XP candle within `freezeRadius` of it freezes (can't be picked up, doesn't expire). When it dies,
+    // withdrawals reopen: every frozen candle flies to the bull, and every bear within `thawRadius` of the bull
+    // is slowed by `thawSlow` for `thawTime` s.
+    WITHDRAWAL_FREEZE: {
+        id: 'withdrawal_freeze',
+        name: 'Withdrawal Freeze',
+        sprite: 'withdrawal_freeze',
+        tagline: 'Withdrawals are paused. Indefinitely.',
+        description:
+            'Crypto Winter only, at 3:30. Freezes every XP candle near it, and every 5 s a red ring marks where it jumps. Take it down and withdrawals reopen: the frozen candles fly to you and a frost burst slows every bear around you.',
+        hp: 550,
+        speed: 55,
+        damage: 35,
+        exp: 300,
+        size: 30,
+        boss: true,
+        mini: true,
+        ability: 'charge',
+        chargeDistance: 100,
+        chargeWarn: 1,
+        abilityCooldown: 5,
+        spawnAt: 210,
+        onlyStage: 'winter',
+        freezeRadius: 150,
+        thawRadius: 360,
+        thawSlow: 0.5,
+        thawTime: 3
     }
 };
 
@@ -901,7 +930,7 @@ export const STAGES = {
         id: 'winter',
         name: 'Crypto Winter',
         description:
-            'Frozen order books (-10% speed), thicker bears (+20% HP), and the cold drains 1 HP every 10s.',
+            'Frozen order books (-10% speed), thicker bears (+20% HP), and the cold drains 1 HP every 10s. Withdrawal Freeze shows up at 3:30.',
         palette: { bg: '#060A10', grid: '#111B26', gridMajor: '#182635', terrain: '#0C1520' },
         poolWeights: {
             rug_puller: 1.5,
@@ -1072,13 +1101,17 @@ export function wavesFor(id) {
     }));
 }
 
-/** Boss schedule for a stage: offsets applied (never before 30s), overrides swapped in, stage-only bosses skipped. */
+/**
+ * Boss schedule for a stage: offsets applied (never before 30s), overrides swapped in, stage-only bosses skipped,
+ * and a boss with `onlyStage` kept only on that stage.
+ */
 export function bossesFor(id) {
     const stage = getStage(id);
     const byId = Object.fromEntries(Object.values(BOSSES).map((b) => [b.id, b]));
     const out = [];
     for (const b of Object.values(BOSSES)) {
         if (b.stageOnly) continue;
+        if (b.onlyStage && b.onlyStage !== stage.id) continue;
         const def = byId[stage.bossOverrides[b.id]] || b;
         out.push({
             ...def,

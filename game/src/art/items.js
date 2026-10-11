@@ -14,6 +14,27 @@ export function xpCandle(f) {
     return s.render();
 }
 
+/** 13×16 frozen XP candle (Withdrawal Freeze): a dimmed candle locked in a block of ice. */
+export function xpCandleFrozen(f) {
+    const s = new PixelSprite(13, 16);
+    s.box(1, 1, 11, 14, M.ice, { r: 1.5, bevel: 1, shade: 'flat', lum: 0.42 });
+    s.line(6.5, 2.5, 6.5, 5, M.bullDeep, { w: 1, lum: 0.5 });
+    s.line(6.5, 11, 6.5, 13.5, M.bullDeep, { w: 1, lum: 0.5 });
+    s.box(4, 4.5, 5, 7, M.bullDeep, { r: 0.8, bevel: 1.5, lum: 0.6 });
+    // frost: a bright top edge, a glint that moves between the two frames, and a crack
+    for (let x = 2; x <= 10; x++) s.px(x, 1, '#E8FAFF');
+    s.px(f % 2 ? 9 : 3, f % 2 ? 3 : 4, '#FFFFFF', { glow: '#9BE2FF' });
+    s.pxs(
+        [
+            [10, 8],
+            [9, 9],
+            [10, 10]
+        ],
+        '#9BE2FF'
+    );
+    return s.render();
+}
+
 /** 9×16 big XP candle: a gold "god candle". */
 export function xpCandleBig(f) {
     const s = new PixelSprite(9, 16);

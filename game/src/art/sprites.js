@@ -51,9 +51,11 @@ const SPRITE_GENS = {
     liquidation: make(bosses.liquidation, 4, { fps: 4 }),
     bear_market: make(bosses.bearMarket, 4, { fps: 4 }),
     long_winter: make(bosses.longWinter, 4, { fps: 4 }),
+    withdrawal_freeze: make(bosses.withdrawalFreeze, 4, { fps: 5 }),
     // pickups and projectiles
     xp_candle: make(items.xpCandle, 2, { fps: 3 }),
     xp_candle_big: make(items.xpCandleBig, 2, { fps: 3 }),
+    xp_candle_frozen: make(items.xpCandleFrozen, 2, { fps: 2 }),
     green_candle: make(items.greenCandleShot),
     laser: make(items.laser),
     diamond: make(items.diamond, 2, { fps: 5 }),
@@ -130,10 +132,18 @@ export const SPRITE_GROUPS = {
         'pump_dump',
         'exit_scam'
     ],
-    bosses: ['rug_lord', 'capitulation', 'liquidation', 'bear_market', 'long_winter'],
+    bosses: [
+        'rug_lord',
+        'capitulation',
+        'liquidation',
+        'bear_market',
+        'long_winter',
+        'withdrawal_freeze'
+    ],
     pickups: [
         'xp_candle',
         'xp_candle_big',
+        'xp_candle_frozen',
         'green_candle',
         'laser',
         'diamond',

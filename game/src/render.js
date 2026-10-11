@@ -272,7 +272,7 @@ export class Renderer {
         // --- XP candles (with a soft light under each)
         ctx.globalCompositeOperation = 'lighter';
         for (const o of sim.xp) {
-            if (o.fall > 0 || !visible(o.x, o.y, 40)) continue;
+            if (o.fall > 0 || o.frozen || !visible(o.x, o.y, 40)) continue;
             const big = o.value >= 50;
             const r = (big ? 30 : 18) * s;
             ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 6 + o.x);
@@ -292,6 +292,13 @@ export class Renderer {
                 this._drawFallingCandle(o, X(o.x), Y(o.y), s);
                 continue;
             }
+            if (o.frozen) {
+                // Withdrawal Freeze: iced in place, no bob, no blink
+                this._blit('xp_candle_frozen', X(o.x), Y(o.y), {
+                    frame: Math.floor(t * 2 + o.x) % 2
+                });
+                continue;
+            }
             const bob = Math.sin(t * 5 + o.x * 0.1) * 2 * s;
             const alpha = o.life < 3 ? (Math.floor(t * 8) % 2 ? 0.35 : 1) : 1;
             this._blit(o.value >= 50 ? 'xp_candle_big' : 'xp_candle', X(o.x), Y(o.y) + bob, {
@@ -308,6 +315,10 @@ export class Renderer {
 
         // --- Rug Lord's second phase: a red glow under him, and the rug under the bull while he pulls it
         for (const e of sim.enemies) if (e.enraged && e.hp > 0) this._drawRug(e, p, X, Y, t, fx);
+        // --- Withdrawal Freeze: the frost ring where candles freeze
+        for (const e of sim.enemies) {
+            if (e.def.freezeRadius && e.hp > 0) this._drawFreezeZone(e, X(e.x), Y(e.y), t, fx.calm);
+        }
         // --- Liquidation Warning: a charge boss's landing spot, while it crouches
         for (const e of sim.enemies) {
             if (e.leapWarn > 0 && e.hp > 0)
@@ -602,7 +613,9 @@ export class Renderer {
             const r = sd.w * this.k * 0.9;
             ctx.globalAlpha = 0.35 + 0.1 * Math.sin(t * 3);
             ctx.drawImage(
-                this._blob(id === 'long_winter' ? '70,184,240' : '255,59,92'),
+                this._blob(
+                    id === 'long_winter' || id === 'withdrawal_freeze' ? '70,184,240' : '255,59,92'
+                ),
                 sx - r,
                 sy - r * 0.6,
                 r * 2,
@@ -738,6 +751,28 @@ export class Renderer {
         });
         this._blit('supply_crate', x, y, { frame: Math.floor(t * 4), rot: sway });
         glows.push(['supply_crate', x, y, Math.floor(t * 4), false, 0.8]);
+    }
+
+    /** Withdrawal Freeze: a faint icy disc and a dashed frost ring at the freeze radius; the dashes creep round. */
+    _drawFreezeZone(boss, sx, sy, t, calm) {
+        const ctx = this.ctx;
+        const r = boss.def.freezeRadius * this.s;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = 'rgba(70,184,240,0.06)';
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.lineWidth = Math.max(1, this.s * 2);
+        ctx.strokeStyle = 'rgba(155,226,255,0.55)';
+        const dash = 10 * this.s;
+        ctx.setLineDash([dash, dash * 0.8]);
+        ctx.lineDashOffset = calm ? 0 : -t * 20 * this.s;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
     }
 
     /** Liquidation Warning: a red target on the landing spot. The outer ring is the hit zone (inside it, the

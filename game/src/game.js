@@ -620,6 +620,23 @@ export class Game {
                     this._sfx('godCandle', 0);
                     if (!this.attract) this.haptics.bossSpawn();
                     break;
+                case 'candleFreeze':
+                    fx.burst(e.x, e.y, '#9BE2FF', 4, 80, 2.5, 'spark');
+                    this._sfx('freeze', 0.12);
+                    break;
+                case 'thaw':
+                    // Withdrawals reopen: the ice cracks where the boss fell and a frost burst rolls out from the bull
+                    fx.ring(e.x, e.y, 10, 160, 0.45, '155,226,255', 6, true);
+                    fx.burst(e.x, e.y, '#E8FAFF', 22, 300, 3, 'spark');
+                    fx.ring(e.px, e.py, 20, e.r, 0.6, '70,184,240', 7, true);
+                    fx.burst(e.px, e.py, '#9BE2FF', 18, e.r, 3, 'spark');
+                    fx.addFlash('70,184,240', 0.3, 2);
+                    // under the bull: the boss's JACKPOT numbers rise above the body, often right next to him
+                    fx.number(e.px, e.py + 44, 'WITHDRAWALS OPEN', 'jackpotLabel');
+                    if (e.n) fx.number(e.px, e.py + 68, `${e.n} CANDLES THAWED`, 'info');
+                    this._sfx('thaw', 0);
+                    if (!this.attract) this.haptics.levelUp();
+                    break;
                 case 'dip':
                     // Buy the Dip: the window and its countdown ring are drawn from sim state (render.js)
                     fx.ring(p.x, p.y, 10, 160, 0.5, '22,224,138', 6, true);

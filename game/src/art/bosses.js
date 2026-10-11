@@ -350,6 +350,88 @@ export function bearMarket(f) {
     return s.render();
 }
 
+/**
+ * 48×44 Withdrawal Freeze: a bear carved out of ice, hugging a frosted vault shut with a gold padlock.
+ * Crypto Winter's mini-boss: withdrawals are paused.
+ */
+export function withdrawalFreeze(f) {
+    const s = new PixelSprite(48, 44, { dither: 0.4 });
+    const ph = (f / 4) * TAU;
+    const b = Math.round(Math.sin(ph));
+    const step = Math.round(Math.cos(ph) * 1.5);
+    s.auto('body', { R: 4.5, grad: 0.34 });
+    s.auto('head', { R: 3.8, grad: 0.3 });
+    s.auto('arms', { R: 2.6, grad: 0.3 });
+    s.auto('legs', { R: 2.4, grad: 0.25 });
+    // legs, stepping in turn
+    s.capsule(16, 33, 15, 40 - Math.max(0, step), 4.2, 4, M.ice, { g: 'legs', bias: -0.15 });
+    s.capsule(32, 33, 33, 40 - Math.max(0, -step), 4.2, 4, M.ice, { g: 'legs', bias: -0.15 });
+    // body
+    s.ellipse(24, 27 + b * 0.5, 14, 12, M.ice, { g: 'body' });
+    // ears and head
+    const hy = 12 + b * 0.5;
+    s.circle(14, hy - 6, 3.4, M.ice, { g: 'head' });
+    s.circle(34, hy - 6, 3.4, M.ice, { g: 'head' });
+    s.ellipse(24, hy, 10.5, 8.5, M.ice, { g: 'head' });
+    s.ellipse(24, hy + 4, 5, 3.4, M.snow, { g: 'snout', bias: 0.1 });
+    s.auto('snout', { R: 2, grad: 0.25 });
+    // the vault, held against the belly: steel door, frost on top, a dial and a gold padlock
+    const vy = 22 + b;
+    s.box(15, vy, 18, 14, M.metal, { g: 'vault', bias: 0.05 });
+    s.auto('vault', { R: 1.6, grad: 0.3 });
+    s.box(17, vy + 2, 14, 10, M.metal, { shade: 'flat', lum: 0.38 });
+    s.circle(21, vy + 7, 2.6, M.metal, { lum: 0.75 });
+    s.px(21, vy + 7, '#14181E');
+    s.px(21, vy + 5, '#E3E8EE');
+    // padlock on the right of the door
+    s.box(26, vy + 6, 5, 4, M.gold, { shade: 'flat', lum: 0.7 });
+    s.patch(26, vy + 3, ['.XXX.', 'X...X', 'X...X'], { X: '#C28100' });
+    s.px(28, vy + 7, '#3A2200');
+    s.px(28, vy + 8, '#3A2200');
+    // frost crust along the top of the vault, with icicles
+    for (let x = 15; x < 33; x++) s.px(x, vy, x % 3 ? '#E8FAFF' : '#9BE2FF');
+    for (const [x, l] of [
+        [17, 2],
+        [22, 3],
+        [30, 2]
+    ])
+        s.poly(
+            [
+                [x - 1, vy + 1],
+                [x + 1, vy + 1],
+                [x, vy + 1 + l]
+            ],
+            M.ice,
+            { lum: 0.85 }
+        );
+    // arms wrapped round the vault
+    s.capsule(11, 20 + b, 15, 31 + b, 3.6, 3.2, M.ice, { g: 'arms' });
+    s.capsule(37, 20 + b, 33, 31 + b, 3.6, 3.2, M.ice, { g: 'arms' });
+    // face: dark nose, angry brow, dark sockets with cold glowing eyes
+    s.patch(22, Math.round(hy + 2), ['XXXXX', '.XXX.'], { X: '#030E1A' });
+    const ey = Math.round(hy - 2);
+    s.patch(16, ey - 1, ['XXX..........XXX', '.XXXX......XXXX.', '..XXX......XXX..'], {
+        X: '#030E1A'
+    });
+    glowEyes(s, [
+        [18, ey + 1],
+        [19, ey + 1],
+        [28, ey + 1],
+        [29, ey + 1]
+    ]);
+    // frosty breath on alternate frames
+    if (f % 2 === 1)
+        s.pxs(
+            [
+                [28, Math.round(hy + 7)],
+                [30, Math.round(hy + 8)]
+            ],
+            '#E8FAFF',
+            { glow: '#9BE2FF', bare: true }
+        );
+    return s.render();
+}
+
 /** 66×60 The Long Winter: crypto winter with a face. Frost fur, icicles, cold blue eyes. */
 export function longWinter(f) {
     const s = new PixelSprite(66, 60, { dither: 0.45 });

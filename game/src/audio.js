@@ -218,6 +218,21 @@ export class AudioEngine {
                 this.tone({ freq: f, dur: 0.6, type: 'triangle', volume: 0.08, release: 0.3 });
         }, 300);
     }
+    /** Withdrawal Freeze ices a candle: a tiny high glassy tick. */
+    freeze() {
+        this.tone({ freq: 2400, dur: 0.04, type: 'triangle', volume: 0.05, sweep: -600 });
+    }
+    /** Withdrawals reopen: ice cracking, then a bright rising run as the candles fly home. */
+    thaw() {
+        this.tone({ noise: true, dur: 0.2, volume: 0.18, release: 0.12 });
+        this.tone({ freq: 1800, dur: 0.1, type: 'square', volume: 0.07, sweep: -1000 });
+        [659, 880, 1175, 1568, 2093].forEach((f, i) =>
+            setTimeout(
+                () => this.tone({ freq: f, dur: 0.08, type: 'triangle', volume: 0.12 }),
+                160 + i * 60
+            )
+        );
+    }
     /** Buy the Dip: the chart drops (a falling note), then bounces back up in a quick bright V. */
     dip() {
         this.tone({ freq: 880, dur: 0.16, type: 'square', volume: 0.09, sweep: -520 });

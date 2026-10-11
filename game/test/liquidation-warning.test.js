@@ -36,7 +36,8 @@ test('liquidation warning: every charge boss warns for 1 s', () => {
     assert.deepEqual(chargers.map((b) => b.id).sort(), [
         'bear_market',
         'liquidation',
-        'long_winter'
+        'long_winter',
+        'withdrawal_freeze'
     ]);
     for (const b of chargers) {
         assert.equal(b.chargeWarn, 1, b.id);

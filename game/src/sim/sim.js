@@ -49,8 +49,9 @@ import { Weapon } from './weapons.js';
  * 13: Exit Scam (from 3:00 a scammer pockets loose candles and runs; kill it and the bag spills out).
  * 14: Bear Spray (a new weapon in the level-up pool: a cone that shoves bears and breaks shields).
  * 15: Buy the Dip (under 30% HP, kills heal for 5 s, once a minute). 16: Liquidation Risk (Leverage evolves at 5
- * stacks: +10% crit, crits chain to 2 more bears, 2x damage taken). */
-export const SIM_VERSION = 16;
+ * stacks: +10% crit, crits chain to 2 more bears, 2x damage taken). 17: Withdrawal Freeze (Crypto Winter's
+ * mini-boss at 3:30 freezes candles near it; its death thaws them to the bull and slows the bears around him). */
+export const SIM_VERSION = 17;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -120,7 +121,9 @@ export class Simulation {
             shieldsBroken: 0, // Bear Spray
             dips: 0, // Buy the Dip: windows opened
             dipHealed: 0, // and the HP they gave back
-            liquidations: 0 // Liquidation Risk: chain hits
+            liquidations: 0, // Liquidation Risk: chain hits
+            candlesFrozen: 0, // Withdrawal Freeze: candles it iced
+            candlesThawed: 0 // and the ones its death sent to the bull
         };
         this.events = [];
     }
@@ -340,6 +343,56 @@ export class Simulation {
         }
         if (e.def.pumper) this._dump(e, born);
         if (e.def.thief && e.bagCount > 0) this._spillBag(e);
+        if (e.def.freezeRadius) this._thaw(e);
+    }
+
+    /** Withdrawal Freeze: every landed candle within `freezeRadius` of the boss freezes in place. */
+    freezeCandles(boss) {
+        const r = boss.def.freezeRadius;
+        for (const o of this.xp) {
+            if (o.dead || o.frozen || o.fall > 0) continue;
+            const dx = o.x - boss.x;
+            const dy = o.y - boss.y;
+            if (dx * dx + dy * dy > r * r) continue;
+            o.frozen = true;
+            o.vacuum = false;
+            o.speed = 0;
+            this.stats.candlesFrozen++;
+            this.emit({ t: 'candleFreeze', x: o.x, y: o.y });
+        }
+    }
+
+    /** Withdrawals reopen: every frozen candle flies to the bull, and the bears around him are slowed. */
+    _thaw(boss) {
+        const def = boss.def;
+        const p = this.player;
+        let n = 0;
+        for (const o of this.xp) {
+            if (!o.frozen) continue;
+            o.frozen = false;
+            o.vacuum = true;
+            n++;
+        }
+        this.stats.candlesThawed += n;
+        let slowed = 0;
+        const r2 = def.thawRadius * def.thawRadius;
+        for (const e of this.enemies) {
+            if (e.boss || e.hp <= 0 || e.despawned) continue;
+            if ((e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y) > r2) continue;
+            e.slowTimer = Math.max(e.slowTimer, def.thawTime);
+            e.slowPct = Math.max(e.slowPct || 0, def.thawSlow);
+            slowed++;
+        }
+        this.emit({
+            t: 'thaw',
+            x: boss.x,
+            y: boss.y,
+            px: p.x,
+            py: p.y,
+            r: def.thawRadius,
+            n,
+            slowed
+        });
     }
 
     /** Buy the Dip: under DIP_AT of max HP, open a DIP_TIME s window where kills heal (once per DIP_COOLDOWN s). */

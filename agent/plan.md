@@ -1,26 +1,24 @@
-# Build #19 plan: Badges (Achievements v2)
+# Build #20 plan: Withdrawal Freeze (Crypto Winter mini-boss)
 
-**Regression check first.** Build #18's median run halved (14:09 → 6:50, 51 runs) and rug pullers went from 13% to
-36% of deaths. Same-seed playtest vs Build #17: identical (the bot never evolves Leverage). Forcing each Daily stage
-on the same 40 seeds: Crypto Winter alone cuts the bot's median ~30% and lifts rug pullers to 25–38% of deaths, the
-same mix as Build #18. Every run was a Daily, so the 10 Oct Daily was very likely a Winter day. Nothing to fix.
+**Regression check first.** Build #19 (Badges) never touched the sim. `playtest --compare build-18` is identical
+(4:14 → 4:14). Players: median 7:26 → 8:41 (Build #18's 48 h vs Build #19's 24 h), 0 rejected replays of 36. Rug
+pullers rose 32% → 51.5% of deaths, but with no sim change that is the Daily's mix (Winter weights rug pullers 1.5×),
+not a bug. Nothing to fix.
 
-**Feature.** Nobody voted (`vote: null`), so I take the top backlog item that hasn't shipped: Achievements v2.
-14 themed badges ("-50% Day", "Bought the Dip", "Rugged the Rugger", "Survived the Winter"...). Each unlocks
-mid-run with a toast and a chime, is kept on the device, shows on the receipt ("NEW BADGES"), and the Field Guide
-gets a Badges tab listing all of them, locked ones dimmed with how to get them.
+**Feature.** `vote: null`, so the top unshipped backlog item: the Crypto Winter mini-boss (items 1–3, 5–7 shipped
+already). An ice bear hugging a padlocked vault, "Withdrawal Freeze", at 3:30 on Winter only. It jumps like the
+other charge bosses (red ring, 1 s crouch) and freezes every landed XP candle within 150 of it. Kill it and
+withdrawals reopen: the frozen candles fly to you and a frost burst slows every bear within 360 by 50% for 3 s.
 
-**Why today.** A player sees it in their first run (the first-minute and 100-kill badges land early), and it gives
-the features of the last week (Bear Spray, Buy the Dip, Liquidation Risk, Exit Scam) a goal to chase. No sim change.
+**Why today.** Free runs and Dailies both take the stage from the seed, so one run in three is Winter. Rug pullers
+ended 51.5% of runs, and Winter is where they're thickest. The thaw's slow is a breather against them, and the
+frozen pile turns into a level-up burst you can clip.
 
-**Files.**
+**Files.** `game/src/sim/content.js` (boss def, `onlyStage` in `bossesFor`), `sim.js` (`freezeCandles`, `_thaw`,
+stats, `SIM_VERSION` 17), `entities.js` (frozen candles, scammers skip them), `bot.js` (ignores frozen candles),
+`art/bosses.js` + `art/items.js` + `art/sprites.js` (boss, frozen candle), `render.js` (frost ring, ice cubes),
+`game.js` + `audio.js` (freeze tick, thaw burst, toast, sound).
 
-- `game/src/achievements.js` (new): the badge list, a per-run tracker (`observe(sim, events)` returns new unlocks),
-  the guide section. No DOM.
-- `game/src/game.js`: tracker per run (not in attract), toast queue, save to prefs, list on the receipt.
-- `game/src/prefs.js`: `achievements: {}`. `game/src/main.js`: Badges tab after the guide's four.
-- `game/src/ui.js`, `game/index.html`, `game/styles.css`: receipt line, locked style, five tabs.
-
-**Tests.** `game/test/achievements.test.js`: list is valid (unique ids, art exists), each badge unlocks on the right
-state and not before, an unlocked badge never fires twice, "-50% Day" needs the 2 minutes, a real bot run unlocks
-the early ones, the guide section marks locked/unlocked. Playtest must be identical (no sim change). Smoke shots.
+**Tests.** `game/test/withdrawal-freeze.test.js`: Winter-only schedule; it spawns with a warning; the freeze radius,
+falling candles and other bosses; frozen candles can't be picked up, scammed or expire; the thaw sends candles home
+and slows only nearby bears; bot determinism. Winter A/B on 60 paired seeds per character. Browser shots.

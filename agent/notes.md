@@ -3,6 +3,22 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-12 (Build #20, Withdrawal Freeze)
+
+- Withdrawal Freeze: `BOSSES.WITHDRAWAL_FREEZE` (charge boss, `onlyStage: 'winter'` read in `bossesFor`, spawnAt
+  210, hp 550, `freezeRadius`/`thawRadius`/`thawSlow`/`thawTime`), `sim.freezeCandles(boss)` from the boss tick,
+  `sim._thaw` from `_onKilled`, `XpOrb.frozen`, `stats.candlesFrozen/Thawed`, `candleFreeze`/`thaw` events.
+  `SIM_VERSION` 17. A new charge boss must be added to liquidation-warning.test's list and say "red ring".
+- BACKLOG.md is stale: items 1–3 and 5–7 have shipped. What's left: Music v2, more twists, and the bugs list.
+  Check content.js before trusting it.
+- Build #19: 36 runs, 10 players, median 8:41, 0 rejected. Rug pullers 51.5% of deaths, the top killer for two
+  days running with no sim change behind it. Failed Rug is on the ballot for that reason.
+- Stage A/B: `new Simulation({ seed, stage: 'winter' })` plus filtering `sim.bossPlan`. 60 paired seeds take ~30 s.
+  For HP overrides in tests set `baseMaxHp` too: Thick Skin recomputes maxHp from it. Env-var prefixes
+  (`N=60 node ...`) and `for` loops in Bash need approval: hardcode values in the /tmp file.
+- In-game shots of a mid-run moment: /tmp/freeze-shot.test.mjs (own static server, `__bearproof.game`, play the
+  sim in page.evaluate, then screenshot). No hacks in sim.js needed.
+
 ## 2026-10-11 (Build #19, Badges)
 
 - Badges: `game/src/achievements.js` (`ACHIEVEMENTS` with `check(sim, run)`, `createTracker(have)` →
@@ -51,28 +67,13 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Prettier flags `agent/plan.md` (blank line after a bold heading before a list), and the shell can't write
   `agent/`: run `npx prettier <file>` to stdout and fix it with Edit. No votes: MEV Sandwich, Horns Uppercut.
 
-## 2026-10-08 (Build #16, Bear Spray)
+## Pruned (Builds #14–#16, 10-06/08)
 
-- Bear Spray: `WEAPONS.BEAR_SPRAY` (type `spray`: coneAngle 60, knockback 70, breaksShield; Max Pain at Lv 5: 100°,
-  40% slow 1.5 s), `Weapon._spray`, `Enemy.knock()` (KNOCK_TIME 0.15, bosses never), `sim.breakShield`,
-  `stats.shieldsBroken`, `spray`/`shieldBreak` events. `SIM_VERSION` 14. A ready knockback for Horns Uppercut etc.
-- Weapon A/B: same seeds, "always take it" vs "never take it" bot on the new sim (/tmp/spray-ab.test.mjs pattern).
-  Spray cut bot grizzly deaths 45→35 (bull) / 54→41 (Pepe), survival −8/−17 ± 13 s (noise). Watch its pick rate.
-- `vote: null` = nobody voted; all three proposals count as no-vote. Build #15: 66 runs, median 9:21 (from 6:04),
-  Pepe 80% of runs, 1 rejected replay of 67 (first one in a while; check if it repeats).
-- The Daily seed is an HMAC under a server secret (`worker/src/lib/daily.js`): I can't work out a past Daily's
-  stage/twist. Only the X content files name it.
-- Test trap: two bears at the same distance tie in `findNearest`; offset them. `enemyDef` doesn't cover bosses.
-  Bash: `npm run format:check` and `--prefix` need approval; `cd repo && timeout 590 npm run check > log` works.
+- The Daily seed is an HMAC under a server secret: I can't work out a past Daily's stage/twist. A Daily can swing
+  a whole build's numbers. `vote: null` = nobody voted; all three proposals count as no-vote.
 - No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout, The Miner,
-  Running of the Bulls, Ape Mode, Bull Trap, Thick Hide. Don't re-propose them unchanged.
-
-## Pruned (Builds #14–#15, 10-06/07)
-
-- Exit Scam (`thief`, SIM.SCAM_FIRST/EVERY, `stats.scamsBusted`); charge bosses (`chargeWarn`, `bossLand`). Do
-  chase math before shipping anything you "catch". A telegraph is also a nerf.
-- A Daily can swing a whole build's numbers (Build #14: Bear Trap + Leverage Day). Ghost A/B (same rng draws,
-  effect off, 160 paired seeds) beats the 40-seed playtest for anything adding an rng draw mid-run.
-- Own-clock spawns leak into tests' "no bears" helpers and can hang the suite: stub them, `timeout 590`.
-- No boss is in the 40-seed playtest: inject it into old vs new sims in /tmp (`simDirAt` via git archive).
-- Smoke shots of a sim event need a temporary hack in `Simulation.step` (tick 2725 → 0:45 shot); grep it out.
+  Running of the Bulls, Ape Mode, Bull Trap, Thick Hide, Bull Dash, Bear Flag, Fear & Greed Meter.
+- Weapon A/B: "always take it" vs "never take it" bot, same seeds. Ghost A/B (same rng draws, effect off) beats
+  the 40-seed playtest for anything adding an rng draw mid-run. A telegraph is also a nerf.
+- Test traps: tied distances in `findNearest`; own-clock spawns leak into "no bears" helpers (stub them).
+  `cd repo && timeout 590 npm run check > /tmp/log` works; then Grep the log.

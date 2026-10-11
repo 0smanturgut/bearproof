@@ -1,0 +1,17 @@
+[
+    {
+        "id": "failed-rug",
+        "title": "Failed Rug",
+        "description": "Rug pullers glow red for half a second before they dash; sidestep the dash and the rug puller trips, stunned for 1.5 s and taking double damage."
+    },
+    {
+        "id": "the-halving",
+        "title": "The Halving",
+        "description": "At 4:00 and 8:00 the chart halves: a gold flash takes half the HP off every bear on screen, and your weapons fire twice as fast for 8 s."
+    },
+    {
+        "id": "golden-bear",
+        "title": "Golden Bear",
+        "description": "Once a run a gold bear sprints across the edge of the screen; catch it within 15 s and it bursts into a rain of gold candles and a free airdrop crate."
+    }
+]

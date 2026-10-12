@@ -1,24 +1,33 @@
-# Build #20 plan: Withdrawal Freeze (Crypto Winter mini-boss)
+# Build #21 plan: Music v2, the boss track
 
-**Regression check first.** Build #19 (Badges) never touched the sim. `playtest --compare build-18` is identical
-(4:14 → 4:14). Players: median 7:26 → 8:41 (Build #18's 48 h vs Build #19's 24 h), 0 rejected replays of 36. Rug
-pullers rose 32% → 51.5% of deaths, but with no sim change that is the Daily's mix (Winter weights rug pullers 1.5×),
-not a bug. Nothing to fix.
+## Feature
 
-**Feature.** `vote: null`, so the top unshipped backlog item: the Crypto Winter mini-boss (items 1–3, 5–7 shipped
-already). An ice bear hugging a padlocked vault, "Withdrawal Freeze", at 3:30 on Winter only. It jumps like the
-other charge bosses (red ring, 1 s crouch) and freezes every landed XP candle within 150 of it. Kill it and
-withdrawals reopen: the frozen candles fly to you and a frost burst slows every bear within 360 by 50% for 3 s.
+A second procedural music track that takes over while a boss is alive: four-on-the-floor kick, off-beat hats, a
+driving octave bass and a minor lead in A phrygian. It speeds up as the boss loses HP (150 ms steps at full HP
+down to 105 ms near death) and adds layers past half HP. When the last boss dies, the calm arpeggio comes back on
+a fresh downbeat.
 
-**Why today.** Free runs and Dailies both take the stage from the seed, so one run in three is Winter. Rug pullers
-ended 51.5% of runs, and Winter is where they're thickest. The thaw's slow is a breather against them, and the
-frozen pile turns into a level-up burst you can clip.
+## Why it wins today
 
-**Files.** `game/src/sim/content.js` (boss def, `onlyStage` in `bossesFor`), `sim.js` (`freezeCandles`, `_thaw`,
-stats, `SIM_VERSION` 17), `entities.js` (frozen candles, scammers skip them), `bot.js` (ignores frozen candles),
-`art/bosses.js` + `art/items.js` + `art/sprites.js` (boss, frozen candle), `render.js` (frost ring, ice cubes),
-`game.js` + `audio.js` (freeze tick, thaw burst, toast, sound).
+`vote` is null (nobody voted), so the pick is mine: Music v2 is the top unshipped item on the backlog. Build #20
+players killed 2.12 bosses per run (52 runs), so every run meets this several times. Client only: no sim change,
+no SIM_VERSION bump, replays untouched.
 
-**Tests.** `game/test/withdrawal-freeze.test.js`: Winter-only schedule; it spawns with a warning; the freeze radius,
-falling candles and other bosses; frozen candles can't be picked up, scammed or expire; the thaw sends candles home
-and slows only nearby bears; bot determinism. Winter A/B on 60 paired seeds per character. Browser shots.
+## Files
+
+- `game/src/music.js` (new): pure patterns. `musicMood(enemies)`, `stepMs(mood)`, `calmStep(i)`,
+  `bossStep(i, heat)` return note lists, so Node can test them.
+- `game/src/audio.js`: the sequencer plays notes from music.js, reschedules itself with setTimeout so the tempo can
+  change, `setMood(mood)` switches tracks on a downbeat.
+- `game/src/game.js`: feed `musicMood(sim.enemies)` to the audio each frame while playing.
+- `game/test/music.test.js` (new).
+
+## Tests
+
+- Mood: no boss → calm; boss at full HP → heat 0; the most hurt boss sets the heat; dead bosses don't count.
+- Tempo falls monotonically with heat, calm stays at 180 ms.
+- Calm track plays the same notes as before (same arp and bass).
+- Boss bar: kick on every beat, hats off-beat, layers added past half HP, every frequency audible.
+- AudioEngine with a fake AudioContext and mock timers: boss mood switches tracks, restarts on the downbeat, speeds
+  up, returns to calm; stop clears the timer; muted music schedules nothing.
+- Gates: `npm run check`, smoke, determinism (sim unchanged, so the playtest should be identical).

@@ -1,0 +1,17 @@
+[
+    {
+        "id": "rug-yank",
+        "title": "Rug Yank",
+        "description": "Every rug puller drops its rug when it dies; run over one and you yank it, and every bear on screen trips and sits stunned for 2 s."
+    },
+    {
+        "id": "sell-wall",
+        "title": "Sell Wall",
+        "description": "At 6:00 a wall of red sell orders sweeps across the screen from one edge: find the one gap and slip through, or take a big hit and get shoved back."
+    },
+    {
+        "id": "stampede",
+        "title": "Stampede",
+        "description": "Kills fill a green meter; when it's full, tap and a herd of green bulls thunders across the screen, trampling everything in its path."
+    }
+]

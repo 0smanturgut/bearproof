@@ -2,14 +2,16 @@
  * @module audio
  * @description Web Audio synthesised SFX plus a procedural music loop.
  * Zero external assets — every sound is generated at playback time from
- * oscillators and noise buffers. Music is a step sequencer that walks a root
- * note around a minor progression with an arpeggiator on top.
+ * oscillators and noise buffers. Music is a step sequencer playing the
+ * patterns in `music.js`: a calm arpeggio, and a boss track while a boss lives.
  *
  * Dependencies: browser Web Audio API. Degrades silently when unavailable.
  *
  * Exports:
  *   - class AudioEngine
  */
+
+import { bossStep, calmStep, stepMs } from './music.js';
 
 export class AudioEngine {
     constructor(settings) {
@@ -19,6 +21,8 @@ export class AudioEngine {
         this.sfxGain = null;
         this.musicGain = null;
         this.musicInterval = null;
+        this.musicStepIndex = 0;
+        this.mood = { boss: false, heat: 0 };
         this.enabled = true;
         this.unlocked = false;
     }
@@ -337,62 +341,59 @@ export class AudioEngine {
         setTimeout(() => this.tone({ freq: 1567, dur: 0.14, type: 'triangle', volume: 0.22 }), 150);
     }
 
-    // Procedural music: arpeggiated minor progression. Four bars of 8 steps.
-    // Chord roots walk i - VI - III - VII (A minor relative: A, F, C, G).
+    // Procedural music: two step-sequenced tracks from `music.js`. The calm arpeggio plays through a run; the
+    // boss track takes over while a boss is alive and speeds up as it loses HP. Each step reschedules the
+    // next one, so the tempo can change between steps.
     startMusic() {
         if (!this.enabled || !this.ctx || this.musicInterval) return;
         if (this.settings.musicEnabled === false) return;
         this.unlock();
-        const rootHz = 220; // A3
-        const minorArp = [0, 3, 7, 12, 7, 3]; // semitones
-        const progression = [0, -4, -9, -2]; // i, VI, iii, VII in semitones from root
-        const stepMs = 180;
-        let bar = 0;
-        let step = 0;
-        const totalStepsPerBar = minorArp.length;
-        const schedule = () => {
+        const next = () => {
             if (!this.ctx) return;
-            const now = this.ctx.currentTime;
-            const rootSemis = progression[bar % progression.length];
-            const arpSemi = minorArp[step % minorArp.length];
-            const freq = rootHz * Math.pow(2, (rootSemis + arpSemi) / 12);
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.linearRampToValueAtTime(0.06, now + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
-            osc.connect(gain).connect(this.musicGain);
-            osc.start(now);
-            osc.stop(now + 0.34);
-
-            // Every 4 steps add a softer bass pedal tone one octave down.
-            if (step % 4 === 0) {
-                const bass = this.ctx.createOscillator();
-                const bgain = this.ctx.createGain();
-                bass.type = 'sine';
-                bass.frequency.value = (rootHz / 2) * Math.pow(2, rootSemis / 12);
-                bgain.gain.setValueAtTime(0.0001, now);
-                bgain.gain.linearRampToValueAtTime(0.04, now + 0.03);
-                bgain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
-                bass.connect(bgain).connect(this.musicGain);
-                bass.start(now);
-                bass.stop(now + 0.62);
-            }
-
-            step++;
-            if (step >= totalStepsPerBar) {
-                step = 0;
-                bar++;
-            }
+            this._musicStep();
+            this.musicInterval = setTimeout(next, stepMs(this.mood));
         };
-        this.musicInterval = setInterval(schedule, stepMs);
+        this.musicInterval = setTimeout(next, stepMs(this.mood));
+    }
+
+    /** Tell the music what's on screen: `{ boss, heat }` from `musicMood`. A change of track starts on a downbeat. */
+    setMood(mood) {
+        const boss = !!mood?.boss;
+        if (boss !== this.mood.boss) this.musicStepIndex = 0;
+        this.mood = { boss, heat: boss ? mood.heat : 0 };
+    }
+
+    /** Play one step of the current track and move on. */
+    _musicStep() {
+        const i = this.musicStepIndex++;
+        const notes = this.mood.boss ? bossStep(i, this.mood.heat) : calmStep(i);
+        for (const n of notes) this._note(n);
+    }
+
+    _note(n) {
+        const now = this.ctx.currentTime;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(n.vol, now + n.attack);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + n.dur);
+        let src;
+        if (n.noise) {
+            src = this.ctx.createBufferSource();
+            src.buffer = this._noiseBuffer();
+        } else {
+            src = this.ctx.createOscillator();
+            src.type = n.type;
+            src.frequency.setValueAtTime(n.freq, now);
+            if (n.sweep) src.frequency.exponentialRampToValueAtTime(n.sweep, now + n.dur);
+        }
+        src.connect(gain).connect(this.musicGain);
+        src.start(now);
+        src.stop(now + n.dur + 0.02);
     }
 
     stopMusic() {
         if (this.musicInterval) {
-            clearInterval(this.musicInterval);
+            clearTimeout(this.musicInterval);
             this.musicInterval = null;
         }
     }

@@ -32,6 +32,7 @@ import { cleanName, playerId, savePrefs } from './prefs.js';
 import { turnstileToken } from './turnstile.js';
 import { bountyProgress, bountyText, clearsBounty } from './bounty.js';
 import { createTracker } from './achievements.js';
+import { musicMood } from './music.js';
 
 const STEP = SIM.DT;
 const MAX_STEPS_PER_FRAME = 5;
@@ -120,6 +121,7 @@ export class Game {
         this.state = this.attract ? 'attract' : 'playing';
         if (!this.attract) {
             this.audio.unlock();
+            this.audio.setMood(null);
             this.audio.startMusic();
             this.ui.moveHint(true);
             clearTimeout(this._hintTimer);
@@ -185,6 +187,8 @@ export class Game {
                 if (this.sim.over) break;
             }
             if (steps === MAX_STEPS_PER_FRAME) this.acc = 0;
+            // The boss track while a boss lives, faster as it loses HP.
+            if (this.state === 'playing') this.audio.setMood(musicMood(this.sim.enemies));
             if (this.sim.choices) this._openLevelUp();
             if (this.sim.over && (this.state === 'playing' || this.state === 'attract'))
                 this._endRun();

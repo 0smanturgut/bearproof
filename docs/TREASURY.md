@@ -25,7 +25,7 @@ before launch. We keep ClawPump's default, the agent wallet, for three reasons:
 
 1. ClawPump's tools send only to whitelisted addresses, even if an API key leaks. The operator manages that list in
    the dashboard, and it isn't limited to the prize and costs wallets: on 27 Sep he paid a promoter from the treasury,
-   and on 1 and 3 Oct he paid himself back (see Ledger notes).
+   and on 1, 3 and 11 Oct he paid himself back (see Ledger notes).
 2. It is the agent's identity on ClawPump, which is what the hackathon is about.
 3. The key isn't sitting on one of our servers.
 
@@ -111,14 +111,16 @@ are not listed. Balances and transactions are read every 15 minutes through Heli
 through PublicNode's free RPC (`api.mainnet-beta.solana.com` refuses requests from Workers).
 
 We only claim "the AI pays for its own compute" for the amounts that were actually reimbursed on-chain, and each one
-links to its transaction. As of 4 Oct:
+links to its transaction. As of 13 Oct:
 
-- **Reimbursed:** 1.2721 SOL in four transfers (1 and 3 Oct), from the treasury to the operator's own wallets, by
-  hand. About $152 at $120 per SOL on 4 Oct (estimate).
-- **Measured:** $36.23 of AI compute for 10 Build Agent runs (`/api/stats`, `computeSpentUsd`). That bill is covered.
-- **Not itemised:** the rest. The operator says the transfers pay him back for everything he has paid since day 1.
-  Besides compute, that would be hosting, the domain, the stream server and tools. No invoices are published for
-  those, so nothing here calls them measured.
+- **Reimbursed:** 1.9721 SOL in five transfers (1, 3 and 11 Oct), from the treasury to the operator's own wallets,
+  by hand. About $152 for the first four at $120 per SOL on 4 Oct, and about $75 for the fifth at $107 per SOL on
+  13 Oct (estimates).
+- **Measured:** $78.32 of AI compute for 19 Build Agent runs and the Telegram chat (`/api/stats`,
+  `computeSpentUsd`). That bill is covered.
+- **Not itemised:** the rest. The operator says the transfers pay him back for everything he has paid since day 1,
+  and that the 11 Oct one is for the AI's costs. Besides compute, that would be hosting, the domain, the stream
+  server and tools. No invoices are published for those, so nothing here calls them measured.
 
 The operator decides and makes every treasury send. The AI does not move treasury funds.
 
@@ -142,6 +144,10 @@ signature in `worker/src/lib/ledger-notes.js`, after checking the transaction on
   The amounts are on-chain; the purpose is his statement. The three sends on 3 Oct left 0.002 SOL in the treasury.
   `28Rp…NeE4` is also the address the 27 Sep send above went to. Shown as "outgoing to …" until 4 Oct, then labelled
   Reimbursement.
+- **11 Oct 21:50 UTC, 0.7 SOL to `28Rp…NeE4`** (tx `3P1CAH…V4ZJaNK`): operator reimbursement. The operator sent it
+  to his own wallet in the ClawPump dashboard, the same address as the 27 Sep and 3 Oct sends, and on 13 Oct he said
+  he took it for the AI's costs. The amount is on-chain; the purpose is his statement. It left 0.086 SOL in the
+  treasury. Shown as "outgoing to 28Rp…NeE4" until 13 Oct, then labelled Reimbursement.
 - **5 Oct 00:39 UTC, 25,905,043.96 $BPROOF and 0.2 SOL to `25FF…L3Vv`** (tx `ocgVED…xuDsicjQ` and
   `4GRMNN…TwoRC`): the re-lock. The first Streamflow lock (`7GRzRv3S…2fJB`) released 24,798,035.65 tokens to the
   treasury at 00:22:36 UTC. The operator said the ClawPump treasury wallet returned an error when he tried to lock

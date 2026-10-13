@@ -67,6 +67,27 @@ test('ledger notes: the 1 and 3 Oct sends to the operator say who took them and 
     }
 });
 
+test('ledger notes: the 11 Oct send to the operator is a reimbursement by his statement, like the earlier ones', () => {
+    const [e] = applyNotes([
+        {
+            ts: '2026-10-11T21:50:14.000Z',
+            category: 'other',
+            memo: 'outgoing to 28Rp…NeE4',
+            tx: '3P1CAHTgQqK4P5BUnnAJbYViZZVRAGyEUhfVyh4MZRg8PHtfX4ojDD8FRVEinYWWGnyniejHS2uocU5cMV4ZJaNK',
+            amountSol: 0.700005
+        }
+    ]);
+    assert.equal(e.category, 'reimbursement');
+    assert.match(e.memo, /^operator reimbursement: 0\.7 SOL /);
+    assert.match(
+        e.memo,
+        /operator’s own wallet \(28Rp…NeE4/,
+        'names the recipient as the operator'
+    );
+    assert.match(e.memo, /He says/, 'the purpose is attributed, not asserted');
+    assert.match(e.memo, /only AI compute is measured/);
+});
+
 test('ledger notes: the 5 Oct top-up that went through another wallet says where each part of it is', () => {
     const tx =
         '4DhzYbY2Ak2GuMaPkq4KPqcV6kjLkYqjGDrXaxDwvvLnKySMPRckDDzkJ9VvzQ8LcEMxL1RurPmfyumHBrPY26hf';

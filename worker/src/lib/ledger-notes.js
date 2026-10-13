@@ -43,6 +43,14 @@ export const LEDGER_NOTES = {
                 category: 'reimbursement',
                 memo: 'operator reimbursement: 0.0621 SOL from the treasury to the operator’s own wallet (4fmU…N2tA), by hand; same purpose as the 1 Oct row, by his statement. It left 0.002 SOL in the treasury (labelled 4 Oct)'
             },
+        // 11 Oct 21:50 UTC, 0.7 SOL from the treasury to the operator's own wallet 28Rp…NeE4, made by him in the
+        // ClawPump dashboard. On 13 Oct he said he took it for the AI's costs. The amount is on-chain; the purpose
+        // is his statement (docs/TREASURY.md).
+        '3P1CAHTgQqK4P5BUnnAJbYViZZVRAGyEUhfVyh4MZRg8PHtfX4ojDD8FRVEinYWWGnyniejHS2uocU5cMV4ZJaNK':
+            {
+                category: 'reimbursement',
+                memo: 'operator reimbursement: 0.7 SOL from the treasury to the operator’s own wallet (28Rp…NeE4, where the 27 Sep and 3 Oct sends also went), by hand. He says it is for the AI’s costs, which are billed to him; of his bills, only AI compute is measured (labelled 13 Oct)'
+            },
         // 5 Oct 00:39 UTC: the first Streamflow lock had released 24,798,035.65 $BPROOF to the treasury at 00:22 UTC.
         // The operator moved all of the treasury's tokens and 0.2 SOL to a new wallet, 25FF…L3Vv, which locked
         // 25,776,163.15 in Streamflow (BhKhjz…kuyT) at 00:44:52 UTC, until 31 Dec 2026 21:00 UTC; he said the

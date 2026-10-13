@@ -4,7 +4,7 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Tue 6 Oct 2026, 00:20 UTC. The prize wallet top-up in step 8 is spelled out, and one item from 5 Oct is open there._
+_Last updated: Tue 13 Oct 2026, 10:30 UTC. The 11 Oct treasury send is labelled (step 8), and the 13 Oct prize wallet top-up paid the 10 and 11 Oct Daily Pots._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
@@ -102,10 +102,11 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
   `3A2hfL8vHw5hUT88vhEpRbKKyLd6nBtA3MmS5cB5BybK`, which isn't a project wallet and holds only that, and 0.0207 SOL
   is still in `21NB…SnKb`. If `3A2h…BybK` is yours, send both amounts to the prize wallet (or back to the treasury)
   and tell me; if it isn't, tell me that, and the ledger note will say so.
-- **Cost reimbursement.** You took 1.2721 SOL from the treasury to your own wallets on 1 and 3 Oct; the ledger
-  labels the four sends "Reimbursement" (`docs/TREASURY.md`, Ledger notes). Two things are open:
+- **Cost reimbursement.** You took 1.9721 SOL from the treasury to your own wallets on 1, 3 and 11 Oct; the ledger
+  labels the five sends "Reimbursement" (`docs/TREASURY.md`, Ledger notes). The 11 Oct one (0.7 SOL) was labelled on
+  13 Oct, when you said it was for the AI's costs. Two things are open:
     - **Send me your bills** (what, amount, date: Anthropic API, Claude subscription, Cloudflare, the domain, the
-      stream server, anything else). Only $36.23 of compute is measured; until the rest is listed, the site says "not
+      stream server, anything else). Only $78.32 of compute is measured; until the rest is listed, the site says "not
       itemised".
     - **Tell me before the next send**, with its purpose, so the row is labelled the same day instead of showing as
       "Other".

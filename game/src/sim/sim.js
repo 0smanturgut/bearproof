@@ -50,8 +50,9 @@ import { Weapon } from './weapons.js';
  * 14: Bear Spray (a new weapon in the level-up pool: a cone that shoves bears and breaks shields).
  * 15: Buy the Dip (under 30% HP, kills heal for 5 s, once a minute). 16: Liquidation Risk (Leverage evolves at 5
  * stacks: +10% crit, crits chain to 2 more bears, 2x damage taken). 17: Withdrawal Freeze (Crypto Winter's
- * mini-boss at 3:30 freezes candles near it; its death thaws them to the bull and slows the bears around him). */
-export const SIM_VERSION = 17;
+ * mini-boss at 3:30 freezes candles near it; its death thaws them to the bull and slows the bears around him).
+ * 18: Options Expiry (a Daily twist: XP candles expire after 6 s and are worth +50%). */
+export const SIM_VERSION = 18;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {

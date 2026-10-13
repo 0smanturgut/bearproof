@@ -1,0 +1,17 @@
+[
+    {
+        "id": "rug-pull-alert",
+        "title": "Rug Pull Alert",
+        "description": "A rug puller flashes red and you hear a warning half a second before it lunges, so you can sidestep: rug pullers ended 37.5% of yesterday's runs."
+    },
+    {
+        "id": "moon-rocket",
+        "title": "Moon Rocket",
+        "description": "A rare rocket drops from a kill: grab it and the bull rides it across the screen for 4 s, untouchable, ramming every bear in its path."
+    },
+    {
+        "id": "ghost-run",
+        "title": "Ghost Run",
+        "description": "On the Daily, a see-through ghost of your best run plays beside you, so you can see exactly where you're ahead or behind."
+    }
+]

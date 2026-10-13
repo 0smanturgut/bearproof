@@ -687,9 +687,12 @@ export class XpOrb {
             return;
         }
         if (this.frozen) return;
+        // Options Expiry: the twist shortens the clock (it starts once the candle is on the floor)
+        if (this.life > sim.twist.xpLifetime) this.life = sim.twist.xpLifetime;
         this.life -= dt;
         if (this.life <= 0) {
             this.dead = true;
+            sim.emit({ t: 'candleExpire', x: this.x, y: this.y });
             return;
         }
         const p = sim.player;

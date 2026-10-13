@@ -39,7 +39,7 @@ function candle(sim, x, y, value = 10) {
 }
 
 test('withdrawal freeze: on the Crypto Winter schedule at 3:30, and on no other stage', () => {
-    assert.equal(SIM_VERSION, 17);
+    assert.ok(SIM_VERSION >= 17, 'Withdrawal Freeze shipped in SIM_VERSION 17');
     for (const s of STAGE_ROTATION) {
         const plan = bossesFor(s).find((b) => b.id === 'withdrawal_freeze');
         if (s === 'winter') assert.equal(plan?.spawnAt, 210);

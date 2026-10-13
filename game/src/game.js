@@ -434,6 +434,10 @@ export class Game {
                     fx.burst(e.x, e.y + 6, '#FFC53D', 5, 110, 2.5, 'spark');
                     this._sfx('coin', 0.03);
                     break;
+                case 'candleExpire':
+                    // an XP candle ran out its clock: a small grey puff, no sound (Options Expiry drops many)
+                    fx.burst(e.x, e.y, '#7F8A99', 5, 70, 2.5, 'smoke');
+                    break;
                 case 'fire':
                     if (e.w === 'horns') fx.swipe(e.x, e.y, e.r, e.evolved);
                     else if (e.w === 'circuit_breaker') {

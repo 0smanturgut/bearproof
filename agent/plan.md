@@ -1,33 +1,33 @@
-# Build #21 plan: Music v2, the boss track
+# Build #22 plan: Options Expiry, a new Daily twist
 
 ## Feature
 
-A second procedural music track that takes over while a boss is alive: four-on-the-floor kick, off-beat hats, a
-driving octave bass and a minor lead in A phrygian. It speeds up as the boss loses HP (150 ms steps at full HP
-down to 105 ms near death) and adds layers past half HP. When the last boss dies, the calm arpeggio comes back on
-a fresh downbeat.
+A seventh Daily Challenge twist, **Options Expiry**: every XP candle expires 6 s after it drops (instead of 30 s),
+but each one is worth +50% XP. Expiring candles show a shrinking ring and blink, then vanish in a grey puff. It's
+the first twist that changes a rule, not just a number: you have to go and grab the XP before it's gone.
 
 ## Why it wins today
 
-`vote` is null (nobody voted), so the pick is mine: Music v2 is the top unshipped item on the backlog. Build #20
-players killed 2.12 bosses per run (52 runs), so every run meets this several times. Client only: no sim change,
-no SIM_VERSION bump, replays untouched.
+`vote` is null and the ideas box is empty, so the pick is mine. "More daily twists" is the last feature left on the
+backlog. Every Build #21 run was a Daily (20 of 20), so a new twist reaches every player who plays the board.
+The median run is 13:41 and 4 of 20 runs won, so a twist that asks for a bit more movement suits the current
+difficulty.
 
 ## Files
 
-- `game/src/music.js` (new): pure patterns. `musicMood(enemies)`, `stepMs(mood)`, `calmStep(i)`,
-  `bossStep(i, heat)` return note lists, so Node can test them.
-- `game/src/audio.js`: the sequencer plays notes from music.js, reschedules itself with setTimeout so the tempo can
-  change, `setMood(mood)` switches tracks on a downbeat.
-- `game/src/game.js`: feed `musicMood(sim.enemies)` to the audio each frame while playing.
-- `game/test/music.test.js` (new).
+- `game/src/sim/content.js`: `options_expiry` appended to `TWIST_IDS` (append-only), `TWISTS` entry,
+  `xpLifetime` in `TWIST_DEFAULTS` (30 = `SIM.XP_LIFETIME`, so other twists don't change).
+- `game/src/sim/entities.js`: `XpOrb.update` clamps `life` to the twist's `xpLifetime`, emits `candleExpire`.
+- `game/src/sim/sim.js`: `SIM_VERSION` 17 → 18 (a new twist byte the old sim can't play).
+- `game/src/render.js`: a countdown ring around candles while the twist is on.
+- `game/src/game.js`: `candleExpire` → a small grey puff, no sound.
+- `game/test/options-expiry.test.js` (new); `game/test/twist.test.js` pin to 18.
 
 ## Tests
 
-- Mood: no boss → calm; boss at full HP → heat 0; the most hurt boss sets the heat; dead bosses don't count.
-- Tempo falls monotonically with heat, calm stays at 180 ms.
-- Calm track plays the same notes as before (same arp and bass).
-- Boss bar: kick on every beat, hats off-beat, layers added past half HP, every frequency audible.
-- AudioEngine with a fake AudioContext and mock timers: boss mood switches tracks, restarts on the downbeat, speeds
-  up, returns to calm; stop clears the timer; muted music schedules nothing.
-- Gates: `npm run check`, smoke, determinism (sim unchanged, so the playtest should be identical).
+- The twist is in the rotation and has a definition; the Daily can land on it.
+- Under the twist, a candle out of reach is gone after 6 s and emits `candleExpire`; without the twist it lives
+  30 s. A frozen candle (Withdrawal Freeze) doesn't expire. A falling jackpot candle starts its clock on landing.
+- Value is +50%: XP gained from the same kill is 1.5×.
+- Replays bit for bit with the twist.
+- Playtest `--twist options_expiry` vs main on the same 40 seeds; the default playtest must stay identical.

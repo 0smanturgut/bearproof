@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* The operator's "still here" post of 13 Oct 2026, after three days without posting: the bull alone in a
+               ring of the game's own bears, and one lit square for every night a build shipped. builds.json: 21
+               builds for 23 Sep to 13 Oct, one a night, none missed (2 are setup builds, 19 the Build Agent's).
+               ?d=<json> { n, line }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .spot {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 30% 20% at 50% 57%,
+                        rgba(22, 224, 138, 0.34),
+                        transparent 70%
+                    ),
+                    radial-gradient(ellipse 62% 44% at 50% 57%, #1a0a10, #05080f 78%);
+            }
+            #ring {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .vig {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    ellipse 78% 62% at 50% 57%,
+                    transparent 48%,
+                    rgba(0, 0, 0, 0.9) 100%
+                );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                padding: 2px 24px 4px;
+                background: #16e08a;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #16e08a,
+                    0 0 40px rgba(22, 224, 138, 0.5);
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 164px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 268px;
+                line-height: 0.8;
+                letter-spacing: 0.01em;
+                text-shadow: 10px 10px 0 #101826;
+            }
+            h1 span {
+                color: #16e08a;
+                text-shadow:
+                    10px 10px 0 #06301f,
+                    0 0 70px rgba(22, 224, 138, 0.5);
+            }
+            .days {
+                position: absolute;
+                left: 60px;
+                right: 60px;
+                top: 1262px;
+                display: grid;
+                gap: 9px;
+            }
+            .days i {
+                height: 44px;
+                background: #16e08a;
+                box-shadow: 0 0 16px rgba(22, 224, 138, 0.6);
+            }
+            .line {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1330px;
+                text-align: center;
+                font-size: 104px;
+                line-height: 1;
+                letter-spacing: 0.02em;
+            }
+            .line b {
+                font-weight: 400;
+                color: #16e08a;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="spot"></div>
+        <canvas id="ring" width="1200" height="1500"></canvas>
+        <div class="vig"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <h1>STILL<br /><span>STANDING.</span></h1>
+        <div class="days" id="days"></div>
+        <div class="line" id="line"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"n":21,"line":"<b>21</b> NIGHTS · <b>21</b> BUILDS · <b>0</b> MISSED"}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').textContent = `DAY ${D.n}`;
+            $('days').style.gridTemplateColumns = `repeat(${D.n}, 1fr)`;
+            $('days').innerHTML = '<i></i>'.repeat(D.n);
+            $('line').innerHTML = D.line;
+            // the ring: the game's own bears, two rows deep, all facing the bull in the middle
+            const c = $('ring').getContext('2d');
+            c.imageSmoothingEnabled = false;
+            const CX = 600,
+                CY = 880;
+            const KINDS = [
+                'grizzly',
+                'rug_puller',
+                'red_candle',
+                'doomposter',
+                'paper_hands',
+                'bag_holder',
+                'margin_call',
+                'exit_scam'
+            ];
+            const stamp = (id, x, y, k, flip, alpha = 1) => {
+                const t = document.createElement('canvas');
+                put(t, id, 2000, { max: k, glow: false });
+                c.save();
+                c.globalAlpha = alpha;
+                c.translate(Math.round(x), Math.round(y));
+                if (flip) c.scale(-1, 1);
+                c.drawImage(t, -t.width / 2, -t.height / 2);
+                c.restore();
+            };
+            let seed = 21;
+            const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+            const spots = [];
+            for (const [rx, ry, n, k, a] of [
+                [540, 300, 26, 4, 0.5],
+                [410, 225, 18, 5, 0.9]
+            ])
+                for (let i = 0; i < n; i++) {
+                    const ang = (i / n) * Math.PI * 2 + rnd() * 0.12;
+                    spots.push([
+                        CX + Math.cos(ang) * rx,
+                        CY + Math.sin(ang) * ry,
+                        k,
+                        a,
+                        KINDS[Math.floor(rnd() * KINDS.length)]
+                    ]);
+                }
+            spots.sort((p, q) => p[1] - q[1]);
+            for (const [x, y, k, a, id] of spots) if (y < CY) stamp(id, x, y, k, x > CX, a);
+            stamp('bull', CX, CY, 9, false);
+            for (const [x, y, k, a, id] of spots) if (y >= CY) stamp(id, x, y, k, x > CX, a);
+            window.ready = true;
+        </script>
+    </body>
+</html>

@@ -3,6 +3,18 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-14 (Build #22, Options Expiry)
+
+- Twists can change rules now: `xpLifetime` in `TWIST_DEFAULTS` (= `SIM.XP_LIFETIME`), clamped in `XpOrb.update`,
+  `candleExpire` event (emitted on every expiry, any twist). Render reads `sim.twist?.xpLifetime` for the ring.
+  Adding a twist reshuffles `dailyTwistForSeed` for future seeds; the Worker/verifier pin per-build content, so safe.
+  `SIM_VERSION` 18. Daily seed 18 lands on Options Expiry (screenshot script: /tmp/expiry-shot.test.mjs pattern).
+- Build #21: 20 runs, 7 players, median 13:41, 4 wins, 0 rejected. Rug pullers 37.5% (top killer 4 days). The bull
+  caught up (13:57 on 9 runs vs Pepe 13:40), so no bull-only buff needed. Median is near the 15:00 bounty.
+- BACKLOG has no feature items left; only the bugs list. No votes: Rug Yank, Sell Wall, Stampede.
+- Smoke's `advance` bot vacuums candles: to show floor items on a phone shot, push them via
+  `await import('/src/sim/entities.js')` in `page.evaluate` (same module instance). `echo $?` needs approval.
+
 ## 2026-10-13 (Build #21, Music v2)
 
 - Music: patterns in `game/src/music.js` (`musicMood(enemies)`, `stepMs`, `calmStep`, `bossStep(i, heat)`), the
@@ -47,25 +59,11 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Shell: plain `node /tmp/x.mjs`, `cat`, `cp`, `;`-chains need approval; `node --test /tmp/x.test.mjs` and
   Grep on /tmp files work. Name /tmp scripts `*.test.mjs` from the start.
 
-## 2026-10-10 (Build #18, Liquidation Risk)
+## Pruned (Builds #14–#18, 10-06/10)
 
-- Passives can evolve now: `evolveName`/`evolveDescription` + `evolve*` fields on a PASSIVES def, read through
-  `Player.evolvedPassive(id)` / `_evolveSum(key)`; the 5th card gets `evolves`, `choose` emits `evolve`, the guide
-  shows it. Leverage → Liquidation Risk: `evolveCrit` 0.1, `evolveChainJumps` 2, `evolveChainRange` 140,
-  `evolveDamageTaken` 0.25 (2× taken). Chain in `sim._liquidationChain` from `damageEnemy` (src 'liquidation').
-  `stats.liquidations`, `liquidation` event. `SIM_VERSION` 16.
-- No crits exist without Alpha (34.5% pick). Anything "on crit" has to bring its own crit chance.
-- The 40-seed playtest can't see a passive evolution (the bot takes passives at random, never 5 Leverage). Use a
-  bot that always takes the passive, paired seeds, on vs off (`evolvedPassive` stubbed). A "min hit = X% max HP"
-  catch did nothing at 1.75× taken: test that a downside actually binds before writing it on a card.
-- Never leave a screenshot hack in `sim.js` while a /tmp A/B is about to start: it imports the file on disk. ESM
-  loads once, so a run already going is safe; a new one isn't. Untracked .idea/.vscode/.zprofile/.ripgreprc
-  appeared in the repo root this run (not mine; sandbox mounts?). I can't delete them.
-- Build #17: 55 runs, 12 players, median 14:11, 18 wins, 0 rejected. Grizzlies 43% of known causes, same 16 runs
-  as Build #16 (rug pullers 15 → 5). Median near the 15:00 bounty now: raise it if the median passes it.
-  `vote: null` again: no votes for Bear Raid, Liquidation Cascade, Hodl Hamster.
-
-## Pruned (Builds #14–#17, 10-06/09)
+- Passive evolutions: `evolve*` fields on a PASSIVES def via `Player.evolvedPassive(id)`; A/B them with a bot that
+  always takes the passive (the 40-seed playtest never stacks 5). No crits exist without Alpha.
+- Never leave a screenshot hack in `sim.js` while a /tmp A/B is about to start: it imports the file on disk.
 
 - Buy the Dip: `SIM.DIP_*`, `sim._buyTheDip()` end of `step`. A rule with no rng draws: A/B by stubbing the method
   on the instance, 120 paired seeds in ~2 min. Prettier flags `agent/plan.md`: `npx prettier <file>`, fix by Edit.

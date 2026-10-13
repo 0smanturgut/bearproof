@@ -969,7 +969,8 @@ export const TWIST_IDS = [
     'whale_season',
     'flash_crash',
     'bull_run',
-    'thin_liquidity'
+    'thin_liquidity',
+    'options_expiry'
 ];
 
 const TWIST_DEFAULTS = {
@@ -978,7 +979,8 @@ const TWIST_DEFAULTS = {
     enemyHpMult: 1,
     enemyDmgMult: 1,
     spawnMult: 1,
-    xpMult: 1
+    xpMult: 1,
+    xpLifetime: SIM.XP_LIFETIME // s an XP candle lies on the floor before it's gone
 };
 
 export const TWISTS = {
@@ -1024,6 +1026,14 @@ export const TWISTS = {
         description: '-30% XP, but you hit 30% harder.',
         xpMult: 0.7,
         playerDamageMult: 1.3
+    },
+    // the first twist that changes a rule: candles expire fast, so XP has to be fetched, not waited for
+    options_expiry: {
+        id: 'options_expiry',
+        name: 'Options Expiry',
+        description: 'XP candles expire in 6 s. Each is worth +50%.',
+        xpLifetime: 6,
+        xpMult: 1.5
     }
 };
 

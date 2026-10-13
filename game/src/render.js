@@ -286,6 +286,9 @@ export class Renderer {
         }
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
+        // Options Expiry: candles live a few seconds, so each one wears its own countdown ring
+        const lifetime = sim.twist?.xpLifetime ?? SIM.XP_LIFETIME;
+        const expiry = lifetime < SIM.XP_LIFETIME ? lifetime : 0;
         for (const o of sim.xp) {
             if (!visible(o.x, o.y, 40)) continue;
             if (o.fall > 0) {
@@ -305,6 +308,14 @@ export class Renderer {
                 alpha,
                 frame: Math.floor(t * 3 + o.x) % 2
             });
+            if (expiry && !o.vacuum) {
+                const frac = Math.min(1, o.life / expiry);
+                ctx.strokeStyle = o.life < 2 ? 'rgba(255,59,92,0.9)' : 'rgba(123,245,166,0.75)';
+                ctx.lineWidth = Math.max(1.5, s * 2);
+                ctx.beginPath();
+                ctx.arc(X(o.x), Y(o.y) + bob, 13 * s, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
+                ctx.stroke();
+            }
         }
 
         // --- airdrop crates on the ground: landing markers and landed crates (falling ones fly above the crowd)

@@ -1,0 +1,208 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* 14 Oct 2026: work on putting the game in the phone app stores has started (the operator's statement).
+               Nothing has been submitted yet, and the image claims no store, date or listing: no store names or logos,
+               only "iOS + Android" and "work has started". The two screens are real play on Build #22 in a 390 x 844
+               phone viewport, the game's plain autopilot (seed 9, 4:22 and 7:00): store-shot-a.jpg, store-shot-b.jpg.
+               The phone frames are drawn here, generic on purpose. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .bg {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 60% 40% at 50% 66%,
+                        rgba(22, 224, 138, 0.22),
+                        transparent 70%
+                    ),
+                    linear-gradient(rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 / 60px 60px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 2px, transparent 2px) 0 0 /
+                        60px 60px;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                padding: 2px 24px 4px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 168px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 178px;
+                line-height: 0.86;
+                text-shadow: 9px 9px 0 #101826;
+            }
+            h1 span {
+                color: #16e08a;
+                text-shadow:
+                    9px 9px 0 #06301f,
+                    0 0 60px rgba(22, 224, 138, 0.45);
+            }
+            .phone {
+                position: absolute;
+                top: 520px;
+                width: 380px;
+                height: 822px;
+                padding: 16px;
+                border-radius: 58px;
+                background: linear-gradient(160deg, #3a4558, #151b26 40%, #0b1018);
+                box-shadow:
+                    inset 0 0 0 3px #5b667c,
+                    0 0 0 6px #05080f,
+                    30px 40px 0 rgba(0, 0, 0, 0.45),
+                    0 0 90px rgba(22, 224, 138, 0.25);
+            }
+            .phone .scr {
+                width: 100%;
+                height: 100%;
+                padding-top: 58px;
+                border-radius: 44px;
+                overflow: hidden;
+                background: #05080f;
+            }
+            .phone img {
+                display: block;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: top;
+            }
+            .phone .cam {
+                position: absolute;
+                left: 50%;
+                top: 30px;
+                width: 22px;
+                height: 22px;
+                margin-left: -11px;
+                border-radius: 50%;
+                background: #05080f;
+                box-shadow: 0 0 0 3px #1c2330;
+            }
+            .phone .pill2 {
+                position: absolute;
+                left: 50%;
+                top: 30px;
+                width: 120px;
+                height: 34px;
+                margin-left: -60px;
+                border-radius: 17px;
+                background: #05080f;
+            }
+            #p1 {
+                left: 170px;
+                transform: rotate(-7deg);
+            }
+            #p2 {
+                left: 650px;
+                top: 560px;
+                transform: rotate(6deg);
+            }
+            .tag {
+                position: absolute;
+                top: 1080px;
+                padding: 2px 22px 6px;
+                background: #05080f;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+                box-shadow: 0 0 0 5px #16e08a;
+                z-index: 2;
+            }
+            .foot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1386px;
+                text-align: center;
+                font-size: 76px;
+                line-height: 1;
+                letter-spacing: 0.03em;
+            }
+            .foot b {
+                font-weight: 400;
+                color: #f5c542;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill">IOS + ANDROID</div>
+        </div>
+        <h1>NEXT STOP:<br /><span>YOUR PHONE.</span></h1>
+        <div class="phone" id="p1">
+            <div class="scr"><img src="/scripts/og/x/store-shot-a.jpg" alt="" /></div>
+            <i class="pill2"></i>
+        </div>
+        <div class="phone" id="p2">
+            <div class="scr"><img src="/scripts/og/x/store-shot-b.jpg" alt="" /></div>
+            <i class="cam"></i>
+        </div>
+        <div class="foot">THE WORK HAS <b>STARTED.</b></div>
+        <script type="module">
+            import { put, ready } from '/scripts/og/x/x.js';
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put(document.getElementById('mark'), 'emblem', 2000, { max: 4, glow: false });
+            await ready();
+        </script>
+    </body>
+</html>

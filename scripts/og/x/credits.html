@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* A thank-you to the players and holders, drawn as a game's end credits. Numbers at 14 Oct 2026 23:00 UTC:
+               548 players (browsers that started a run, D1 players), 1,909 runs the server re-played with the same
+               score (D1 runs, verified), 23 builds, one a night since 23 Sep (devlog/build-1.md to build-23.md; Build
+               #23 goes live at 00:00 UTC on 15 Oct). No price, no market cap. ?d=<json> { rows: [[role, who]] }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            #sky {
+                position: absolute;
+                inset: 0;
+            }
+            .fade {
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(
+                        180deg,
+                        #05080f 0%,
+                        transparent 16%,
+                        transparent 84%,
+                        #05080f 100%
+                    ),
+                    radial-gradient(
+                        ellipse 60% 30% at 50% 100%,
+                        rgba(22, 224, 138, 0.25),
+                        transparent 70%
+                    );
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 176px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 250px;
+                line-height: 0.84;
+                color: #16e08a;
+                text-shadow:
+                    10px 10px 0 #06301f,
+                    0 0 70px rgba(22, 224, 138, 0.5);
+            }
+            .roll {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 470px;
+                display: grid;
+                gap: 40px;
+                text-align: center;
+            }
+            .roll .r {
+                font:
+                    400 28px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.3em;
+                color: #8a97a5;
+            }
+            .roll .w {
+                margin-top: 12px;
+                font-size: 104px;
+                line-height: 1;
+            }
+            .roll .w b {
+                font-weight: 400;
+                color: #f5c542;
+            }
+            #bull {
+                position: absolute;
+                left: 50%;
+                top: 1186px;
+                transform: translateX(-50%);
+            }
+            .tbc {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1384px;
+                text-align: center;
+                font-size: 84px;
+                line-height: 1;
+                letter-spacing: 0.08em;
+                color: #f5c542;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="sky" width="1200" height="1500"></canvas>
+        <div class="fade"></div>
+        <div class="top"><canvas id="mark"></canvas>BEARPROOF</div>
+        <h1>THANK YOU.</h1>
+        <div class="roll" id="roll"></div>
+        <canvas id="bull"></canvas>
+        <div class="tbc">TO BE CONTINUED...</div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"rows":[["PLAYED BY","<b>548</b> OF YOU"],["RUNS RE-PLAYED ON THE SERVER","<b>1,909</b>"],["SHIPPED","<b>23</b> BUILDS · <b>23</b> NIGHTS"],["BELIEVED IN BY","YOU. FROM DAY ONE."]]}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('roll').innerHTML = D.rows
+                .map(([r, w]) => `<div><div class="r">${r}</div><div class="w">${w}</div></div>`)
+                .join('');
+            put($('bull'), 'bull', 2000, { max: 6, glow: true });
+            // a quiet field of green candles behind the credits
+            const c = $('sky').getContext('2d');
+            let seed = 23;
+            const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+            for (let i = 0; i < 70; i++) {
+                const x = Math.round(rnd() * 1200),
+                    y = Math.round(rnd() * 1500),
+                    h = 20 + Math.round(rnd() * 60);
+                c.fillStyle = `rgba(22,224,138,${0.05 + rnd() * 0.12})`;
+                c.fillRect(x, y, 14, h);
+                c.fillRect(x + 5, y - 12, 4, h + 24);
+            }
+            window.ready = true;
+        </script>
+    </body>
+</html>

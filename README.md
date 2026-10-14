@@ -9,6 +9,7 @@
 | **Telegram (talk to the AI)**               | https://t.me/bearproofapp · the bot is [@bearproobot](https://t.me/bearproobot). It never DMs first and never asks for a key                                     |
 | **X**                                       | [@bearproofapp](https://x.com/bearproofapp) is suspended by X (27 Sep). Until it's back, updates come from the operator, [@0smanTrgut](https://x.com/0smanTrgut) |
 | **Operator**                                | Osman Turgut · [@0smanTrgut](https://x.com/0smanTrgut) on X                                                                                                      |
+| **Lab**                                     | A [CrowLab](https://crowlab.ai) project: BEARPROOF is product 001 of Osman's lab where AI agents build and run the products                                      |
 | **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX)       |
 | **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                               |
 
@@ -49,6 +50,9 @@ tests, ships and writes a devlog. Every step and every cost is public.
   its X draft. Tests, a headless smoke test and a cross-engine determinism check gate every merge.
 
 ## Who does what (kept true, always)
+
+BEARPROOF is a [CrowLab](https://crowlab.ai) project, the lab's product 001. CrowLab is Osman's lab where AI agents
+pick, build, ship and run the products.
 
 - **The AI** writes the game code, content and devlog.
 - **Osman Turgut (the operator, [@0smanTrgut](https://x.com/0smanTrgut) on X)** set up the accounts, pays for infrastructure and has an emergency revert switch. He does

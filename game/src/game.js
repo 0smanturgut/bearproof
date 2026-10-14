@@ -606,22 +606,38 @@ export class Game {
                             ? '70,184,240'
                             : e.id === 'printer'
                               ? '255,197,61'
-                              : '22,224,138';
+                              : e.id === 'moon_rocket'
+                                ? '255,122,26'
+                                : '22,224,138';
                     const hex =
-                        e.id === 'shield' ? '#9BE2FF' : e.id === 'printer' ? '#FFE08A' : '#7BF5A6';
+                        e.id === 'shield'
+                            ? '#9BE2FF'
+                            : e.id === 'printer'
+                              ? '#FFE08A'
+                              : e.id === 'moon_rocket'
+                                ? '#FFB05C'
+                                : '#7BF5A6';
                     fx.shatter(e.x, e.y, 'supply_crate');
                     fx.burst(e.x, e.y, '#C88645', 10, 200, 3.5);
                     fx.burst(p.x, p.y, hex, 22, 320, 3, 'spark');
                     fx.ring(p.x, p.y, 10, 150, 0.45, rgb, 6, true);
                     fx.addFlash(rgb, 0.25, 2.5);
                     fx.number(p.x, p.y - 40, loot.name.toUpperCase(), 'info');
-                    this._sfx('crate', 0);
+                    this._sfx(e.id === 'moon_rocket' ? 'rocket' : 'crate', 0);
                     if (!this.attract) {
                         this.ui.toast(loot.toast, 'gold', 1800);
                         if (e.id !== 'god_candle') this.haptics.levelUp(); // its slam buzzes harder
                     }
                     break;
                 }
+                case 'ram':
+                    // Moon Rocket: an orange smash where the bear was hit
+                    fx.burst(e.x, e.y, '#FFB05C', e.boss ? 14 : 8, 260, 3, 'spark');
+                    fx.ring(e.x, e.y, 6, e.boss ? 60 : 36, 0.22, '255,122,26', 4);
+                    fx.addShake(e.boss ? 0.25 : 0.08);
+                    this._sfx('ram', 0.06);
+                    if (!this.attract && e.boss) this.haptics.levelUp();
+                    break;
                 case 'godCandle':
                     fx.godCandle(e.x, e.y, e.r);
                     if (e.wiped) fx.number(e.x, e.y - 70, `${e.wiped} BEARS REKT`, 'info');

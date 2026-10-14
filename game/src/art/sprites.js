@@ -67,7 +67,8 @@ const SPRITE_GENS = {
     fud_bolt: make(items.fudBolt, 2, { fps: 12 }),
     heart: make(items.heart),
     rug: make(items.rug, 4, { fps: 12 }),
-    god_candle: make(items.godCandle, 4, { fps: 8 })
+    god_candle: make(items.godCandle, 4, { fps: 8 }),
+    moon_rocket: make(items.moonRocket, 4, { fps: 14 })
 };
 
 const ICON_GENS = {
@@ -155,7 +156,8 @@ export const SPRITE_GROUPS = {
         'fud_bolt',
         'heart',
         'rug',
-        'god_candle'
+        'god_candle',
+        'moon_rocket'
     ]
 };
 

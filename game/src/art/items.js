@@ -73,6 +73,69 @@ export function godCandle(f) {
     return s.render();
 }
 
+/**
+ * 40×16 Moon Rocket (the crate loot the bull rides), side view, nose to the right: a white hull with a green
+ * band, a green nose cone and fins, a glowing porthole, and an exhaust flame that flickers through 4 frames.
+ */
+export function moonRocket(f) {
+    const s = new PixelSprite(40, 16);
+    // the flame first, so the nozzle sits on top of it
+    const len = [9, 12, 10, 13][f % 4];
+    const wob = f % 2 ? 0.5 : -0.5;
+    s.capsule(11, 8 + wob * 0.4, 11 - len, 8 - wob, 3.4, 0.6, M.pepper, {
+        shade: 'flat',
+        lum: 0.75,
+        glow: '#FF7A1A'
+    });
+    s.capsule(11, 8, 11 - len * 0.6, 8 + wob * 0.5, 2, 0.4, M.gold, {
+        shade: 'flat',
+        lum: 0.9,
+        glow: '#FFE08A'
+    });
+    // fins and nozzle
+    s.poly(
+        [
+            [13, 4.5],
+            [10, 0.5],
+            [15.5, 0.5],
+            [19, 4.5]
+        ],
+        M.bull,
+        { top: 0.8, bot: 0.45 }
+    );
+    s.poly(
+        [
+            [13, 11.5],
+            [19, 11.5],
+            [15.5, 15.5],
+            [10, 15.5]
+        ],
+        M.bull,
+        { top: 0.5, bot: 0.3 }
+    );
+    s.box(9.5, 5.5, 3, 5, M.metal, { r: 0.5, bevel: 1, lum: 0.5 });
+    // hull and nose, lit as one body
+    s.capsule(13, 8, 30, 8, 4.4, 4.4, M.paper, { g: 'hull' });
+    s.poly(
+        [
+            [29, 3.6],
+            [39.5, 8],
+            [29, 12.4]
+        ],
+        M.bull,
+        { g: 'hull' }
+    );
+    s.auto('hull', { R: 2.5, grad: 0.3 });
+    // the green band and the porthole
+    for (let y = 4; y <= 12; y++) s.px(17, y, C.green).px(18, y, '#0E9A64');
+    s.circle(24, 7.5, 2.2, M.metal, { shade: 'flat', lum: 0.55 });
+    s.circle(24, 7.5, 1.4, M.ice, { shade: 'flat', lum: 0.75, glow: '#9BE2FF' });
+    s.px(23, 6.5, '#FFFFFF', { glow: '#FFFFFF' });
+    // a glint that runs along the top of the hull
+    s.px(14 + (f % 4) * 4, 4, '#FFFFFF');
+    return s.render();
+}
+
 /** 8×14 green candle projectile (points up; the renderer rotates it). */
 export function greenCandleShot() {
     const s = new PixelSprite(8, 14);

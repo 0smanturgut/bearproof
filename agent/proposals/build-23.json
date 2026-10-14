@@ -1,0 +1,17 @@
+[
+    {
+        "id": "honey-trap",
+        "title": "Honey Trap",
+        "description": "A new weapon that drops honey jars: grizzlies stop to eat for 2 s and every other bear slows in the puddle."
+    },
+    {
+        "id": "liquidation-combo",
+        "title": "Liquidation Combo",
+        "description": "Kill bears within 1 s of each other to build a combo; at 10x the screen shouts 10X LEVERAGED and the streak's candles pay double."
+    },
+    {
+        "id": "play-as-the-whale",
+        "title": "Play as The Whale",
+        "description": "A third character: 140 HP, slow, every candle on screen drifts toward you, and you start with Buyback."
+    }
+]

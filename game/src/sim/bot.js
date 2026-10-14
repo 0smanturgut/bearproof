@@ -23,6 +23,11 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
                     fx = e.x - p.x;
                     fy = e.y - p.y;
                 }
+            } else if (p.rocketTimer > 0 && nearest(sim.enemies, p, 400, (e) => canRam(sim, e))) {
+                // On a Moon Rocket: untouchable, so ram the nearest bear it hasn't hit yet.
+                const e = nearest(sim.enemies, p, 400, (e) => canRam(sim, e));
+                fx = e.x - p.x;
+                fy = e.y - p.y;
             } else {
                 // Kite: close in on the nearest bear, back off from anything inside ~90 units, dodge shots,
                 // and hoover up XP when the coast is clear.
@@ -100,6 +105,8 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
         }
     };
 }
+
+const canRam = (sim, e) => !e.boss && e.hp > 0 && !sim.rocketHit?.has(e.uid);
 
 function nearest(list, p, maxD = Infinity, ok = null) {
     let best = null;

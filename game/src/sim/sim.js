@@ -51,8 +51,9 @@ import { Weapon } from './weapons.js';
  * 15: Buy the Dip (under 30% HP, kills heal for 5 s, once a minute). 16: Liquidation Risk (Leverage evolves at 5
  * stacks: +10% crit, crits chain to 2 more bears, 2x damage taken). 17: Withdrawal Freeze (Crypto Winter's
  * mini-boss at 3:30 freezes candles near it; its death thaws them to the bull and slows the bears around him).
- * 18: Options Expiry (a Daily twist: XP candles expire after 6 s and are worth +50%). */
-export const SIM_VERSION = 18;
+ * 18: Options Expiry (a Daily twist: XP candles expire after 6 s and are worth +50%). 19: Moon Rocket (a fifth
+ * crate loot: 4 s of 1.8x speed, untouchable, ramming bears), and Bear Trap's extra doomposters join at 1:00. */
+export const SIM_VERSION = 19;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -124,8 +125,10 @@ export class Simulation {
             dipHealed: 0, // and the HP they gave back
             liquidations: 0, // Liquidation Risk: chain hits
             candlesFrozen: 0, // Withdrawal Freeze: candles it iced
-            candlesThawed: 0 // and the ones its death sent to the bull
+            candlesThawed: 0, // and the ones its death sent to the bull
+            rammed: 0 // Moon Rocket: bears rammed
         };
+        this.rocketHit = new Set(); // bears rammed on the current ride
         this.events = [];
     }
 
@@ -162,6 +165,7 @@ export class Simulation {
         const p = this.player;
         p.update(dt, this, mx, my);
         if (p.dead) return this._end('liquidated');
+        if (p.rocketTimer > 0) this._rocketRam();
 
         this._coldTick(dt);
         this._updateEnemies(dt);
@@ -599,9 +603,37 @@ export class Simulation {
             p.printerMult = def.cooldownMult;
         } else if (def.id === 'god_candle') {
             this._godCandle(def);
+        } else if (def.id === 'moon_rocket') {
+            p.rocketTimer = def.duration;
+            p.rocketMult = def.speedMult;
+            this.rocketHit.clear();
         }
         this.stats.crates++;
         this.emit({ t: 'crate', id: def.id, name: def.name, x: crate.x, y: crate.y });
+    }
+
+    /** Moon Rocket: every bear touching the bull (plus `ramReach`) is rammed once per ride: its shield breaks, it
+     * takes `ramDamage` × the clock's HP scaling, and (not a boss) it's knocked straight away from the bull. */
+    _rocketRam() {
+        const def = CRATE_LOOT.moon_rocket;
+        const p = this.player;
+        const dmg = def.ramDamage * this.hpMult;
+        for (const e of this.spatial.queryRect(p.x, p.y, p.size + def.ramReach + 40)) {
+            if (e.hp <= 0 || this.rocketHit.has(e.uid)) continue;
+            const dx = e.x - p.x;
+            const dy = e.y - p.y;
+            const d = hypot(dx, dy);
+            if (d > e.size + p.size + def.ramReach) continue;
+            this.rocketHit.add(e.uid);
+            this.stats.rammed++;
+            if (e.shielded && e.shieldHp > 0) this.breakShield(e);
+            this.damageEnemy(e, dmg, false, 'moon_rocket');
+            if (!e.boss) {
+                const k = d > 0.01 ? 1 / d : 0;
+                e.knock(k ? dx * k : p.facing, k ? dy * k : 0, def.knockback);
+            }
+            this.emit({ t: 'ram', x: e.x, y: e.y, boss: e.boss });
+        }
     }
 
     /** God Candle: every bear within `def.radius` of the bull dies (shield or not); a boss loses `bossShare`. */

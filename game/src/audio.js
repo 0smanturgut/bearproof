@@ -222,6 +222,20 @@ export class AudioEngine {
                 this.tone({ freq: f, dur: 0.6, type: 'triangle', volume: 0.08, release: 0.3 });
         }, 300);
     }
+    /** Moon Rocket: ignition (a noise burst) and a long rising roar, with a bright chirp at the top. */
+    rocket() {
+        this.tone({ noise: true, dur: 0.5, volume: 0.22, release: 0.35 });
+        this.tone({ freq: 110, dur: 0.9, type: 'sawtooth', volume: 0.14, sweep: 330 });
+        setTimeout(
+            () => this.tone({ freq: 1320, dur: 0.18, type: 'square', volume: 0.07, sweep: 660 }),
+            420
+        );
+    }
+    /** Moon Rocket rams a bear: a short punchy thud. */
+    ram() {
+        this.tone({ freq: 160, dur: 0.1, type: 'square', volume: 0.14, sweep: -100 });
+        this.tone({ noise: true, dur: 0.06, volume: 0.12, release: 0.05 });
+    }
     /** Withdrawal Freeze ices a candle: a tiny high glassy tick. */
     freeze() {
         this.tone({ freq: 2400, dur: 0.04, type: 'triangle', volume: 0.05, sweep: -600 });

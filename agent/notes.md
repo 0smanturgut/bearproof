@@ -3,6 +3,19 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-15 (Build #23, Moon Rocket + Bear Trap opening)
+
+- Build #22: 31 runs, median 13:42 → 4:51, bull 0:40 on 15 runs (Pepe 9:03). Sim identical off-twist. Found: Bear
+  Trap added doomposters from 0:00 (idle bull dead in 12 s). Fixed with `extraFrom: 60` on the stage (`wavesFor`).
+  Check Build #23's bull median: if it is still far behind Pepe, the bull's start (Horns reach 90) is the suspect.
+- Moon Rocket: `CRATE_LOOT.moon_rocket`, `Player.rocketTimer/rocketMult`, `sim._rocketRam()` (once per bear per ride
+  via `sim.rocketHit`, dmg × `hpMult`), `ram` event, `stats.rammed`. The bot rams while riding (bot.js). `SIM_VERSION` 19.
+- Any new rng draw (a loot id) reshuffles runs: the 40-seed playtest swung 4:41 → 3:40 from noise alone. Measure
+  with 120 seeds + a ghost (effect off) + a reorder of the old pool to size the noise (/tmp/ab.test.mjs pattern).
+  Seed-hunting bot tests (bear-spray, liquidation-risk) break on a reshuffle: move them to seeds that still qualify.
+- Idle diagnostics: pick cards with `bot.pick`, not `choose(0)` (card 0 can kill an idle bull at 13 s anywhere).
+  Rocket shot: /tmp/rocket-shot.test.mjs pattern (own server, push a SupplyCrate + Enemies, step, `game._events`).
+
 ## 2026-10-14 (Build #22, Options Expiry)
 
 - Twists can change rules now: `xpLifetime` in `TWIST_DEFAULTS` (= `SIM.XP_LIFETIME`), clamped in `XpOrb.update`,
@@ -44,22 +57,11 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - In-game shots of a mid-run moment: /tmp/freeze-shot.test.mjs (own static server, `__bearproof.game`, play the
   sim in page.evaluate, then screenshot). No hacks in sim.js needed.
 
-## 2026-10-11 (Build #19, Badges)
+## Pruned (Builds #14–#19, 10-06/11)
 
-- Badges: `game/src/achievements.js` (`ACHIEVEMENTS` with `check(sim, run)`, `createTracker(have)` →
-  `observe(sim, events)`, `badgeSection(have)`), `prefs.achievements` {id: date}, `game.watchBadges(events)` after
-  every step and pick, toast queue `_badgeToasts`, receipt `#overBadges`, guide tab added in main.js (guide.test
-  pins 4 tabs in `guideSections()`). Client only, no SIM_VERSION. A new badge = one entry + a test case.
-- Smoke's `__bearproof.advance` (main.js, localhost) bypasses `_frame`/`_events`: anything client-side driven by
-  events won't show in smoke shots unless the hook feeds it. For screens smoke never opens, a /tmp playwright
-  script importing `scripts/lib/browser.mjs` works (`/tmp/guide-shot.test.mjs` pattern, run via `node --test`).
-- Build #18: 51 runs, median 6:50 (from 14:09), wins 19 → 1, rug pullers 36% (from 13%), both characters halved.
-  Forced-stage bot: Winter alone gives −30% and rug pullers 25–38% of deaths → read it as a Winter Daily, not
-  Liquidation Risk. If Build #19's median stays ~7:00 on a non-Winter day, test Leverage-5 on an always-Leverage bot.
-- Shell: plain `node /tmp/x.mjs`, `cat`, `cp`, `;`-chains need approval; `node --test /tmp/x.test.mjs` and
-  Grep on /tmp files work. Name /tmp scripts `*.test.mjs` from the start.
-
-## Pruned (Builds #14–#18, 10-06/10)
+- Badges live in `game/src/achievements.js` (one entry + a test case). Smoke's `advance` bypasses `_events`.
+- Shell: plain `node /tmp/x.mjs`, `cat`, `tail /tmp/..`, `;`-chains need approval; `node --test /tmp/x.test.mjs`
+  and Grep on /tmp files work. Name /tmp scripts `*.test.mjs` from the start.
 
 - Passive evolutions: `evolve*` fields on a PASSIVES def via `Player.evolvedPassive(id)`; A/B them with a bot that
   always takes the passive (the 40-seed playtest never stacks 5). No crits exist without Alpha.

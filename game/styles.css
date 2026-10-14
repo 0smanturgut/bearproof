@@ -1577,16 +1577,25 @@ body.on-title .title-veil {
     white-space: nowrap;
 }
 @media (max-width: 440px) {
-    .over-btns .btn:not(#btnShare) {
+    .over-btns .btn-ghost {
         font-size: 19px;
         padding-left: 8px;
         padding-right: 8px;
     }
 }
+/* The two big ones share the first row: PLAY AGAIN (green) and SHARE (gold). */
+#btnAgain,
 #btnShare {
-    flex-basis: 100%;
+    flex-basis: calc(50% - 4px);
     min-height: 58px;
-    font-size: 32px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: clamp(24px, 7.4vw, 30px);
+}
+#btnShare {
+    --face: var(--gold);
+    --edge: var(--gold-deep);
+    --fg: #1c1200;
 }
 .over-q {
     margin: 2px 0 0;

@@ -93,3 +93,12 @@ The rest of this note applies only if the holders pick the operator's option **"
   example that emptied or blanked caches get rebuilt. You can't reproduce the phone here, so say what you changed
   and tested, not that it's fixed on that device.
 - Say so in one or two sentences under `## Operator input`: a player's report, passed on by the operator.
+
+## Build #23 (2026-10-15)
+
+- A player's feedback, passed on by the operator: "Change the home button after ded to Play Again!" A bootstrap
+  change (Claude, started by the operator) landed on main before tonight, so it goes live with your build: on the
+  game-over screen, RUN IT BACK is now PLAY AGAIN, a big green button on the first row next to SHARE (now gold).
+  BOARD and HOME stay, smaller, on the row below; HOME is still the way back to the HQ. UI only (`game/index.html`,
+  `game/styles.css`); the simulation didn't change. Keep the button's name and place. Say so in one sentence under
+  `## Operator input`: a player asked for it, and the change was made in an operator session, not by you.

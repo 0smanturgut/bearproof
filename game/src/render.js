@@ -545,6 +545,28 @@ export class Renderer {
         const blink = p.invincible && !hurt && Math.floor(t * 18) % 2 === 0;
         // idle breathing
         const breathe = p.moving ? 1 : 1 + Math.sin(t * 3) * 0.02;
+        const riding = p.rocketTimer > 0;
+        if (riding) {
+            // Moon Rocket: the bull stands on it, lifted a little; it blinks in the last second, sparks trail
+            const k = this.k;
+            const bob = fx.calm ? 0 : Math.sin(t * 22) * 1.2 * k;
+            const ry = sy + 17 * k + bob;
+            const fr = Math.floor(t * 14);
+            const fade = p.rocketTimer < 1 && Math.floor(t * 10) % 2;
+            this._blit('moon_rocket', sx, ry, {
+                frame: fr,
+                flip: p.facing < 0,
+                alpha: fade ? 0.45 : 1,
+                sx: 1.3,
+                sy: 1.3
+            });
+            glows.push(['moon_rocket', sx, ry, fr, p.facing < 0, 0.9]);
+            sy += bob - 6 * k;
+            if (!fx.calm && t - (this.rocketSparkAt || 0) > 0.05) {
+                this.rocketSparkAt = t;
+                fx.burst(p.x - p.facing * 30, p.y + 14, '#FFB05C', 2, 90, 2.5, 'spark');
+            }
+        }
         this._blit(id, sx, sy, {
             frame,
             flip: p.facing < 0,
@@ -554,7 +576,7 @@ export class Renderer {
             sy: breathe
         });
         // footstep dust
-        if (p.moving && t - this.dustAt > 0.09) {
+        if (p.moving && !riding && t - this.dustAt > 0.09) {
             this.dustAt = t;
             fx.dust(p.x - p.facing * 12, p.y + 22, p.facing);
         }

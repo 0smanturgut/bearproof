@@ -43,6 +43,8 @@ export class Player {
         this.shieldTimer = 0;
         this.printerTimer = 0;
         this.printerMult = 1;
+        this.rocketTimer = 0; // Moon Rocket: seconds left on the ride
+        this.rocketMult = 1;
     }
 
     get invincible() {
@@ -58,7 +60,8 @@ export class Player {
             SIM.PLAYER_SPEED *
             this.getSpeedMult() *
             (sim.stageMods.playerSpeedMult || 1) *
-            (sim.twist?.playerSpeedMult || 1);
+            (sim.twist?.playerSpeedMult || 1) *
+            (this.rocketTimer > 0 ? this.rocketMult : 1);
         this.x += mx * speed * dt;
         this.y += my * speed * dt;
         this.moving = mx !== 0 || my !== 0;
@@ -70,6 +73,7 @@ export class Player {
         if (this.invincibleTimer > 0) this.invincibleTimer -= dt;
         if (this.shieldTimer > 0) this.shieldTimer -= dt;
         if (this.printerTimer > 0) this.printerTimer -= dt;
+        if (this.rocketTimer > 0) this.rocketTimer -= dt;
         const regen = this._sum('hpRegen');
         if (regen) this.heal(regen * dt);
         this.unhitTimer += dt;
@@ -172,7 +176,8 @@ export class Player {
     }
 
     takeDamage(damage, sim) {
-        if (this.invincibleTimer > 0 || this.shieldTimer > 0 || this.dead) return;
+        if (this.invincibleTimer > 0 || this.shieldTimer > 0 || this.rocketTimer > 0 || this.dead)
+            return;
         const dodge = this.getDodgeChance();
         if (dodge > 0 && sim.rng.next() < dodge) {
             sim.emit({ t: 'dodge', x: this.x, y: this.y });

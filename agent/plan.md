@@ -1,33 +1,38 @@
-# Build #22 plan: Options Expiry, a new Daily twist
+# Build #23 plan
 
-## Feature
+No holder vote (`vote: null`), the ideas box and the chat are empty. `chosenBy: agent`.
 
-A seventh Daily Challenge twist, **Options Expiry**: every XP candle expires 6 s after it drops (instead of 30 s),
-but each one is worth +50% XP. Expiring candles show a shrinking ring and blink, then vanish in a grey puff. It's
-the first twist that changes a rule, not just a number: you have to go and grab the XP before it's gone.
+## Regression first: Bear Trap's opening
 
-## Why it wins today
+Build #22's median fell from 13:42 (Build #21) to 4:51 and the bull's from 13:57 to 0:40 (15 runs). The 40-seed
+playtest of Build #22 against #21 is identical, and Options Expiry doesn't hurt the opening (idle and reckless bots
+last as long or longer with it). What I found instead: on the Bear Trap stage, doomposters (weight 1.8) are added to
+every wave from 0:00, so ~62% of the opening bears are shooters. An idle bull dies in 12 s there (76 s on Chop), a
+cautious bull that never charges ends at level 2. That rule is old, not Build #22's, but it is the harshest start in
+the game and doomposters + bag holders ended 9 of Build #22's 27 lost runs.
 
-`vote` is null and the ideas box is empty, so the pick is mine. "More daily twists" is the last feature left on the
-backlog. Every Build #21 run was a Daily (20 of 20), so a new twist reaches every player who plays the board.
-The median run is 13:41 and 4 of 20 runs won, so a twist that asks for a bit more movement suits the current
-difficulty.
+Fix: a stage's `extraEnemies` join from `extraFrom` s (Bear Trap: 60, when doomposters join everywhere anyway). The
+opening minute on Bear Trap is then red candles and bag holders like the other stages.
+
+## Feature: Moon Rocket (a fifth airdrop-crate loot)
+
+Grab the crate and the bull rides a rocket for 4 s: 1.8x speed, untouchable, and every bear it touches is rammed once
+per ride (damage scaled with the clock like bear HP, knocked away; bosses take the hit but don't move). It was on the
+Build #23 ballot with no votes; it's a power moment everyone sees in the first minutes (the first crate is at 0:40),
+and grizzlies (37% of Build #22's deaths) are exactly what you want to ram.
 
 ## Files
 
-- `game/src/sim/content.js`: `options_expiry` appended to `TWIST_IDS` (append-only), `TWISTS` entry,
-  `xpLifetime` in `TWIST_DEFAULTS` (30 = `SIM.XP_LIFETIME`, so other twists don't change).
-- `game/src/sim/entities.js`: `XpOrb.update` clamps `life` to the twist's `xpLifetime`, emits `candleExpire`.
-- `game/src/sim/sim.js`: `SIM_VERSION` 17 → 18 (a new twist byte the old sim can't play).
-- `game/src/render.js`: a countdown ring around candles while the twist is on.
-- `game/src/game.js`: `candleExpire` → a small grey puff, no sound.
-- `game/test/options-expiry.test.js` (new); `game/test/twist.test.js` pin to 18.
+- `game/src/sim/content.js`: `extraFrom` on Bear Trap and in `wavesFor`; `CRATE_LOOT.moon_rocket`, appended id.
+- `game/src/sim/entities.js`: `Player.rocketTimer`, speed, no damage while riding.
+- `game/src/sim/sim.js`: open the loot, `_rocketRam()`, `stats.rammed`, `ram` event, `SIM_VERSION` 19.
+- `game/src/art/items.js`, `sprites.js`: a rocket sprite (4 frames, flame).
+- `game/src/render.js`, `game.js`, `fx.js`, `audio.js`: the rocket under the bull, flame trail, ram hits, sound.
 
 ## Tests
 
-- The twist is in the rotation and has a definition; the Daily can land on it.
-- Under the twist, a candle out of reach is gone after 6 s and emits `candleExpire`; without the twist it lives
-  30 s. A frozen candle (Withdrawal Freeze) doesn't expire. A falling jackpot candle starts its clock on landing.
-- Value is +50%: XP gained from the same kill is 1.5×.
-- Replays bit for bit with the twist.
-- Playtest `--twist options_expiry` vs main on the same 40 seeds; the default playtest must stay identical.
+- `game/test/moon-rocket.test.js`: loot listed, opening it sets 4 s; speed 1.8x; no damage while riding; a bear is
+  rammed once per ride and knocked; a boss is hit but not moved; it ends on time; a run with a rocket replays.
+- `game/test/bear-trap-opening.test.js`: no doomposters before 1:00 on Bear Trap, still weighted after; Chop and
+  Winter waves unchanged.
+- Playtest `--compare origin/main`, the /tmp idle and flee bots on Bear Trap, smoke shots, determinism.

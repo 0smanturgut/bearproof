@@ -87,7 +87,7 @@ export const SIM = Object.freeze({
  * kills every bear within `radius` of the bull (shields don't help) and takes `bossShare` of a boss's max HP; then
  * no new bears spawn for `calm` s (otherwise the spawner refills the wiped slots at once).
  */
-export const CRATE_LOOT_IDS = ['magnet', 'shield', 'printer', 'god_candle'];
+export const CRATE_LOOT_IDS = ['magnet', 'shield', 'printer', 'god_candle', 'moon_rocket'];
 
 export const CRATE_LOOT = {
     magnet: {
@@ -120,6 +120,21 @@ export const CRATE_LOOT = {
         radius: 400,
         bossShare: 0.1,
         calm: 4
+    },
+    // The bull rides a rocket: faster, untouchable, and every bear it touches is rammed once per ride for
+    // `ramDamage` × the clock's HP scaling (a bear's HP grows with it, so a ram stays a ram), and knocked
+    // `knockback` away. Bosses take the hit but don't move.
+    moon_rocket: {
+        id: 'moon_rocket',
+        name: 'Moon Rocket',
+        toast: 'MOON ROCKET: RAM EVERYTHING',
+        description:
+            '4 s on a rocket: 1.8x speed, untouchable, and every bear you hit gets rammed.',
+        duration: 4,
+        speedMult: 1.8,
+        ramDamage: 70,
+        ramReach: 20,
+        knockback: 70
     }
 };
 
@@ -921,7 +936,9 @@ export const STAGES = {
             bag_holder: 0.5,
             rug_puller: 0.7
         },
+        // From 1:00, like everywhere else: from 0:00 the opening was ~60% shooters, and an idle bull died in 12 s.
         extraEnemies: ['doomposter'],
+        extraFrom: 60,
         bossOffsets: { rug_lord: -60, capitulation: -30 },
         bossOverrides: {},
         modifiers: {}
@@ -1103,11 +1120,14 @@ export function stageModifiers(id) {
     return { ...MOD_DEFAULTS, ...getStage(id).modifiers };
 }
 
+/** The stage's waves: its `extraEnemies` join every wave that starts at `extraFrom` s or later. */
 export function wavesFor(id) {
-    const extra = getStage(id).extraEnemies;
+    const stage = getStage(id);
+    const extra = stage.extraEnemies;
+    const from = stage.extraFrom || 0;
     return WAVES.map((w) => ({
         ...w,
-        pool: extra.length ? [...new Set(w.pool.concat(extra))] : w.pool.slice()
+        pool: extra.length && w.from >= from ? [...new Set(w.pool.concat(extra))] : w.pool.slice()
     }));
 }
 

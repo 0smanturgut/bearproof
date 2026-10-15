@@ -40,9 +40,26 @@ test('guard: the gates that judge the agent are protected', () => {
         'game/src/sim/dmath.js',
         'game/src/sim/rng.js',
         'game/src/sim/runlog.js',
-        'game/src/sim/input-codes.js'
+        'game/src/sim/input-codes.js',
+        'game/src/murmur-bridge.js',
+        'game/test/murmur-bridge.test.js'
     ]) {
         assert.equal(checkPaths([ok(p)]).length, 1, p);
     }
     assert.equal(checkPaths([ok('game/test/client.test.js', 'D')]).length, 1, 'deleting a test');
+});
+
+test("guard: Muninn's nevermore/ is read-only for the agent, whatever the change", () => {
+    for (const p of [
+        'nevermore/INDEX.md',
+        'nevermore/run.mjs',
+        'nevermore/FINGERPRINTS',
+        'nevermore/lessons/L-0001.md',
+        'nevermore/tests/N-0001.json'
+    ]) {
+        for (const status of ['A', 'M', 'D', 'R100']) {
+            assert.equal(checkPaths([ok(p, status)]).length, 1, `${status} ${p}`);
+        }
+    }
+    assert.deepEqual(checkPaths([ok('game/src/nevermore.js', 'A')]), [], 'only the top-level dir');
 });

@@ -36,6 +36,8 @@ const settings = {
                 `${ws}/scripts`,
                 `${ws}/.github`,
                 `${ws}/game/scripts`,
+                // Muninn's lessons and tests: read-only for the agent (scripts/guard-paths.mjs refuses changes too)
+                `${ws}/nevermore`,
                 // the agent writes its plan, notes and proposals with the Write tool, never from a shell
                 `${ws}/agent`,
                 `${ws}/package.json`,

@@ -6,7 +6,8 @@
  *
  * The agent may change game code, game content and its devlog. It may never touch the treasury, payout,
  * API, CI or build tooling, and it may not weaken the gates that judge its own work (the smoke test,
- * the determinism core and its tests). Deleting any test file is also refused.
+ * the determinism core and its tests, and Muninn's Nevermore tests in nevermore/). Deleting any test file is
+ * also refused.
  */
 import { execFileSync } from 'node:child_process';
 
@@ -21,7 +22,10 @@ const PROTECTED = [
     /^game\/scripts\//, // smoke + determinism gates
     /^game\/test\/sim\.test\.js$/, // determinism tests
     /^game\/src\/sim\/(dmath|rng|runlog|input-codes)\.js$/, // determinism core
-    /^game\/server\.js$/
+    /^game\/server\.js$/,
+    /^game\/src\/murmur-bridge\.js$/, // CrowLab Murmur's recording bridge (bootstrap-owned)
+    /^game\/test\/murmur-bridge\.test\.js$/,
+    /^nevermore\// // Muninn's lessons and regression tests: the agent reads them, never writes them
 ];
 
 export function checkPaths(changes) {

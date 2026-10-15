@@ -15,3 +15,7 @@
 /package.json       @0smanturgut
 /package-lock.json  @0smanturgut
 /eslint.config.js   @0smanturgut
+# CrowLab Muninn: its read-only lessons and tests, and the Murmur recording bridge
+/nevermore/         @0smanturgut
+/game/src/murmur-bridge.js        @0smanturgut
+/game/test/murmur-bridge.test.js  @0smanturgut

@@ -199,4 +199,6 @@ when the coin moved to PumpSwap on 14 Oct at 21:39 UTC its fees started accruing
 that reading never saw. The 14 Oct Daily was settled at 00:10 UTC on 15 Oct with that old reading: 0.70 SOL of fees
 instead of the 13.28 SOL that reached the treasury, so its pot was 0.28 SOL, not the 1 SOL cap. The 0.72 SOL
 difference is paid as a top-up (D70): the cron re-plans the day with a 1 SOL pot from what settling saw and pays each
-player what the rule still owed them, as the row `2026-10-14:topup` (ledger memos `bearproof:prize:2026-10-14:topup:…`). The operator's own runs never win (D48).
+player what the rule still owed them, as the row `2026-10-14:topup` (ledger memos `bearproof:prize:2026-10-14:topup:…`).
+Paid on 15 Oct, 08:45–09:49 UTC: 0.7211 SOL bought 688.68 $ANSEM, sent in 19 shares to 10 players (places 1–10 and
+nine bounty shares). The operator's own runs never win (D48).

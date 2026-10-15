@@ -1,0 +1,232 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* Everything the Daily prizes have paid, as a mechanical counter. Data, 15 Oct 2026 08:30 UTC: D1
+               daily_winners, 24 Sep to 14 Oct: 1,193.655 $ANSEM over 18 days, plus 0.0277 SOL for 28 Sep; 82 transfers
+               to 16 wallets. The 14 Oct pot was short 0.72 SOL (settled before the D69 fee fix); that top-up was
+               quoted at 689.78 $ANSEM (Jupiter, 08:30 UTC) and is counted here, so the total is about 1,883. The
+               dollar line uses Jupiter's $ANSEM price at 08:30 UTC ($0.1073) and says so.
+               ?d=<json> { total, usd, rows: [[n, label]], note }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .bg {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 70% 34% at 50% 50%,
+                        rgba(245, 197, 66, 0.2),
+                        transparent 70%
+                    ),
+                    linear-gradient(rgba(255, 255, 255, 0.03) 2px, transparent 2px) 0 0 / 60px 60px,
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 2px, transparent 2px) 0 0 /
+                        60px 60px;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                padding: 2px 24px 4px;
+                background: #16e08a;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #16e08a,
+                    0 0 40px rgba(22, 224, 138, 0.5);
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 196px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 150px;
+                line-height: 0.9;
+                letter-spacing: 0.02em;
+            }
+            .box {
+                position: absolute;
+                left: 70px;
+                right: 70px;
+                top: 470px;
+                height: 380px;
+                padding: 34px;
+                display: flex;
+                gap: 22px;
+                justify-content: center;
+                background: linear-gradient(180deg, #2a2f3a, #12161e);
+                border-radius: 26px;
+                box-shadow:
+                    inset 0 0 0 6px #3a4252,
+                    inset 0 0 0 12px #05080f,
+                    0 24px 0 rgba(0, 0, 0, 0.5),
+                    0 0 90px rgba(245, 197, 66, 0.25);
+            }
+            .d {
+                position: relative;
+                flex: 1;
+                display: grid;
+                place-items: center;
+                background: linear-gradient(180deg, #0a0d13, #1a1f2a 48%, #05080f 50%, #141a24);
+                border-radius: 12px;
+                box-shadow: inset 0 0 0 4px #05080f;
+                font-size: 300px;
+                line-height: 1;
+                color: #f5c542;
+                text-shadow: 0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            .d::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 50%;
+                height: 4px;
+                margin-top: -2px;
+                background: #05080f;
+            }
+            .d.c {
+                flex: 0.45;
+                background: none;
+                box-shadow: none;
+            }
+            .d.c::after {
+                display: none;
+            }
+            .unit {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 884px;
+                text-align: center;
+                font-size: 120px;
+                line-height: 1;
+            }
+            .unit span {
+                color: #8a97a5;
+            }
+            .stats {
+                position: absolute;
+                left: 70px;
+                right: 70px;
+                top: 1070px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 22px;
+            }
+            .stats div {
+                padding: 22px 0 26px;
+                text-align: center;
+                background: #0e1420;
+                box-shadow: inset 0 0 0 4px #1d2738;
+            }
+            .stats b {
+                display: block;
+                font-weight: 400;
+                font-size: 120px;
+                line-height: 1;
+                color: #16e08a;
+            }
+            .stats i {
+                display: block;
+                margin-top: 8px;
+                font:
+                    400 24px/1 'JetBrains Mono',
+                    monospace;
+                font-style: normal;
+                letter-spacing: 0.18em;
+                color: #b8c4d2;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1420px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.12em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill">PAID TO PLAYERS</div>
+        </div>
+        <h1>TOTAL PRIZES</h1>
+        <div class="box" id="box"></div>
+        <div class="unit" id="unit"></div>
+        <div class="stats" id="stats"></div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"total":"1,883","usd":"≈ $200","rows":[["19","DAYS PAID"],["82+","TRANSFERS"],["16","PLAYERS"]],"note":"ON-CHAIN, EVERY ONE · DOLLARS AT TODAY\'S $ANSEM PRICE · FREE TO PLAY"}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('box').innerHTML = [...D.total]
+                .map((ch) => `<div class="d${/\d/.test(ch) ? '' : ' c'}">${ch}</div>`)
+                .join('');
+            $('unit').innerHTML = `$ANSEM <span>${D.usd}</span>`;
+            $('stats').innerHTML = D.rows
+                .map(([n, l]) => `<div><b>${n}</b><i>${l}</i></div>`)
+                .join('');
+            $('small').textContent = D.note;
+            window.ready = true;
+        </script>
+    </body>
+</html>

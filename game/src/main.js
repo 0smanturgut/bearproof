@@ -5,6 +5,7 @@
  * URL parameters:
  *   ?challenge=YYYY-MM-DD   play that day's challenge (ranked only if it is today's and on this build)
  *   ?attract=1              autopilot preview for the HQ page: no UI, no sound, loops forever
+ *   ?murmur=1               inside CrowLab's Murmur frame: answers its bug-report requests (murmur-bridge.js)
  */
 
 import { Game } from './game.js';
@@ -21,6 +22,7 @@ import { createBot } from './sim/bot.js';
 import { bountyText, readBounty } from './bounty.js';
 import { guideSections } from './guide.js';
 import { badgeSection } from './achievements.js';
+import { installMurmurBridge } from './murmur-bridge.js';
 import {
     CHARACTERS,
     CHARACTER_IDS,
@@ -63,6 +65,7 @@ async function boot() {
 
     const game = new Game({ canvas: $('game'), ui, input, audio, haptics, prefs, build, attract });
     if (['localhost', '127.0.0.1'].includes(location.hostname)) installDebugHooks(game);
+    installMurmurBridge(game, build); // only inside CrowLab's Murmur frame (?murmur=1), else inert
 
     if (attract) {
         $('attractBadge').hidden = false;

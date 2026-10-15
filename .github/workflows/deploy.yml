@@ -54,6 +54,7 @@ jobs:
                   npm run check
                   node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
                   node game/scripts/determinism.mjs --engines chromium --seeds 3
+                  node nevermore/fingerprint.mjs --dir nevermore/tests --file nevermore/FINGERPRINTS
                   node nevermore/run.mjs --dir nevermore/tests --game game
             - name: Cut the Build Agent's build (next 00:00 UTC)
               if: env.PAUSED != '1'

@@ -3,13 +3,14 @@
 This directory is [CrowLab Muninn](https://crowlab.ai/muninn)'s memory of BEARPROOF: the lessons and the
 regression tests that came from bugs people found while playing on [CrowLab Murmur](https://crowlab.ai/murmur).
 
-| Path           | What                                                                                           |
-| -------------- | ---------------------------------------------------------------------------------------------- |
-| `INDEX.md`     | The handbook: one line per lesson (id, name, one-line description). Read it first.             |
-| `lessons/`     | One file per lesson: what broke, why, and the name of the person who taught it.                |
-| `tests/`       | Nevermore tests: a scenario (seed, twist, character, inputs) and a rule checked per tick.      |
-| `run.mjs`      | The runner. Until Muninn delivers it, a placeholder that runs no test and fails if one exists. |
-| `FINGERPRINTS` | The SHA-256 of every test file, so a changed test is caught.                                   |
+| Path           | What                                                                                                                        |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `INDEX.md`     | The handbook: one line per lesson (id, name, one-line description). Read it first.                                          |
+| `lessons/`     | One file per lesson: what broke, why, and the name of the person who taught it.                                             |
+| `tests/`       | Nevermore tests: a scenario (seed, twist, character, inputs) and a rule checked per tick.                                   |
+| `run.mjs`      | The runner: replays every test on this checkout's `game/src/sim/sim.js`, headless (`--browser`: in Chromium too).           |
+| `*.mjs`        | The runner's modules, copied verbatim from Muninn (`tools/nevermore/export.mjs`). Muninn's hidden-set code is never copied. |
+| `FINGERPRINTS` | The SHA-256 of every test file, checked by `fingerprint.mjs`: a changed, deleted, unlisted or skipped test fails.           |
 
 ## Where it comes from
 

@@ -29,9 +29,16 @@ at the lowest CPU priority (measured: ~0.25 core at 720p30, the stream keeps its
 stream. About 1.5 GB an hour.
 
 ```bash
-cp /opt/bearproof/ops/stream/bearproof-rec.{service,timer} /etc/systemd/system/
-systemctl daemon-reload && systemctl enable --now bearproof-rec.timer
+cp /opt/bearproof/ops/stream/bearproof-{rec,prune}.{service,timer} /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now bearproof-rec.timer bearproof-prune.timer
 ```
+
+Old recordings delete themselves: `bearproof-prune.timer` runs `prune-rec.sh` at 20:40 UTC every day (before the
+night's recording). It keeps the raw video of the last 7 nights, the screenshots for 60 days and server-cut clips
+(`cuts-<night>/`) for 30 days, and if the disk still has under 10 GB free, it deletes the oldest nights' video first
+(never the newest two). It only touches `<YYYY-MM-DD>/` and `cuts-<YYYY-MM-DD>/` folders. See what it would delete:
+`DRY_RUN=1 /opt/bearproof/ops/stream/prune-rec.sh`. Change the limits with `systemctl edit bearproof-prune`
+(`Environment=KEEP_VIDEO_NIGHTS=10`). Cut and pull the clips you want from a night within those 7 days.
 
 Output: `/var/lib/bearproof-rec/<night's UTC date>/HHMMSS.mkv` (15-minute pieces, named by start time in UTC) and
 `shots/HHMMSS.png` (one a minute). Pull a night to the Mac (outside the repo, it's big):

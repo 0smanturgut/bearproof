@@ -1,0 +1,8 @@
+[Unit]
+Description=BEARPROOF: delete old nightly recordings (prune-rec.sh), so the disk never fills
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bearproof/ops/stream/prune-rec.sh
+Nice=19
+IOSchedulingClass=idle

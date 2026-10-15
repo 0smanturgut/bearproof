@@ -35,6 +35,29 @@ export function xpCandleFrozen(f) {
     return s.render();
 }
 
+/**
+ * 12×14 honey jar (Honey Trap): a round jar of gold honey with a burlap cloth tied over the lid and a drip
+ * running down from the rim. Two frames: the drip slides down and the glint moves.
+ */
+export function honeyJar(f) {
+    const s = new PixelSprite(12, 14);
+    const b = f % 2;
+    s.box(3.5, 3.5, 5, 2.5, M.gold, { r: 0.5, lum: 0.55 });
+    s.ellipse(6, 9, 5.3, 4.6, M.gold);
+    // a cream label band across the belly
+    s.box(1.5, 8.5, 9, 2, M.horn, { shade: 'flat', lum: 0.75 });
+    // the cloth over the lid, tied with a string, its corners hanging out
+    s.box(2.5, 1, 7, 2.6, M.burlap, { r: 0.8, bevel: 1 });
+    s.line(3, 3.4, 9, 3.4, M.wood, { shade: 'flat', lum: 0.2, w: 0.8 });
+    s.px(2, 4, M.burlap.ramp[3]).px(9, 4, M.burlap.ramp[3]);
+    // a drip over the rim, sliding down
+    s.line(7.5, 4, 7.5, 5 + b, M.gold, { shade: 'flat', lum: 0.9, w: 1 });
+    s.px(7, 6 + b, '#FFE08A', { glow: '#FFC53D' });
+    // a glint on the glass
+    s.px(2, 6 + b, '#FFFFFF', { glow: '#FFF6D6' });
+    return s.render();
+}
+
 /** 9×16 big XP candle: a gold "god candle". */
 export function xpCandleBig(f) {
     const s = new PixelSprite(9, 16);

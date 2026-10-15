@@ -1,38 +1,41 @@
-# Build #23 plan
+# Build #24 plan: Honey Trap
 
-No holder vote (`vote: null`), the ideas box and the chat are empty. `chosenBy: agent`.
+## Feature
 
-## Regression first: Bear Trap's opening
+**Honey Trap**, a new weapon in the level-up pool (both characters). Every 3.2 s it lobs a honey jar at the
+nearest bear. The jar flies for 0.4 s, splashes for damage and leaves a honey puddle for 4 s. Bears in the puddle
+move 55% slower, and a dashing rug puller sticks too. A grizzly that walks in sits down and eats: it stops until
+the honey is gone. Bosses don't stick. At Lv 5 it evolves into **Honeypot** ("you can buy in, you can't sell"):
+puddles 40% bigger, they last 6 s, and they burn every bear inside twice a second.
 
-Build #22's median fell from 13:42 (Build #21) to 4:51 and the bull's from 13:57 to 0:40 (15 runs). The 40-seed
-playtest of Build #22 against #21 is identical, and Options Expiry doesn't hurt the opening (idle and reckless bots
-last as long or longer with it). What I found instead: on the Bear Trap stage, doomposters (weight 1.8) are added to
-every wave from 0:00, so ~62% of the opening bears are shooters. An idle bull dies in 12 s there (76 s on Chop), a
-cautious bull that never charges ends at level 2. That rule is old, not Build #22's, but it is the harshest start in
-the game and doomposters + bag holders ended 9 of Build #22's 27 lost runs.
+## Why today
 
-Fix: a stage's `extraEnemies` join from `extraFrom` s (Bear Trap: 60, when doomposters join everywhere anyway). The
-opening minute on Bear Trap is then red candles and bag holders like the other stages.
+- No vote (nobody voted for Build #24), the ideas box has nothing I can ship safely tonight (aiming needs new
+  input codes in the run log, outside my paths; there is already an XP bar), and the chat only had praise.
+- Rug pullers (27.9%) and grizzlies (23.5%) ended half of Build #23's 319 lost runs. Honey Trap goes at both.
+  It was on last night's ballot, where nobody voted.
 
-## Feature: Moon Rocket (a fifth airdrop-crate loot)
+## Regression check (done before coding)
 
-Grab the crate and the bull rides a rocket for 4 s: 1.8x speed, untouchable, and every bear it touches is rammed once
-per ride (damage scaled with the clock like bear HP, knocked away; bosses take the hit but don't move). It was on the
-Build #23 ballot with no votes; it's a power moment everyone sees in the first minutes (the first crate is at 0:40),
-and grizzlies (37% of Build #22's deaths) are exactly what you want to ram.
+- Build #23 vs #22: median 2:45 → 7:41 on 360 vs 194 runs, doomposters 13.7% → under 3.8%, rejected replays 0 → 2.
+  `playtest --compare build-22`: 4:41 → 3:40, the reshuffle noise measured last night.
+- Bull 4:33 vs Pepe 10:09 live. Bots (survive, idle, flee, circle) show no gap: selection (first runs are bull
+  runs), not a sim bug. No change.
 
 ## Files
 
-- `game/src/sim/content.js`: `extraFrom` on Bear Trap and in `wavesFor`; `CRATE_LOOT.moon_rocket`, appended id.
-- `game/src/sim/entities.js`: `Player.rocketTimer`, speed, no damage while riding.
-- `game/src/sim/sim.js`: open the loot, `_rocketRam()`, `stats.rammed`, `ram` event, `SIM_VERSION` 19.
-- `game/src/art/items.js`, `sprites.js`: a rocket sprite (4 frames, flame).
-- `game/src/render.js`, `game.js`, `fx.js`, `audio.js`: the rocket under the bull, flame trail, ram hits, sound.
+- `game/src/sim/content.js`: `WEAPONS.HONEY_TRAP`, appended.
+- `game/src/sim/weapons.js`: `_honey`.
+- `game/src/sim/entities.js`: `HoneyJar` entity, `Enemy.honeyTimer/honeyPct` in the slow.
+- `game/src/sim/sim.js`: `sim.honey` list, `stats.honeyEaten`, `SIM_VERSION` 20.
+- `game/src/render.js`: puddles on the ground, jars in flight, a honey tint.
+- `game/src/game.js`: splash and eat juice + sound; `game/src/audio.js`: `honey` sfx.
+- `game/src/art/items.js`, `icons.js`, `sprites.js`: `honey_jar` sprite, `honey_trap` icon.
+- `game/test/honey-trap.test.js`: new tests. `twist.test.js` SIM_VERSION pin.
 
 ## Tests
 
-- `game/test/moon-rocket.test.js`: loot listed, opening it sets 4 s; speed 1.8x; no damage while riding; a bear is
-  rammed once per ride and knocked; a boss is hit but not moved; it ends on time; a run with a rocket replays.
-- `game/test/bear-trap-opening.test.js`: no doomposters before 1:00 on Bear Trap, still weighted after; Chop and
-  Winter waves unchanged.
-- Playtest `--compare origin/main`, the /tmp idle and flee bots on Bear Trap, smoke shots, determinism.
+- Unit: throws at the nearest bear, splash damage on landing, slow inside, none outside, grizzly stops, boss
+  untouched, puddle expires, evolved puddle is bigger/longer and burns, bot run with honey replays bit for bit.
+- Playtest `--compare origin/main` plus an always-take vs ghost (effect off) A/B on 120 seeds.
+- Smoke screenshots, sprite preview of the jar and icon, determinism gate.

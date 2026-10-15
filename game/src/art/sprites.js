@@ -68,7 +68,8 @@ const SPRITE_GENS = {
     heart: make(items.heart),
     rug: make(items.rug, 4, { fps: 12 }),
     god_candle: make(items.godCandle, 4, { fps: 8 }),
-    moon_rocket: make(items.moonRocket, 4, { fps: 14 })
+    moon_rocket: make(items.moonRocket, 4, { fps: 14 }),
+    honey_jar: make(items.honeyJar, 2, { fps: 4 })
 };
 
 const ICON_GENS = {
@@ -84,6 +85,7 @@ const ICON_GENS = {
     dead_cat_bounce: make(icons.deadCatBounce),
     tongue: make(icons.tongue),
     bear_spray: make(icons.bearSpray),
+    honey_trap: make(icons.honeyTrap),
     thick_skin: make(icons.thickSkin),
     dca: make(icons.dca),
     cold_wallet: make(icons.coldWallet),
@@ -157,7 +159,8 @@ export const SPRITE_GROUPS = {
         'heart',
         'rug',
         'god_candle',
-        'moon_rocket'
+        'moon_rocket',
+        'honey_jar'
     ]
 };
 
@@ -174,7 +177,8 @@ export const ICON_GROUPS = {
         'buyback',
         'dead_cat_bounce',
         'tongue',
-        'bear_spray'
+        'bear_spray',
+        'honey_trap'
     ],
     passives: [
         'thick_skin',

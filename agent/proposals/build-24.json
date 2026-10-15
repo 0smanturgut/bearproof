@@ -1,0 +1,18 @@
+[
+    {
+        "id": "rug-pull-warning",
+        "title": "Rug Pull Warning",
+        "description": "Rug pullers, the top killer at 27.9% of deaths, flash a red line along their dash path 0.4 s before they go, so you can sidestep."
+    },
+    {
+        "id": "level-up-meter",
+        "title": "Level-Up Meter",
+        "description": "A fat XP bar across the top of the screen that counts down \"3 CANDLES TO LEVEL UP\" and glows when one candle is left.",
+        "from": "player"
+    },
+    {
+        "id": "relief-rally",
+        "title": "Relief Rally",
+        "description": "Once a run the chart flips green for 10 s: every candle is worth double, bears move 20% slower and the music swings major."
+    }
+]

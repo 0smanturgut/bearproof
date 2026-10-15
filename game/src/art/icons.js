@@ -37,6 +37,21 @@ export function tongue() {
     return s.render();
 }
 
+/** Honey Trap: a jar of honey with a cloth lid, standing in the puddle it spilled. */
+export function honeyTrap() {
+    const s = S();
+    s.ellipse(7, 12, 6.6, 1.8, M.gold, { shade: 'flat', lum: 0.6 });
+    s.px(2, 12, '#FFE08A').px(11, 11, '#FFE08A');
+    s.box(4.5, 2.5, 5, 2.5, M.gold, { r: 0.5, lum: 0.55 });
+    s.ellipse(7, 8, 4.8, 4, M.gold);
+    s.box(2.5, 7.5, 9, 2, M.horn, { shade: 'flat', lum: 0.75 });
+    s.box(3.5, 0.5, 7, 2.4, M.burlap, { r: 0.8, bevel: 1 });
+    s.line(4, 2.6, 10, 2.6, M.wood, { shade: 'flat', lum: 0.2, w: 0.8 });
+    s.line(8.5, 3, 8.5, 5, M.gold, { shade: 'flat', lum: 0.9, w: 1 });
+    s.px(3, 5, '#FFFFFF');
+    return s.render();
+}
+
 /** Bear Spray: an orange can with a black cap, a pepper cloud puffing out of the nozzle up and to the right. */
 export function bearSpray() {
     const s = S();

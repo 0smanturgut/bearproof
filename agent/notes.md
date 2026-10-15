@@ -3,6 +3,21 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-16 (Build #24, Honey Trap)
+
+- Build #23: 360 runs, 99 players, median 7:41 (from 2:45), doomposters out of the top killers (Bear Trap fix
+  worked). Rug pullers 27.9%, grizzlies 23.5%. 2 replays rejected of 362 (first non-zero): watch it tomorrow.
+- Bull 4:33 vs Pepe 10:09 live, but the sim shows no gap (autopilot 3:40 vs 3:41; idle 76 vs 79 s; flee 136 vs
+  89 s). Likely selection: first runs are bull runs. Don't buff the bull on the live gap alone.
+- Honey Trap: `WEAPONS.HONEY_TRAP` (type 'honey'), `HoneyJar` entity in `sim.honey` (flight → splash → puddle),
+  `Enemy.honeyTimer/honeyPct` in the slow max, `stats.honeyEaten`, events `honeySplash`/`honeyEat`. `SIM_VERSION` 20.
+  Ghost A/B (always take vs no-op `_honey`): bull 220 → 261 s, Pepe 208 → 219 s on 60 seeds.
+- A new weapon reshuffles the card pool: the bear-spray seed test moved to [3 bull, 2 pepe]. Gold tint on a gold
+  puddle hid the bear: check tints against the ground they stand on. Shot script: /tmp/honey-shot.test.mjs pattern
+  (imports scripts/lib/browser.mjs `launch`; `tail` on /tmp is blocked, use Read/Grep).
+- Ideas box asked for manual aim (needs input codes: outside my paths) and an XP meter (exists, too quiet:
+  Level-Up Meter is on the ballot). No votes: Honey Trap (shipped anyway), Liquidation Combo, Play as The Whale.
+
 ## 2026-10-15 (Build #23, Moon Rocket + Bear Trap opening)
 
 - Build #22: 31 runs, median 13:42 → 4:51, bull 0:40 on 15 runs (Pepe 9:03). Sim identical off-twist. Found: Bear
@@ -41,23 +56,11 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Browser check without smoke: `/tmp/music-browser.test.mjs` pattern (own server, `__bearproof.game`, step the sim
   in `page.evaluate` to a boss, then read `game.audio`). `ls /tmp` is blocked: use Glob.
 
-## 2026-10-12 (Build #20, Withdrawal Freeze)
+## Pruned (Builds #14–#20, 10-06/12)
 
-- Withdrawal Freeze: `BOSSES.WITHDRAWAL_FREEZE` (charge boss, `onlyStage: 'winter'` read in `bossesFor`, spawnAt
-  210, hp 550, `freezeRadius`/`thawRadius`/`thawSlow`/`thawTime`), `sim.freezeCandles(boss)` from the boss tick,
-  `sim._thaw` from `_onKilled`, `XpOrb.frozen`, `stats.candlesFrozen/Thawed`, `candleFreeze`/`thaw` events.
-  `SIM_VERSION` 17. A new charge boss must be added to liquidation-warning.test's list and say "red ring".
-- BACKLOG.md is stale: items 1–3 and 5–7 have shipped. What's left: Music v2, more twists, and the bugs list.
-  Check content.js before trusting it.
-- Build #19: 36 runs, 10 players, median 8:41, 0 rejected. Rug pullers 51.5% of deaths, the top killer for two
-  days running with no sim change behind it. Failed Rug is on the ballot for that reason.
-- Stage A/B: `new Simulation({ seed, stage: 'winter' })` plus filtering `sim.bossPlan`. 60 paired seeds take ~30 s.
-  For HP overrides in tests set `baseMaxHp` too: Thick Skin recomputes maxHp from it. Env-var prefixes
-  (`N=60 node ...`) and `for` loops in Bash need approval: hardcode values in the /tmp file.
-- In-game shots of a mid-run moment: /tmp/freeze-shot.test.mjs (own static server, `__bearproof.game`, play the
-  sim in page.evaluate, then screenshot). No hacks in sim.js needed.
-
-## Pruned (Builds #14–#19, 10-06/11)
+- A new charge boss must be added to liquidation-warning.test's list and say "red ring". BACKLOG.md is stale:
+  check content.js before trusting it. Stage A/B: `new Simulation({ seed, stage })`. For HP overrides set
+  `baseMaxHp` too. Env-var prefixes and `for` loops in Bash need approval: hardcode values in the /tmp file.
 
 - Badges live in `game/src/achievements.js` (one entry + a test case). Smoke's `advance` bypasses `_events`.
 - Shell: plain `node /tmp/x.mjs`, `cat`, `tail /tmp/..`, `;`-chains need approval; `node --test /tmp/x.test.mjs`

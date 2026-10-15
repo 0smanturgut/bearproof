@@ -444,10 +444,22 @@ export class Game {
                         fx.ring(e.x, e.y, 20, e.r, 0.36, '70,184,240', 7, true);
                         fx.burst(e.x, e.y, '#BDEEFF', 14, e.r * 2, 3, 'spark');
                     }
+                    if (e.w === 'honey_trap') break; // the jar is heard when it splashes
                     this._sfx(
                         e.w === 'tongue' ? 'tongue' : e.w === 'bear_spray' ? 'spray' : 'shoot',
                         0.09
                     );
+                    break;
+                case 'honeySplash':
+                    // Honey Trap: the jar breaks, gold drops fly out to the puddle's edge
+                    fx.ring(e.x, e.y, 6, e.r, 0.25, '255,197,61', 4);
+                    fx.burst(e.x, e.y, '#FFC53D', 10, e.r * 2.4, 3, 'spark');
+                    fx.burst(e.x, e.y, '#FFF6D6', 4, 120, 2.5);
+                    this._sfx('honey', 0.08);
+                    break;
+                case 'honeyEat':
+                    fx.number(e.x, e.y - 10, 'NOM NOM', 'info');
+                    this._sfx('nom', 0.25);
                     break;
                 case 'spray':
                     fx.spray(e.x, e.y, e.a, e.half, e.r, e.evolved);

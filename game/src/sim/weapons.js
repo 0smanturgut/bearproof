@@ -1,14 +1,14 @@
 /**
  * @module sim/weapons
  * @description One Weapon class driven by a content definition. `type` picks the firing strategy:
- * melee | projectile | instant | aura | mine | nova | drain | orbit | tongue. Scaling:
+ * melee | projectile | instant | aura | mine | nova | drain | orbit | tongue | spray | honey. Scaling:
  *   damage   = base * (1 + 0.2 * (lvl - 1)) * player.damageMult (* evolveDamageMult)
  *   cooldown = base * 0.92^(lvl - 1) * player.cooldownMult (* evolveCooldownMult)
  *   range    = base * (1 + 0.1 * (lvl - 1)) * player.areaMult
  * Evolution (level >= evolveLevel) is driven by data flags, never by weapon id.
  */
 
-import { Mine, OrbitShard, Projectile } from './entities.js';
+import { HoneyJar, Mine, OrbitShard, Projectile } from './entities.js';
 import { atan2, cos, hypot, ipow, sin } from './dmath.js';
 
 export class Weapon {
@@ -112,7 +112,30 @@ export class Weapon {
                 return this._tongue(player, sim);
             case 'spray':
                 return this._spray(player, sim);
+            case 'honey':
+                return this._honey(player, sim);
         }
+    }
+
+    /** Honey Trap: a jar at the nearest bear. The puddle grows with the throw (levels, Liquidity). */
+    _honey(player, sim) {
+        const range = this.getRange(player);
+        const target = sim.spatial.findNearest(player.x, player.y, range);
+        if (!target) return;
+        const def = this.def;
+        const evolved = this.isEvolved();
+        const radius =
+            def.puddleRadius * (range / def.baseRange) * (evolved ? def.evolveRadiusMult : 1);
+        const dmg = this.getDamage(player);
+        sim.honey.push(
+            new HoneyJar(player.x, player.y, target.x, target.y, def, this.id, {
+                radius,
+                damage: dmg,
+                life: evolved ? def.evolveLife : def.puddleLife,
+                burn: evolved ? dmg * def.evolveBurn : 0
+            })
+        );
+        sim.emit({ t: 'fire', w: this.id, x: player.x, y: player.y });
     }
 
     /** Bear Spray: a cone at the nearest bear. Breaks shields first, then hits, shoves, and (evolved) slows. */

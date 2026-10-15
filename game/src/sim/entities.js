@@ -236,6 +236,8 @@ export class Enemy {
         this.slowPct = 0;
         this.auraSlowTimer = 0; // Copium (evolved Hopium)
         this.auraSlowPct = 0;
+        this.honeyTimer = 0; // Honey Trap: stuck in a puddle (1 = sat down to eat)
+        this.honeyPct = 0;
         // Rug Lord's second phase: enraged once, then a warning and a pull in turn (seconds left on each).
         this.enraged = false;
         this.rugTimer = 0;
@@ -340,12 +342,14 @@ export class Enemy {
 
         if (this.slowTimer > 0) this.slowTimer -= dt;
         if (this.auraSlowTimer > 0) this.auraSlowTimer -= dt;
-        // The stronger of the two slows wins; they don't stack.
+        if (this.honeyTimer > 0) this.honeyTimer -= dt;
+        // The strongest slow wins; they don't stack.
         const slow =
             1 -
             Math.max(
                 this.slowTimer > 0 ? this.slowPct || 0 : 0,
-                this.auraSlowTimer > 0 ? this.auraSlowPct : 0
+                this.auraSlowTimer > 0 ? this.auraSlowPct : 0,
+                this.honeyTimer > 0 ? this.honeyPct : 0
             );
         if (this.flashTimer > 0) this.flashTimer -= dt;
 
@@ -668,6 +672,81 @@ export class Mine {
         }
         sim.emit({ t: 'explode', x: this.x, y: this.y, r: this.radius, src: this.weaponId });
         this.dead = true;
+    }
+}
+
+/** How long a puddle's slow lingers on a bear after its last tick inside (longer than one tick). */
+const HONEY_STICK = 0.1;
+
+/**
+ * Honey Trap: a jar in flight from (x0, y0) to (x, y) for `def.flight` s, then a puddle of `radius` for `life`
+ * s. The splash hits every bear in the puddle once; after that, bears inside are slowed (or stop to eat), and an
+ * evolved puddle burns them every `def.burnEvery` s. Bosses don't stick.
+ */
+export class HoneyJar {
+    constructor(x0, y0, x, y, def, weaponId, { radius, damage, life, burn }) {
+        this.x0 = x0;
+        this.y0 = y0;
+        this.x = x;
+        this.y = y;
+        this.def = def;
+        this.weaponId = weaponId;
+        this.radius = radius;
+        this.damage = damage;
+        this.flight = def.flight;
+        this.life = life;
+        this.maxLife = life;
+        this.burn = burn;
+        this.burnAcc = 0;
+        this.ate = new Set(); // bears that sat down to eat in this puddle
+        this.dead = false;
+    }
+    get landed() {
+        return this.flight <= 0;
+    }
+    /** Is this bear in the puddle? Half its body over the edge counts. */
+    _inside(e) {
+        return (
+            e.hp > 0 && !e.boss && hypot(e.x - this.x, e.y - this.y) < this.radius + e.size * 0.5
+        );
+    }
+    update(dt, sim) {
+        if (this.flight > 0) {
+            this.flight -= dt;
+            if (this.flight > 0) return;
+            this.flight = 0;
+            for (const e of sim.spatial.queryRect(this.x, this.y, this.radius + 40)) {
+                if (e.hp > 0 && hypot(e.x - this.x, e.y - this.y) < this.radius + e.size * 0.5)
+                    sim.damageEnemy(e, this.damage, false, this.weaponId);
+            }
+            sim.emit({ t: 'honeySplash', x: this.x, y: this.y, r: this.radius });
+            return;
+        }
+        this.life -= dt;
+        if (this.life <= 0) {
+            this.dead = true;
+            return;
+        }
+        let burn = false;
+        if (this.burn > 0) {
+            this.burnAcc += dt;
+            if (this.burnAcc >= this.def.burnEvery) {
+                this.burnAcc -= this.def.burnEvery;
+                burn = true;
+            }
+        }
+        for (const e of sim.spatial.queryRect(this.x, this.y, this.radius + 40)) {
+            if (!this._inside(e)) continue;
+            const eats = this.def.eatenBy.includes(e.id);
+            e.honeyTimer = HONEY_STICK;
+            e.honeyPct = eats ? 1 : this.def.slowPct;
+            if (eats && !this.ate.has(e.uid)) {
+                this.ate.add(e.uid);
+                sim.stats.honeyEaten++;
+                sim.emit({ t: 'honeyEat', x: e.x, y: e.y - e.size });
+            }
+            if (burn) sim.damageEnemy(e, this.burn, false, this.weaponId);
+        }
     }
 }
 

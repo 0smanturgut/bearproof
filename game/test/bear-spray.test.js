@@ -157,8 +157,9 @@ test("bear spray: Max Pain never weakens Circuit Breaker's stronger freeze", () 
 test('bear spray: runs that take it break shields and replay bit for bit', () => {
     let broken = 0;
     for (const [seed, character] of [
-        [1, 'bull'], // SIM_VERSION 19 reshuffled crate loot: seed 4's bull is never offered it now
-        [9, 'pepe']
+        // SIM_VERSION 20 added Honey Trap to the card pool: seed 1's bull and seed 9's Pepe never see it now
+        [3, 'bull'],
+        [2, 'pepe']
     ]) {
         const sim = new Simulation({ seed, character });
         const rec = new RunRecorder(seed, null, sim.characterId);

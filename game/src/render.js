@@ -268,6 +268,10 @@ export class Renderer {
             if (!visible(m.x, m.y)) continue;
             this._drawMine(m, X(m.x), Y(m.y), t);
         }
+        for (const h of sim.honey || []) {
+            if (!h.landed || !visible(h.x, h.y, h.radius)) continue;
+            this._drawHoney(h, X(h.x), Y(h.y), t, fx.calm);
+        }
 
         // --- XP candles (with a soft light under each)
         ctx.globalCompositeOperation = 'lighter';
@@ -385,6 +389,10 @@ export class Renderer {
         for (const pr of sim.projectiles) {
             if (!visible(pr.x, pr.y, 60)) continue;
             this._drawProjectile(pr, X(pr.x), Y(pr.y), t, glows);
+        }
+        for (const h of sim.honey || []) {
+            if (h.landed || !visible(h.x, h.y, 120)) continue;
+            this._drawHoneyJar(h, X, Y, t, glows);
         }
         for (const b of sim.enemyProjectiles) {
             if (!visible(b.x, b.y, 30)) continue;
@@ -615,6 +623,12 @@ export class Renderer {
             tint = '#FFFFFF';
             sxs *= 1.12;
             sys *= 0.9;
+        } else if (e.honeyTimer > 0) {
+            // Honey Trap: no tint (gold on a gold puddle hides the bear); a grizzly that sat down to eat bobs
+            if (e.honeyPct >= 1) {
+                frame = 0;
+                sys *= 1 - 0.05 * Math.abs(Math.sin(t * 9 + e.uid));
+            }
         } else if (e.slowTimer > 0 || e.auraSlowTimer > 0) tint = '#9FE6FF';
         if (def.bomber && e.fuseArmed) {
             frame = (t * 20) % 2 < 1 ? 1 : 3;
@@ -1004,6 +1018,63 @@ export class Renderer {
             ctx.fillRect(Math.round(bx), Math.round(by), sz, sz);
         }
         ctx.globalAlpha = 1;
+    }
+
+    /** Honey Trap: a puddle of honey, lumpy at the edge (the lumps are fixed per puddle), fading out at the end. */
+    _drawHoney(h, x, y, t, calm) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const r = h.radius * s;
+        const fade = Math.min(1, h.life / 0.8);
+        const grow = Math.min(1, (h.maxLife - h.life) / 0.15 + 0.4);
+        const seed = Math.abs(Math.round(h.x * 7 + h.y * 13));
+        const blobs = [[0, 0, 1]];
+        for (let i = 0; i < 5; i++) {
+            const a = (i / 5) * TAU + (seed % 7);
+            blobs.push([Math.cos(a) * 0.55, Math.sin(a) * 0.45, 0.5 + ((seed >> i) % 3) * 0.08]);
+        }
+        const fill = (rgba, k) => {
+            ctx.fillStyle = rgba;
+            ctx.beginPath();
+            for (const [bx, by, br] of blobs) {
+                const cx = x + bx * r * grow;
+                const cy = y + by * r * grow * 0.7;
+                ctx.moveTo(cx + br * r * k * grow, cy);
+                ctx.ellipse(cx, cy, br * r * k * grow, br * r * k * grow * 0.7, 0, 0, TAU);
+            }
+            ctx.fill();
+        };
+        ctx.globalAlpha = 0.85 * fade;
+        fill(h.burn ? 'rgba(160,70,0,0.9)' : 'rgba(122,75,0,0.9)', 1.06);
+        fill(h.burn ? 'rgba(255,140,40,0.75)' : 'rgba(255,197,61,0.7)', 0.96);
+        fill('rgba(255,224,138,0.45)', 0.6);
+        // glints that drift slowly across the surface
+        ctx.fillStyle = 'rgba(255,246,214,0.9)';
+        const u = Math.max(2, Math.round(s * 2));
+        for (let i = 0; i < 3; i++) {
+            const a = (calm ? 0 : t * 0.6) + i * 2.1 + seed;
+            ctx.fillRect(
+                Math.round(x + Math.cos(a) * r * 0.45),
+                Math.round(y + Math.sin(a) * r * 0.3),
+                u,
+                u
+            );
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    /** A honey jar in flight: arcs up and over, spinning, its shadow on the floor where it will land. */
+    _drawHoneyJar(h, X, Y, t, glows) {
+        const k = 1 - h.flight / h.def.flight;
+        const wx = h.x0 + (h.x - h.x0) * k;
+        const wy = h.y0 + (h.y - h.y0) * k;
+        const lift = Math.sin(Math.PI * k) * 50;
+        this._shadow(X(wx), Y(wy) + 6 * this.k, 14 * this.k, 0.6);
+        const sx = X(wx);
+        const sy = Y(wy - lift);
+        const f = Math.floor(t * 4) % 2;
+        this._blit('honey_jar', sx, sy, { frame: f, rot: k * TAU });
+        glows.push(['honey_jar', sx, sy, f, false, 0.7]);
     }
 
     _drawMine(m, x, y, t) {

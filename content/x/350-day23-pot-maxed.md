@@ -41,3 +41,23 @@ One day's pot, worth more than half of everything we've paid out so far. 💸
 50+ players are already on today's board. 👀
 
 Your move. 🐂
+
+## Reply under it: the receipts so far
+
+Checked 15 Oct 08:42 UTC: the 0.72 SOL top-up for 14 Oct had not gone out yet (prize wallet 1.2516 SOL at 08:30), so
+the reply counts only what is paid and calls the top-up "going out today". 1,193.66 ANSEM over 18 days plus 0.0277
+SOL for 28 Sep (19 days), 82 transfers, 16 wallets (D1 `daily_winners`). After the top-up (about 690 ANSEM) and
+tonight's 1 SOL pot (about 959 ANSEM at 08:37 UTC quotes) the total would pass 2,800 ANSEM. Image:
+`img/150-receipts-so-far.png`, the counter with only paid prizes and no dollar line.
+
+🧾 The receipts so far:
+
+🏆 1,193 ANSEM paid to players
+🗓️ 19 days of prizes since 24 Sep
+🔗 82 on-chain transfers
+👥 16 different players paid
+🚫 0 entry fees. Ever.
+
+Yesterday's pot settled before a fee fix and came up 0.72 SOL short. We're paying the difference to yesterday's winners today. ✅
+
+Add tonight's 1 SOL pot and the counter passes 2,800 ANSEM. 🚀

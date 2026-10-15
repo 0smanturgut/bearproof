@@ -168,6 +168,7 @@ const jobs = [
     ['scripts/og/x/counter.html', 'content/x/img/148-total-prizes.png', 1200, 1500],
     ['scripts/og/x/maxed.html', 'content/x/img/149-pot-maxed.png', 1200, 1500],
     ['scripts/og/x/burned.html', 'content/x/img/151-supply-burned.png', 1200, 1500],
+    ['scripts/og/x/furnace.html', 'content/x/img/152-buyback-and-burn.png', 1200, 1500],
     [
         'scripts/og/x/counter.html?d=%7B%22total%22%3A%221%2C194%22%2C%22usd%22%3A%22PAID%22%2C%22rows%22%3A%5B%5B%2219%22%2C%22DAYS%20PAID%22%5D%2C%5B%2282%22%2C%22TRANSFERS%22%5D%2C%5B%2216%22%2C%22PLAYERS%22%5D%5D%2C%22note%22%3A%22ON-CHAIN%2C%20EVERY%20ONE%20%C2%B7%2024%20SEP%20TO%2014%20OCT%20%C2%B7%20FREE%20TO%20PLAY%2C%20NO%20COIN%20NEEDED%22%7D',
         'content/x/img/150-receipts-so-far.png',

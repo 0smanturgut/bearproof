@@ -1,0 +1,308 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* Buyback & burn, as a furnace with its fuel log. On-chain, 15 Oct 2026 13:00 UTC: 931,073,314.70 of the
+               1,000,000,000 minted are left, so 68,926,685.30 are burned. 62,646,554.32 of them in PumpSwap's
+               graduation buy-and-burn (14 Oct 21:39–21:44 UTC, 27 transactions, paid with 17.58 SOL of the pool's
+               SOL); the other 6,280,130.98 the operator says he bought back and burned through ClawPump. Next, by his
+               statement: buybacks go on, and the game's app-store revenue will fund more. The third card is a plan,
+               drawn dashed, with no number. ?d=<json> { total, pct, rows: [[amount, label, done]] }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #05080f;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .wall {
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(rgba(0, 0, 0, 0.45) 4px, transparent 4px) 0 0 / 120px 60px,
+                    linear-gradient(90deg, rgba(0, 0, 0, 0.45) 4px, transparent 4px) 0 0 / 120px
+                        120px,
+                    linear-gradient(90deg, rgba(0, 0, 0, 0.45) 4px, transparent 4px) 60px 60px /
+                        120px 120px,
+                    radial-gradient(ellipse 60% 40% at 50% 52%, #3a1408, #12070a 70%, #05080f);
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                padding: 2px 24px 4px;
+                background: #ff6a00;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #ff6a00,
+                    0 0 40px rgba(255, 106, 0, 0.55);
+            }
+            /* the furnace: an iron frame with an open mouth, the fire inside */
+            .furnace {
+                position: absolute;
+                left: 150px;
+                top: 176px;
+                width: 900px;
+                height: 640px;
+                background: linear-gradient(180deg, #3a4252, #1d2330);
+                border-radius: 30px 30px 10px 10px;
+                box-shadow:
+                    inset 0 0 0 8px #05080f,
+                    inset 0 14px 0 rgba(255, 255, 255, 0.08),
+                    0 24px 0 rgba(0, 0, 0, 0.5);
+            }
+            .furnace .rivet {
+                position: absolute;
+                width: 18px;
+                height: 18px;
+                background: #8a97a5;
+                box-shadow: inset -4px -4px 0 #3a4252;
+            }
+            .mouth {
+                position: absolute;
+                left: 70px;
+                right: 70px;
+                top: 70px;
+                bottom: 70px;
+                border-radius: 260px 260px 12px 12px;
+                overflow: hidden;
+                background: #1a0503;
+                box-shadow:
+                    inset 0 0 0 8px #05080f,
+                    0 0 80px rgba(255, 106, 0, 0.6);
+            }
+            #fire {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+            }
+            .num {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 220px;
+                text-align: center;
+                font-size: 150px;
+                line-height: 1;
+                color: #fff3c4;
+                text-shadow:
+                    0 8px 0 #b8400a,
+                    0 0 50px rgba(255, 200, 80, 0.9);
+            }
+            .num small {
+                display: block;
+                margin-top: 10px;
+                font-size: 64px;
+                letter-spacing: 0.1em;
+                color: #f4f8fb;
+                text-shadow: 5px 5px 0 #3d1204;
+            }
+            .log {
+                position: absolute;
+                left: 70px;
+                right: 70px;
+                top: 880px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+            .card {
+                height: 250px;
+                padding: 34px 18px 0;
+                text-align: center;
+                background: #12161e;
+                box-shadow:
+                    inset 0 0 0 5px #ff6a00,
+                    0 0 40px rgba(255, 106, 0, 0.25);
+            }
+            .card.next {
+                background: transparent;
+                box-shadow: none;
+                border: 5px dashed #8a97a5;
+            }
+            .card .ic {
+                display: block;
+                margin: 0 auto 10px;
+            }
+            .card b {
+                display: block;
+                font-weight: 400;
+                font-size: 96px;
+                line-height: 1;
+                color: #ffd36a;
+            }
+            .card.next b {
+                color: #f4f8fb;
+            }
+            .card i {
+                display: block;
+                margin-top: 12px;
+                font:
+                    400 24px/1.35 'JetBrains Mono',
+                    monospace;
+                font-style: normal;
+                letter-spacing: 0.14em;
+                color: #b8c4d2;
+            }
+            .tick {
+                position: absolute;
+                right: 14px;
+                top: 10px;
+                font-size: 50px;
+                color: #16e08a;
+            }
+            .card {
+                position: relative;
+            }
+            .foot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1220px;
+                text-align: center;
+                font-size: 112px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .foot b {
+                font-weight: 400;
+                color: #ff6a00;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1380px;
+                text-align: center;
+                font:
+                    400 22px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.14em;
+                color: #8a97a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wall"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill">BUYBACK & BURN</div>
+        </div>
+        <div class="furnace" id="furnace">
+            <div class="mouth"><canvas id="fire" width="190" height="125"></canvas></div>
+            <div class="num" id="num"></div>
+        </div>
+        <div class="log" id="log"></div>
+        <div class="foot">THIS IS JUST THE <b>START.</b></div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"total":"68,926,685","pct":"6.89%","rows":[["62.6M","GRADUATION<br>BUY & BURN",1],["6.3M","DEV BUYBACKS<br>& BURNS",1],["NEXT","APP STORE<br>REVENUE",0]],"small":"SUPPLY 1,000,000,000 → 931,073,315 · EVERY BURN IS ON-CHAIN"}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('num').innerHTML = `${D.total}<small>BURNED · ${D.pct}</small>`;
+            $('small').textContent = D.small;
+            $('log').innerHTML = D.rows
+                .map(
+                    ([a, l, done]) =>
+                        `<div class="card${done ? '' : ' next'}">${done ? '<span class="tick">✓</span>' : ''}<b>${a}</b><i>${l}</i></div>`
+                )
+                .join('');
+            // rivets round the furnace
+            const f = $('furnace');
+            for (const [x, y] of [
+                [24, 24],
+                [858, 24],
+                [24, 598],
+                [858, 598],
+                [441, 24]
+            ]) {
+                const r = document.createElement('i');
+                r.className = 'rivet';
+                r.style.left = x + 'px';
+                r.style.top = y + 'px';
+                f.append(r);
+            }
+            // pixel fire, run to a steady state
+            const W = 190,
+                H = 125,
+                c = $('fire').getContext('2d');
+            const pal = [];
+            for (let i = 0; i < 37; i++) {
+                const t = i / 36;
+                pal.push([
+                    Math.round(255 * Math.min(1, t * 2.1)),
+                    Math.round(255 * Math.max(0, Math.min(1, (t - 0.38) * 1.8))),
+                    Math.round(255 * Math.max(0, Math.min(1, (t - 0.86) * 6))),
+                    i === 0 ? 0 : 255
+                ]);
+            }
+            const px = new Uint8Array(W * H);
+            for (let x = 0; x < W; x++) px[(H - 1) * W + x] = 36;
+            let seed = 69;
+            const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+            for (let step = 0; step < 220; step++)
+                for (let x = 0; x < W; x++)
+                    for (let y = 1; y < H; y++) {
+                        const src = y * W + x,
+                            v = px[src];
+                        if (!v) {
+                            px[src - W] = 0;
+                            continue;
+                        }
+                        const r = Math.round(rnd() * 3) & 3;
+                        px[Math.max(0, src - W - r + 1)] = Math.max(0, v - (r & 1));
+                    }
+            const img = c.createImageData(W, H);
+            for (let i = 0; i < px.length; i++) img.data.set(pal[px[i]], i * 4);
+            c.putImageData(img, 0, 0);
+            window.ready = true;
+        </script>
+    </body>
+</html>

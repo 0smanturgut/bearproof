@@ -140,6 +140,20 @@ export class AudioEngine {
         this.tone({ noise: true, dur: 0.16, volume: 0.09, attack: 0.01, release: 0.08 });
         this.tone({ freq: 140, dur: 0.05, type: 'triangle', volume: 0.08, sweep: -40 });
     }
+    /** Honey Trap: a soft glass "tink" as the jar breaks, then a wet low splat. */
+    honey() {
+        this.tone({ freq: 1500, dur: 0.04, type: 'triangle', volume: 0.07, sweep: -500 });
+        this.tone({ freq: 120, dur: 0.14, type: 'sine', volume: 0.16, sweep: -50 });
+        this.tone({ noise: true, dur: 0.09, volume: 0.06, attack: 0.01, release: 0.06 });
+    }
+    /** A grizzly sits down to eat: two quick low "noms". */
+    nom() {
+        this.tone({ freq: 180, dur: 0.06, type: 'triangle', volume: 0.12, sweep: -40 });
+        setTimeout(
+            () => this.tone({ freq: 160, dur: 0.07, type: 'triangle', volume: 0.12, sweep: -40 }),
+            110
+        );
+    }
     /** A grizzly's shield breaks: a bright glassy crack falling away. */
     shieldBreak() {
         this.tone({ freq: 1900, dur: 0.07, type: 'square', volume: 0.07, sweep: -900 });

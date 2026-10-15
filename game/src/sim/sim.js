@@ -52,8 +52,9 @@ import { Weapon } from './weapons.js';
  * stacks: +10% crit, crits chain to 2 more bears, 2x damage taken). 17: Withdrawal Freeze (Crypto Winter's
  * mini-boss at 3:30 freezes candles near it; its death thaws them to the bull and slows the bears around him).
  * 18: Options Expiry (a Daily twist: XP candles expire after 6 s and are worth +50%). 19: Moon Rocket (a fifth
- * crate loot: 4 s of 1.8x speed, untouchable, ramming bears), and Bear Trap's extra doomposters join at 1:00. */
-export const SIM_VERSION = 19;
+ * crate loot: 4 s of 1.8x speed, untouchable, ramming bears), and Bear Trap's extra doomposters join at 1:00.
+ * 20: Honey Trap (a new weapon in the level-up pool: honey puddles slow bears, grizzlies stop to eat). */
+export const SIM_VERSION = 20;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -87,6 +88,7 @@ export class Simulation {
         this.projectiles = [];
         this.enemyProjectiles = [];
         this.mines = [];
+        this.honey = []; // Honey Trap: jars in flight and puddles on the floor
         this.xp = [];
         this.crates = [];
         this.nextCrateAt = SIM.CRATE_FIRST;
@@ -126,7 +128,8 @@ export class Simulation {
             liquidations: 0, // Liquidation Risk: chain hits
             candlesFrozen: 0, // Withdrawal Freeze: candles it iced
             candlesThawed: 0, // and the ones its death sent to the bull
-            rammed: 0 // Moon Rocket: bears rammed
+            rammed: 0, // Moon Rocket: bears rammed
+            honeyEaten: 0 // Honey Trap: grizzlies that sat down to eat (once per puddle)
         };
         this.rocketHit = new Set(); // bears rammed on the current ride
         this.events = [];
@@ -173,6 +176,7 @@ export class Simulation {
         this._updateProjectiles(dt);
         this._updateList(this.enemyProjectiles, dt);
         this._updateList(this.mines, dt);
+        this._updateList(this.honey, dt);
         this._runDelayed(dt);
         this._cullDead();
         this._updateList(this.xp, dt);

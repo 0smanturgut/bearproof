@@ -347,6 +347,36 @@ export const WEAPONS = {
         evolveConeAngle: 100,
         evolveSlowPct: 0.4,
         evolveSlowDuration: 1.5
+    },
+    // Lobs a jar at the nearest bear (`baseRange` is the throw). It flies `flight` s, splashes for the weapon's
+    // damage within the puddle, and the puddle lasts `puddleLife` s: bears inside move `slowPct` slower, and the
+    // ones in `eatenBy` stop to eat until the honey is gone. Bosses don't stick. The puddle grows with the
+    // throw (levels, Liquidity). Evolved: `evolveRadiusMult` bigger, `evolveLife` s, and every `burnEvery` s it
+    // burns each bear inside for `evolveBurn` of the weapon's damage.
+    HONEY_TRAP: {
+        id: 'honey_trap',
+        name: 'Honey Trap',
+        icon: 'honey_trap',
+        sprite: 'honey_jar',
+        description:
+            'Lobs honey at the nearest bear. Bears in the puddle slow down; grizzlies stop to eat.',
+        type: 'honey',
+        baseDamage: 16,
+        baseCooldown: 3.2,
+        baseRange: 260,
+        flight: 0.4,
+        puddleRadius: 56,
+        puddleLife: 4,
+        slowPct: 0.55,
+        eatenBy: ['grizzly'],
+        burnEvery: 0.5,
+        evolveLevel: 5,
+        evolveName: 'Honeypot',
+        evolveDescription:
+            "Bigger puddles that last 6 s and burn. Bears can buy in, they can't sell.",
+        evolveRadiusMult: 1.4,
+        evolveLife: 6,
+        evolveBurn: 0.4
     }
 };
 

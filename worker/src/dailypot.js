@@ -20,7 +20,14 @@ import { checkBounty, clearsBounty } from './lib/bounty.js';
 import { utcDate } from './lib/daily.js';
 import { all, first } from './lib/db.js';
 import { cleanStats } from './lib/insights.js';
-import { POT_OPTION, POT_POLL_DATE, planPot, potAmount, splitBought } from './lib/pot.js';
+import {
+    POT_OPTION,
+    POT_POLL_DATE,
+    planPot,
+    planTopUp,
+    potAmount,
+    splitBought
+} from './lib/pot.js';
 import { LAMPORTS } from './lib/prize.js';
 import * as solana from './lib/solana.js';
 import { pollWindow } from './lib/vote.js';
@@ -35,6 +42,11 @@ const addDays = (date, n) => utcDate(Date.parse(`${date}T00:00:00Z`) + n * DAY);
 
 /** The earliest Daily Challenge the Daily Pot could pay: the day after its poll. */
 export const POT_FIRST_DATE = addDays(POT_POLL_DATE, 1);
+
+/** A top-up's `daily_winners` key is its day's date plus this (claimTopUp). */
+export const TOPUP = ':topup';
+/** The Daily Challenge date a `daily_winners` row is for. */
+export const dayOf = (key) => String(key).slice(0, 10);
 
 /** Thrown when a run no longer holds the day's lock: it must stop before it sends anything. */
 export class LockLost extends Error {}
@@ -123,7 +135,7 @@ export function eligibleRuns(env, date) {
 export async function rolloverIn(env, date) {
     const rows = await all(
         env,
-        'SELECT note FROM daily_winners WHERE date < ? ORDER BY date DESC LIMIT 1',
+        'SELECT note FROM daily_winners WHERE date < ? AND length(date) = 10 ORDER BY date DESC LIMIT 1',
         date
     );
     if (!rows) return null;
@@ -247,6 +259,111 @@ export async function claimDayPot(env, date, { fees, excluded, now = Date.now() 
     )
         console.warn('[pot] could not reset prize:rollover');
     return total > 0;
+}
+
+/**
+ * Top up a settled, fully paid Daily Pot day whose fees were measured short: on 14 Oct 2026 the coin moved to
+ * PumpSwap and the old reading missed its fees (D69). The corrected plan is worked out from what settling saw (runs
+ * verified by then, payout addresses saved by then, an earlier recipient at the address they were paid at, the same
+ * bounty, rollover and operator list) with `fees` measured again. It must keep every share already paid
+ * (planTopUp); each recipient gets the difference. Recorded as its own row, `<date>:topup`, which the cron pays like
+ * any day (advancePot), once: the row is the claim. Returns true when a top-up is pending.
+ */
+export async function claimTopUp(env, date, { fees, excluded, now = Date.now() }) {
+    if (!(excluded instanceof Set)) throw new Error('the operator list is required');
+    const key = date + TOPUP;
+    if (await first(env, 'SELECT date FROM daily_winners WHERE date = ?', key)) return false;
+    const row = await first(env, 'SELECT note, created_at FROM daily_winners WHERE date = ?', date);
+    if (!row) return false;
+    const note = JSON.parse(row.note || '{}');
+    if (note.policy !== 'daily-pot' || note.step !== 'done') return false;
+    const pot = potAmount(fees);
+    if (!(pot.lamports > (note.pot?.lamports || 0))) return false; // not short: nothing owed
+    const paid = note.recipients || [];
+    if (paid.some((r) => r.status !== 'sent'))
+        throw new Error(`top-up ${date}: a share of the day wasn't sent; left for the operator`);
+    const rolled = note.rollover?.out || {};
+    if (rolled.places || rolled.bounty)
+        throw new Error(`top-up ${date}: part of the day rolled over; left for the operator`);
+
+    const settled = row.created_at;
+    const runs = await all(
+        env,
+        `SELECT id, player_id, claimed_score, created_at, stats FROM runs
+          WHERE challenge_date = ? AND mode = 'daily' AND status = 'verified' AND bot_check = 'passed'
+            AND verified_at <= ?
+          ORDER BY claimed_score DESC, created_at ASC LIMIT 5000`,
+        date,
+        settled
+    );
+    const addrRows = await all(
+        env,
+        'SELECT player_id, sol_address, created_at FROM payout_addresses WHERE player_id IN (SELECT player_id FROM runs WHERE challenge_date = ?)',
+        date
+    );
+    const daily = await first(env, 'SELECT build FROM daily_challenges WHERE date = ?', date);
+    if (!runs || !addrRows || !daily) return false;
+    const b = await bountyFor(env, daily.build);
+    if (b.retry) return false;
+
+    const board = [];
+    const seen = new Set();
+    for (const r of runs) {
+        if (seen.has(r.player_id)) continue;
+        seen.add(r.player_id);
+        board.push(r);
+    }
+    const clearers = b.bounty ? bountyClearers(runs, b.bounty) : null;
+    const addresses = new Map(
+        addrRows
+            .filter((a) => a.created_at <= settled && payable(a.sol_address))
+            .map((a) => [a.player_id, a.sol_address])
+    );
+    for (const r of paid) addresses.set(r.playerId, r.to);
+    const plan = planPot({
+        board,
+        clearers,
+        addresses,
+        excluded,
+        pot,
+        rollover: note.rollover?.in || { places: 0, bounty: 0 }
+    });
+    if (plan.rollover.places || plan.rollover.bounty)
+        throw new Error(
+            `top-up ${date}: the corrected plan rolls part over; left for the operator`
+        );
+    const owed = planTopUp(paid, plan.recipients);
+    const total = owed.reduce((a, r) => a + r.lamports, 0);
+    if (!total) return false;
+    const topNote = {
+        policy: 'daily-pot',
+        topUpOf: date,
+        step: 'claimed',
+        pot: { feesLamports: fees, ...pot },
+        paidBefore: {
+            feesLamports: note.pot?.feesLamports ?? null,
+            lamports: note.pot?.lamports || 0
+        },
+        rollover: { in: { places: 0, bounty: 0 }, out: { places: 0, bounty: 0 } },
+        bounty: note.bounty,
+        recipients: owed.map((r) => ({ ...r, status: 'pending' })),
+        skipped: []
+    };
+    const res = await env.DB.prepare(
+        `INSERT OR IGNORE INTO daily_winners (date, run_id, player_id, score, payout_status, payout_token, payout_amount, note, created_at)
+         VALUES (?1, ?2, ?3, ?4, 'pending', 'ANSEM', ?5, ?6, ?7)`
+    )
+        .bind(
+            key,
+            owed[0].runId,
+            owed[0].playerId,
+            owed[0].score,
+            String(total),
+            JSON.stringify(topNote),
+            now
+        )
+        .run();
+    return !!res.meta?.changes;
 }
 
 async function ledgerOut(env, { tx, lamports = null, mint = null, tokenAmount = null, memo }) {

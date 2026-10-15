@@ -2,7 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import { excludedPlayers } from '../src/cron.js';
-import { LockLost, advancePot, claimDayPot, dailyPotFrom, rolloverIn } from '../src/dailypot.js';
+import {
+    LockLost,
+    advancePot,
+    claimDayPot,
+    claimTopUp,
+    dailyPotFrom,
+    rolloverIn
+} from '../src/dailypot.js';
+import { planTopUp } from '../src/lib/pot.js';
 import { LAMPORTS } from '../src/lib/prize.js';
 import { fakeD1, fakeKV } from './helpers/d1.js';
 
@@ -440,4 +448,158 @@ test('excludedPlayers fails closed: an unreadable operator list stops the payout
     await assert.rejects(
         excludedPlayers({ CONFIG: { get: async () => Promise.reject(new Error('KV down')) } })
     );
+});
+
+// --- Top-up of a day whose pot was measured short ----------------------------------------------------------------
+
+const TOP = `${D}:topup`;
+const topNote = async (env) => JSON.parse((await row(env, TOP)).note);
+/** The day as the 14 Oct one went: settled from a short measurement (pot 0.04 SOL) and paid in full. */
+async function paidShort(opts) {
+    const env = setup(opts);
+    env.DB.db.prepare('UPDATE runs SET verified_at = ?').run(NOW - 3600000);
+    await claim(env, { fees: 0.1 * SOL });
+    await advance(env, fakeChain());
+    assert.equal((await row(env)).payout_status, 'paid');
+    return env;
+}
+const topUp = (env, opts = {}) =>
+    claimTopUp(env, D, { fees: 0.5 * SOL, excluded: OPS, now: NOW + 9 * 3600000, ...opts });
+
+test('claimTopUp: each player gets the difference to the plan the right pot makes, once', async () => {
+    const env = await paidShort();
+    assert.deepEqual(
+        (await noteOf(env)).recipients.map((r) => [r.kind, r.playerId, r.lamports]),
+        [
+            ['place', 'p1', 0.024 * SOL],
+            ['bounty', 'p1', 0.016 * SOL]
+        ],
+        'the short pot: one place, one bounty share'
+    );
+    assert.equal(await topUp(env), true);
+    const note = await topNote(env);
+    assert.deepEqual(
+        note.recipients.map((r) => [r.kind, r.place ?? '-', r.playerId, r.lamports, r.paidBefore]),
+        [
+            ['place', 1, 'p1', 0.048 * SOL, 0.024 * SOL],
+            ['place', 2, 'p2', 0.048 * SOL, undefined],
+            ['bounty', '-', 'p1', 0.024 * SOL, 0.016 * SOL],
+            ['bounty', '-', 'p2', 0.04 * SOL, undefined]
+        ]
+    );
+    assert.equal(note.topUpOf, D);
+    assert.deepEqual(note.paidBefore, { feesLamports: 0.1 * SOL, lamports: 0.04 * SOL });
+    const r = await row(env, TOP);
+    assert.equal(r.payout_status, 'pending');
+    assert.equal(
+        r.payout_amount,
+        String(0.16 * SOL),
+        'the new pot (0.2) less what was paid (0.04)'
+    );
+    assert.equal(await topUp(env), false, 'once');
+    assert.deepEqual(
+        await rolloverIn(env, '2026-09-28'),
+        { places: 0, bounty: 0 },
+        'the next day reads the day, not its top-up'
+    );
+
+    // The cron pays it like any day: its own swap, transfers and ledger rows.
+    const chain = fakeChain();
+    Object.assign(chain.s, { n: 100, swaps: 100 }); // signatures unique across both payouts, as on chain
+    const lock = clock++;
+    env.DB.db.prepare('UPDATE daily_winners SET lock_until = ? WHERE date = ?').run(lock, TOP);
+    await advancePot(env, r, { lock, chain, now: NOW + 9 * 3600000 });
+    assert.equal(chain.s.sent.filter((t) => t.kind === 'swap').length, 1);
+    assert.equal(transfers(chain).length, 4);
+    assert.equal((await row(env, TOP)).payout_status, 'paid');
+    const memos = env.DB.db
+        .prepare("SELECT memo FROM ledger WHERE memo LIKE '%:topup:%' ORDER BY memo")
+        .all()
+        .map((l) => l.memo);
+    assert.deepEqual(memos, [
+        `bearproof:prize:${TOP}:bounty`,
+        `bearproof:prize:${TOP}:bounty`,
+        `bearproof:prize:${TOP}:buy`,
+        `bearproof:prize:${TOP}:place-1`,
+        `bearproof:prize:${TOP}:place-2`
+    ]);
+});
+
+test('claimTopUp: nothing when the pot was not short, or the day is not paid yet', async () => {
+    const env = await paidShort();
+    assert.equal(await topUp(env, { fees: 0.1 * SOL }), false, 'same measurement');
+    assert.equal(await topUp(env, { fees: 0.05 * SOL }), false, 'a lower one');
+    assert.equal(await row(env, TOP), null);
+    const unpaid = setup();
+    unpaid.DB.db.prepare('UPDATE runs SET verified_at = ?').run(NOW - 3600000);
+    await claim(unpaid, { fees: 0.1 * SOL });
+    assert.equal(await topUp(unpaid), false, 'still being paid');
+    assert.equal(await topUp(setup()), false, 'never settled');
+});
+
+test('claimTopUp: works from what settling saw, not runs or addresses that came later', async () => {
+    const env = await paidShort();
+    const exec = (sql, ...a) => env.DB.db.prepare(sql).run(...a);
+    // After the day was settled: a run verified late that would top the board, and p4 saving an address.
+    exec(
+        `INSERT INTO runs (id, player_id, mode, challenge_date, build, seed, claimed_score, claimed_time_ms,
+           claimed_kills, claimed_level, duration_ms, status, bot_check, created_at, verified_at)
+         VALUES ('late', 'p9', 'daily', ?, 5, 1, 9900, 0, 0, 1, 0, 'verified', 'passed', 1, ?)`,
+        D,
+        NOW + 3600000
+    );
+    exec(
+        'INSERT INTO payout_addresses (player_id, sol_address, created_at) VALUES (?, ?, ?)',
+        'p9',
+        wallet(7),
+        0
+    );
+    exec(
+        'INSERT INTO payout_addresses (player_id, sol_address, created_at) VALUES (?, ?, ?)',
+        'p4',
+        wallet(6),
+        NOW + 3600000
+    );
+    assert.equal(await topUp(env), true);
+    const who = (await topNote(env)).recipients.map((r) => r.playerId);
+    assert.equal(who.includes('p9'), false, 'verified after settling');
+    assert.equal(who.includes('p4'), false, 'address saved after settling');
+});
+
+test('claimTopUp: a paid player who changed address since is topped up where they were paid', async () => {
+    const env = await paidShort();
+    env.DB.db
+        .prepare('UPDATE payout_addresses SET sol_address = ?, created_at = ? WHERE player_id = ?')
+        .run(wallet(8), NOW + 3600000, 'p1');
+    assert.equal(await topUp(env), true);
+    const p1 = (await topNote(env)).recipients.filter((r) => r.playerId === 'p1');
+    assert.deepEqual(
+        p1.map((r) => r.to),
+        [wallet(2), wallet(2)]
+    );
+});
+
+test('claimTopUp: a day with an unsent share is left for the operator', async () => {
+    const env = await paidShort();
+    const note = await noteOf(env);
+    note.recipients[1].status = 'failed';
+    env.DB.db
+        .prepare('UPDATE daily_winners SET note = ? WHERE date = ?')
+        .run(JSON.stringify(note), D);
+    await assert.rejects(topUp(env), /wasn't sent/);
+    assert.equal(await row(env, TOP), null);
+});
+
+test('planTopUp: refuses a corrected plan that drops, moves or shrinks a paid share', () => {
+    const paid = [{ kind: 'place', place: 1, runId: 'r1', playerId: 'p1', to: 'A', lamports: 10 }];
+    const keep = (x) => [{ ...paid[0], ...x }];
+    assert.deepEqual(
+        planTopUp(paid, keep({ lamports: 25 })).map((r) => [r.lamports, r.paidBefore]),
+        [[15, 10]]
+    );
+    assert.throws(() => planTopUp(paid, []), /doesn't keep/);
+    assert.throws(() => planTopUp(paid, keep({ playerId: 'p2' })), /doesn't keep/);
+    assert.throws(() => planTopUp(paid, keep({ to: 'B' })), /doesn't keep/);
+    assert.throws(() => planTopUp(paid, keep({ lamports: 9 })), /shrink/);
+    assert.deepEqual(planTopUp(paid, keep({ lamports: 10 })), [], 'owed nothing: left out');
 });

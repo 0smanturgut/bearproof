@@ -1322,6 +1322,17 @@ test('announcements: a payout the prize wallet can’t cover is said once, after
     assert.deepEqual(await waitingPayouts(env, after(31)), [
         { date: '2026-10-04', potSol: 0.063477844, shares: 4, heldSol: 0.0421, needSol: 0.0835 }
     ]);
+    // A top-up of a paid day (dailypot.js claimTopUp) that waits shows on the HQ, not as this post.
+    await env.DB.prepare(
+        `INSERT INTO daily_winners (date, run_id, player_id, score, payout_status, payout_token, payout_amount, note, created_at)
+         VALUES ('2026-10-03:topup', 'r3', 'p1', 1, 'pending', 'ANSEM', '20000000', ?1, ?2)`
+    )
+        .bind(JSON.stringify({ ...note, topUpOf: '2026-10-03', waiting: note.waiting }), settled)
+        .run();
+    assert.deepEqual(
+        (await waitingPayouts(env, after(31))).map((w) => w.date),
+        ['2026-10-04']
+    );
     await env.DB.prepare("UPDATE daily_winners SET payout_status = 'paid'").run();
     assert.deepEqual(await waitingPayouts(env, after(3000)), []);
 });

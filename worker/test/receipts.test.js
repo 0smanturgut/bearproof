@@ -216,3 +216,85 @@ test('a Daily Pot day counts the players it paid, not the shares: one player can
     );
     assert.equal('playerId' in body.winners[0].payouts[0], false, 'the count leaves, the ids stay');
 });
+
+test('a top-up reads as a top-up of its day: activity, ledger lines and the winners list', async () => {
+    const env = makeEnv();
+    const t = NOW - 600000;
+    const row = (date, note, total, tx, at) =>
+        env.DB.prepare(
+            `INSERT INTO daily_winners (date, run_id, player_id, score, payout_status, payout_token, payout_amount, payout_tx, note, created_at)
+             VALUES (?1, 'r', 'p-y', 1000, 'paid', 'ANSEM', ?2, ?3, ?4, ?5)`
+        )
+            .bind(
+                date,
+                total,
+                tx,
+                JSON.stringify({ policy: 'daily-pot', step: 'done', ...note }),
+                at
+            )
+            .run();
+    const sent = (kind, playerId, amount, tx, place) => ({
+        kind,
+        ...(place ? { place } : {}),
+        playerId,
+        lamports: 1,
+        status: 'sent',
+        amount,
+        tx
+    });
+    await row(
+        '2026-10-05',
+        {
+            pot: { feesLamports: 697328714, lamports: 278931485 },
+            recipients: [sent('place', 'p-y', '53115271', 'a1', 1)]
+        },
+        '53115271',
+        'a1',
+        t - 3600000
+    );
+    await row(
+        '2026-10-05:topup',
+        {
+            topUpOf: '2026-10-05',
+            pot: { feesLamports: 13282600000, lamports: 1e9, reason: 'capped at 1 SOL' },
+            paidBefore: { feesLamports: 697328714, lamports: 278931485 },
+            recipients: [
+                sent('place', 'p-y', '120000000', 'b1', 1),
+                sent('place', 'p-s', '80000000', 'b2', 2)
+            ]
+        },
+        '200000000',
+        'b1',
+        t
+    );
+    await prizeRow(env, {
+        tx: 'b1',
+        ts: t,
+        tokens: '120000000',
+        memo: 'bearproof:prize:2026-10-05:topup:place-1'
+    });
+    const { items } = await (await activity(env, NOW)).json();
+    assert.deepEqual(
+        items.filter((i) => i.kind === 'prize').map((i) => i.text),
+        [
+            'Daily Pot top-up paid for 2026-10-05: 200 $ANSEM to 2 players.',
+            'Daily Pot paid for 2026-10-05: 53.12 $ANSEM to 1 player.'
+        ]
+    );
+    assert.equal(
+        items.find((i) => i.tx === 'b1' && i.kind === 'ledger').text,
+        'Prize wallet sent 120 $ANSEM to #1 of the 2026-10-05 Daily Challenge (top-up).'
+    );
+    const body = await (await winners(env)).json();
+    assert.deepEqual(
+        body.winners.map((w) => [w.date, !!w.topUp]),
+        [
+            ['2026-10-05', true],
+            ['2026-10-05', false]
+        ]
+    );
+    assert.equal(
+        body.winners[0].why,
+        'Top-up: settling measured 0.70 SOL of creator fees for this day and paid a 0.28 SOL pot, but 13.28 SOL reached the treasury that day (the coin had moved to PumpSwap and the old reading missed its fees). The pot is 1.00 SOL (the cap), so this pays each player the difference.'
+    );
+});

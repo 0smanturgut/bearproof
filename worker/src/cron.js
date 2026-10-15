@@ -16,7 +16,7 @@ import { all, first } from './lib/db.js';
 import { utcDate } from './lib/daily.js';
 import { LAMPORTS, pickWinner, prizeAmount } from './lib/prize.js';
 import { snapshotBalances, syncLedger } from './lib/treasury.js';
-import { POT_FIRST_DATE, advancePot, claimDayPot, dailyPotFrom } from './dailypot.js';
+import { POT_FIRST_DATE, advancePot, claimDayPot, claimTopUp, dailyPotFrom } from './dailypot.js';
 import {
     connection,
     mintInfo,
@@ -348,6 +348,19 @@ export async function scheduled(event, env, ctx) {
             } catch (err) {
                 console.warn('[cron] settle', yesterday, err?.message || err);
             }
+        }
+        // A paid day whose pot was measured short gets a top-up, once, when the operator lists its date in CONFIG
+        // `pot:topup` (a JSON list): dailypot.js claimTopUp records it, the loop below pays it.
+        try {
+            const dates = JSON.parse((await env.CONFIG.get('pot:topup')) || '[]');
+            for (const d of Array.isArray(dates) ? dates : []) {
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < POT_FIRST_DATE || d >= today) continue;
+                const fees = await fees24h(env, d, { settle: true, now });
+                if (fees === undefined) continue;
+                await claimTopUp(env, d, { fees, excluded: await excludedPlayers(env), now });
+            }
+        } catch (err) {
+            console.warn('[cron] top-up', err?.message || err);
         }
         // One deadline for the whole run, well inside the lock, so the next run never meets this one mid-payout.
         const deadline = Date.now() + 8 * 60000;

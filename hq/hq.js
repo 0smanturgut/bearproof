@@ -1631,9 +1631,10 @@ async function loadWinners() {
             const payouts = r.payouts || [];
             const places = payouts.filter((p) => p.kind === 'place').length;
             const bounty = payouts.length - places;
+            const day = r.topUp ? `${r.date} · top-up` : r.date;
             const who = payouts.length
-                ? `${r.date} · ${places} place${places === 1 ? '' : 's'}${bounty ? ` + ${bounty} bounty` : ''}`
-                : `${r.date} · Daily Pot`;
+                ? `${day} · ${places} place${places === 1 ? '' : 's'}${bounty ? ` + ${bounty} bounty` : ''}`
+                : `${day} · Daily Pot`;
             const what =
                 r.status === 'paid'
                     ? h(

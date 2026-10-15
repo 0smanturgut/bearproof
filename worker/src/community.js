@@ -515,13 +515,14 @@ async function receiptItems(env, now) {
         .filter((i) => ['prize', 'fees', 'ledger'].includes(i.kind))
         .filter((i) => now - Date.parse(i.ts) < DAY)
         .map((i) => {
-            const date = (i.text.match(/paid for (\d{4}-\d{2}-\d{2})/) || [])[1];
+            // A day's prize line is said once; a top-up of that day (dailypot.js claimTopUp) once more.
+            const [, topUp, date] = /(top-up )?paid for (\d{4}-\d{2}-\d{2})/.exec(i.text) || [];
             return {
                 text: i.text,
                 tx: i.tx || null,
                 key:
                     i.kind === 'prize' && date
-                        ? `rx:prize:${date}`
+                        ? `rx:prize:${date}${topUp ? ':topup' : ''}`
                         : `rx:${i.tx || hash(i.kind + i.text)}`
             };
         });
@@ -547,7 +548,13 @@ export async function waitingPayouts(env, now) {
         } catch {
             continue;
         }
-        if (note.policy !== 'daily-pot' || !note.waiting || now - r.created_at < WAIT_GRACE)
+        // A top-up's wait shows on the HQ; the group hears about its payout when it lands.
+        if (
+            note.policy !== 'daily-pot' ||
+            note.topUpOf ||
+            !note.waiting ||
+            now - r.created_at < WAIT_GRACE
+        )
             continue;
         const m = /holds ([\d.]+) SOL, needs ([\d.]+)/.exec(note.waiting);
         out.push({

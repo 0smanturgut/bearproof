@@ -3,7 +3,7 @@
  * the database; a paid prize links to its transaction instead. A Daily Pot day (lib/pot.js) lists every recipient.
  */
 
-import { dailyPotFrom } from '../dailypot.js';
+import { dailyPotFrom, dayOf } from '../dailypot.js';
 import { utcDate } from '../lib/daily.js';
 import { all } from '../lib/db.js';
 import { displayName } from '../lib/runs.js';
@@ -61,6 +61,15 @@ export function waitingWhy(waiting) {
     return m
         ? `Payout waiting for the prize wallet top-up: at the last check it held ${m[1]} SOL, and this day needs ${m[2]} SOL.`
         : 'Payout waiting for the prize wallet top-up.';
+}
+
+const sol2 = (lamports) => `${((Number(lamports) || 0) / 1e9).toFixed(2)} SOL`;
+
+/** Why a top-up row (dailypot.js claimTopUp) exists, in words, from the numbers on it. */
+export function topUpWhy(note) {
+    const was = note.paidBefore || {};
+    const pot = note.pot || {};
+    return `Top-up: settling measured ${sol2(was.feesLamports)} of creator fees for this day and paid a ${sol2(was.lamports)} pot, but ${sol2(pot.feesLamports)} reached the treasury that day (the coin had moved to PumpSwap and the old reading missed its fees). The pot is ${sol2(pot.lamports)}${pot.reason === 'capped at 1 SOL' ? ' (the cap)' : ''}, so this pays each player the difference.`;
 }
 
 /** A Daily Pot day as the public sees it: who got what, never where it went. */
@@ -162,14 +171,18 @@ export async function winners(env) {
                     status: r.payout_status,
                     token: r.payout_token || null
                 };
-                if (note.policy === 'daily-pot')
+                if (note.policy === 'daily-pot') {
+                    const day = potDay(note, names);
                     return {
                         ...base,
+                        date: dayOf(r.date),
                         policy: 'daily-pot',
                         amountRaw: r.payout_status === 'paid' ? r.payout_amount : null,
                         tx: r.payout_tx || null,
-                        ...potDay(note, names)
+                        ...day,
+                        ...(note.topUpOf ? { topUp: true, why: day.why || topUpWhy(note) } : {})
                     };
+                }
                 const why =
                     note.why || (r.payout_status === 'skipped' ? note.policy : null) || null;
                 // When the top of the board wasn't eligible, the payout says so (the rule: say who and why).

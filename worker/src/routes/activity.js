@@ -111,6 +111,7 @@ export async function activity(env, now = Date.now()) {
             const day =
                 (String(l.memo || '').match(/prize:(\d{4}-\d{2}-\d{2})/) || [])[1] || 'the day';
             if (/:send$/.test(l.memo || '')) continue; // the prize line below says it
+            const topUp = /:topup:/.test(l.memo || '') ? ' (top-up)' : '';
             // A Daily Pot share: one transfer per recipient, in $ANSEM (no SOL amount on the row) or, after two
             // failed swaps, in SOL.
             const share = /:(?:place-(\d+)|bounty)$/.exec(l.memo || '');
@@ -121,13 +122,13 @@ export async function activity(env, now = Date.now()) {
                 ts: l.ts,
                 kind: 'ledger',
                 text: /:buy$/.test(l.memo || '')
-                    ? `Prize wallet bought ${ansem(l.token_amount)} $ANSEM with ${sol(l.amount_lamports)} SOL for the ${day} payout.`
+                    ? `Prize wallet bought ${ansem(l.token_amount)} $ANSEM with ${sol(l.amount_lamports)} SOL for the ${day} payout${topUp}.`
                     : /sol-fallback/.test(l.memo || '')
                       ? `Prize wallet paid ${sol(l.amount_lamports)} SOL to the ${day} winner (the $ANSEM swap failed twice).`
                       : share
                         ? share[1]
-                            ? `Prize wallet sent ${paid} to #${share[1]} of the ${day} Daily Challenge.`
-                            : `Prize wallet sent ${paid} to a player who cleared the ${day} bounty.`
+                            ? `Prize wallet sent ${paid} to #${share[1]} of the ${day} Daily Challenge${topUp}.`
+                            : `Prize wallet sent ${paid} to a player who cleared the ${day} bounty${topUp}.`
                         : `Prize wallet out: ${paid}, ${l.memo || 'prize'}.`,
                 tx: l.tx_signature || null
             });
@@ -169,8 +170,10 @@ export async function activity(env, now = Date.now()) {
         let pot = null;
         let shares = 0;
         let passedOver = [];
+        let topUp = false;
         try {
             const note = JSON.parse(w.note || '{}');
+            topUp = !!note.topUpOf;
             passedOver = Array.isArray(note.skipped) ? note.skipped : [];
             if (note.policy === 'daily-pot') {
                 const sentTo = (note.recipients || []).filter((r) => r.status === 'sent');
@@ -192,7 +195,7 @@ export async function activity(env, now = Date.now()) {
                     ? passedOver.length
                         ? `Prize paid for ${w.date}: ${amount} to the best eligible run. ${passedOver.length === 1 ? 'The run above it was' : `The ${passedOver.length} runs above it were`} passed over (${[...new Set(passedOver.map((s) => s.why))].join('; ')}).`
                         : `Prize paid for ${w.date}: ${amount} to the verified #1.`
-                    : `Daily Pot paid for ${w.date}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}${shares > pot ? `, in ${shares} shares` : ''}${w.payout_token === 'SOL' ? ' (in SOL: the $ANSEM swap failed twice)' : ''}.`,
+                    : `Daily Pot ${topUp ? 'top-up ' : ''}paid for ${w.date.slice(0, 10)}: ${amount} to ${pot} player${pot === 1 ? '' : 's'}${shares > pot ? `, in ${shares} shares` : ''}${w.payout_token === 'SOL' ? ' (in SOL: the $ANSEM swap failed twice)' : ''}.`,
             tx: w.payout_tx || null
         });
     }

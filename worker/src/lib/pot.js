@@ -119,6 +119,35 @@ export function planPot({ board, clearers, addresses, excluded = new Set(), pot,
 }
 
 /**
+ * A top-up for a day whose pot was measured short after it was paid: what each recipient of the corrected plan
+ * (planPot with the right pot) is still owed. The corrected plan must keep every share the day already paid (same
+ * kind, place, run, player and address) and give none of them less, or this throws and nothing is paid. Returns the
+ * corrected recipients with `lamports` = still owed (and `paidBefore` when they were paid before), owed-nothing
+ * ones left out.
+ */
+export function planTopUp(paid, corrected) {
+    const key = (r) => (r.kind === 'place' ? `place-${r.place}` : `bounty:${r.playerId}`);
+    const now = new Map(corrected.map((r) => [key(r), r]));
+    const before = new Map();
+    for (const p of paid) {
+        const c = now.get(key(p));
+        if (!c || c.runId !== p.runId || c.playerId !== p.playerId || c.to !== p.to)
+            throw new Error(`top-up: the corrected plan doesn't keep the paid ${key(p)} share`);
+        if (c.lamports < p.lamports)
+            throw new Error(`top-up: the paid ${key(p)} share would shrink`);
+        before.set(key(p), p.lamports);
+    }
+    return corrected
+        .map((c) => {
+            const was = before.get(key(c));
+            return was === undefined
+                ? { ...c }
+                : { ...c, lamports: c.lamports - was, paidBefore: was };
+        })
+        .filter((c) => c.lamports > 0);
+}
+
+/**
  * Split the $ANSEM a swap bought over the recipients, in proportion to their lamports. Rounding dust goes to the
  * first recipient, so the parts add up to exactly `boughtRaw`.
  */

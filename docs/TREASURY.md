@@ -198,4 +198,5 @@ pump.fun bonding-curve creator vault instead (`fees:vault:day:<date>` × `CREATO
 when the coin moved to PumpSwap on 14 Oct at 21:39 UTC its fees started accruing in PumpSwap's creator vault, which
 that reading never saw. The 14 Oct Daily was settled at 00:10 UTC on 15 Oct with that old reading: 0.70 SOL of fees
 instead of the 13.28 SOL that reached the treasury, so its pot was 0.28 SOL, not the 1 SOL cap. The 0.72 SOL
-difference is not paid yet (15 Oct). The operator's own runs never win (D48).
+difference is paid as a top-up (D70): the cron re-plans the day with a 1 SOL pot from what settling saw and pays each
+player what the rule still owed them, as the row `2026-10-14:topup` (ledger memos `bearproof:prize:2026-10-14:topup:…`). The operator's own runs never win (D48).

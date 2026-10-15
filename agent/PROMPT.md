@@ -136,7 +136,10 @@ players or your own process that tomorrow's run should know. Prune the oldest bu
   `nevermore/`. Never delete a test.
 - **The Murmur bridge.** `game/src/murmur-bridge.js` answers CrowLab Murmur's "Something's broken" button when the
   game is in its frame. It reads `game.state`, `game.mode`, `game.attract`, `game.rec`, `game.sim` and
-  `game.renderer.canvas`, and `main.js` installs it with one line: keep those working.
+  `game.renderer.canvas`, and `main.js` installs it with one line: keep those working. Murmur never shows a coin,
+  so in its frame the bridge hides the elements listed in its `MURMUR_HIDDEN` (the bounty, prize and payout UI, the
+  links to the HQ) and drops `game.bounty`: keep those ids, and put any new coin, prize or bounty text inside one
+  of them.
 - **Determinism.** Code in `game/src/sim/` must be bit-identical on every JS engine: randomness only from
   `sim.rng`, trig only from `sim/dmath.js`, no `Math.random`/`Math.sin`/`Math.pow`/`Date.now`/DOM. ESLint enforces it.
   If your change alters simulation results for the same inputs, increment `SIM_VERSION` in `game/src/sim/sim.js`.

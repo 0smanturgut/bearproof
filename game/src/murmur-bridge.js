@@ -19,8 +19,12 @@
  * state }` (title | playing | paused | over) when that changes, so the button is enabled only during a run. A
  * parent that loads late can send `{ type: 'murmur:hello', v: 1 }` to get both again.
  *
- * No camera, no microphone, no cookies, no storage, no network. It reads the game, never changes it, and does
- * nothing inside the simulation step: thumbnails are taken by a once-a-second timer.
+ * Murmur tests the game, never a coin, so in its frame the game shows no coin, prize, bounty or wallet UI and
+ * no link out to the HQ: the bridge adds `murmur` to <body> with its own style rules (MURMUR_HIDDEN), and drops
+ * this build's bounty from the page (`game.bounty`, read only by the UI; the simulation never sees it).
+ *
+ * No camera, no microphone, no cookies, no storage, no network. Apart from that bounty it reads the game and
+ * never changes it, and it does nothing inside the simulation step: thumbnails come from a once-a-second timer.
  *
  * Added by a bootstrap session for CrowLab's Muninn; the Build Agent can't edit it (scripts/guard-paths.mjs).
  */
@@ -36,6 +40,27 @@ export const PARENT_ORIGINS = Object.freeze([
     'http://localhost:4322',
     'http://127.0.0.1:8788'
 ]);
+/**
+ * The game's coin, prize, bounty and wallet UI, and its links out to the HQ (which shows the coin): hidden in the
+ * Murmur frame. game/test/murmur-bridge.test.js checks every id still exists in index.html.
+ */
+export const MURMUR_HIDDEN = Object.freeze([
+    '#dailyBounty', // the AI bounty on the title card, paid in a coin
+    '#hBounty', // its HUD chip
+    '#overBountyRow', // its row on the receipt
+    '#overBountyNote',
+    '#turnstileHint', // "… so this run can win today's prize"
+    '#overRank', // can end in "not prize-eligible"
+    '#payoutForm', // the prize address prompt
+    '#payoutSaved',
+    '.chip', // links to the HQ
+    '.title-foot',
+    '#btnHome'
+]);
+export const MURMUR_CSS = `${MURMUR_HIDDEN.map((sel) => `body.murmur ${sel}`).join(',\n')} {
+    display: none !important;
+}
+`;
 export const MAX_FRAMES = 30;
 export const FRAME_WIDTH = 240;
 const FRAME_QUALITY = 0.5;
@@ -201,6 +226,8 @@ export function createMurmurBridge({
     /** State changes for the parent's button. Cheap: one comparison. */
     function poll() {
         followRun();
+        // main.js loads the build's bounty after boot; inside Murmur nothing about it is shown.
+        if (game.bounty) game.bounty = null;
         const s = publicState(game);
         if (s === lastState) return;
         lastState = s;
@@ -231,7 +258,20 @@ export function createMurmurBridge({
         }
     }
 
+    /** Murmur mode: no coin, prize, bounty or wallet UI, no link out of the frame to the HQ. */
+    function hideCoinUi() {
+        const doc = win.document;
+        if (doc.head && !doc.getElementById('murmurStyle')) {
+            const style = doc.createElement('style');
+            style.id = 'murmurStyle';
+            style.textContent = MURMUR_CSS;
+            doc.head.append(style);
+        }
+        if (doc.body) doc.body.classList.add('murmur');
+    }
+
     function install() {
+        hideCoinUi();
         win.addEventListener('message', handle);
         timers.push(win.setInterval(poll, STATE_POLL_MS));
         timers.push(win.setInterval(sampleFrame, FRAME_EVERY_MS));
@@ -244,7 +284,7 @@ export function createMurmurBridge({
         for (const t of timers.splice(0)) win.clearInterval(t);
     }
 
-    return { handle, poll, sampleFrame, capture, install, stop, frames };
+    return { handle, poll, sampleFrame, capture, hideCoinUi, install, stop, frames };
 }
 
 /**

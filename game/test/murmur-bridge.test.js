@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import {
     FrameRing,
     MAX_FRAMES,
+    MURMUR_HIDDEN,
     PARENT_ORIGINS,
     bridgeWanted,
     createMurmurBridge,
@@ -22,9 +23,19 @@ const ALLOWED = 'https://crowlab.ai';
 function fakeWindow({ framed = true, search = '?murmur=1', referrer = `${ALLOWED}/murmur/` } = {}) {
     const parent = { posts: [], postMessage: (msg, origin) => parent.posts.push({ msg, origin }) };
     const listeners = [];
+    const head = [];
+    const classes = new Set();
     const win = {
         location: { search },
-        document: { referrer, createElement: () => fakeCanvas() },
+        document: {
+            referrer,
+            createElement: (tag) => (tag === 'canvas' ? fakeCanvas() : { tag }),
+            head: { append: (el) => head.push(el) },
+            body: { classList: { add: (c) => classes.add(c) } },
+            getElementById: (id) => head.find((el) => el.id === id) || null
+        },
+        head,
+        classes,
         addEventListener: (type, fn) => listeners.push({ type, fn }),
         removeEventListener: () => {},
         setInterval: () => 1,
@@ -91,6 +102,8 @@ test('murmur bridge: inert outside a frame, or without ?murmur=1', () => {
         assert.equal(bridgeWanted(win), false, JSON.stringify(opts));
         assert.equal(installMurmurBridge(playedGame(60), { n: 30 }, win), null);
         assert.equal(win.listeners.length, 0, 'no message listener');
+        assert.equal(win.head.length, 0, 'no style added');
+        assert.equal(win.classes.size, 0, 'no body class');
         assert.equal(parent.posts.length, 0, 'nothing posted');
     }
     const { win } = fakeWindow();
@@ -316,4 +329,69 @@ test('murmur bridge: main.js still installs it', () => {
     );
     assert.match(main, /import \{ installMurmurBridge \} from '\.\/murmur-bridge\.js';/);
     assert.match(main, /\n\s+installMurmurBridge\(game, build\);/);
+});
+
+const readGame = (file) =>
+    fs.readFileSync(fileURLToPath(new globalThis.URL(`../${file}`, import.meta.url)), 'utf8');
+
+/** `html` without every element `sel` (#id or .class) matches, nested tags of the same name included. */
+function cut(html, sel) {
+    const attr = sel.startsWith('#')
+        ? new RegExp(`\\sid="${sel.slice(1)}"`)
+        : new RegExp(`\\sclass="(?:[^"]*\\s)?${sel.slice(1)}(?:\\s[^"]*)?"`);
+    let out = html;
+    for (let m = attr.exec(out); m; m = attr.exec(out)) {
+        const start = out.lastIndexOf('<', m.index);
+        const tag = /^<([a-z0-9]+)/i.exec(out.slice(start))[1];
+        const re = new RegExp(`<${tag}\\b|</${tag}\\s*>`, 'gi');
+        re.lastIndex = start + 1;
+        let depth = 1;
+        let end = -1;
+        for (let t = re.exec(out); t; t = re.exec(out)) {
+            depth += t[0].startsWith('</') ? -1 : 1;
+            if (!depth) {
+                end = re.lastIndex;
+                break;
+            }
+        }
+        assert.ok(end > 0, `${sel}: closing </${tag}> found`);
+        out = out.slice(0, start) + out.slice(end);
+    }
+    return out;
+}
+
+test('murmur bridge: inside Murmur the coin, prize, bounty and wallet UI is hidden', () => {
+    const { win } = fakeWindow();
+    const game = playedGame(60);
+    game.bounty = { name: 'Survive 5:00' };
+    const bridge = installMurmurBridge(game, { n: 31 }, win);
+    assert.ok(win.classes.has('murmur'), 'body.murmur');
+    assert.equal(win.head.length, 1, 'one style element');
+    for (const sel of MURMUR_HIDDEN)
+        assert.ok(win.head[0].textContent.includes(`body.murmur ${sel}`));
+    assert.match(win.head[0].textContent, /display: none !important/);
+    bridge.hideCoinUi();
+    assert.equal(win.head.length, 1, 'added once');
+    assert.equal(game.bounty, null, "the build's bounty is dropped from the page");
+
+    // Every hidden element still exists, and nothing else in the page names a coin, a prize or a wallet.
+    const html = readGame('index.html');
+    for (const sel of MURMUR_HIDDEN) {
+        const re = sel.startsWith('#')
+            ? new RegExp(`\\sid="${sel.slice(1)}"`)
+            : new RegExp(`\\sclass="(?:[^"]*\\s)?${sel.slice(1)}(?:\\s[^"]*)?"`);
+        assert.match(html, re, `${sel} is in index.html`);
+    }
+    let body = html.slice(html.indexOf('<body'));
+    for (const sel of MURMUR_HIDDEN) body = cut(body, sel);
+    const text = body.replace(/<[^>]*>/g, ' ');
+    assert.doesNotMatch(
+        text,
+        /\$[A-Z]{2,}|\bcoins?\b|\btokens?\b|bounty|prize|\bpot\b|wallet|pump\.fun|solana|ansem|bproof/i
+    );
+    assert.doesNotMatch(
+        body,
+        /href="\/"|pump\.fun|dexscreener|birdeye/i,
+        'no link out to the HQ or a chart'
+    );
 });

@@ -129,7 +129,7 @@ jobs:
               # this copy of main taken before the agent starts, so nothing the agent edits can change them.
               run: |
                   mkdir -p "$RUNNER_TEMP/trusted"
-                  git archive HEAD agent scripts | tar -x -C "$RUNNER_TEMP/trusted"
+                  git archive HEAD agent scripts nevermore | tar -x -C "$RUNNER_TEMP/trusted"
                   echo "T=$RUNNER_TEMP/trusted" >> "$GITHUB_ENV"
                   bash agent/sandbox-setup.sh
                   node agent/sandbox-settings.mjs > "$RUNNER_TEMP/agent-settings.json"
@@ -162,7 +162,7 @@ jobs:
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
                       "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
-                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" \
+                      "Bash(node --test:*)" "Bash(node nevermore/run.mjs:*)" "Bash(git diff:*)" "Bash(git status:*)" \
                     --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
                     | node "$T/agent/relay.mjs" "$RUNNER_TEMP/claude-result.json" build > "$RUNNER_TEMP/build-stream.jsonl"
                   node -e "const r=require(process.argv[1]);console.log('turns',r.num_turns,'cost $',r.total_cost_usd,'error',r.is_error)" "$RUNNER_TEMP/claude-result.json"
@@ -188,7 +188,7 @@ jobs:
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
                       "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
-                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" \
+                      "Bash(node --test:*)" "Bash(node nevermore/run.mjs:*)" "Bash(git diff:*)" "Bash(git status:*)" \
                     --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
                     | node "$T/agent/relay.mjs" "$RUNNER_TEMP/review-result.json" review > "$RUNNER_TEMP/review-stream.jsonl"
             - name: Guard (allowed paths only)
@@ -210,6 +210,8 @@ jobs:
                   npm run check
                   node game/scripts/smoke.mjs --out "$RUNNER_TEMP/smoke"
                   node game/scripts/determinism.mjs --engines chromium --seeds 3
+                  # Muninn's Nevermore tests: the runner and the tests from the copy of main taken before the agent ran.
+                  node "$T/nevermore/run.mjs" --dir "$T/nevermore/tests" --game game
             - name: Gates passed
               if: env.PAUSED != '1'
               env:

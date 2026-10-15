@@ -193,6 +193,26 @@
             .card {
                 position: relative;
             }
+            .nextline {
+                position: absolute;
+                left: 150px;
+                right: 150px;
+                top: 900px;
+                padding: 30px 0 34px;
+                text-align: center;
+                border: 5px dashed #8a97a5;
+                font-size: 80px;
+                line-height: 1;
+            }
+            .nextline span {
+                display: block;
+                margin-bottom: 14px;
+                font:
+                    400 26px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.3em;
+                color: #8a97a5;
+            }
             .foot {
                 position: absolute;
                 left: 0;
@@ -248,12 +268,15 @@
             put($('mark'), 'emblem', 2000, { max: 4, glow: false });
             $('num').innerHTML = `${D.total}<small>BURNED · ${D.pct}</small>`;
             $('small').textContent = D.small;
-            $('log').innerHTML = D.rows
-                .map(
-                    ([a, l, done]) =>
-                        `<div class="card${done ? '' : ' next'}">${done ? '<span class="tick">✓</span>' : ''}<b>${a}</b><i>${l}</i></div>`
-                )
-                .join('');
+            if (D.next) {
+                $('log').outerHTML = `<div class="nextline">${D.next}</div>`;
+            } else
+                $('log').innerHTML = D.rows
+                    .map(
+                        ([a, l, done]) =>
+                            `<div class="card${done ? '' : ' next'}">${done ? '<span class="tick">✓</span>' : ''}<b>${a}</b><i>${l}</i></div>`
+                    )
+                    .join('');
             // rivets round the furnace
             const f = $('furnace');
             for (const [x, y] of [

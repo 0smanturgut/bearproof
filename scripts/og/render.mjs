@@ -170,6 +170,12 @@ const jobs = [
     ['scripts/og/x/burned.html', 'content/x/img/151-supply-burned.png', 1200, 1500],
     ['scripts/og/x/furnace.html', 'content/x/img/152-buyback-and-burn.png', 1200, 1500],
     [
+        'scripts/og/x/furnace.html?d=%7B%22total%22%3A%2268%2C926%2C685%22%2C%22pct%22%3A%226.89%25%22%2C%22rows%22%3A%5B%5D%2C%22next%22%3A%22%3Cspan%3ENEXT%20FUEL%3C/span%3EAPP%20STORE%20REVENUE%22%2C%22small%22%3A%22SUPPLY%201%2C000%2C000%2C000%20%E2%86%92%20931%2C073%2C315%20%C2%B7%20EVERY%20BURN%20IS%20ON-CHAIN%22%7D',
+        'content/x/img/153-burn-just-the-start.png',
+        1200,
+        1500
+    ],
+    [
         'scripts/og/x/counter.html?d=%7B%22total%22%3A%221%2C194%22%2C%22usd%22%3A%22PAID%22%2C%22rows%22%3A%5B%5B%2219%22%2C%22DAYS%20PAID%22%5D%2C%5B%2282%22%2C%22TRANSFERS%22%5D%2C%5B%2216%22%2C%22PLAYERS%22%5D%5D%2C%22note%22%3A%22ON-CHAIN%2C%20EVERY%20ONE%20%C2%B7%2024%20SEP%20TO%2014%20OCT%20%C2%B7%20FREE%20TO%20PLAY%2C%20NO%20COIN%20NEEDED%22%7D',
         'content/x/img/150-receipts-so-far.png',
         1200,

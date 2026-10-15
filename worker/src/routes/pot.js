@@ -1,6 +1,7 @@
 /**
- * GET /api/pot: today's Daily Pot so far, for the HQ and the stream. Fees are measured on-chain from the creator
- * vault every 15 minutes and err low; the final pot is worked out after the day closes (cron.js).
+ * GET /api/pot: today's Daily Pot so far, for the HQ and the stream. Fees are the creator fees that reached the
+ * treasury today, from the ledger (read from chain every 15 minutes); the final pot is worked out after the day
+ * closes (cron.js).
  *
  *   status: 'off' (not voted in, or the vote is still open) | 'next' (voted in, starts with `from`) | 'on'
  */

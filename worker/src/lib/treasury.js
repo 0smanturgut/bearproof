@@ -207,8 +207,12 @@ export async function snapshotBalances(env, nowMs) {
     return out;
 }
 
-/** Append the treasury's new SOL movements to the ledger, oldest first, a few per run. */
-export async function syncLedger(env) {
+/**
+ * Append the treasury's new SOL movements to the ledger, oldest first, a few per run. Once a run has written
+ * everything the chain listed, `ledger:synced_at` says the ledger is complete up to that read (the Daily Pot
+ * settles a day from it: cron.js fees24h).
+ */
+export async function syncLedger(env, nowMs = Date.now()) {
     const wallet = env.TREASURY_WALLET;
     if (!wallet) return 0;
     const cursor = await env.CONFIG.get('ledger:cursor');
@@ -216,8 +220,13 @@ export async function syncLedger(env) {
         wallet,
         { limit: 1000, commitment: 'confirmed', ...(cursor ? { until: cursor } : {}) }
     ]);
-    const todo = (sigs || []).slice().reverse().slice(0, MAX_TX_PER_RUN); // oldest first
-    if (!todo.length) return 0;
+    const all = (sigs || []).slice().reverse(); // oldest first
+    const todo = all.slice(0, MAX_TX_PER_RUN);
+    const caughtUp = () => env.CONFIG.put('ledger:synced_at', String(nowMs));
+    if (!todo.length) {
+        if (Array.isArray(sigs)) await caughtUp();
+        return 0;
+    }
     const known = await knownAddresses(env);
     let written = 0;
     for (const s of todo) {
@@ -230,6 +239,9 @@ export async function syncLedger(env) {
                     commitment: 'confirmed'
                 }
             ]);
+            // Listed but not served yet (another RPC node behind): read it again next run rather than skip it.
+            // An old one that still can't be read is skipped as before, so it can't stall the ledger.
+            if (!tx && nowMs - (s.blockTime || 0) * 1000 < 10 * 60000) return written;
             const row = classifyTx(tx, s.signature, wallet, known);
             if (row) {
                 await env.DB.prepare(
@@ -251,5 +263,6 @@ export async function syncLedger(env) {
         }
         await env.CONFIG.put('ledger:cursor', s.signature);
     }
+    if (todo.length === all.length) await caughtUp();
     return written;
 }

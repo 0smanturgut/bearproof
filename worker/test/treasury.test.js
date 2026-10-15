@@ -183,3 +183,112 @@ test('vault accrual: a rise is new fees, a drop means a claim, the first reading
     assert.equal(vaultAccrual(3e8, 2e7), 2e7, 'claimed, then 0.02 SOL accrued again');
     assert.equal(vaultAccrual(3e8, 3e8), 0);
 });
+
+// --- Daily fees from the ledger, and when the ledger is complete ------------------------------------------------
+
+const DAY_MS = 86400000;
+const CLOSE = Date.parse('2026-10-15T00:00:00Z'); // the close of 14 Oct
+
+async function feesEnv(rows, kv = {}) {
+    const { fakeD1, fakeKV } = await import('./helpers/d1.js');
+    const DB = fakeD1();
+    for (const [i, [ts, category, direction, lamports]] of rows.entries())
+        DB.db
+            .prepare(
+                `INSERT INTO ledger (id, ts, direction, category, amount_lamports, memo, tx_signature, source, measured)
+                 VALUES (?, ?, ?, ?, ?, '', ?, 'chain', 1)`
+            )
+            .run(`r${i}`, ts, direction, category, lamports, `r${i}`);
+    return { DB, CONFIG: fakeKV(kv), TREASURY_WALLET: T };
+}
+
+test('fees24h: the creator fees that reached the treasury that UTC day, from the ledger', async () => {
+    const { fees24h } = await import('../src/cron.js');
+    const env = await feesEnv([
+        [CLOSE - DAY_MS - 1, 'creator_fees', 'in', 5e9], // 13 Oct, 23:59:59.999
+        [CLOSE - DAY_MS, 'creator_fees', 'in', 2e8], // 14 Oct, 00:00
+        [CLOSE - 7 * 60000, 'creator_fees', 'in', 12.56e9], // 23:53, after the coin moved to PumpSwap
+        [CLOSE - 6 * 60000, 'other', 'out', 13e9],
+        [CLOSE - 5 * 60000, 'other', 'in', 1e9], // not from ClawPump's fee address: not fees
+        [CLOSE, 'creator_fees', 'in', 1.35e9] // 15 Oct
+    ]);
+    assert.equal(await fees24h(env, '2026-10-14'), 12.76e9);
+});
+
+test('fees24h settle: waits until the ledger was read past the close, at most 12 hours', async () => {
+    const { fees24h } = await import('../src/cron.js');
+    const rows = [[CLOSE - 60000, 'creator_fees', 'in', 3e9]];
+    const at = (ms) => ({ settle: true, now: CLOSE + ms });
+    const unread = await feesEnv(rows);
+    assert.equal(
+        await fees24h(unread, '2026-10-14', at(15 * 60000)),
+        undefined,
+        'never read: wait'
+    );
+    assert.equal(await fees24h(unread, '2026-10-14'), 3e9, 'the live pot reads it as it is');
+    const early = await feesEnv(rows, { 'ledger:synced_at': String(CLOSE + 60000) });
+    assert.equal(
+        await fees24h(early, '2026-10-14', at(15 * 60000)),
+        undefined,
+        'read too soon after'
+    );
+    const read = await feesEnv(rows, { 'ledger:synced_at': String(CLOSE + 3 * 60000) });
+    assert.equal(await fees24h(read, '2026-10-14', at(15 * 60000)), 3e9);
+    assert.equal(
+        await fees24h(unread, '2026-10-14', at(12 * 3600000 + 1)),
+        3e9,
+        '12 h after the close it settles with what the ledger has'
+    );
+});
+
+test('syncLedger: says the ledger is complete only when it wrote everything the chain listed', async () => {
+    const { syncLedger } = await import('../src/lib/treasury.js');
+    const { fakeD1, fakeKV } = await import('./helpers/d1.js');
+    const NOW = CLOSE + 10 * 60000;
+    const realFetch = globalThis.fetch;
+    const run = async (n, { missing = new Set(), blockTime = NOW / 1000 - 60 } = {}) => {
+        const sigs = Array.from({ length: n }, (_, i) => ({
+            signature: `s${n - 1 - i}`, // newest first, like the RPC
+            err: null,
+            blockTime
+        }));
+        globalThis.fetch = async (url, init) => {
+            const { method, params } = JSON.parse(init.body);
+            const result =
+                method === 'getSignaturesForAddress'
+                    ? sigs
+                    : missing.has(params[0])
+                      ? null
+                      : { ...tx({ from: FEES, to: T, lamports: 1e8 }), blockTime };
+            return { ok: true, status: 200, json: async () => ({ jsonrpc: '2.0', id: 1, result }) };
+        };
+        const env = {
+            DB: fakeD1(),
+            CONFIG: fakeKV({ 'ledger:fee_sources': JSON.stringify([FEES]) }),
+            TREASURY_WALLET: T
+        };
+        try {
+            const written = await syncLedger(env, NOW);
+            return { written, kv: env.CONFIG.map };
+        } finally {
+            globalThis.fetch = realFetch;
+        }
+    };
+    let r = await run(0);
+    assert.equal(r.kv.get('ledger:synced_at'), String(NOW), 'nothing new: complete');
+    r = await run(3);
+    assert.equal(r.kv.get('ledger:cursor'), 's2');
+    assert.equal(r.kv.get('ledger:synced_at'), String(NOW), 'all three written: complete');
+    r = await run(11);
+    assert.equal(r.kv.get('ledger:cursor'), 's9', 'ten per run');
+    assert.equal(r.kv.has('ledger:synced_at'), false, 'one left for the next run: not complete');
+    r = await run(3, { missing: new Set(['s1']) });
+    assert.equal(
+        r.kv.get('ledger:cursor'),
+        's0',
+        'stops before a listed tx the RPC cannot serve yet'
+    );
+    assert.equal(r.kv.has('ledger:synced_at'), false);
+    r = await run(3, { missing: new Set(['s1']), blockTime: NOW / 1000 - 3600 });
+    assert.equal(r.kv.get('ledger:cursor'), 's2', 'an old unreadable tx is skipped, not waited on');
+});

@@ -47,19 +47,30 @@ async function snapshotFees(env, today) {
     return lamports;
 }
 
+// How long after a day's close the ledger must have been read before that day's fees count as complete.
+const SYNC_MARGIN_MS = 2 * 60000;
+// A day whose ledger still isn't read that far settles anyway this long after its close (as claimDayPot does).
+const SETTLE_GRACE_MS = 12 * 3600000;
+
 /**
  * The treasury's creator fees for `date` (lamports), or null when not measurable. With a ClawPump agent id: the
- * difference of two daily earnings snapshots. Without one: the day's accrual in the pump.fun creator vault times
- * the agent's share (CREATOR_FEE_SHARE), or failing that, the day's ledger inflows labelled creator fees.
+ * difference of two daily earnings snapshots. Without one: the creator fees that reached the treasury that day,
+ * from the ledger (on-chain transfers from ClawPump's fee address). ClawPump forwards the agent's share from both
+ * pump.fun's bonding-curve vault and, since the coin moved to PumpSwap on 14 Oct 2026, PumpSwap's creator vault;
+ * the bonding-curve vault reading (`fees:vault:day:*`, D49) never saw the second, so it no longer sets the pot.
+ *
+ * `settle`: the result is final (a day is settled once), so until the ledger has been read past the day's close
+ * this returns undefined and the caller waits for a later run; 12 h after the close it uses what the ledger has.
  */
-export async function fees24h(env, date) {
+export async function fees24h(env, date, { settle = false, now = Date.now() } = {}) {
     if (!env.CLAWPUMP_AGENT_ID) {
         if (!env.TREASURY_WALLET) return null;
-        // Preferred: the day's accrual in the creator vault, times the agent's share (an on-chain measurement).
-        const vault = await env.CONFIG.get(`fees:vault:day:${date}`);
-        const share = Number(env.CREATOR_FEE_SHARE) || 0;
-        if (vault !== null && share > 0) return Math.floor(Number(vault) * share);
         const from = Date.parse(`${date}T00:00:00Z`);
+        if (settle) {
+            const synced = Number(await env.CONFIG.get('ledger:synced_at'));
+            const read = Number.isFinite(synced) && synced >= from + DAY + SYNC_MARGIN_MS;
+            if (!read && now - from < DAY + SETTLE_GRACE_MS) return undefined;
+        }
         const row = await first(
             env,
             "SELECT COALESCE(SUM(amount_lamports), 0) AS l, COUNT(*) AS n FROM ledger WHERE category = 'creator_fees' AND direction = 'in' AND ts >= ?1 AND ts < ?2",
@@ -145,7 +156,9 @@ async function claimDay(env, date) {
         await excludedPlayers(env)
     );
     const rollover = Number((await env.CONFIG.get('prize:rollover')) || 0);
-    const prize = prizeAmount(await fees24h(env, date), rollover);
+    const fees = await fees24h(env, date, { settle: true });
+    if (fees === undefined) return false; // the ledger isn't read past the close yet: settle on a later run
+    const prize = prizeAmount(fees, rollover);
     const note = { skipped, policy: prize.reason };
     if (!winner || prize.lamports === 0) {
         await env.DB.prepare(
@@ -310,13 +323,21 @@ export async function scheduled(event, env, ctx) {
             // rule for it can't be known right now, it waits for the next run instead of guessing.
             try {
                 const from = await dailyPotFrom(env, now);
-                if (from && yesterday >= from)
-                    await claimDayPot(env, yesterday, {
-                        fees: await fees24h(env, yesterday),
-                        excluded: await excludedPlayers(env),
-                        now
-                    });
-                else if (from !== undefined || yesterday < POT_FIRST_DATE)
+                if (from && yesterday >= from) {
+                    const fees = await fees24h(env, yesterday, { settle: true, now });
+                    if (fees === undefined)
+                        console.warn(
+                            '[cron] ledger not read past',
+                            yesterday,
+                            'yet; settling later'
+                        );
+                    else
+                        await claimDayPot(env, yesterday, {
+                            fees,
+                            excluded: await excludedPlayers(env),
+                            now
+                        });
+                } else if (from !== undefined || yesterday < POT_FIRST_DATE)
                     await claimDay(env, yesterday);
                 else
                     console.warn(

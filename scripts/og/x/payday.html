@@ -1,0 +1,198 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* A Daily Pot payout as an airdrop: one of the game's own supply chutes per player paid, with their name
+               and what they got. Data: /api/winners (the day's payouts, all sent) and D1 daily_winners (the biggest
+               payout so far). 14 Oct 2026: 259.674598 $ANSEM, bought with 0.2789 SOL, 15 transfers to 9 players, paid
+               15 Oct 00:30 to 01:00 UTC; the biggest before it was 146.71 $ANSEM for 29 Sep.
+               ?d=<json> { date, total, transfers, rows: [[name, amount]] }. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #0b1626;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .sky {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 70% 40% at 50% 0%,
+                        rgba(245, 197, 66, 0.22),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #13284a 0%, #0b1626 60%, #05080f 100%);
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                padding: 2px 24px 4px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            h1 {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 160px;
+                margin: 0;
+                text-align: center;
+                font-weight: 400;
+                font-size: 260px;
+                line-height: 0.84;
+                color: #f5c542;
+                text-shadow:
+                    10px 10px 0 #3a2a08,
+                    0 0 70px rgba(245, 197, 66, 0.45);
+            }
+            .drop {
+                position: absolute;
+                width: 300px;
+                text-align: center;
+            }
+            .drop canvas {
+                display: block;
+                margin: 0 auto;
+            }
+            .drop .n {
+                margin-top: 4px;
+                font-size: 52px;
+                line-height: 1;
+                white-space: nowrap;
+            }
+            .drop .a {
+                font-size: 46px;
+                line-height: 1;
+                color: #16e08a;
+            }
+            .tot {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1250px;
+                text-align: center;
+                font-size: 140px;
+                line-height: 1;
+            }
+            .tot b {
+                font-weight: 400;
+                color: #16e08a;
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1410px;
+                text-align: center;
+                font:
+                    400 24px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.14em;
+                color: #b8c4d2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="sky"></div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill" id="pill"></div>
+        </div>
+        <h1>PAYDAY.</h1>
+        <div id="drops"></div>
+        <div class="tot" id="tot"></div>
+        <div class="small" id="small"></div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            const D = JSON.parse(
+                new URLSearchParams(location.search).get('d') ||
+                    '{"date":"14 OCT DAILY","total":"259.67","transfers":15,"rows":[["YUKI OSANAI","64.66"],["GREEDELF","46.95"],["ZHRIMP","36.33"],["OUTLANDER","29.25"],["ZAIN","25.71"],["SATRIO","22.16"],["MOPS","11.54"],["JAA","11.54"],["XXX","11.54"]]}'
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            $('pill').textContent = D.date;
+            $('tot').innerHTML = `<b>${D.total}</b> $ANSEM`;
+            $('small').textContent =
+                `${D.rows.length} PLAYERS · ${D.transfers} ON-CHAIN TRANSFERS · THE BIGGEST DAILY POT YET`;
+            // three rows of three chutes, staggered like they're still falling
+            const pos = [
+                [40, 400],
+                [450, 380],
+                [860, 410],
+                [100, 670],
+                [470, 650],
+                [840, 680],
+                [60, 945],
+                [450, 920],
+                [860, 950]
+            ];
+            D.rows.forEach(([n, a], i) => {
+                const [x, y] = pos[i];
+                const d = document.createElement('div');
+                d.className = 'drop';
+                d.style.left = x + 'px';
+                d.style.top = y + 'px';
+                const c = document.createElement('canvas');
+                put(c, 'supply_chute', 110, { max: 4, glow: false, frame: i });
+                d.append(c);
+                const k = document.createElement('canvas');
+                put(k, 'supply_crate', 70, { max: 4, glow: false });
+                k.style.marginTop = '-6px';
+                d.append(k);
+                d.insertAdjacentHTML(
+                    'beforeend',
+                    `<div class="n">${n}</div><div class="a">+${a}</div>`
+                );
+                $('drops').append(d);
+            });
+            window.ready = true;
+        </script>
+    </body>
+</html>

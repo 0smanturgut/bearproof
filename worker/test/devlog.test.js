@@ -34,6 +34,7 @@ test('parseDevlog reads every field and strips comments', () => {
             costMeasured: true,
             status: 'shipped',
             clip: null,
+            murmur: [],
             summary: 'Green candles now explode.',
             body: undefined
         }
@@ -116,6 +117,45 @@ for (const [name, text, re] of BAD) {
         );
     });
 }
+
+test('parseDevlog: a ## Murmur section credits aliases, never handles', () => {
+    const body = [
+        'Shipped the thing.',
+        '',
+        '## Murmur',
+        '',
+        '- deniz: the bull walked through the arena wall at 03:10 (N-0007)',
+        '- ayse_k: Rug Lord kept its HP after the second phase',
+        '- deniz: the same wall, from the other side',
+        '',
+        '## Nevermore',
+        '',
+        'Lesson L-0003, taught by ayse_k, said to check boss HP on phase changes.',
+        '',
+        '## Proposals',
+        '',
+        '- @nobody is not in a credit section, so this line is fine'
+    ].join('\n');
+    assert.deepEqual(parseDevlog(doc(FULL, body)).murmur, ['deniz', 'ayse_k']);
+    assert.deepEqual(parseDevlog(doc(FULL, 'No section.')).murmur, []);
+    for (const [bad, re] of [
+        ['## Murmur\n\n- @deniz: the wall', /without '@'/],
+        ['## Nevermore\n\nTaught by @ayse_k.', /Nevermore: aliases go without '@'/],
+        ['## Murmur\n\nThanks deniz for the wall.', /expected "- alias: what was fixed"/],
+        ['## Murmur\n\n- deniz', /expected/],
+        ['## Murmur\n\n- de niz: the wall', /expected/],
+        [`## Murmur\n\n- ${'x'.repeat(33)}: too long`, /expected/]
+    ]) {
+        assert.throws(
+            () => parseDevlog(doc(FULL, `Body.\n\n${bad}`), 'devlog/build-1.md'),
+            (err) => {
+                assert.match(err.message, /^devlog\/build-1\.md: /);
+                assert.match(err.message, re);
+                return true;
+            }
+        );
+    }
+});
 
 test('summarize: first prose paragraph, plain text, at most 280 chars', () => {
     assert.equal(

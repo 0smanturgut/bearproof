@@ -4,6 +4,10 @@
  * Each file starts with a frontmatter block of `key: value` lines between `---` fences (format in
  * devlog/README.md). The parser is strict on purpose: an unknown key, a bad enum or a cost without its
  * measured/estimate label fails the build instead of publishing a wrong number.
+ *
+ * An optional `## Murmur` section credits the people whose verified CrowLab Murmur reports led to a fix in
+ * the build, one `- alias: what was fixed` line each. Their aliases come out as `murmur` (no '@': an alias
+ * is a name, not a handle). `## Murmur` and `## Nevermore` never carry an '@'.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,6 +31,8 @@ const KEYS = [
     'clip'
 ];
 const SUMMARY_MAX = 280;
+const ALIAS = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,31}$/;
+const CREDIT_SECTIONS = ['murmur', 'nevermore'];
 
 /** Parse one `key: value` value: quoted strings verbatim, otherwise strip a trailing ` # comment`. */
 function scalar(raw) {
@@ -60,6 +66,43 @@ export function summarize(body) {
     const cut = text.slice(0, SUMMARY_MAX - 1);
     const space = cut.lastIndexOf(' ');
     return `${space > 200 ? cut.slice(0, space) : cut}…`;
+}
+
+/** The text of each `## <name>` section of a body, by lower-case name (up to the next `#`/`##` heading). */
+function sections(body) {
+    const out = {};
+    let name = null;
+    for (const line of body.split(/\r?\n/)) {
+        const h = /^#{1,2}\s+(.*?)\s*#*\s*$/.exec(line);
+        if (h) {
+            name = h[1].toLowerCase();
+            if (!(name in out)) out[name] = '';
+            continue;
+        }
+        if (name) out[name] += `${line}\n`;
+    }
+    return out;
+}
+
+/**
+ * Aliases credited in the body's `## Murmur` section ([] without one), in order, each once. Throws on an '@'
+ * in `## Murmur` or `## Nevermore`, or a Murmur line that isn't `- alias: what was fixed`.
+ */
+export function murmurCredits(body) {
+    const sec = sections(body);
+    for (const name of CREDIT_SECTIONS) {
+        if (sec[name]?.includes('@'))
+            throw new Error(`## ${name[0].toUpperCase()}${name.slice(1)}: aliases go without '@'`);
+    }
+    const aliases = [];
+    for (const line of (sec.murmur || '').split('\n')) {
+        if (!line.trim()) continue;
+        const m = /^\s*[-*]\s+([^\s:]+):\s+\S/.exec(line);
+        if (!m || !ALIAS.test(m[1]))
+            throw new Error(`## Murmur: expected "- alias: what was fixed", got "${line.trim()}"`);
+        if (!aliases.includes(m[1])) aliases.push(m[1]);
+    }
+    return aliases;
 }
 
 /** Parse one devlog file's text. Throws with the file name on any format error. */
@@ -112,6 +155,12 @@ export function parseDevlog(text, file = 'devlog') {
     }
 
     const body = m[2].trim();
+    let murmur;
+    try {
+        murmur = murmurCredits(body);
+    } catch (err) {
+        fail(err.message);
+    }
     return {
         build: Number(fm.build),
         date: fm.date,
@@ -123,6 +172,7 @@ export function parseDevlog(text, file = 'devlog') {
         costMeasured,
         status: fm.status,
         clip,
+        murmur,
         summary: summarize(body),
         body
     };

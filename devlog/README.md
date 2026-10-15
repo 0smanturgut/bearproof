@@ -44,6 +44,22 @@ Rules:
   purpose: a typo must never publish an estimate as a measured number.
 - `summary` in the JSON is the first prose paragraph as plain text, cut to 280 characters. Headings are skipped.
 
+## Credits from CrowLab Murmur
+
+When a fix in the build came from a verified report on [CrowLab Murmur](https://crowlab.ai/murmur), the body has a
+`## Murmur` section with one line per fix, the finder's alias first:
+
+```md
+## Murmur
+
+- deniz: the bull could walk through the arena wall at 03:10 (N-0007)
+```
+
+- An alias is 1 to 32 letters, digits, `_`, `.` or `-`, written without `@`: it is a name on Murmur, not a handle.
+- The aliases come out in the JSON as `murmur` (each once, in order; `[]` without the section).
+- `## Murmur` and `## Nevermore` (the lessons that informed the build, by id and teacher's alias) never carry an
+  `@`, and a Murmur line in another shape fails the build.
+
 ## Output
 
 ```json
@@ -59,6 +75,7 @@ Rules:
             "costUsd": 0,
             "costMeasured": true,
             "status": "shipped",
+            "murmur": [],
             "summary": "First paragraph is the summary shown on the HQ timeline and in share cards.",
             "body": "First paragraph is ... (raw Markdown)"
         }

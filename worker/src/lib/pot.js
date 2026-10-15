@@ -3,7 +3,7 @@
  * 26 Sep 2026 poll. If that option wins, they apply to Daily Challenges from the next day on; earlier days, and
  * every day if it loses, keep lib/prize.js. Public rules (docs/TREASURY.md, and `details` below for the HQ):
  *
- *   pot     = min(40% of the day's treasury fees, 1 SOL)
+ *   pot     = min(40% of the day's treasury fees, the cap): 0.5 SOL from the 15 Oct 2026 Daily, 1 SOL before (D71)
  *   places  = 60% of the pot + the places rollover, split over the best verified runs of the day (one place per
  *             payout address) by PLACE_WEIGHTS, over as many places (at most 10) as keep every share ≥ 0.01 SOL.
  *   bounty  = 40% of the pot + the bounty rollover, shared equally by the players whose verified run cleared the
@@ -17,7 +17,14 @@ import { LAMPORTS } from './prize.js';
 export const POT_OPTION = 'op-daily-pot';
 export const POT_POLL_DATE = '2026-09-26';
 export const POT_PCT = 0.4;
-export const POT_CAP_LAMPORTS = 1 * LAMPORTS;
+// The daily cap: 1 SOL until the 14 Oct 2026 Daily; from 15 Oct the operator lowered it to 0.5 SOL, saying the
+// project's costs (company, AI, hosting, servers) have grown (D71). A day is always paid under the cap of its date.
+export const POT_CAP_CHANGE_DATE = '2026-10-15';
+export const POT_CAP_LAMPORTS = 0.5 * LAMPORTS;
+export const POT_CAP_BEFORE_LAMPORTS = 1 * LAMPORTS;
+/** The cap for the Daily Challenge of `date` (YYYY-MM-DD); no date means the cap in force now. */
+export const potCap = (date) =>
+    date && date < POT_CAP_CHANGE_DATE ? POT_CAP_BEFORE_LAMPORTS : POT_CAP_LAMPORTS;
 export const PLACES_SHARE = 0.6;
 export const PLACE_WEIGHTS = [30, 20, 14, 10, 8, 6, 4, 3, 3, 2];
 export const SHARE_MIN_LAMPORTS = 0.01 * LAMPORTS;
@@ -26,17 +33,18 @@ export const ROLLOVER_CAP_LAMPORTS = 0.5 * LAMPORTS;
 
 const sum = (xs) => xs.reduce((a, b) => a + b, 0);
 
-/** The day's fresh pot and its split, before rollovers. Unmeasured fees mean no pot. */
-export function potAmount(fees24hLamports) {
+/** The day's fresh pot and its split, before rollovers, under the cap of `date`. Unmeasured fees mean no pot. */
+export function potAmount(fees24hLamports, date) {
     if (fees24hLamports === null || !Number.isFinite(fees24hLamports) || fees24hLamports < 0)
         return { lamports: 0, places: 0, bounty: 0, reason: 'fees not measured yet' };
-    const lamports = Math.min(Math.floor(fees24hLamports * POT_PCT), POT_CAP_LAMPORTS);
+    const cap = potCap(date);
+    const lamports = Math.min(Math.floor(fees24hLamports * POT_PCT), cap);
     const places = Math.floor(lamports * PLACES_SHARE);
     return {
         lamports,
         places,
         bounty: lamports - places,
-        reason: lamports === POT_CAP_LAMPORTS ? 'capped at 1 SOL' : "40% of the day's fees"
+        reason: lamports === cap ? `capped at ${cap / LAMPORTS} SOL` : "40% of the day's fees"
     };
 }
 
@@ -161,10 +169,10 @@ export function splitBought(boughtRaw, lamports) {
 
 /** The rules in words, for /api/winners and the HQ. */
 export const POT_RULE_TEXT =
-    "Every day, 40% of the day's creator fees (at most 1 SOL) is paid in $ANSEM after 00:10 UTC: 60% to the top of the Daily Challenge board, 40% shared by everyone who clears the AI's bounty. Free to play; holding the coin is never required.";
+    "Every day, 40% of the day's creator fees (at most 0.5 SOL) is paid in $ANSEM after 00:10 UTC: 60% to the top of the Daily Challenge board, 40% shared by everyone who clears the AI's bounty. Free to play; holding the coin is never required.";
 
 export const POT_RULE_DETAILS = [
-    "The pot is 40% of the day's creator fees that reached the treasury, measured on-chain, at most 1 SOL a day.",
+    "The pot is 40% of the day's creator fees that reached the treasury, measured on-chain, at most 0.5 SOL a day. The cap was 1 SOL until the 14 Oct Daily; the operator lowered it from 15 Oct, saying the project's costs (company, AI, hosting, servers) have grown.",
     '60% of it pays the best verified Daily Challenge runs, weighted 30/20/14/10/8/6/4/3/3/2 over as many of the top 10 places as keep every share at 0.01 SOL or more. One place per Solana address.',
     "40% is shared equally by every player whose verified Daily Challenge run cleared the AI's bounty for that build, one share per address, up to 25 shares. If the shares would be under 0.01 SOL, fewer are paid, best score first.",
     'Nobody cleared the bounty, or the places are too small to pay: that part rolls over to the next day, up to 0.5 SOL each.',

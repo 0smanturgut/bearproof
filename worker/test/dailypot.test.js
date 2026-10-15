@@ -603,3 +603,25 @@ test('planTopUp: refuses a corrected plan that drops, moves or shrinks a paid sh
     assert.throws(() => planTopUp(paid, keep({ lamports: 9 })), /shrink/);
     assert.deepEqual(planTopUp(paid, keep({ lamports: 10 })), [], 'owed nothing: left out');
 });
+
+test('claimDayPot: a day from 15 Oct 2026 is capped at 0.5 SOL, an earlier one at 1 SOL', async () => {
+    const env = setup();
+    assert.equal(await claim(env, { fees: 13.28 * SOL }), true);
+    assert.equal((await noteOf(env)).pot.lamports, 1 * SOL, `${D} keeps the 1 SOL cap`);
+    const late = setup();
+    for (const t of ['daily_challenges', 'runs'])
+        late.DB.db
+            .prepare(`UPDATE ${t} SET ${t === 'runs' ? 'challenge_date' : 'date'} = ?`)
+            .run('2026-10-16');
+    assert.equal(
+        await claimDayPot(late, '2026-10-16', {
+            fees: 13.28 * SOL,
+            excluded: OPS,
+            now: Date.parse('2026-10-17T00:20:00Z')
+        }),
+        true
+    );
+    const note = JSON.parse((await row(late, '2026-10-16')).note);
+    assert.equal(note.pot.lamports, 0.5 * SOL);
+    assert.equal(note.pot.reason, 'capped at 0.5 SOL');
+});

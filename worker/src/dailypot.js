@@ -209,7 +209,7 @@ export async function claimDayPot(env, date, { fees, excluded, now = Date.now() 
     const addresses = new Map(
         addrRows.filter((a) => payable(a.sol_address)).map((a) => [a.player_id, a.sol_address])
     );
-    const pot = potAmount(fees);
+    const pot = potAmount(fees, date);
     const plan = planPot({ board, clearers, addresses, excluded, pot, rollover });
     const total = plan.recipients.reduce((a, r) => a + r.lamports, 0);
     // The run the day is filed under: the first paid place, else the best run that wasn't rejected or the
@@ -277,7 +277,7 @@ export async function claimTopUp(env, date, { fees, excluded, now = Date.now() }
     if (!row) return false;
     const note = JSON.parse(row.note || '{}');
     if (note.policy !== 'daily-pot' || note.step !== 'done') return false;
-    const pot = potAmount(fees);
+    const pot = potAmount(fees, date);
     if (!(pot.lamports > (note.pot?.lamports || 0))) return false; // not short: nothing owed
     const paid = note.recipients || [];
     if (paid.some((r) => r.status !== 'sent'))

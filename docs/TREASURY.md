@@ -53,7 +53,9 @@ the winner with the same tally the Build Agent reads. If it is the Daily Pot, it
 27 Sep on; otherwise the #1-only rule above stays. The decision is kept in CONFIG `pot:from` (a date, or `no`).
 While it can't be read, no day from 27 Sep on is settled at all, so a day is never settled under the wrong rule.
 
-- **Pot** = min(40% of the day's treasury fees, **1 SOL**), measured the same way as above.
+- **Pot** = min(40% of the day's treasury fees, **0.5 SOL**), measured the same way as above. The cap was **1 SOL** up to
+  the 14 Oct Daily; on 15 Oct the operator lowered it to 0.5 SOL from the 15 Oct Daily on (he told players himself), saying the project's costs
+  (company, AI, hosting, servers) have grown (D71). A day is always paid under the cap of its own date.
 - **Places**: 60% of the pot, plus the places rollover, pays the best verified runs of the day, one place per
   Solana address, weighted 30/20/14/10/8/6/4/3/3/2 over as many of the top 10 places as keep every share at
   **0.01 SOL** or more.
@@ -86,8 +88,8 @@ While it can't be read, no day from 27 Sep on is settled at all, so a day is nev
   payout waits for the operator's top-up and the HQ says so, with what the wallet held at the last check and what
   the day needs; after half an hour the Telegram bot says the same in the group, once per waiting day (D68). Nothing
   is lost. The pot is 40% of fees that already
-  came in, so it is small when fees are small (0.09 SOL for 25 Sep, 0.41 SOL for launch day). The 1 SOL cap only
-  bites above 2.5 SOL of fees in a day. If a single day ever needs more than the 1.5 SOL ceiling (only after very
+  came in, so it is small when fees are small (0.09 SOL for 25 Sep, 0.41 SOL for launch day). The 0.5 SOL cap
+  bites above 1.25 SOL of fees in a day (the 1 SOL cap before 15 Oct, above 2.5 SOL). If a single day ever needs more than the 1.5 SOL ceiling (only after very
   high fees plus rollovers), the operator tops up exactly what that payout needs.
 - **A share that can't be sent** after three failed transfers, or 72 hours, is marked failed on the HQ. Its $ANSEM
   stays in the prize wallet, and the operator sends it by hand (a transfer labelled `operator` on the ledger).

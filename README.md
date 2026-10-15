@@ -38,7 +38,8 @@ tests, ships and writes a devlog. Every step and every cost is public.
   its replay status.
 - **Holder voting.** Sign a plain-text message with a Solana wallet (no transaction). Weight = floor(√tokens).
 - **The Daily Pot in $ANSEM**, bought through Jupiter from a small prize wallet the treasury funds and sent by the
-  Worker, with a kill switch: 40% of the day's creator fees (at most 1 SOL), 60% to the top of the Daily Challenge
+  Worker, with a kill switch: 40% of the day's creator fees (at most 0.5 SOL a day from 15 Oct; 1 SOL before, lowered
+  by the operator, who says the project's costs have grown), 60% to the top of the Daily Challenge
   board and 40% shared by everyone who clears the AI's bounty. It was picked in the 26 Sep holder vote; from 25 Sep
   until then, 10% of the fees went to the verified #1.
 - **Receipts.** Treasury balance and every SOL movement are read from chain into the public ledger.

@@ -25,7 +25,7 @@ export async function pot(env) {
     if (today < from) return json({ status: 'next', from, rule }, { maxAge: 60 });
 
     const fees = await fees24h(env, today);
-    const p = potAmount(fees);
+    const p = potAmount(fees, today);
     const rollover = (await rolloverIn(env, today)) || { places: 0, bounty: 0 };
     const places = p.places + rollover.places;
     const bountyPot = p.bounty + rollover.bounty;

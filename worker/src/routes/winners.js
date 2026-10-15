@@ -69,7 +69,7 @@ const sol2 = (lamports) => `${((Number(lamports) || 0) / 1e9).toFixed(2)} SOL`;
 export function topUpWhy(note) {
     const was = note.paidBefore || {};
     const pot = note.pot || {};
-    return `Top-up: settling measured ${sol2(was.feesLamports)} of creator fees for this day and paid a ${sol2(was.lamports)} pot, but ${sol2(pot.feesLamports)} reached the treasury that day (the coin had moved to PumpSwap and the old reading missed its fees). The pot is ${sol2(pot.lamports)}${pot.reason === 'capped at 1 SOL' ? ' (the cap)' : ''}, so this pays each player the difference.`;
+    return `Top-up: settling measured ${sol2(was.feesLamports)} of creator fees for this day and paid a ${sol2(was.lamports)} pot, but ${sol2(pot.feesLamports)} reached the treasury that day (the coin had moved to PumpSwap and the old reading missed its fees). The pot is ${sol2(pot.lamports)}${/^capped/.test(pot.reason || '') ? ' (the cap)' : ''}, so this pays each player the difference.`;
 }
 
 /** A Daily Pot day as the public sees it: who got what, never where it went. */

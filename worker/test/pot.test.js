@@ -9,6 +9,7 @@ import {
     bountyShares,
     placeShares,
     planPot,
+    potCap,
     potAmount,
     splitBought
 } from '../src/lib/pot.js';
@@ -16,7 +17,7 @@ import {
 const SOL = LAMPORTS;
 const sum = (xs) => xs.reduce((a, b) => a + b, 0);
 
-test('pot = min(40% of the day’s fees, 1 SOL), split 60/40; unmeasured fees pay nothing', () => {
+test('pot = min(40% of the day’s fees, the cap), split 60/40; unmeasured fees pay nothing', () => {
     assert.deepEqual(potAmount(null), {
         lamports: 0,
         places: 0,
@@ -29,7 +30,31 @@ test('pot = min(40% of the day’s fees, 1 SOL), split 60/40; unmeasured fees pa
     assert.equal(p.places + p.bounty, p.lamports);
     assert.equal(p.places, Math.floor(p.lamports * 0.6));
     assert.equal(potAmount(10 * SOL).lamports, POT_CAP_LAMPORTS);
-    assert.equal(potAmount(10 * SOL).reason, 'capped at 1 SOL');
+    assert.equal(potAmount(10 * SOL).reason, 'capped at 0.5 SOL');
+});
+
+test('the cap: 1 SOL up to the 14 Oct 2026 Daily, 0.5 SOL from 15 Oct; a day keeps the cap of its date', () => {
+    assert.equal(POT_CAP_LAMPORTS, 0.5 * SOL, 'the cap in force now');
+    assert.equal(potCap('2026-10-14'), 1 * SOL);
+    assert.equal(potCap('2026-10-15'), 0.5 * SOL, 'the operator lowered it from the 15 Oct Daily');
+    assert.equal(potCap('2026-10-16'), 0.5 * SOL);
+    assert.equal(potCap(undefined), 0.5 * SOL);
+    assert.deepEqual(
+        [
+            potAmount(13.28 * SOL, '2026-10-14').lamports,
+            potAmount(13.28 * SOL, '2026-10-16').lamports
+        ],
+        [1 * SOL, 0.5 * SOL]
+    );
+    assert.equal(potAmount(13.28 * SOL, '2026-10-14').reason, 'capped at 1 SOL');
+    assert.equal(potAmount(5.33 * SOL, '2026-10-15').lamports, 0.5 * SOL);
+    assert.equal(potAmount(13.28 * SOL, '2026-10-16').reason, 'capped at 0.5 SOL');
+    assert.equal(
+        potAmount(1 * SOL, '2026-10-16').lamports,
+        0.4 * SOL,
+        'under the cap: 40% of fees'
+    );
+    assert.equal(potAmount(1 * SOL, '2026-10-16').places, 0.24 * SOL);
 });
 
 test('places: as many of the top 10 as keep every share at 0.01 SOL or more', () => {

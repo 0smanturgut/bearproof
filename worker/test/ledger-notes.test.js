@@ -88,6 +88,32 @@ test('ledger notes: the 11 Oct send to the operator is a reimbursement by his st
     assert.match(e.memo, /only AI compute is measured/);
 });
 
+test('ledger notes: the 14 Oct send to the operator says it also pays his other projects’ bills', () => {
+    const [e] = applyNotes([
+        {
+            ts: '2026-10-14T23:53:58.000Z',
+            category: 'other',
+            memo: 'outgoing to 28Rp…NeE4',
+            tx: 'ocvZ3chBkqcw1D7necp3usxBUYoZMZa7YdcQwz3vNYeBxw6YUnmWY1REALKUeTQcpWfwiFpXd5b6SDCRXRTdKk8',
+            amountSol: 13.000005
+        }
+    ]);
+    assert.equal(e.category, 'reimbursement');
+    assert.match(e.memo, /^operator reimbursement: 13 SOL /);
+    assert.match(
+        e.memo,
+        /operator’s own wallet \(28Rp…NeE4/,
+        'names the recipient as the operator'
+    );
+    assert.match(e.memo, /He says/, 'the purpose is attributed, not asserted');
+    assert.match(
+        e.memo,
+        /other CrowLab projects \(Pixelpad, CrowLab\)/,
+        'not only BEARPROOF’s bills'
+    );
+    assert.match(e.memo, /Not itemised/);
+});
+
 test('ledger notes: the 5 Oct top-up that went through another wallet says where each part of it is', () => {
     const tx =
         '4DhzYbY2Ak2GuMaPkq4KPqcV6kjLkYqjGDrXaxDwvvLnKySMPRckDDzkJ9VvzQ8LcEMxL1RurPmfyumHBrPY26hf';

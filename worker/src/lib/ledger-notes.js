@@ -51,6 +51,14 @@ export const LEDGER_NOTES = {
                 category: 'reimbursement',
                 memo: 'operator reimbursement: 0.7 SOL from the treasury to the operator’s own wallet (28Rp…NeE4, where the 27 Sep and 3 Oct sends also went), by hand. He says it is for the AI’s costs, which are billed to him; of his bills, only AI compute is measured (labelled 13 Oct)'
             },
+        // 14 Oct 23:53 UTC, 13 SOL from the treasury to the operator's own wallet 28Rp…NeE4, made by him, 82 s
+        // after ClawPump forwarded 12.56 SOL of creator fees (the coin had moved to PumpSwap at 21:39 UTC). On 15 Oct
+        // he said it pays bills: AI fees for BEARPROOF and his other CrowLab projects (Pixelpad, CrowLab), domains
+        // and hosting. The amount is on-chain; the purpose is his statement (docs/TREASURY.md).
+        ocvZ3chBkqcw1D7necp3usxBUYoZMZa7YdcQwz3vNYeBxw6YUnmWY1REALKUeTQcpWfwiFpXd5b6SDCRXRTdKk8: {
+            category: 'reimbursement',
+            memo: 'operator reimbursement: 13 SOL from the treasury to the operator’s own wallet (28Rp…NeE4, where the 27 Sep, 3 Oct and 11 Oct sends also went), by hand. He says it pays bills: AI fees for BEARPROOF and for his other CrowLab projects (Pixelpad, CrowLab), domains and hosting. Not itemised; of those bills, only BEARPROOF’s AI compute is measured (labelled 15 Oct)'
+        },
         // 5 Oct 00:39 UTC: the first Streamflow lock had released 24,798,035.65 $BPROOF to the treasury at 00:22 UTC.
         // The operator moved all of the treasury's tokens and 0.2 SOL to a new wallet, 25FF…L3Vv, which locked
         // 25,776,163.15 in Streamflow (BhKhjz…kuyT) at 00:44:52 UTC, until 31 Dec 2026 21:00 UTC; he said the

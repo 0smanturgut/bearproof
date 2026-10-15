@@ -25,7 +25,7 @@ before launch. We keep ClawPump's default, the agent wallet, for three reasons:
 
 1. ClawPump's tools send only to whitelisted addresses, even if an API key leaks. The operator manages that list in
    the dashboard, and it isn't limited to the prize and costs wallets: on 27 Sep he paid a promoter from the treasury,
-   and on 1, 3 and 11 Oct he paid himself back (see Ledger notes).
+   and on 1, 3, 11 and 14 Oct he paid himself back (see Ledger notes).
 2. It is the agent's identity on ClawPump, which is what the hackathon is about.
 3. The key isn't sitting on one of our servers.
 
@@ -111,16 +111,18 @@ are not listed. Balances and transactions are read every 15 minutes through Heli
 through PublicNode's free RPC (`api.mainnet-beta.solana.com` refuses requests from Workers).
 
 We only claim "the AI pays for its own compute" for the amounts that were actually reimbursed on-chain, and each one
-links to its transaction. As of 13 Oct:
+links to its transaction. As of 15 Oct:
 
-- **Reimbursed:** 1.9721 SOL in five transfers (1, 3 and 11 Oct), from the treasury to the operator's own wallets,
-  by hand. About $152 for the first four at $120 per SOL on 4 Oct, and about $75 for the fifth at $107 per SOL on
-  13 Oct (estimates).
-- **Measured:** $78.32 of AI compute for 19 Build Agent runs and the Telegram chat (`/api/stats`,
+- **Reimbursed:** 14.9721 SOL in six transfers (1, 3, 11 and 14 Oct), from the treasury to the operator's own
+  wallets, by hand. About $152 for the first four at $120 per SOL on 4 Oct, about $75 for the fifth at $107 per SOL
+  on 13 Oct, and about $1,356 for the sixth (13 SOL) at $104 per SOL on 15 Oct (estimates).
+- **Measured:** $86.19 of AI compute for 21 Build Agent runs and the Telegram chat (`/api/stats`,
   `computeSpentUsd`). That bill is covered.
 - **Not itemised:** the rest. The operator says the transfers pay him back for everything he has paid since day 1,
-  and that the 11 Oct one is for the AI's costs. Besides compute, that would be hosting, the domain, the stream
-  server and tools. No invoices are published for those, so nothing here calls them measured.
+  that the 11 Oct one is for the AI's costs, and that the 14 Oct one (13 SOL) pays AI fees for BEARPROOF **and for
+  his other CrowLab projects, Pixelpad and CrowLab**, plus domains and hosting. So not all of it is BEARPROOF's
+  bill. Besides compute, BEARPROOF's would be hosting, the domain, the stream server and tools. No invoices are
+  published for any of those, so nothing here calls them measured.
 
 The operator decides and makes every treasury send. The AI does not move treasury funds.
 
@@ -148,6 +150,13 @@ signature in `worker/src/lib/ledger-notes.js`, after checking the transaction on
   to his own wallet in the ClawPump dashboard, the same address as the 27 Sep and 3 Oct sends, and on 13 Oct he said
   he took it for the AI's costs. The amount is on-chain; the purpose is his statement. It left 0.086 SOL in the
   treasury. Shown as "outgoing to 28Rp…NeE4" until 13 Oct, then labelled Reimbursement.
+- **14 Oct 23:53 UTC, 13 SOL to `28Rp…NeE4`** (tx `ocvZ3c…RXRTdKk8`): operator reimbursement. The operator sent it
+  to his own wallet, the same address as the 27 Sep, 3 Oct and 11 Oct sends, 82 seconds after ClawPump forwarded
+  12.56 SOL of creator fees (the coin had moved to PumpSwap at 21:39 UTC and traded heavily). On 15 Oct he said it
+  pays bills: AI fees for BEARPROOF and for his other CrowLab projects (Pixelpad, CrowLab), domains and hosting. The
+  amount is on-chain; the purpose is his statement, and it is not itemised. It left 0.83 SOL in the treasury; at
+  00:20 UTC he sent 1.5 SOL of the next fees to the prize wallet. Shown as "outgoing to 28Rp…NeE4" until 15 Oct,
+  then labelled Reimbursement.
 - **5 Oct 00:39 UTC, 25,905,043.96 $BPROOF and 0.2 SOL to `25FF…L3Vv`** (tx `ocgVED…xuDsicjQ` and
   `4GRMNN…TwoRC`): the re-lock. The first Streamflow lock (`7GRzRv3S…2fJB`) released 24,798,035.65 tokens to the
   treasury at 00:22:36 UTC. The operator said the ClawPump treasury wallet returned an error when he tried to lock
@@ -181,6 +190,12 @@ signature in `worker/src/lib/ledger-notes.js`, after checking the transaction on
 | pump.fun creator vault  | `CGy3DDwzLERGkeeJRQ7perGaMbGtRNuRy8YZ755NuBpp` | `CREATOR_VAULT`; unclaimed fees, shown on the HQ × 75% (est.) |
 | ClawPump launch payee   | `49CfXAr58cCTGJnYsbm16fEsE5JRpdR8QQP8E1ZinGCq` | `ledger:launch_addresses`; received the launch payment        |
 
-Prize measurement without a ClawPump agent id (D49): the cron reads the creator vault every 15 minutes and adds each
-rise (or, after a claim, the new balance) to `fees:vault:day:<date>`; the day's treasury fees are that times
-`CREATOR_FEE_SHARE` (0.75). The operator's own runs never win (D48).
+Prize measurement without a ClawPump agent id (D69, replacing D49 from the 15 Oct Daily on): the day's fees are the
+creator fees that reached the treasury that UTC day, summed from the ledger (transfers from ClawPump's fee address,
+read from chain every 15 minutes). A day settles only once the ledger has been read at least 2 minutes past its
+close (`ledger:synced_at`), or 12 hours after the close, whichever comes first. Until 14 Oct the cron measured the
+pump.fun bonding-curve creator vault instead (`fees:vault:day:<date>` × `CREATOR_FEE_SHARE` 0.75, still recorded);
+when the coin moved to PumpSwap on 14 Oct at 21:39 UTC its fees started accruing in PumpSwap's creator vault, which
+that reading never saw. The 14 Oct Daily was settled at 00:10 UTC on 15 Oct with that old reading: 0.70 SOL of fees
+instead of the 13.28 SOL that reached the treasury, so its pot was 0.28 SOL, not the 1 SOL cap. The 0.72 SOL
+difference is not paid yet (15 Oct). The operator's own runs never win (D48).

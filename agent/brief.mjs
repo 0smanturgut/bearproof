@@ -12,7 +12,7 @@ const fmt = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).pad
 const events = [
     {
         type: 'start',
-        text: `The vote closed. Build #${ctx.build} for ${ctx.date} starts now: one feature, tested, shipped at 00:00 UTC.`
+        text: `The vote closed. Build #${ctx.build} for ${ctx.date} starts now: one major update, tested, shipped at 00:00 UTC.`
     }
 ];
 const w = ctx.vote?.winner;

@@ -85,7 +85,7 @@ jobs:
         needs: wait
         if: needs.wait.outputs.go == 'true'
         runs-on: ubuntu-latest
-        timeout-minutes: 150
+        timeout-minutes: 170
         env:
             SITE: ${{ inputs.rehearsal && 'https://rehearsal.invalid' || 'https://bearproof.app' }}
             REHEARSAL: ${{ inputs.rehearsal }}
@@ -152,7 +152,7 @@ jobs:
                   env -u INGEST_TOKEN CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 npx -y @anthropic-ai/claude-code@latest -p "$(if [ "$REHEARSAL" = "true" ]; then cat "$T/agent/REHEARSAL.md"; else cat "$T/agent/PROMPT.md"; fi)" \
                     --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
-                    --max-turns 200 \
+                    --max-turns 400 \
                     --settings "$RUNNER_TEMP/agent-settings.json" \
                     --allowedTools "Read" "Glob" "Grep" \
                       "Edit(game/**)" "Write(game/**)" "Edit(devlog/**)" "Write(devlog/**)" \
@@ -162,7 +162,7 @@ jobs:
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
                       "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
-                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" \
+                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" "Bash(date:*)" \
                     --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
                     | node "$T/agent/relay.mjs" "$RUNNER_TEMP/claude-result.json" build > "$RUNNER_TEMP/build-stream.jsonl"
                   node -e "const r=require(process.argv[1]);console.log('turns',r.num_turns,'cost $',r.total_cost_usd,'error',r.is_error)" "$RUNNER_TEMP/claude-result.json"
@@ -178,7 +178,7 @@ jobs:
                   env -u INGEST_TOKEN CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 npx -y @anthropic-ai/claude-code@latest -p "$(cat "$T/agent/REVIEW.md")" \
                     --model claude-opus-5-5 \
                     --output-format stream-json --verbose \
-                    --max-turns 60 \
+                    --max-turns 120 \
                     --settings "$RUNNER_TEMP/agent-settings.json" \
                     --allowedTools "Read" "Glob" "Grep" \
                       "Edit(game/**)" "Write(game/**)" "Edit(devlog/**)" "Write(devlog/**)" \
@@ -188,7 +188,7 @@ jobs:
                       "Bash(npm test:*)" "Bash(npm run lint:*)" "Bash(npm run check:*)" "Bash(npx prettier:*)" \
                       "Bash(node game/scripts/smoke.mjs:*)" "Bash(node game/scripts/determinism.mjs:*)" \
                       "Bash(node game/scripts/playtest.mjs:*)" "Bash(node game/scripts/sprite-preview.mjs:*)" \
-                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" \
+                      "Bash(node --test:*)" "Bash(git diff:*)" "Bash(git status:*)" "Bash(date:*)" \
                     --disallowedTools "WebFetch" "WebSearch" "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" \
                     | node "$T/agent/relay.mjs" "$RUNNER_TEMP/review-result.json" review > "$RUNNER_TEMP/review-stream.jsonl"
             - name: Guard (allowed paths only)

@@ -10,6 +10,10 @@ Check, in this order, and fix only real problems:
    screenshots in `/tmp/review-shots` (read the PNG files): does the new feature show up and look right on the
    phone and desktop shots? Nothing overlapping, cut off or unreadable? For new or changed art, render it with
    `node game/scripts/sprite-preview.mjs <id> --out /tmp/review-sprites.png` and read the PNG.
+   Builds are major updates now (a character, a map, a system), so walk the player's path end to end, not just the
+   screenshot: for example earn, buy, reload, still owned; pick the new map, start, it's the right map; a new
+   character's run replays to the same score. A browser check goes in a `/tmp/*.test.mjs` file. Check that a
+   player's existing save (prefs, badges, name, character) survives the update.
 2. **Determinism.** Code under `game/src/sim/` may use only `sim.rng` for randomness and `sim/dmath.js` for trig;
    no `Math.random`, `Math.sin`, `Date.now` or DOM there. If simulation results changed, `SIM_VERSION` in
    `game/src/sim/sim.js` must have been incremented.
@@ -22,7 +26,7 @@ Check, in this order, and fix only real problems:
    No one else's character, logo or likeness anywhere in the game, except as far as a note for this build in
    `agent/OPERATOR.md` allows; then check the change follows that note and the devlog discloses it under
    `## Operator input`. A new character must be in the run log (`CHARACTER_IDS`) and replay to the same score.
-6. **Scope.** Don't add features or refactor. Don't touch anything outside `game/**`, `devlog/build-<n>.md`,
+6. **Scope.** Don't add features or refactor; finishing or fixing tonight's update is in scope. Don't touch anything outside `game/**`, `devlog/build-<n>.md`,
    `agent/plan.md`, `agent/notes.md`, `agent/proposals/build-<n>.json`, `content/x/build-<n>.md`. Every new file in
    `git status` must belong to the feature or be a real test with a name that says what it tests. Nobody can
    delete files in this sandbox, so if a scratch or diagnostic file was left in the repo, say so in your `## Review`

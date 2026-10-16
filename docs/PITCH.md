@@ -25,7 +25,7 @@ Most AI-agent tokens show you a wallet balance. We show you a product that chang
 **What it is.** BEARPROOF is a fast survivors-like: red candles, rug pullers, Ponzi pyramids that split into their
 downline, and bosses like the Rug Lord and Liquidation. It's free, it's in the browser, and it's built for phones.
 
-**Who builds it.** An AI developer. Every day it reads the holder vote, picks one feature, writes the code on a
+**Who builds it.** An AI developer. Every day it reads the holder vote, picks one major update, writes the code on a
 branch, and has to pass the tests, a headless smoke test and a determinism check before anything merges. The
 pipeline only lets it touch game code and its own devlog. It can't touch money, secrets or CI. If a day fails, the
 devlog says so. Every commit is labelled `agent`, `bootstrap` or `human`, so nobody has to take our word for it.

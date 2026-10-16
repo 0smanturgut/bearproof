@@ -102,3 +102,17 @@ The rest of this note applies only if the holders pick the operator's option **"
   BOARD and HOME stay, smaller, on the row below; HOME is still the way back to the HQ. UI only (`game/index.html`,
   `game/styles.css`); the simulation didn't change. Keep the button's name and place. Say so in one sentence under
   `## Operator input`: a player asked for it, and the change was made in an operator session, not by you.
+
+## Build #25 (2026-10-17)
+
+- The operator raised the bar. From tonight, every build is one major update (a new character, a new map, a new
+  system), because BEARPROOF is heading for Steam and the app stores and has to become a full game. Your prompt
+  has a new `## The bar` section and `agent/BACKLOG.md` a new `## Road to 1.0`; an operator session (Claude,
+  started by the operator) wrote both today, and gave the nightly run a bigger budget (more turns, a longer job).
+- Tonight's ballot was written under the old rule, so its options are small. If one of them wins, ship it under
+  "Also in this build" and headline Road to 1.0 item 1 (profile, currency and the Market). If nothing wins, item 1
+  is the build. The community request on the ballot ("Global Boss Battle") needs a server for the shared health
+  bar, which is outside your paths; if it wins, say so and treat it like a small winner: the most you can ship
+  is a single-player slice of it, under "Also in this build".
+- Say so in two sentences under `## Operator input`: the operator asked for bigger updates on the road to a
+  store release, and the roadmap and the new rules came from an operator session, not from you.

@@ -1,41 +1,51 @@
-# Build #24 plan: Honey Trap
+# Build #25 plan: Profile, CLOUT and the Market (Road to 1.0, part 1)
 
-## Feature
+## Why this wins tonight
 
-**Honey Trap**, a new weapon in the level-up pool (both characters). Every 3.2 s it lobs a honey jar at the
-nearest bear. The jar flies for 0.4 s, splashes for damage and leaves a honey puddle for 4 s. Bears in the puddle
-move 55% slower, and a dashing rug puller sticks too. A grizzly that walks in sits down and eats: it stops until
-the honey is gone. Bosses don't stick. At Lv 5 it evolves into **Honeypot** ("you can buy in, you can't sell"):
-puddles 40% bigger, they last 6 s, and they burn every bear inside twice a second.
+- The vote: "Global Boss Battle" (a holder's request, 1 wallet voted). Its core is a shared, server-side health bar,
+  which is outside my paths, and the operator's note for this build says so: ship a single-player slice of it under
+  "Also in this build" and headline Road to 1.0 item 1.
+- Road to 1.0 item 1 is the public promise ("levels and progression, an in-game shop") and nothing shipped covers it.
+- 246 verified runs from 43 players yesterday, median 8:12: people play many runs each (5.7 per player), so a
+  reward that carries over between runs fits how they play.
 
-## Why today
+## Parts
 
-- No vote (nobody voted for Build #24), the ideas box has nothing I can ship safely tonight (aiming needs new
-  input codes in the run log, outside my paths; there is already an XP bar), and the chat only had praise.
-- Rug pullers (27.9%) and grizzlies (23.5%) ended half of Build #23's 319 lost runs. Honey Trap goes at both.
-  It was on last night's ballot, where nobody voted.
+1. **Profile** (`game/src/profile.js`, stored inside the one prefs key): lifetime runs, time, kills, boss kills, wins,
+   boss damage, best run per character and per map, player XP and level, CLOUT balance, owned items, equipped items.
+   Normalised on load so an old save (or a broken one) never loses prefs, badges or name.
+2. **CLOUT**, the play-only currency: paid by every finished run (time survived, bears rekt, bosses, a win, the
+   bounty). Never bought, never traded, not a coin. Count-up on the game-over receipt, line by line, with a tick
+   sound, then the player-level bar fills; a level-up pays a small CLOUT bonus with its own moment.
+3. **Player level**: XP = CLOUT earned. Shown on the title screen in a profile strip (level, bar, balance) that opens
+   the Market.
+4. **The Market**: a screen off the title. Tabs: SKINS (2 bull, 2 Pepe, redrawn in the pixel engine), TRAILS (2),
+   FINALES (2 death effects), STATS (lifetime stats, bests, the Eternal Bear). Buy, equip, unequip. All cosmetic:
+   nothing touches the Simulation, so the Daily stays fair.
+5. **Also: the Eternal Bear** (single-player slice of the holders' Global Boss Battle): one persistent boss whose
+   bar every run's boss damage drains. When it falls you get a CLOUT bounty and it comes back bigger. The sim gets a
+   pure counter `stats.bossDamage` (no result changes, no SIM_VERSION bump).
 
-## Regression check (done before coding)
+## Art and sound
 
-- Build #23 vs #22: median 2:45 → 7:41 on 360 vs 194 runs, doomposters 13.7% → under 3.8%, rejected replays 0 → 2.
-  `playtest --compare build-22`: 4:41 → 3:40, the reshuffle noise measured last night.
-- Bull 4:33 vs Pepe 10:09 live. Bots (survive, idle, flee, circle) show no gap: selection (first runs are bull
-  runs), not a sim bug. No change.
-
-## Files
-
-- `game/src/sim/content.js`: `WEAPONS.HONEY_TRAP`, appended.
-- `game/src/sim/weapons.js`: `_honey`.
-- `game/src/sim/entities.js`: `HoneyJar` entity, `Enemy.honeyTimer/honeyPct` in the slow.
-- `game/src/sim/sim.js`: `sim.honey` list, `stats.honeyEaten`, `SIM_VERSION` 20.
-- `game/src/render.js`: puddles on the ground, jars in flight, a honey tint.
-- `game/src/game.js`: splash and eat juice + sound; `game/src/audio.js`: `honey` sfx.
-- `game/src/art/items.js`, `icons.js`, `sprites.js`: `honey_jar` sprite, `honey_trap` icon.
-- `game/test/honey-trap.test.js`: new tests. `twist.test.js` SIM_VERSION pin.
+- Skins: `bull`/`pepe` generators take a skin (materials + details: shades, glowing eyes, a scarf). Registered
+  as sprites `bull_gold`, `bull_midnight`, `pepe_frost`, `pepe_night`.
+- Trails and finales are fx bursts (respect reduced motion via fx.calm).
+- Sounds: a CLOUT tick and a purchase chime in `audio.js`.
 
 ## Tests
 
-- Unit: throws at the nearest bear, splash damage on landing, slow inside, none outside, grizzly stops, boss
-  untouched, puddle expires, evolved puddle is bigger/longer and burns, bot run with honey replays bit for bit.
-- Playtest `--compare origin/main` plus an always-take vs ghost (effect off) A/B on 120 seeds.
-- Smoke screenshots, sprite preview of the jar and icon, determinism gate.
+- `game/test/profile.test.js`: payout formula, level curve, applyRun accumulates and keeps bests, buy/equip rules
+  (no buying without balance, no double buy), normalisation of old/broken saves, Eternal Bear rollover, sim
+  `bossDamage` counted and identical state hash.
+- art.test for new sprites; smoke shots of title, Market and receipt.
+
+## Files
+
+`game/src/profile.js` (new), `prefs.js`, `sim/sim.js` (counter), `art/creatures.js`, `art/sprites.js`, `render.js`,
+`game.js`, `ui.js`, `main.js`, `audio.js`, `index.html`, `styles.css`, `game/test/profile.test.js`.
+
+## Order (so a cut still ships whole)
+
+1. profile.js + tests → 2. payout on game over with count-up → 3. title strip → 4. Market with skins → 5. trails and
+   finales → 6. Eternal Bear → 7. shots, gates, devlog.

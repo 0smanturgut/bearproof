@@ -540,6 +540,9 @@ export class Renderer {
 
     /** The sprite of the character this run plays (the bull unless the run says otherwise). */
     _playerSprite(sim) {
+        // a Market skin, if the player wears one for this character (cosmetic: game.js sets `this.look`)
+        const skin = this.look?.skins?.[sim.characterId];
+        if (skin && SPRITES[skin]) return skin;
         const id = sim.character?.sprite;
         return id && SPRITES[id] ? id : 'bull';
     }
@@ -587,6 +590,20 @@ export class Renderer {
         if (p.moving && !riding && t - this.dustAt > 0.09) {
             this.dustAt = t;
             fx.dust(p.x - p.facing * 12, p.y + 22, p.facing);
+        }
+        // a Market trail: a few particles left behind while moving (none with reduced motion)
+        const trail = this.look?.trail;
+        if (trail && p.moving && !fx.calm && t - (this.trailAt || 0) > 0.06) {
+            this.trailAt = t;
+            fx.burst(
+                p.x - p.facing * 16,
+                p.y + 10,
+                trail.color,
+                trail.n,
+                40,
+                trail.size,
+                trail.kind
+            );
         }
         if (def.glowFrames) glows.push([id, sx, sy, frame, p.facing < 0, 0.8]);
         void dt;

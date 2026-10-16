@@ -119,6 +119,7 @@ export class Simulation {
             bossKills: 0,
             damageTaken: 0,
             damageDealt: 0,
+            bossDamage: 0, // the part of damageDealt that hit bosses (a counter: the profile's Eternal Bear reads it)
             crates: 0,
             scamsBusted: 0, // Exit Scam: scammers killed with something in the bag
             scamsEscaped: 0,
@@ -718,6 +719,7 @@ export class Simulation {
     damageEnemy(e, amount, crit, src, quiet = false) {
         const dealt = e.takeDamage(amount);
         this.stats.damageDealt += dealt;
+        if (e.boss) this.stats.bossDamage += dealt;
         if (!quiet) this.emit({ t: 'dmg', x: e.x, y: e.y - e.size, v: dealt, crit, src });
         // God Candle's boss hit is only drawn as a crit; it doesn't chain
         if (crit && src !== 'liquidation' && src !== 'god_candle')
@@ -844,6 +846,7 @@ export class Simulation {
             kills: this.stats.kills,
             level: this.player.level,
             bossKills: this.stats.bossKills,
+            bossDamage: Math.round(this.stats.bossDamage),
             won: this.won,
             reason: this.endReason,
             stage: this.stageId,

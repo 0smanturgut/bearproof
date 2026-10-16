@@ -27,6 +27,11 @@ const SPRITE_GENS = {
     // player and brand
     bull: make(creatures.bull, 4, { fps: 11 }),
     pepe: make(creatures.pepe, 4, { fps: 9 }),
+    // Market skins (profile.js): same size and animation as their character
+    bull_gold: make(creatures.bullGold, 4, { fps: 11 }),
+    bull_midnight: make(creatures.bullMidnight, 4, { fps: 11 }),
+    pepe_frost: make(creatures.pepeFrost, 4, { fps: 9 }),
+    pepe_night: make(creatures.pepeNight, 4, { fps: 9 }),
     emblem: make(creatures.emblemSmall),
     emblem_large: make(creatures.emblemLarge),
     // visitors
@@ -118,6 +123,7 @@ export const ICONS = lazyTable(ICON_GENS);
 
 export const SPRITE_GROUPS = {
     player: ['bull', 'pepe'],
+    skins: ['bull_gold', 'bull_midnight', 'pepe_frost', 'pepe_night'],
     brand: ['emblem', 'emblem_large'],
     visitors: ['whale'],
     enemies: [

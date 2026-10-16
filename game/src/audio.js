@@ -174,6 +174,26 @@ export class AudioEngine {
         setTimeout(() => this.tone({ freq: 990, dur: 0.12, type: 'triangle', volume: 0.22 }), 90);
         setTimeout(() => this.tone({ freq: 1320, dur: 0.18, type: 'triangle', volume: 0.24 }), 200);
     }
+    /** The receipt counts CLOUT up: a short bright tick, a little higher each call. */
+    cloutTick() {
+        this._tickN = ((this._tickN || 0) + 1) % 12;
+        this.tone({ freq: 1400 + this._tickN * 40, dur: 0.025, type: 'square', volume: 0.05 });
+    }
+    /** A Market purchase: a register "ka-ching", two bright notes over a soft thump. */
+    buy() {
+        this.tone({ freq: 140, dur: 0.06, type: 'triangle', volume: 0.14, sweep: -40 });
+        this.tone({ freq: 1760, dur: 0.06, type: 'triangle', volume: 0.14 });
+        setTimeout(() => this.tone({ freq: 2640, dur: 0.16, type: 'sine', volume: 0.16 }), 70);
+    }
+    /** Equip, or a tab in the Market: a soft click. */
+    click() {
+        this.tone({ freq: 900, dur: 0.02, type: 'triangle', volume: 0.07 });
+    }
+    /** Not enough CLOUT: a low double buzz. */
+    deny() {
+        this.tone({ freq: 160, dur: 0.06, type: 'square', volume: 0.08 });
+        setTimeout(() => this.tone({ freq: 130, dur: 0.08, type: 'square', volume: 0.08 }), 80);
+    }
     damage() {
         this.tone({ freq: 180, dur: 0.18, type: 'sawtooth', volume: 0.18, sweep: -80 });
     }

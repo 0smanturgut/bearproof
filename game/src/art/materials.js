@@ -36,6 +36,29 @@ export const M = {
         line: '#2A0614'
     }),
 
+    // Market skins (cosmetic, profile.js): Gold Standard, Midnight Bull, Frost Frog, Night Shift Frog
+    goldDeep: mat(['#241500', '#4E3000', '#7A4B00', '#A86A00', '#C98A10', '#E0A830'], {
+        line: '#140B00'
+    }),
+    goldPale: mat(['#5A3A00', '#9A6A10', '#D9A940', '#FFDD80', '#FFF0C0', '#FFFBEA'], {
+        line: '#2A1A00'
+    }),
+    midnight: mat(['#141A2A', '#232C44', '#34405F', '#4A5A80', '#6E80A8', '#A8B8DA'], {
+        line: '#0A0D16'
+    }),
+    midnightDeep: mat(['#0C101C', '#161C2E', '#212A42', '#2E3A58', '#425274', '#5E7096'], {
+        line: '#06080E'
+    }),
+    frogFrost: mat(['#0A2238', '#164A70', '#2A7AAA', '#4FB0DC', '#9BDCF6', '#E2F8FF'], {
+        line: '#051220'
+    }),
+    frogNight: mat(['#160C26', '#2C1A4A', '#46307A', '#6A4CAA', '#9A7CD6', '#D0BEF6'], {
+        line: '#0A0614'
+    }),
+    bellyNight: mat(['#2A2240', '#4A3E6A', '#6E6296', '#968CC0', '#C0B8E2', '#ECE6FF'], {
+        line: '#120E20'
+    }),
+
     // Bears, candles and everything bearish
     bear: mat(['#2B0714', '#6E0F2A', '#B81E40', '#FF3B5C', '#FF7E86', '#FFC9BF'], {
         line: '#1A040C'

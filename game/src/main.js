@@ -21,6 +21,7 @@ import { createBot } from './sim/bot.js';
 import { bountyText, readBounty } from './bounty.js';
 import { guideSections } from './guide.js';
 import { badgeSection } from './achievements.js';
+import { MARKET_BY_ID, buy, equip, normalizeProfile, skinSprite } from './profile.js';
 import {
     CHARACTERS,
     CHARACTER_IDS,
@@ -133,9 +134,71 @@ async function boot() {
     });
     $('btnGuideBack').addEventListener('click', () => ui.show(back));
 
+    // The Market: spend CLOUT on cosmetics. Everything is drawing only; the Simulation never sees it.
+    let marketTab = 'skins';
+    const openMarket = () => {
+        prefs.profile = normalizeProfile(prefs.profile);
+        ui.showMarket(prefs.profile, marketTab, {
+            tab: (id) => {
+                marketTab = id;
+                audio.click();
+                openMarket();
+            },
+            buy: (id) => {
+                const r = buy(prefs.profile, id);
+                if (!r.ok) {
+                    audio.deny();
+                    haptics.hurt();
+                    ui.toast(
+                        r.error === 'short'
+                            ? `NEED ${fmtNum(MARKET_BY_ID[id].price - prefs.profile.clout)} MORE CLOUT`
+                            : 'ALREADY YOURS',
+                        'bear',
+                        1400
+                    );
+                    return;
+                }
+                prefs.profile = r.profile;
+                persist();
+                audio.buy();
+                haptics.levelUp();
+                ui.toast(`BOUGHT: ${MARKET_BY_ID[id].name.toUpperCase()}`, 'gold', 1500);
+                lookChanged();
+            },
+            equip: (id) => {
+                const r = equip(prefs.profile, id);
+                if (!r.ok) return;
+                prefs.profile = r.profile;
+                persist();
+                audio.click();
+                lookChanged();
+            }
+        });
+    };
+    const lookChanged = () => {
+        game.applyLook();
+        ui.profileStrip(prefs.profile);
+        repaintCharacters();
+        openMarket();
+    };
+    $('btnProfile').addEventListener('click', () => {
+        audio.unlock();
+        openMarket();
+    });
+    $('btnMarketBack').addEventListener('click', () => {
+        ui.show('screenTitle');
+        ui.profileStrip(normalizeProfile(prefs.profile));
+    });
+
     game.startBackdrop(); // the title screen floats over the live build, played by the autopilot
-    setupCharacterPick(prefs, persist);
-    animateTitleBull($('titleBull'), () => characterDef(prefs.character).sprite || 'bull');
+    const repaintCharacters = setupCharacterPick(prefs, persist);
+    animateTitleBull(
+        $('titleBull'),
+        () =>
+            skinSprite(normalizeProfile(prefs.profile), prefs.character) ||
+            characterDef(prefs.character).sprite ||
+            'bull'
+    );
 
     // Today's challenge (or the one in the URL). The game is fully playable without it.
     const [d, rawBounty] = await Promise.all([
@@ -194,12 +257,7 @@ function setupCharacterPick(prefs, persist) {
         const cv = document.createElement('canvas');
         cv.className = 'char-face';
         cv.setAttribute('aria-hidden', 'true');
-        const frames = bakeSprite(c.sprite || 'bull', 2);
-        if (frames?.[0]) {
-            cv.width = frames[0].width;
-            cv.height = frames[0].height;
-            cv.getContext('2d').drawImage(frames[0], 0, 0);
-        }
+        b._face = cv;
         const text = document.createElement('span');
         text.className = 'char-text';
         const name = document.createElement('b');
@@ -221,7 +279,26 @@ function setupCharacterPick(prefs, persist) {
             b.setAttribute('aria-checked', String(b.dataset.char === prefs.character));
         $('tagline').textContent = characterDef(prefs.character).tagline;
     };
+    // each card wears the skin bought for that character in the Market
+    const paint = () => {
+        const profile = normalizeProfile(prefs.profile);
+        for (const b of buttons) {
+            const id = b.dataset.char;
+            const frames = bakeSprite(
+                skinSprite(profile, id) || CHARACTERS[id].sprite || 'bull',
+                2
+            );
+            if (!frames?.[0]) continue;
+            b._face.width = frames[0].width;
+            b._face.height = frames[0].height;
+            const ctx = b._face.getContext('2d');
+            ctx.clearRect(0, 0, b._face.width, b._face.height);
+            ctx.drawImage(frames[0], 0, 0);
+        }
+    };
     sync();
+    paint();
+    return paint;
 }
 
 function animateTitleBull(canvas, spriteId) {

@@ -33,6 +33,7 @@ import { turnstileToken } from './turnstile.js';
 import { bountyProgress, bountyText, clearsBounty } from './bounty.js';
 import { createTracker } from './achievements.js';
 import { musicMood } from './music.js';
+import { applyRun, equippedItem, normalizeProfile, skinSprite } from './profile.js';
 
 const STEP = SIM.DT;
 const MAX_STEPS_PER_FRAME = 5;
@@ -82,6 +83,7 @@ export class Game {
     startBackdrop() {
         this.startRun('free', { backdrop: true });
         this.ui.show('screenTitle');
+        this.ui.profileStrip(normalizeProfile(this.prefs.profile));
     }
 
     startRun(mode, { backdrop = false } = {}) {
@@ -99,6 +101,7 @@ export class Game {
             : this.prefs.character || null;
         this.sim = new Simulation({ seed, twist, character });
         this.rec = new RunRecorder(seed, twist, this.sim.characterId);
+        this.applyLook();
         this.bot = this.attract ? createBot({ phase: Math.floor(Math.random() * 1000) }) : null;
         this.fx.clear();
         this.cam.x = 0;
@@ -129,6 +132,33 @@ export class Game {
             if (twist) this.ui.toast(`TWIST: ${TWISTS[twist].name.toUpperCase()}`, 'gold', 2200);
             api.startSession(playerId(), this.build.n, this.mode);
         }
+    }
+
+    /**
+     * The player's Market cosmetics (skins, trail) on the renderer. Drawing only: the Simulation never sees
+     * them. The HQ preview autopilot plays the plain characters.
+     */
+    applyLook() {
+        if (this.baseAttract) {
+            this.renderer.look = null;
+            return;
+        }
+        const profile = normalizeProfile(this.prefs.profile);
+        const skins = {};
+        for (const id of CHARACTER_IDS) skins[id] = skinSprite(profile, id);
+        this.renderer.look = { skins, trail: equippedItem(profile, 'trail')?.fx || null };
+    }
+
+    /** The equipped finale: a burst where the run ended (a plain run keeps the usual shake). */
+    _finale() {
+        const fin = equippedItem(normalizeProfile(this.prefs.profile), 'finale')?.fx;
+        if (!fin) return;
+        const p = this.sim.player;
+        const fx = this.fx;
+        fx.ring(p.x, p.y, 10, 220, 0.7, fin.ring, 8, true);
+        fin.colors.forEach((c, i) => fx.burst(p.x, p.y, c, 14, 260 + i * 60, 3, 'spark'));
+        fx.burst(p.x, p.y - 10, fin.colors[0], 10, 180, 3.5, 'ember');
+        fx.addFlash(fin.ring, 0.35, 1.6);
     }
 
     pause() {
@@ -749,7 +779,29 @@ export class Game {
         const bounty = this._bountyResult(summary);
         this.lastRun.bountyCleared = !!bounty?.done;
         const badges = this._badgesNew;
-        setTimeout(() => this.ui.showOver({ summary, title, sub, buildLine, bounty, badges }), 700);
+        // Bank the run: lifetime stats, bests, CLOUT, the player level and the Eternal Bear (profile.js)
+        const banked = applyRun(this.prefs.profile, summary, {
+            bountyCleared: this.lastRun.bountyCleared
+        });
+        this.prefs.profile = banked.profile;
+        savePrefs(this.prefs);
+        this._finale();
+        setTimeout(
+            () =>
+                this.ui.showOver(
+                    { summary, title, sub, buildLine, bounty, badges, banked },
+                    {
+                        calm: !!this.prefs.reducedMotion,
+                        tick: () => this.audio.cloutTick?.(),
+                        levelUp: () => {
+                            this.audio.levelUp();
+                            this.haptics.levelUp();
+                        },
+                        bear: () => this.audio.jackpot()
+                    }
+                ),
+            700
+        );
         setTimeout(() => this._maybeSubmit(), 750);
     }
 

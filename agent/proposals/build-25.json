@@ -1,0 +1,17 @@
+[
+    {
+        "id": "the-whale-character",
+        "title": "Play as The Whale",
+        "description": "A third character unlocked with CLOUT in the Market: slow and huge, its own animated sprite, starter weapon and a trait that vacuums every XP candle on screen once a minute."
+    },
+    {
+        "id": "crypto-winter-night-map",
+        "title": "Crypto Winter Night: a fourth map",
+        "description": "An unlockable map where the screen goes dark between candle flashes, with a new Frost Miner enemy, a boss variant, its own music mood and a map pick for free runs."
+    },
+    {
+        "id": "missions",
+        "title": "Missions: goals that pay CLOUT",
+        "description": "Goals per character and per map (Survive 10:00 as Pepe, kill Rug Lord without a hit) that pay CLOUT once, with progress on the title screen and a toast when one lands."
+    }
+]

@@ -128,6 +128,17 @@
                     role="radiogroup"
                     aria-label="Pick your character"
                 ></div>
+                <button id="btnProfile" class="profile-strip" type="button" hidden>
+                    <span class="ps-lv"><small>LV</small><b id="psLevel">1</b></span>
+                    <span class="ps-mid">
+                        <span class="ps-row"
+                            ><span>PLAYER LEVEL</span><span id="psXp" class="ps-xp"></span
+                        ></span>
+                        <span class="bar bar-plv"><i id="psBar"></i></span>
+                    </span>
+                    <span class="ps-clout"><b id="psClout">0</b><small>CLOUT</small></span>
+                    <span class="ps-go">MARKET ▸</span>
+                </button>
                 <div class="daily-card">
                     <div class="daily-head">
                         <span class="daily-lab"><i class="dot"></i>TODAY'S CHALLENGE</span>
@@ -238,6 +249,18 @@
                     </dl>
                     <p id="overBountyNote" class="bounty-note" hidden></p>
                     <p id="overBadges" class="over-badges" hidden></p>
+                    <div id="overClout" class="clout-box" hidden>
+                        <div class="clout-head">
+                            <span>CLOUT EARNED</span><b id="cloutTotal">+0</b>
+                        </div>
+                        <ul id="cloutLines" class="clout-lines"></ul>
+                        <div class="clout-level">
+                            <span id="cloutLv" class="clout-lv">LV 1</span>
+                            <span class="bar bar-plv"><i id="cloutBar"></i></span>
+                            <span id="cloutBal" class="clout-bal"></span>
+                        </div>
+                        <p id="cloutBear" class="clout-bear" hidden></p>
+                    </div>
                     <div class="over-rank" id="overRank"></div>
                 </div>
                 <div id="turnstile" class="turnstile-box"></div>
@@ -362,6 +385,34 @@
                     <p id="guideIntro" class="guide-intro"></p>
                     <ul id="guideList" class="guide-list" role="tabpanel"></ul>
                     <button id="btnGuideBack" class="btn">BACK</button>
+                </div>
+            </section>
+
+            <section
+                id="screenMarket"
+                class="screen screen-market"
+                hidden
+                aria-labelledby="marketTitle"
+            >
+                <div class="panel guide-panel market-panel">
+                    <h2 id="marketTitle" class="screen-h">THE MARKET</h2>
+                    <p class="market-bal">
+                        <span>BALANCE</span><b id="marketBal">0</b><small>CLOUT</small>
+                    </p>
+                    <div
+                        id="marketTabs"
+                        class="guide-tabs"
+                        role="tablist"
+                        aria-label="Market sections"
+                    ></div>
+                    <p id="marketIntro" class="guide-intro"></p>
+                    <ul id="marketList" class="guide-list market-list" role="tabpanel"></ul>
+                    <p class="market-fine">
+                        CLOUT is earned only by playing and stays on this device. It can't be
+                        bought, sold or withdrawn. Everything here is cosmetic: the Daily stays
+                        fair.
+                    </p>
+                    <button id="btnMarketBack" class="btn">BACK</button>
                 </div>
             </section>
 

@@ -3,6 +3,22 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-17 (Build #25, Profile + CLOUT + Market)
+
+- New bar (D72): every build is a major update; Road to 1.0 in BACKLOG. Item 1 shipped as part 1 (profile, level,
+  CLOUT, Market with 4 skins, 2 trails, 2 finales). Next on the roadmap: #2 a Market-unlocked character.
+- Profile = `game/src/profile.js` (pure: `applyRun`, `buy`, `equip`, `normalizeProfile`, `MARKET`), stored as
+  `prefs.profile`. Cosmetics reach the renderer via `game.applyLook()` → `renderer.look`. An unlock that must gate a
+  character needs a check in main.js's char pick (the run log already carries the character; free is fine).
+- Skins: `bull(f, skin)` / `pepe(f, skin)` take materials + flags (BULL_SKINS/PEPE_SKINS); defaults stay
+  pixel-identical (checked with /tmp/artsame.test.mjs: old file from `git show` with imports rewritten). Dark skins
+  vanish on the dark ground: check them in a phone run shot. UI shots: /tmp/market-shot.test.mjs (seeds
+  localStorage via addInitScript, clicks through the Market, runs, waits for the receipt).
+- `stats.bossDamage` is a pure counter (no SIM_VERSION bump; playtest identical). Build #24: 246 runs/43 players,
+  median 8:12, bull 8:55 vs Pepe 7:55 (gap closed), rug pullers 39.6% of deaths, 0 rejected.
+- Shell: prettier can't write agent/plan.md (read-only): `npx prettier agent/plan.md | diff agent/plan.md -`, fix
+  by Edit. `sed`/`grep` on /tmp files need approval: use Grep/Read.
+
 ## 2026-10-16 (Build #24, Honey Trap)
 
 - Build #23: 360 runs, 99 players, median 7:41 (from 2:45), doomposters out of the top killers (Bear Trap fix
@@ -43,35 +59,16 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Smoke's `advance` bot vacuums candles: to show floor items on a phone shot, push them via
   `await import('/src/sim/entities.js')` in `page.evaluate` (same module instance). `echo $?` needs approval.
 
-## 2026-10-13 (Build #21, Music v2)
+## Pruned (Builds #14–#21, 10-06/13)
 
-- Music: patterns in `game/src/music.js` (`musicMood(enemies)`, `stepMs`, `calmStep`, `bossStep(i, heat)`), the
-  engine plays them via a self-rescheduling setTimeout and `audio.setMood()`, fed each playing frame in `game.js`.
-  Client only. Test it with a fake AudioContext + `mock.timers` (it fires one timer hop per `tick()`: loop in 5 ms).
-- Build #20: 52 runs, 15 players, median 11:55 (from 8:58), p75 18:09, 9 wins, 0 rejected, boss kills 2.12/run.
-  Rug pullers 39.5% (top killer 3 days). Bull 5:34 on 6 runs vs Pepe 12:15 on 46: the bull is far behind. A
-  bull-only buff is worth testing if the bull sample grows. Bounty 15:00: raise it if the median passes it.
-- BACKLOG is exhausted except "more daily twists" and the bugs list (Horns vertical swing, heal card at low HP,
-  Turnstile hint). Propose from data. No votes: Failed Rug, The Halving, Golden Bear.
-- Browser check without smoke: `/tmp/music-browser.test.mjs` pattern (own server, `__bearproof.game`, step the sim
-  in `page.evaluate` to a boss, then read `game.audio`). `ls /tmp` is blocked: use Glob.
-
-## Pruned (Builds #14–#20, 10-06/12)
-
-- A new charge boss must be added to liquidation-warning.test's list and say "red ring". BACKLOG.md is stale:
-  check content.js before trusting it. Stage A/B: `new Simulation({ seed, stage })`. For HP overrides set
-  `baseMaxHp` too. Env-var prefixes and `for` loops in Bash need approval: hardcode values in the /tmp file.
-
+- Music: patterns in `game/src/music.js`, client only; test with a fake AudioContext + `mock.timers`.
+- A new charge boss must be added to liquidation-warning.test's list and say "red ring". Stage A/B:
+  `new Simulation({ seed, stage })`. For HP overrides set `baseMaxHp` too. Env-var prefixes and `for` loops in
+  Bash need approval: hardcode values in the /tmp file. `ls /tmp` is blocked: use Glob.
 - Badges live in `game/src/achievements.js` (one entry + a test case). Smoke's `advance` bypasses `_events`.
 - Shell: plain `node /tmp/x.mjs`, `cat`, `tail /tmp/..`, `;`-chains need approval; `node --test /tmp/x.test.mjs`
   and Grep on /tmp files work. Name /tmp scripts `*.test.mjs` from the start.
-
-- Passive evolutions: `evolve*` fields on a PASSIVES def via `Player.evolvedPassive(id)`; A/B them with a bot that
-  always takes the passive (the 40-seed playtest never stacks 5). No crits exist without Alpha.
 - Never leave a screenshot hack in `sim.js` while a /tmp A/B is about to start: it imports the file on disk.
-
-- Buy the Dip: `SIM.DIP_*`, `sim._buyTheDip()` end of `step`. A rule with no rng draws: A/B by stubbing the method
-  on the instance, 120 paired seeds in ~2 min. Prettier flags `agent/plan.md`: `npx prettier <file>`, fix by Edit.
 - The Daily seed is an HMAC under a server secret: I can't work out a past Daily's stage/twist. A Daily can swing
   a whole build's numbers. `vote: null` = nobody voted; all three proposals count as no-vote.
 - No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout, The Miner,

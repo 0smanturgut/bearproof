@@ -82,7 +82,45 @@ const BULL_TUFT = [
     [0, 1, 2]
 ];
 
-export function bull(f) {
+/**
+ * Market skins for the bull: their own materials and their own face and details, on the same silhouette and
+ * gallop (same size, so nothing about the run changes). `eye`: 'plain' | 'shades' | 'laser'.
+ */
+export const BULL_SKINS = {
+    gold: {
+        body: M.gold,
+        deep: M.goldDeep,
+        snout: M.goldPale,
+        horn: M.metal,
+        hornLum: 0.35,
+        eye: 'shades',
+        line: '#5A3A00',
+        mark: ['#FFF6D6', '#FFFFFF'],
+        ring: ['#16E08A', '#0A5C45', '#B8FFD9']
+    },
+    midnight: {
+        body: M.midnight,
+        deep: M.midnightDeep,
+        snout: M.metal,
+        horn: M.gold,
+        hornLum: 0.3,
+        eye: 'laser',
+        line: '#16E08A',
+        mark: ['#16E08A', '#B8FFD9'],
+        markGlow: true,
+        ring: [C.red, '#6E0F2A', '#FFC9BF']
+    }
+};
+
+export const bullGold = (f) => bull(f, BULL_SKINS.gold);
+export const bullMidnight = (f) => bull(f, BULL_SKINS.midnight);
+
+export function bull(f, skin = null) {
+    const k = skin || {};
+    const MB = k.body || M.bull;
+    const MD = k.deep || M.bullDeep;
+    const MS = k.snout || M.snout;
+    const MH = k.horn || M.horn;
     const s = new PixelSprite(36, 26);
     const ph = (f / 4) * TAU;
     const b = [0, -1, -1, 0][f % 4]; // body bob
@@ -98,7 +136,7 @@ export function bull(f) {
         const ky = y0 + Math.cos(a) * len * 0.5;
         const hx = kx + Math.sin(a * 0.35) * len * 0.5;
         const hy = ky + Math.cos(a * 0.35) * len * 0.5;
-        const m = far ? M.bullDeep : M.bull;
+        const m = far ? MD : MB;
         const o = { g: far ? 'far' : 'legs', bias: far ? -0.05 : -0.04 };
         s.capsule(x0, y0, kx, ky, 2.4, 1.9, m, o);
         s.capsule(kx, ky, hx, hy - 0.8, 1.7, 1.3, m, o);
@@ -108,51 +146,85 @@ export function bull(f) {
     leg(18.5, 15 + b, 0.6 * Math.sin(ph + 1.1), 8, true);
     leg(12, 15 + b, 0.6 * Math.sin(ph + Math.PI + 1.1), 8, true);
     BULL_HORN_FAR.forEach((r, i) =>
-        s.spans([r], M.horn, { dy: hb, shade: 'flat', lum: 0.2 + i * 0.07 })
+        s.spans([r], MH, { dy: hb, shade: 'flat', lum: (k.hornLum ?? 0.2) + i * 0.07 })
     );
     // tail with its tuft, swaying
-    s.spans(BULL_TAIL, M.bull, { g: 'body', dy: b, dx: tw > 0 ? 0 : 0 });
-    s.spans(BULL_TUFT, M.bullDeep, { g: 'tuft', dy: b, dx: tw });
+    s.spans(BULL_TAIL, MB, { g: 'body', dy: b, dx: tw > 0 ? 0 : 0 });
+    s.spans(BULL_TUFT, MD, { g: 'tuft', dy: b, dx: tw });
     s.auto('tuft', { R: 1, grad: 0.2 });
     // near legs, tucked under the belly
     leg(21.5, 15.5 + b, 0.6 * Math.sin(ph), 8.5, false);
     leg(8.5, 15.5 + b, 0.6 * Math.sin(ph + Math.PI), 8.5, false);
     // the body: one hand-drawn mass
-    s.spans(BULL_BODY, M.bull, { g: 'body', dy: b, bias: -0.05 });
+    s.spans(BULL_BODY, MB, { g: 'body', dy: b, bias: -0.05 });
     // head and muzzle (lower, nodding)
-    s.spans(BULL_HEAD, M.bull, { g: 'head', dy: hb, bias: -0.02 });
-    s.spans(BULL_MUZZLE, M.snout, { g: 'head', dy: hb, bias: -0.2 });
-    // near horn
-    // near horn: flat ivory, darker at the root, bright towards the tip
+    s.spans(BULL_HEAD, MB, { g: 'head', dy: hb, bias: -0.02 });
+    s.spans(BULL_MUZZLE, MS, { g: 'head', dy: hb, bias: -0.2 });
+    // near horn: flat, darker at the root, bright towards the tip
     BULL_HORN.forEach((r, i) =>
-        s.spans([r], M.horn, { g: 'horn', dy: hb, shade: 'flat', lum: 0.45 + i * 0.09 })
+        s.spans([r], MH, {
+            g: 'horn',
+            dy: hb,
+            shade: 'flat',
+            lum: (k.hornLum ? k.hornLum + 0.25 : 0.45) + i * 0.09
+        })
     );
-    s.px(27, 3 + hb, '#FFFBEA').px(29, 2 + hb, '#FFFBEA');
-    s.px(33, 0 + hb, '#6E5A38');
+    s.px(27, 3 + hb, MH.ramp[5]).px(29, 2 + hb, MH.ramp[5]);
+    s.px(33, 0 + hb, MH.ramp[1]);
     // shoulder muscle line and the up-candle mark
     for (const [x, y] of [
         [22, 9],
         [23, 10],
         [23, 11]
     ])
-        s.px(x, y + b, '#12B874');
-    s.px(19, 5 + b, '#7BF5A6')
-        .px(19, 6 + b, '#D8FFD0')
-        .px(19, 7 + b, '#D8FFD0')
-        .px(19, 8 + b, '#7BF5A6');
-    // face: eye under a hard brow, nostril, mouth, gold nose ring
+        s.px(x, y + b, k.line || '#12B874');
+    const [m1, m2] = k.mark || ['#7BF5A6', '#D8FFD0'];
+    const mg = k.markGlow ? { glow: m1 } : undefined;
+    s.px(19, 5 + b, m1, mg)
+        .px(19, 6 + b, m2, mg)
+        .px(19, 7 + b, m2, mg)
+        .px(19, 8 + b, m1, mg);
+    // face: eye under a hard brow, nostril, mouth, nose ring
     const y = hb;
-    s.px(28, 9 + y, '#03140F')
-        .px(29, 9 + y, '#03140F')
-        .px(30, 9 + y, '#03140F')
-        .px(31, 10 + y, '#03140F');
-    s.px(29, 10 + y, C.eyeWhite).px(30, 10 + y, C.pupil);
-    s.px(34, 13 + y, '#07322A').px(34, 14 + y, '#07322A');
-    s.px(31, 15 + y, '#0A5C45').px(32, 15 + y, '#0A5C45');
-    s.px(33, 16 + y, C.gold)
-        .px(34, 17 + y, '#B07A00')
-        .px(32, 17 + y, '#FFE9A8')
-        .px(33, 18 + y, '#B07A00');
+    if (k.eye === 'shades') {
+        // black shades: a bar across the eye with a white glint, an arm back to the ear
+        s.pxs(
+            [
+                [27, 9 + y],
+                [28, 9 + y],
+                [29, 9 + y],
+                [30, 9 + y],
+                [31, 9 + y],
+                [28, 10 + y],
+                [29, 10 + y],
+                [30, 10 + y],
+                [31, 10 + y],
+                [26, 9 + y],
+                [25, 9 + y]
+            ],
+            '#07090C'
+        );
+        s.px(29, 9 + y, '#FFFFFF').px(30, 10 + y, '#46505C');
+    } else {
+        s.px(28, 9 + y, '#03140F')
+            .px(29, 9 + y, '#03140F')
+            .px(30, 9 + y, '#03140F')
+            .px(31, 10 + y, '#03140F');
+        if (k.eye === 'laser') {
+            // a red laser eye with a beam stub out front: crypto Twitter's oldest flex
+            s.px(29, 10 + y, '#FFC9BF', { glow: C.red }).px(30, 10 + y, C.red, { glow: C.red });
+            s.px(32, 10 + y, C.red, { glow: C.red }).px(34, 10 + y, '#FF7E86', { glow: C.red });
+        } else s.px(29, 10 + y, C.eyeWhite).px(30, 10 + y, C.pupil);
+    }
+    const nose = skin ? MS.ramp[0] : '#07322A';
+    const mouth = skin ? MS.ramp[1] : '#0A5C45';
+    s.px(34, 13 + y, nose).px(34, 14 + y, nose);
+    s.px(31, 15 + y, mouth).px(32, 15 + y, mouth);
+    const [r1, r2, r3] = k.ring || [C.gold, '#B07A00', '#FFE9A8'];
+    s.px(33, 16 + y, r1)
+        .px(34, 17 + y, r2)
+        .px(32, 17 + y, r3)
+        .px(33, 18 + y, r2);
     return s.render();
 }
 
@@ -163,7 +235,19 @@ export function bull(f) {
  * half-closed lids, a wide smug mouth with brick-red lips, a pale belly and a gold candle charm on a chain.
  * Frames 0-3: a hop (crouch, launch, airborne, land). Frame 0 is also the idle sit.
  */
-export function pepe(f) {
+/** Market skins for Pepe: own skin and belly, and own details (a knit scarf, gold shades). */
+export const PEPE_SKINS = {
+    frost: { skin: M.frogFrost, belly: M.snow, lip: M.ice, scarf: true },
+    night: { skin: M.frogNight, belly: M.bellyNight, lip: M.lip, shades: true }
+};
+
+export const pepeFrost = (f) => pepe(f, PEPE_SKINS.frost);
+export const pepeNight = (f) => pepe(f, PEPE_SKINS.night);
+
+export function pepe(f, skin = null) {
+    const k = skin || {};
+    const F = k.skin || M.frog;
+    const FB = k.belly || M.frogBelly;
     const s = new PixelSprite(32, 28);
     const b = [0, -2, -4, -1][f % 4]; // body height over the ground
     const kick = [0, 2, 3, 1][f % 4]; // back feet push out behind while airborne
@@ -174,30 +258,30 @@ export function pepe(f) {
     s.auto('eyeF', { R: 1.6, grad: 0.2 });
     s.auto('eyeN', { R: 1.8, grad: 0.2 });
     // far back leg and far arm, darker, behind everything
-    s.ellipse(9.5, 20 + b, 5.2, 3.6, M.frog, { g: 'far', bias: -0.12 });
-    s.capsule(8, 22 + b, 5 - kick, 25 + Math.min(0, b + 1), 1.6, 1.2, M.frog, {
+    s.ellipse(9.5, 20 + b, 5.2, 3.6, F, { g: 'far', bias: -0.12 });
+    s.capsule(8, 22 + b, 5 - kick, 25 + Math.min(0, b + 1), 1.6, 1.2, F, {
         g: 'far',
         bias: -0.12
     });
-    s.capsule(22, 16 + b, 24, 24 + b * 0.5, 1.4, 1.1, M.frog, { g: 'far', bias: -0.14 });
+    s.capsule(22, 16 + b, 24, 24 + b * 0.5, 1.4, 1.1, F, { g: 'far', bias: -0.14 });
     // the body: a relaxed pear, belly out
-    s.ellipse(14, 17.5 + b, 8.2, 6.8, M.frog, { g: 'body', bias: -0.04 });
-    s.ellipse(17.5, 19 + b, 4.6, 4.8, M.frogBelly, { g: 'body', clip: true, bias: 0.05 });
+    s.ellipse(14, 17.5 + b, 8.2, 6.8, F, { g: 'body', bias: -0.04 });
+    s.ellipse(17.5, 19 + b, 4.6, 4.8, FB, { g: 'body', clip: true, bias: 0.05 });
     // near back leg: a big folded haunch and a long foot
-    s.ellipse(10.5, 21 + b, 5.6, 4.2, M.frog, { g: 'legs', bias: -0.02 });
-    s.capsule(9, 24 + b, 13 - kick * 1.5, 25.5 + Math.min(0, b + 2), 1.5, 1.1, M.frog, {
+    s.ellipse(10.5, 21 + b, 5.6, 4.2, F, { g: 'legs', bias: -0.02 });
+    s.capsule(9, 24 + b, 13 - kick * 1.5, 25.5 + Math.min(0, b + 2), 1.5, 1.1, F, {
         g: 'legs'
     });
-    s.box(12 - kick * 1.5, 24.6 + Math.min(0, b + 2), 4.5, 1.6, M.frogBelly, {
+    s.box(12 - kick * 1.5, 24.6 + Math.min(0, b + 2), 4.5, 1.6, FB, {
         shade: 'flat',
         lum: 0.45
     });
     // head: wide and flat-topped, thrust forward
-    s.ellipse(20.5, 11.5 + b, 9.4, 5.6, M.frog, { g: 'head' });
-    s.ellipse(22, 14.2 + b, 7.4, 2.8, M.frogBelly, { g: 'head', clip: true, bias: -0.02 });
+    s.ellipse(20.5, 11.5 + b, 9.4, 5.6, F, { g: 'head' });
+    s.ellipse(22, 14.2 + b, 7.4, 2.8, FB, { g: 'head', clip: true, bias: -0.02 });
     // eyes: bulbs on top of the head, the near one bigger
     const eye = (cx, cy, r, g) => {
-        s.circle(cx, cy + b, r, M.frog, { g });
+        s.circle(cx, cy + b, r, F, { g });
         s.ellipse(cx + 0.4, cy + 0.4 + b, r - 1, r - 1.3, M.paper, { g, clip: true, bias: 0.25 });
     };
     eye(17.5, 6.5, 3.6, 'eyeF');
@@ -211,7 +295,7 @@ export function pepe(f) {
             [18, ey - 1],
             [19, ey - 1]
         ],
-        '#2F7A2E'
+        F.ramp[2]
     );
     s.pxs(
         [
@@ -221,7 +305,7 @@ export function pepe(f) {
             [25, ey - 1],
             [26, ey - 1]
         ],
-        '#2F7A2E'
+        F.ramp[2]
     );
     s.pxs(
         [
@@ -233,7 +317,7 @@ export function pepe(f) {
             [24, ey - 2],
             [25, ey - 2]
         ],
-        '#4FAA3E'
+        F.ramp[3]
     );
     s.pxs(
         [
@@ -247,7 +331,7 @@ export function pepe(f) {
             [25, ey],
             [26, ey]
         ],
-        '#1C4A1E'
+        F.ramp[1]
     );
     // pupils, glancing sideways at the chart
     s.px(19, ey + 1, C.pupil).px(19, ey + 2, C.pupil);
@@ -257,14 +341,45 @@ export function pepe(f) {
     s.px(25, ey + 2, '#F4F7FA');
     // the mouth: one long smug line with a lower lip, the back corner curled up
     const my = Math.round(13 + b);
-    s.capsule(16.5, my + 1, 27, my + 0.8, 0.7, 0.8, M.lip, { g: 'lip', shade: 'flat', lum: 0.55 });
+    s.capsule(16.5, my + 1, 27, my + 0.8, 0.7, 0.8, k.lip || M.lip, {
+        g: 'lip',
+        shade: 'flat',
+        lum: 0.55
+    });
     for (let x = 16; x <= 28; x++) s.px(x, my, '#1A0605');
     s.px(15, my - 1, '#1A0605').px(14, my - 2, '#1A0605');
     // nostrils
-    s.px(27, 9 + b, '#0C2210').px(29, 9 + b, '#0C2210');
+    s.px(27, 9 + b, F.ramp[0]).px(29, 9 + b, F.ramp[0]);
     // near arm, resting on the belly-side knee, three-fingered hand
-    s.capsule(18, 17 + b, 20.5, 23.5 + b * 0.5, 1.6, 1.3, M.frog, { g: 'legs' });
-    s.patch(19, Math.round(24 + b * 0.5), ['ABA'], { A: '#86D25E', B: '#4FAA3E' });
+    s.capsule(18, 17 + b, 20.5, 23.5 + b * 0.5, 1.6, 1.3, F, { g: 'legs' });
+    s.patch(19, Math.round(24 + b * 0.5), ['ABA'], { A: F.ramp[4], B: F.ramp[3] });
+    if (k.shades) {
+        // Night Shift Frog: gold-rimmed shades over both lids, lenses glowing faint violet, a glint
+        const sy = ey - 1;
+        for (let x = 15; x <= 27; x++) s.px(x, sy, C.gold);
+        for (const x0 of [16, 22]) {
+            const w = x0 === 16 ? 4 : 5;
+            for (let dx = 0; dx < w; dx++) {
+                s.px(x0 + dx, sy + 1, '#1A1030', { glow: '#6A4CAA' });
+                s.px(x0 + dx, sy + 2, '#2C1A4A', { glow: '#6A4CAA' });
+                s.px(x0 + dx, sy + 3, '#B07A00');
+            }
+            s.px(x0 + w, sy + 1, '#B07A00').px(x0 + w, sy + 2, '#B07A00');
+        }
+        s.px(23, sy + 1, '#FFF6D6').px(17, sy + 1, '#FFE08A');
+    }
+    if (k.scarf) {
+        // Frost Frog: a red knit scarf round the neck, one end hanging down the chest
+        const sy = Math.round(15 + b);
+        s.capsule(11.5, sy, 25, sy + 0.5, 1.4, 1.4, M.bear, { g: 'scarf', bias: 0.05 });
+        s.auto('scarf', { R: 1.2, grad: 0.2 });
+        s.capsule(14, sy + 1, 13, sy + 5, 1.1, 1.1, M.bear, { g: 'scarf', bias: -0.05 });
+        for (let x = 13; x <= 24; x += 2) s.px(x, sy, '#FFC9BF');
+        s.px(12, sy + 6, '#FFFFFF')
+            .px(13, sy + 6, '#FFFFFF')
+            .px(14, sy + 6, '#FFFFFF');
+        return s.render();
+    }
     // our own detail: a gold chain with a little green-candle charm
     const cy = Math.round(16 + b);
     s.pxs(

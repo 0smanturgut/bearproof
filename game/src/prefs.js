@@ -25,7 +25,8 @@ export const DEFAULT_PREFS = Object.freeze({
     nameAsked: false, // the board-name box shows after the first ranked run, then stays out of the way
     payoutAddress: '', // public Solana address for the daily prize, also stored server-side for payout only
     character: 'bull', // CHARACTERS id; the run log records it
-    achievements: {} // badge id -> the UTC date it unlocked (achievements.js)
+    achievements: {}, // badge id -> the UTC date it unlocked (achievements.js)
+    profile: null // lifetime stats, level, CLOUT and the Market's cosmetics (profile.js normalizes it)
 });
 
 let memory = null;

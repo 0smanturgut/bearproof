@@ -5,8 +5,12 @@
  */
 
 import { ICONS, bakeIcon, bakeSprite } from './art/sprites.js';
-import { PASSIVES, WEAPONS } from './sim/content.js';
+import { CHARACTERS, PASSIVES, STAGES, WEAPONS } from './sim/content.js';
 import { fmtNum, fmtTime } from './format.js';
+import { ETERNAL_BEAR, MARKET, bearHp, levelForXp } from './profile.js';
+
+const STAGE_NAME = Object.fromEntries(Object.values(STAGES).map((s) => [s.id, s.name]));
+const reduced = () => !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
 export { fmtNum, fmtTime };
 
@@ -54,7 +58,8 @@ export class UI {
             'screenBoard',
             'screenSettings',
             'screenShare',
-            'screenGuide'
+            'screenGuide',
+            'screenMarket'
         ];
         this.hud = {
             level: $('hLevel'),
@@ -366,7 +371,245 @@ export class UI {
         $('todayTop').textContent = text || '';
     }
 
-    showOver(info) {
+    /** The title screen's profile strip: player level, its bar and the CLOUT balance; it opens the Market. */
+    profileStrip(profile) {
+        const lv = levelForXp(profile.xp);
+        $('btnProfile').hidden = false;
+        $('psLevel').textContent = lv.level;
+        $('psXp').textContent = `${fmtNum(lv.into)} / ${fmtNum(lv.need)} XP`;
+        $('psBar').style.width = `${Math.round((lv.into / lv.need) * 100)}%`;
+        $('psClout').textContent = fmtNum(profile.clout);
+        $('btnProfile').setAttribute(
+            'aria-label',
+            `Player level ${lv.level}, ${profile.clout} CLOUT. Open the Market.`
+        );
+    }
+
+    /**
+     * The receipt's CLOUT block: each line counts up, then the total, then the level bar fills (a level-up pops
+     * it and pays its bonus), then the Eternal Bear line. Instant with reduced motion.
+     */
+    cloutReceipt(banked, sounds = {}) {
+        const box = $('overClout');
+        clearTimeout(this._cloutTimer);
+        if (!banked) {
+            box.hidden = true;
+            return;
+        }
+        box.hidden = false;
+        box.classList.remove('lvup');
+        const { payout, before, after, levelUps, levelReward, bear, profile } = banked;
+        const list = $('cloutLines');
+        list.innerHTML = '';
+        const rows = payout.lines.map((l) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${esc(l.label)}${l.detail ? ` <small>${esc(l.detail)}</small>` : ''}</span><b>+0</b>`;
+            list.appendChild(li);
+            return { li, b: li.querySelector('b'), v: l.v };
+        });
+        if (levelReward) {
+            const li = document.createElement('li');
+            li.className = 'lv';
+            li.innerHTML = `<span>LEVEL UP <small>LV ${levelUps[levelUps.length - 1]}</small></span><b>+0</b>`;
+            list.appendChild(li);
+            rows.push({ li, b: li.querySelector('b'), v: levelReward, level: true });
+        }
+        if (bear.reward) {
+            const li = document.createElement('li');
+            li.className = 'bear';
+            li.innerHTML = `<span>ETERNAL BEAR FELLED</span><b>+0</b>`;
+            list.appendChild(li);
+            rows.push({ li, b: li.querySelector('b'), v: bear.reward, bear: true });
+        }
+        const total = $('cloutTotal');
+        const lvEl = $('cloutLv');
+        const bar = $('cloutBar');
+        const bal = $('cloutBal');
+        const startBal = profile.clout - payout.total - levelReward - bear.reward;
+        const setBar = (lv) => {
+            lvEl.textContent = `LV ${lv.level}`;
+            bar.style.width = `${Math.round((lv.into / lv.need) * 100)}%`;
+        };
+        const bearLine = () => {
+            const el = $('cloutBear');
+            el.hidden = !bear.damage && !bear.felled;
+            const left = bear.hp - bear.after;
+            el.textContent = bear.felled
+                ? `${ETERNAL_BEAR.name.toUpperCase()} FELLED. It's back with ${fmtNum(bear.hp)} HP.`
+                : `${fmtNum(bear.damage)} boss damage hit ${ETERNAL_BEAR.name}: ${fmtNum(left)} HP left.`;
+        };
+        let sum = 0;
+        if (sounds.calm || reduced()) {
+            for (const r of rows) r.b.textContent = `+${fmtNum(r.v)}`;
+            sum = rows.reduce((a, r) => a + r.v, 0);
+            total.textContent = `+${fmtNum(sum)}`;
+            bal.textContent = `${fmtNum(profile.clout)} CLOUT`;
+            setBar(after);
+            if (levelUps.length) box.classList.add('lvup');
+            bearLine();
+            return;
+        }
+        setBar(before);
+        bal.textContent = `${fmtNum(startBal)} CLOUT`;
+        total.textContent = '+0';
+        $('cloutBear').hidden = true;
+        let i = 0;
+        let shown = 0;
+        const STEPS = 10;
+        let k = 0;
+        const step = () => {
+            if ($('screenOver').hidden) return; // PLAY AGAIN mid count-up: stop ticking into the new run
+            const r = rows[i];
+            if (!r) {
+                bearLine();
+                return;
+            }
+            if (k === 0) {
+                r.li.classList.add('on');
+                if (r.level) {
+                    setBar(after);
+                    box.classList.add('lvup');
+                    sounds.levelUp?.();
+                }
+                if (r.bear) sounds.bear?.();
+            }
+            k++;
+            const v = Math.round((r.v * k) / STEPS);
+            r.b.textContent = `+${fmtNum(v)}`;
+            total.textContent = `+${fmtNum(shown + v)}`;
+            bal.textContent = `${fmtNum(startBal + shown + v)} CLOUT`;
+            if (!r.level && !r.bear) {
+                // the bar fills as the run's CLOUT (its XP) comes in
+                const done = Math.min(shown + v, payout.total);
+                setBar(levelForXp(profile.xp - payout.total + done));
+            }
+            if (k % 2 === 0 && r.v) sounds.tick?.();
+            if (k >= STEPS) {
+                shown += r.v;
+                i++;
+                k = 0;
+                this._cloutTimer = setTimeout(step, 160);
+            } else this._cloutTimer = setTimeout(step, 28);
+        };
+        this._cloutTimer = setTimeout(step, 450);
+    }
+
+    /**
+     * The Market: tabs for skins, trails, finales and the profile's stats. `state` is { profile, tab };
+     * handlers: buy(id), equip(id), tab(id).
+     */
+    showMarket(profile, tab, handlers) {
+        const tabs = [
+            ['skins', 'Skins', 'Redrawn looks for the bull and Pepe. Same hitbox, same stats.'],
+            ['trail', 'Trails', 'What the bull leaves behind while it runs.'],
+            ['finale', 'Finales', 'How a run goes out on the game-over beat.'],
+            ['stats', 'Profile', 'Everything this device remembers about you.']
+        ];
+        const current = tabs.find((t) => t[0] === tab) || tabs[0];
+        $('marketBal').textContent = fmtNum(profile.clout);
+        const tabEl = $('marketTabs');
+        tabEl.innerHTML = '';
+        for (const [id, label] of tabs) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'guide-tab';
+            b.setAttribute('role', 'tab');
+            b.setAttribute('aria-selected', String(id === current[0]));
+            b.innerHTML = `<span>${esc(label.toUpperCase())}</span>`;
+            b.addEventListener('click', () => handlers.tab(id));
+            tabEl.appendChild(b);
+        }
+        $('marketIntro').textContent = current[2];
+        const list = $('marketList');
+        list.innerHTML = '';
+        list.dataset.tab = current[0];
+        if (current[0] === 'stats') this._marketStats(list, profile);
+        else {
+            const items = MARKET.filter((i) =>
+                current[0] === 'skins' ? i.slot.startsWith('skin:') : i.slot === current[0]
+            );
+            for (const item of items) {
+                const owned = profile.owned.includes(item.id);
+                const on = profile.equipped[item.slot] === item.id;
+                const li = document.createElement('li');
+                li.className = 'guide-entry market-item' + (on ? ' on' : '');
+                const who = item.slot.startsWith('skin:')
+                    ? CHARACTERS[item.slot.slice(5)]?.name.replace(/^The /, '').toUpperCase()
+                    : '';
+                const short = !owned && profile.clout < item.price;
+                const label = on ? 'EQUIPPED' : owned ? 'EQUIP' : `${fmtNum(item.price)} CLOUT`;
+                li.innerHTML = `
+                    <div class="guide-art"><canvas aria-hidden="true"></canvas></div>
+                    <div class="guide-body">
+                        <b class="guide-name">${esc(item.name)}</b>
+                        ${who ? `<span class="guide-tag">${esc(who)}</span>` : ''}
+                        <p class="guide-text">${esc(item.text)}</p>
+                    </div>
+                    <button type="button" class="btn market-btn ${on ? 'is-on' : owned ? 'is-owned' : short ? 'is-short' : 'is-buy'}" ${on ? 'disabled' : ''}>${label}</button>`;
+                paintIcon(
+                    li.querySelector('canvas'),
+                    item.sprite || item.icon,
+                    item.sprite ? 2 : 3
+                );
+                const btn = li.querySelector('button');
+                btn.setAttribute(
+                    'aria-label',
+                    `${item.name}${who ? ` for ${who}` : ''}: ${on ? 'equipped' : owned ? 'equip' : `buy for ${item.price} CLOUT`}`
+                );
+                btn.addEventListener('click', () =>
+                    owned ? handlers.equip(item.id) : handlers.buy(item.id, btn)
+                );
+                list.appendChild(li);
+            }
+        }
+        if ($('screenMarket').hidden) {
+            list.scrollTop = 0;
+            this.show('screenMarket');
+        }
+    }
+
+    _marketStats(list, p) {
+        const lv = levelForXp(p.xp);
+        const rows = [
+            ['Player level', `LV ${lv.level} · ${fmtNum(lv.into)} / ${fmtNum(lv.need)} XP`],
+            ['Runs', fmtNum(p.runs)],
+            ['Time in the market', fmtTime(p.timeMs)],
+            ['Bears rekt', fmtNum(p.kills)],
+            ['Bosses rekt', fmtNum(p.bossKills)],
+            ['Bear markets ended', fmtNum(p.wins)],
+            ['AI bounties cleared', fmtNum(p.bounties)],
+            ['CLOUT earned, all time', fmtNum(p.earned)]
+        ];
+        for (const [id, b] of Object.entries(p.best.character))
+            rows.push([
+                `Best as ${CHARACTERS[id]?.name.replace(/^The /, '') || id}`,
+                `${fmtNum(b.score)} · ${fmtTime(b.timeMs)}`
+            ]);
+        for (const [id, b] of Object.entries(p.best.stage))
+            rows.push([
+                `Best on ${STAGE_NAME[id] || id}`,
+                `${fmtNum(b.score)} · ${fmtTime(b.timeMs)}`
+            ]);
+        const hp = bearHp(p.bear.tier);
+        const left = hp - p.bear.damage;
+        const bear = document.createElement('li');
+        bear.className = 'eternal-bear';
+        bear.innerHTML = `
+            <div class="eb-head"><canvas aria-hidden="true"></canvas><div>
+                <b class="guide-name">${esc(ETERNAL_BEAR.name.toUpperCase())}</b><span class="guide-tag">TIER ${p.bear.tier}</span>
+                <p class="guide-text">Every boss hit in every run drains this bar. Fell it for CLOUT; it comes back bigger. Felled ${fmtNum(p.bear.felled)}×.</p>
+            </div></div>
+            <div class="bar bar-boss"><i style="width:${Math.max(0, (left / hp) * 100)}%"></i></div>
+            <p class="eb-hp">${fmtNum(left)} / ${fmtNum(hp)} HP</p>`;
+        paintIcon(bear.querySelector('canvas'), 'bear_market', 1);
+        list.appendChild(bear);
+        const li = document.createElement('li');
+        li.className = 'market-stats';
+        li.innerHTML = `<dl>${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+        list.appendChild(li);
+    }
+
+    showOver(info, sounds) {
         const { summary, title, sub, buildLine } = info;
         const t = $('overTitle');
         t.textContent = title;
@@ -383,6 +626,7 @@ export class UI {
         $('nameForm').hidden = true;
         $('turnstileHint').hidden = true;
         this.overBounty(info.bounty || null);
+        this.cloutReceipt(info.banked || null, sounds);
         const badges = info.badges || [];
         $('overBadges').hidden = !badges.length;
         $('overBadges').textContent = badges.length

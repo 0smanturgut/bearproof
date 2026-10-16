@@ -1,0 +1,267 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* Build #24, Honey Trap, as a national-park sign that gets the rule backwards. devlog/build-24.md: a
+               jar lobbed every 3.2 s leaves a honey puddle for 4 s; bears in it move 55% slower, and a grizzly
+               that walks in sits down and eats ("NOM NOM"); bosses don't stick. The grizzly and the jar are the
+               game's own sprites; the sign, the posts and the puddle are drawn here. */
+            @font-face {
+                font-family: 'Jersey 10';
+                src: url('/hq/assets/fonts/jersey-10.woff2') format('woff2');
+            }
+            @font-face {
+                font-family: 'JetBrains Mono';
+                src: url('/hq/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                width: 1200px;
+                height: 1500px;
+                overflow: hidden;
+                background: #0b1a12;
+                color: #f4f8fb;
+                font-family: 'Jersey 10', monospace;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .sky {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 70% 40% at 50% 30%,
+                        rgba(245, 197, 66, 0.18),
+                        transparent 70%
+                    ),
+                    linear-gradient(180deg, #16301f 0%, #0b1a12 55%, #07110c 100%);
+            }
+            #trees {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .top {
+                position: absolute;
+                left: 64px;
+                right: 64px;
+                top: 60px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                font-size: 66px;
+                line-height: 1;
+                letter-spacing: 0.04em;
+            }
+            .pill {
+                padding: 2px 24px 4px;
+                background: #f5c542;
+                color: #05080f;
+                font-size: 56px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                box-shadow:
+                    0 0 0 4px #05080f,
+                    0 0 0 8px #f5c542,
+                    0 0 40px rgba(245, 197, 66, 0.5);
+            }
+            /* the sign: brown routed wood, cream letters, two posts */
+            .post {
+                position: absolute;
+                top: 650px;
+                width: 46px;
+                height: 520px;
+                background: linear-gradient(90deg, #4a2c14, #6b4423 50%, #3a2210);
+                box-shadow: inset 0 0 0 4px #1e1208;
+            }
+            .sign {
+                position: absolute;
+                left: 110px;
+                right: 110px;
+                top: 186px;
+                height: 500px;
+                padding: 40px 50px;
+                background:
+                    repeating-linear-gradient(
+                        180deg,
+                        rgba(0, 0, 0, 0.1) 0 3px,
+                        transparent 3px 38px
+                    ),
+                    linear-gradient(180deg, #7a4a22, #5a3416);
+                border-radius: 18px;
+                box-shadow:
+                    inset 0 0 0 10px #3a2210,
+                    inset 0 0 0 16px #c9a46a,
+                    0 24px 0 rgba(0, 0, 0, 0.45);
+                text-align: center;
+                color: #fff0d0;
+            }
+            .sign .k {
+                font:
+                    400 30px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.32em;
+                color: #e8c890;
+            }
+            .sign .big {
+                margin-top: 22px;
+                font-size: 166px;
+                line-height: 0.86;
+                text-shadow: 6px 6px 0 #3a2210;
+            }
+            .sign .big s {
+                position: relative;
+                text-decoration: none;
+                color: #e8c890;
+                opacity: 0.85;
+            }
+            .sign .big s::after {
+                content: '';
+                position: absolute;
+                left: -10px;
+                right: -10px;
+                top: 46%;
+                height: 18px;
+                background: #ff3b5c;
+                transform: rotate(-6deg);
+                box-shadow: 4px 4px 0 #3a2210;
+            }
+            .sign .big b {
+                font-weight: 400;
+                color: #ffd36a;
+            }
+            .sign .k2 {
+                margin-top: 30px;
+                font-size: 66px;
+                color: #e8c890;
+            }
+            #scene {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .nom {
+                position: absolute;
+                left: 650px;
+                top: 880px;
+                transform: rotate(8deg);
+                font-size: 120px;
+                line-height: 1;
+                color: #ffd36a;
+                text-shadow:
+                    6px 6px 0 #3a2210,
+                    0 0 40px rgba(255, 211, 106, 0.6);
+            }
+            .small {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 1420px;
+                text-align: center;
+                font:
+                    400 24px/1 'JetBrains Mono',
+                    monospace;
+                letter-spacing: 0.14em;
+                color: #b8c4d2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="sky"></div>
+        <canvas id="trees" width="1200" height="1500"></canvas>
+        <div class="post" style="left: 260px"></div>
+        <div class="post" style="left: 894px"></div>
+        <div class="sign">
+            <div class="k">BEAR MARKET NATIONAL PARK</div>
+            <div class="big"><s>DON'T</s><br /><b>FEED THE BEARS</b></div>
+            <div class="k2">HONEY TRAP · NOW IN THE GAME</div>
+        </div>
+        <canvas id="scene" width="1200" height="1500"></canvas>
+        <div class="nom">NOM NOM</div>
+        <div class="top">
+            <div class="brand"><canvas id="mark"></canvas>BEARPROOF</div>
+            <div class="pill">BUILD #24</div>
+        </div>
+        <div class="small">GRIZZLIES SIT DOWN AND EAT · EVERY BEAR IN THE HONEY CRAWLS</div>
+        <script type="module">
+            import { put } from '/scripts/og/x/x.js';
+            const $ = (id) => document.getElementById(id);
+            await document.fonts.ready;
+            await Promise.all(
+                ["40px 'Jersey 10'", "40px 'JetBrains Mono'"].map((f) => document.fonts.load(f))
+            );
+            put($('mark'), 'emblem', 2000, { max: 4, glow: false });
+            // pine trees behind the sign
+            const tc = $('trees').getContext('2d');
+            let seed = 24;
+            const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+            for (let i = 0; i < 16; i++) {
+                const x = rnd() * 1200,
+                    h = 260 + rnd() * 260,
+                    y = 1060 - h * 0.2,
+                    w = h * 0.42;
+                tc.fillStyle = `rgba(${10 + rnd() * 10},${40 + rnd() * 25},${24 + rnd() * 10},${0.55 + rnd() * 0.35})`;
+                for (let s = 0; s < 4; s++) {
+                    const sy = y - h + (s * h) / 4,
+                        sw = w * (0.45 + s * 0.2);
+                    tc.beginPath();
+                    tc.moveTo(x, sy);
+                    tc.lineTo(x - sw / 2, sy + h / 3);
+                    tc.lineTo(x + sw / 2, sy + h / 3);
+                    tc.fill();
+                }
+            }
+            // the ground, a honey puddle, the jar and the grizzly eating in it
+            const c = $('scene').getContext('2d');
+            c.imageSmoothingEnabled = false;
+            c.fillStyle = '#122a1a';
+            c.fillRect(0, 1150, 1200, 350);
+            c.fillStyle = 'rgba(0,0,0,0.25)';
+            for (let i = 0; i < 60; i++)
+                c.fillRect(Math.round(rnd() * 1200), 1150 + Math.round(rnd() * 350), 12, 6);
+            // a lumpy pixel puddle
+            const P = 14,
+                cx = 560,
+                cy = 1200;
+            for (let y = -6; y <= 6; y++)
+                for (let x = -22; x <= 22; x++) {
+                    const r = (x * x) / 484 + (y * y) / 36 + (rnd() - 0.5) * 0.18;
+                    if (r > 1) continue;
+                    c.fillStyle = r > 0.8 ? '#b8860b' : r > 0.45 ? '#e8a020' : '#ffc23a';
+                    c.fillRect(cx + x * P, cy + y * P, P, P);
+                }
+            c.fillStyle = 'rgba(255,255,255,0.7)';
+            for (const [x, y] of [
+                [-12, -3],
+                [6, -2],
+                [14, 1],
+                [-4, 2]
+            ])
+                c.fillRect(cx + x * P, cy + y * P, P, P / 2);
+            const stamp = (id, x, y, k, flip) => {
+                const t = document.createElement('canvas');
+                put(t, id, 2000, { max: k, glow: false });
+                c.save();
+                c.translate(x, y);
+                if (flip) c.scale(-1, 1);
+                c.drawImage(t, -t.width / 2, -t.height);
+                c.restore();
+            };
+            stamp('grizzly', 560, 1222, 11, false);
+            stamp('honey_jar', 300, 1236, 9, false);
+            window.ready = true;
+        </script>
+    </body>
+</html>

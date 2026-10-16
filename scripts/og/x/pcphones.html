@@ -5,8 +5,9 @@
         <style>
             /* 16 Oct 2026, by the operator's statement: developer accounts for the App Store, Google Play and Steam
                are set up, and the game goes to all three once it is polished a bit more. Steam (a PC version) is
-               the new part. Nothing is submitted, so the image gives no date and draws no store logo or badge; the
-               stores are named in plain text. The screens are real play on the live build: the monitor is a
+               the new part, and the stores come after the game gets levels, more characters and an in-game shop.
+               Nothing is submitted and the image gives no date. The three store marks are simple drawings made
+               here, not the stores' official badge files; the operator asked for the logos (16 Oct). The screens are real play on the live build: the monitor is a
                1280 x 720 desktop viewport (seed 35 at 7:03, the autopilot, steam-shot.jpg), the phones are the
                390 x 844 shots from 14 Oct (store-shot-a.jpg, store-shot-b.jpg). Monitor and phones drawn here. */
             @font-face {
@@ -192,11 +193,14 @@
                 top: 1290px;
                 display: flex;
                 justify-content: center;
-                gap: 22px;
+                gap: 18px;
             }
             .stores div {
                 position: relative;
-                padding: 8px 30px 12px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 10px 26px 12px 14px;
                 font-size: 60px;
                 line-height: 1;
                 background: #0e1420;
@@ -250,11 +254,41 @@
             <div class="scr"><img src="/scripts/og/x/store-shot-b.jpg" alt="" /></div>
         </div>
         <div class="stores">
-            <div>APP STORE</div>
-            <div>GOOGLE PLAY</div>
-            <div class="new">STEAM<i>NEW</i></div>
+            <div>
+                <svg viewBox="0 0 64 64" width="58" height="58">
+                    <defs>
+                        <linearGradient id="as" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#1ec6fb" />
+                            <stop offset="1" stop-color="#1e6ff1" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="64" height="64" rx="14" fill="url(#as)" />
+                    <g stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none">
+                        <path d="M24 46 L36 22" />
+                        <path d="M40 46 L28 22" />
+                        <path d="M18 38 H46" />
+                    </g></svg
+                >APP STORE
+            </div>
+            <div>
+                <svg viewBox="0 0 64 64" width="58" height="58">
+                    <path d="M12 6 L40 32 L12 58 Z" fill="#00d26a" />
+                    <path d="M12 6 L49 27 L40 32 Z" fill="#00a2ff" />
+                    <path d="M40 32 L49 27 L58 32 L49 37 Z" fill="#ffc400" />
+                    <path d="M12 58 L40 32 L49 37 Z" fill="#ff3a44" /></svg
+                >GOOGLE PLAY
+            </div>
+            <div class="new">
+                <svg viewBox="0 0 64 64" width="58" height="58">
+                    <circle cx="32" cy="32" r="30" fill="#1b2838" />
+                    <circle cx="40" cy="25" r="10" fill="none" stroke="#fff" stroke-width="5" />
+                    <circle cx="40" cy="25" r="4" fill="#fff" />
+                    <path d="M33 30 L18 40" stroke="#fff" stroke-width="7" stroke-linecap="round" />
+                    <circle cx="19" cy="41" r="6" fill="#fff" /></svg
+                >STEAM<i>NEW</i>
+            </div>
         </div>
-        <div class="small">DEVELOPER ACCOUNTS: READY · REAL GAMEPLAY ON EVERY SCREEN</div>
+        <div class="small">FIRST: LEVELS · NEW CHARACTERS · A SHOP · THEN THE STORES</div>
         <script type="module">
             import { put, ready } from '/scripts/og/x/x.js';
             await document.fonts.ready;

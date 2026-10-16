@@ -13,6 +13,9 @@ stores are named in plain text. Screens: real play on the live build, a 1280 x 7
 
 Image: `img/158-coming-to-steam.png`.
 
+Not posted: the first draft below was replaced the same day (Osman: the stores come after the game gets levels,
+characters, a shop and the like, not in its current form; logos are fine). The posted one is in the next section.
+
 🚨 BIG NEWS: BEARPROOF IS COMING TO STEAM 🚨
 
 You already knew about the App Store and Google Play. 📱
@@ -28,3 +31,31 @@ All three are set up. Now the game gets a little more polish, and then it goes l
 The same game that started as a free browser game, built in public, a new build every single night.
 
 Phone. Tablet. PC. The bull is coming to all of them. 🐂
+
+## Posted: coming to Steam, after the big-game systems
+
+Image: `img/159-coming-to-steam-logos.png`: the same layout with the three store marks drawn in (simple drawings
+made in the template, not the stores' official badge files) and the roadmap under them.
+
+🚨 BIG NEWS: BEARPROOF IS COMING TO STEAM 🚨
+
+You knew about the App Store and Google Play. 📱
+
+What you didn't know: BEARPROOF is getting a PC version too. 🖥️
+
+✅ App Store developer account: ready
+✅ Google Play developer account: ready
+✅ Steam developer account: ready
+
+But it's not going there like this.
+
+Before it lands on any store, it gets the systems the big games have:
+
+📈 Levels and progression
+🐂 New characters to unlock
+🛒 An in-game shop
+…and more on the way.
+
+Then App Store. Then Google Play. Then Steam. 🚀
+
+Same as always: built in public, one build every night. Watch it happen. 🐂

@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="color-scheme" content="dark" />
-        <meta name="theme-color" content="#05070a" />
+        <meta name="theme-color" content="#06080b" />
         <title>The bear market · BEARPROOF</title>
         <meta
             name="description"
@@ -39,32 +39,30 @@
     </head>
     <body class="page">
         <a class="skip" href="#main">Skip to content</a>
-        <header class="nav solid" id="nav">
+        <header class="nav">
             <div class="nav-in wrap">
                 <a class="brand" href="/" aria-label="BEARPROOF, home">
-                    <img src="/assets/bull.svg" alt="" width="30" height="30" />
+                    <img src="/assets/bull.svg" alt="" width="28" height="28" />
                     <span>BEARPROOF</span>
                 </a>
                 <nav class="nav-links" aria-label="Site">
                     <a href="/#how">How it works</a>
                     <a href="/#vote">Vote</a>
                     <a href="/#challenge">Daily</a>
-                    <a href="/#build">Builds</a>
+                    <a href="/#build">Patch notes</a>
                     <a href="/#coin">$BPROOF</a>
                     <a href="/receipts">Receipts</a>
-                    <a href="/live" class="nav-live"><i aria-hidden="true"></i>Live</a>
+                    <a href="/live" class="nav-live">Live</a>
                 </nav>
-                <div class="nav-cta">
-                    <a class="btn-play sm" href="/play">Play</a>
-                </div>
+                <a class="nav-back" href="/">Home</a>
+                <a class="btn btn-primary btn-sm nav-play" href="/play">Play</a>
             </div>
         </header>
 
         <main id="main" class="wrap">
             <header class="page-h">
-                <p class="eyebrow">The enemies</p>
-                <h1>Meet the <span class="r">bear market.</span></h1>
-                <p class="sec-sub" id="bearsSub">
+                <h1>The bear market</h1>
+                <p class="lede" id="bearsSub">
                     Everything that wants your bull liquidated, read straight from the code of the
                     live build. The AI draws every one of them in code, and it keeps adding more.
                 </p>
@@ -85,17 +83,17 @@
                 <ul class="cast mobs-l" id="mobList"></ul>
             </section>
 
-            <section class="sec-s bears-cta">
-                <h2 class="h2s">Think you can outlast them?</h2>
-                <a class="btn-play" href="/play">PLAY NOW</a>
-            </section>
+            <div class="page-cta panel green">
+                <p>Think you can outlast them?</p>
+                <a class="btn btn-primary" href="/play">Play now</a>
+            </div>
         </main>
 
         <footer class="foot">
-            <div class="wrap">
+            <div class="wrap foot-in">
                 <div class="foot-top">
                     <a class="brand" href="/" aria-label="BEARPROOF, home">
-                        <img src="/assets/bull.svg" alt="" width="28" height="28" loading="lazy" />
+                        <img src="/assets/bull.svg" alt="" width="24" height="24" loading="lazy" />
                         <span>BEARPROOF</span>
                     </a>
                     <nav class="foot-links" aria-label="Footer">
@@ -103,14 +101,19 @@
                         <a href="/play">Play</a>
                         <a href="/live">Watch live</a>
                         <a href="/receipts">Receipts</a>
-                        <a href="https://x.com/Bearproofapp_" rel="noopener">X @Bearproofapp_</a>
+                        <a href="/bears">The enemies</a>
+                        <a href="/api/ledger">Ledger JSON</a>
+                        <a href="/api/onchain">SQD view JSON</a>
+                        <a href="https://x.com/Bearproofapp_" rel="noopener">X</a>
                         <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
                     </nav>
                 </div>
-                <p class="foot-crow">
-                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project. BEARPROOF is
-                    product 001 of CrowLab, Osman Turgut's lab where AI agents build and run the
-                    products.
+                <p>
+                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project: BEARPROOF is
+                    product 001 of Osman Turgut's lab, where AI agents build and run the products.
+                    The independent on-chain check is powered by
+                    <a href="https://sqd.dev" rel="noopener">SQD Network</a>. $BPROOF is not an
+                    investment and is never required to play, vote or win.
                 </p>
             </div>
         </footer>

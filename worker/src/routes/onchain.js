@@ -47,7 +47,7 @@ export async function onchain(env) {
             note: r.failed
                 ? 'failed transaction: only its network fee moved'
                 : dust
-                  ? `under ${units(String(DUST_LAMPORTS), 9)} SOL from an unknown sender: the ledger doesn't list dust (often spam)`
+                  ? `under ${units(String(DUST_LAMPORTS), 9)} SOL from a wallet that isn't a known fee source: the ledger leaves this dust out by rule`
                   : null
         };
     });

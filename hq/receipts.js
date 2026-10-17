@@ -61,9 +61,7 @@ function toast(text) {
 function wallet(key, addr, bal) {
     const el = $(`[data-wallet="${key}"]`);
     if (!el) return;
-    if (isNum(bal))
-        $('.rc-v', el).innerHTML =
-            `${bal.toFixed(3)}<small style="font-size:.5em;color:var(--muted)"> SOL</small>`;
+    if (isNum(bal)) $('.stat-v', el).innerHTML = `${bal.toFixed(3)}<small>SOL</small>`;
     if (!addr || !B58.test(addr)) return;
     $('.w-addr', el).textContent = addr;
     const go = $('.w-go', el);
@@ -218,7 +216,7 @@ async function sqd() {
                 { class: 'sqd-chip' },
                 h(
                     'span',
-                    { class: 'rc-k' },
+                    null,
                     `${WALLET[t.wallet] || t.wallet} · ${t.asset === 'SOL' ? 'SOL' : '$' + t.asset} · 24 h`
                 ),
                 h(
@@ -236,18 +234,18 @@ async function sqd() {
     if (!(d.last24h || []).length)
         sum.append(h('p', { class: 'fine' }, 'No moves in the last 24 hours yet.'));
     body.textContent = '';
+    let dustNote = null;
     for (const m of d.moves) {
         const ledger = m.inLedger
             ? h('span', { class: 'mk m' }, '✓ listed')
             : m.note
               ? h(
                     'span',
-                    { class: 'sqd-note' },
-                    h('span', { class: 'mk' }, 'not listed'),
-                    ' ',
-                    m.note
+                    { class: 'mk', title: m.note },
+                    /dust/.test(m.note) ? 'dust · left out by rule *' : 'failed tx · fee only'
                 )
               : h('span', { class: 'mk e' }, 'not listed');
+        if (m.note && /dust/.test(m.note)) dustNote = m.note;
         body.append(
             h(
                 'tr',
@@ -286,6 +284,15 @@ async function sqd() {
     ]
         .filter(Boolean)
         .join(' · ');
+    if (dustNote)
+        $('#sqdMeta').prepend(
+            h(
+                'span',
+                { class: 'sqd-legend' },
+                `* ${dustNote[0].toUpperCase()}${dustNote.slice(1)}.`
+            ),
+            h('br')
+        );
 }
 
 async function boot() {

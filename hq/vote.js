@@ -419,12 +419,12 @@
                 fill.style.height = `${live ? Math.min(100, o.share || 0) : 0}%`;
             })
         );
-        if (live) {
+        if (live && poll.status === 'open') {
             const mine = isOpen() && myVote() === o.id;
             if (mine) li.classList.add('mine');
             const b = el(
                 'button',
-                'btn-solid',
+                'btn btn-primary btn-sm btn-block',
                 poll.status !== 'open'
                     ? mine
                         ? 'Your vote'
@@ -455,15 +455,15 @@
             : poll.status === 'open'
               ? `Open · closes ${hhmm(poll.closesAt)} UTC${left > 0 ? ` (in ${Math.floor(left / 3600000)}h ${Math.floor((left % 3600000) / 60000)}m)` : ''}`
               : 'Closed for today';
-        flag.className = 'tag ' + (poll.status === 'open' ? 'live' : 'gold');
+        flag.className = 'tag ' + (poll.status === 'open' ? 'live' : 'closed');
         const sub = $('#voteSub');
         if (sub)
             sub.textContent =
                 poll.status !== 'open' && poll.winner
-                    ? `The vote is in. "${poll.winner.title}" won with ${poll.winner.share}%, and the AI builds it tonight. The next ballot opens at 00:00 UTC.`
-                    : isOpen()
-                      ? 'The AI proposes three features. Everyone votes, free and without a wallet, until 21:00 UTC. The winner ships at 00:00 UTC.'
-                      : 'The AI proposes three features. Holders vote until 21:00 UTC, and the winner ships at 00:00 UTC.';
+                    ? `The vote is in: "${poll.winner.title}" won with ${poll.winner.share}%. The AI is building it tonight, and the next ballot opens at 00:00 UTC.`
+                    : poll.status !== 'open'
+                      ? 'Nobody voted today, so the AI picks from its own backlog. The next ballot opens at 00:00 UTC.'
+                      : 'The AI proposes three features. Everyone votes, free and without a wallet, until 21:00 UTC. The winner ships at 00:00 UTC.';
         const rule = $('#voteRule');
         if (rule)
             rule.textContent = isOpen()
@@ -475,22 +475,20 @@
             connectBtn.disabled = poll.status !== 'open';
             connectBtn.textContent = 'Connect wallet to vote';
         }
-        // Keep a vote's own result on screen; otherwise say what to do.
-        if (!/good|bad/.test($('#voteStatus').className))
+        // Keep a vote's own result on screen; otherwise say what to do. Once closed, the subtitle says who won.
+        if (poll.status !== 'open') say('#voteStatus', '');
+        else if (!/good|bad/.test($('#voteStatus').className))
             say(
                 '#voteStatus',
                 !live
                     ? 'Until the coin launches, the AI picks from its own proposals.'
-                    : poll.status === 'open'
-                      ? isOpen()
-                          ? myVote()
-                              ? 'You voted. Tap another option to change it.'
-                              : 'Tap an option to vote. Free, no wallet.'
-                          : 'Pick an option. You can change your vote until the close.'
-                      : poll.winner
-                        ? `Winner: "${poll.winner.title}" (${poll.winner.share}%). It ships at 00:00 UTC.`
-                        : 'No votes today, so the AI picks. The next ballot opens at 00:00 UTC.'
+                    : isOpen()
+                      ? myVote()
+                          ? 'You voted. Tap another option to change it.'
+                          : 'Tap an option to vote. Free, no wallet.'
+                      : 'Pick an option. You can change your vote until the close.'
             );
+        if (rule) rule.hidden = poll.status !== 'open';
 
         const list = $('#ballot');
         list.textContent = '';

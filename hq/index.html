@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="color-scheme" content="dark" />
-        <meta name="theme-color" content="#05070a" />
+        <meta name="theme-color" content="#06080b" />
         <title>BEARPROOF · An AI is building a game on its own budget</title>
         <meta
             name="description"
@@ -32,6 +32,7 @@
             content="BEARPROOF. An AI is building a game on its own budget."
         />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@Bearproofapp_" />
         <meta
             name="twitter:title"
             content="BEARPROOF · An AI is building a game on its own budget"
@@ -41,7 +42,6 @@
             content="It ships a new version every day. You fund it, you steer it, you play it."
         />
         <meta name="twitter:image" content="https://bearproof.app/assets/og.png" />
-        <meta name="twitter:site" content="@Bearproofapp_" />
         <link
             rel="preload"
             href="/assets/fonts/jersey-10.woff2"
@@ -58,356 +58,241 @@
     <body>
         <a class="skip" href="#main">Skip to content</a>
 
-        <!-- ============================================================ NAV -->
         <header class="nav" id="nav">
             <div class="nav-in wrap">
                 <a class="brand" href="/" aria-label="BEARPROOF, home">
-                    <img src="/assets/bull.svg" alt="" width="30" height="30" />
+                    <img src="/assets/bull.svg" alt="" width="28" height="28" />
                     <span>BEARPROOF</span>
                 </a>
                 <nav class="nav-links" aria-label="Sections">
                     <a href="#how">How it works</a>
                     <a href="#vote">Vote</a>
                     <a href="#challenge">Daily</a>
-                    <a href="#build">Builds</a>
+                    <a href="#build">Patch notes</a>
                     <a href="#coin">$BPROOF</a>
-                    <a href="#receipts">Receipts</a>
-                    <a href="/live" class="nav-live" id="navLive"><i aria-hidden="true"></i>Live</a>
+                    <a href="/receipts">Receipts</a>
+                    <a href="/live" class="nav-live" id="navLive">Live</a>
                 </nav>
-                <div class="nav-cta">
-                    <button
-                        class="ca-mini"
-                        type="button"
-                        id="navCa"
-                        hidden
-                        aria-label="Copy the contract address"
-                    >
-                        <span class="ca-mini-k">CA</span><span class="ca-mini-v" id="navCaV"></span>
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M8 8h11v13H8zM5 3h11v3H7v12H5z" />
-                        </svg>
-                    </button>
-                    <a class="btn-play sm" href="/play">Play</a>
-                    <button
-                        class="nav-menu"
-                        type="button"
-                        id="navMenu"
-                        aria-expanded="false"
-                        aria-controls="sheet"
-                        aria-label="Menu"
-                    >
-                        <i></i><i></i><i></i>
-                    </button>
-                </div>
+                <a class="btn btn-primary btn-sm nav-play" href="/play">Play</a>
+                <button
+                    class="nav-menu"
+                    type="button"
+                    id="navMenu"
+                    aria-expanded="false"
+                    aria-controls="sheet"
+                    aria-label="Menu"
+                >
+                    <i></i><i></i><i></i>
+                </button>
             </div>
             <div class="sheet" id="sheet" hidden>
                 <a href="#how">How it works</a>
                 <a href="#vote">Vote</a>
                 <a href="#challenge">Daily Challenge</a>
-                <a href="#build">Builds</a>
+                <a href="#build">Patch notes</a>
                 <a href="#coin">$BPROOF</a>
-                <a href="#receipts">Receipts</a>
-                <a href="/live">Watch the AI live</a>
+                <a href="/receipts">Receipts</a>
+                <a href="/bears">The enemies</a>
+                <a href="/live">Watch the AI build</a>
             </div>
         </header>
 
         <main id="main">
-            <!-- ======================================================== HERO -->
+            <!-- The live build, playing itself, edge to edge behind the title. -->
             <section class="hero" aria-labelledby="heroTitle">
-                <canvas class="hero-bg" id="heroBg" aria-hidden="true"></canvas>
-                <div class="hero-glow" aria-hidden="true"></div>
+                <div class="hero-game" id="screenView" aria-hidden="true">
+                    <canvas class="hero-poster" id="poster"></canvas>
+                </div>
+                <div class="hero-shade" aria-hidden="true"></div>
                 <div class="hero-in wrap">
-                    <div class="hero-copy">
-                        <p class="pill" id="heroPill">
-                            <i class="dot" aria-hidden="true"></i>
-                            <span id="heroPillText">Live · connecting…</span>
-                        </p>
-                        <h1 id="heroTitle" class="hero-h">
-                            <span class="l1">An AI is building a game</span>
-                            <span class="l2">on its own budget.</span>
-                        </h1>
-                        <p class="hero-sub">
-                            It ships a new version every day.<br />
-                            <b>You fund it</b>, <b>you steer it</b>, <b>you play it</b>.
-                        </p>
-                        <div class="hero-cta">
-                            <a class="btn-play" href="/play" id="heroPlay">
-                                <svg
-                                    viewBox="0 0 8 8"
-                                    aria-hidden="true"
-                                    shape-rendering="crispEdges"
-                                >
-                                    <path
-                                        d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z"
-                                        fill="currentColor"
-                                    />
-                                </svg>
-                                PLAY NOW
-                            </a>
-                            <a class="btn-ghost" href="#how">How it works</a>
-                        </div>
-                        <p class="hero-fine">Free in your browser. No wallet, no signup.</p>
-                        <div class="ca" id="heroCa" data-ca>
-                            <span class="ca-k">CA</span>
-                            <code class="ca-v" data-ca-v>loading…</code>
-                            <button
-                                class="ca-copy"
-                                type="button"
-                                data-ca-copy
-                                disabled
-                                aria-label="Copy the contract address"
-                            >
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M8 8h11v13H8zM5 3h11v3H7v12H5z" />
-                                </svg>
-                                <span>Copy</span>
-                            </button>
-                        </div>
+                    <canvas
+                        class="hero-bull"
+                        data-sprite="bull"
+                        data-scale="5"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
+                    <p class="logo" aria-hidden="true">BEARPROOF</p>
+                    <h1 id="heroTitle">An AI is building a game on its own budget.</h1>
+                    <p class="hero-sub">
+                        It ships a new version every day. You fund it, you steer it, you play it.
+                    </p>
+                    <div class="hero-cta">
+                        <a class="btn btn-primary btn-xl" href="/play" id="heroPlay">
+                            <span>Play now</span>
+                            <small>Free · no wallet · in your browser</small>
+                        </a>
+                        <a class="btn btn-ghost btn-xl" href="#vote">
+                            <span>Vote</span>
+                            <small>Pick tomorrow's build</small>
+                        </a>
                     </div>
-
-                    <figure class="screen" id="screen" aria-label="The game, playing live">
-                        <div class="screen-frame">
-                            <div class="screen-bar">
-                                <span class="screen-live"><i aria-hidden="true"></i>LIVE</span>
-                                <span class="screen-title" id="screenTitle"
-                                    >Build #— · connecting</span
-                                >
-                                <span class="screen-clock" id="clock" aria-hidden="true"
-                                    >--:--:-- UTC</span
-                                >
-                            </div>
-                            <div class="screen-view" id="screenView">
-                                <canvas
-                                    class="screen-poster"
-                                    id="poster"
-                                    aria-hidden="true"
-                                ></canvas>
-                                <a
-                                    class="screen-tap"
-                                    href="/play"
-                                    id="screenTap"
-                                    aria-label="Tap to play"
-                                >
-                                    <span>TAP TO PLAY</span>
-                                </a>
-                            </div>
-                        </div>
-                        <figcaption class="screen-cap" id="screenCap">
-                            This is the live build, playing itself. Tap it to play.
-                        </figcaption>
-                    </figure>
+                    <div class="ca panel" data-ca>
+                        <span class="ca-k">CA</span>
+                        <code class="ca-v" data-ca-v>loading…</code>
+                        <button
+                            class="ca-copy"
+                            type="button"
+                            data-ca-copy
+                            disabled
+                            aria-label="Copy the contract address"
+                        >
+                            Copy
+                        </button>
+                    </div>
                 </div>
-
-                <div class="floor" aria-hidden="true">
-                    <div class="floor-grid"></div>
-                    <canvas class="parade" id="parade"></canvas>
+                <div class="hud" aria-label="Right now">
+                    <div class="hud-in wrap">
+                        <p class="hud-live" id="heroPill">
+                            <i aria-hidden="true"></i><span id="heroPillText">Connecting…</span>
+                        </p>
+                        <dl class="hud-stats">
+                            <div>
+                                <dt>Day</dt>
+                                <dd id="nDay">—</dd>
+                            </div>
+                            <div>
+                                <dt>Builds</dt>
+                                <dd id="nBuilds">—</dd>
+                            </div>
+                            <div>
+                                <dt>Players today</dt>
+                                <dd id="nPlayers">—</dd>
+                            </div>
+                            <div>
+                                <dt>Today's best</dt>
+                                <dd id="nTop" class="gold">—</dd>
+                            </div>
+                        </dl>
+                    </div>
                 </div>
             </section>
 
-            <!-- ==================================================== NUMBERS -->
-            <section class="numbers wrap" aria-label="Live numbers">
-                <div class="num-grid">
-                    <div class="num">
-                        <b class="num-v" id="nDay">—</b>
-                        <span class="num-k">Day of building</span>
-                    </div>
-                    <div class="num">
-                        <b class="num-v" id="nBuilds">—</b>
-                        <span class="num-k">Builds shipped</span>
-                    </div>
-                    <div class="num">
-                        <b class="num-v" id="nPlayers">—</b>
-                        <span class="num-k">Players today</span>
-                    </div>
-                    <div class="num">
-                        <b class="num-v gold" id="nTop">—</b>
-                        <span class="num-k">Today's #1 score</span>
-                    </div>
-                    <div class="num">
-                        <b class="num-v" id="nTreasury">—</b>
-                        <span class="num-k">Treasury, on-chain</span>
-                    </div>
-                    <div class="num">
-                        <b class="num-v" id="nSpent">—</b>
-                        <span class="num-k">AI compute, measured</span>
-                    </div>
-                </div>
-                <p class="num-foot">
-                    <i class="dot" aria-hidden="true"></i
-                    ><span id="updated">Live from the chain and the game server</span>
-                </p>
-            </section>
-
-            <!-- ================================================ HOW IT WORKS -->
+            <!-- How it works: the actual daily schedule, in UTC -->
             <section class="sec wrap" id="how" aria-labelledby="howH">
-                <header class="sec-h center">
-                    <p class="eyebrow">How it works</p>
-                    <h2 id="howH">One loop. <span class="g">Every day.</span></h2>
-                    <p class="sec-sub">
-                        Four steps, and every one of them leaves a public receipt.
-                    </p>
-                </header>
-                <ol class="loop" id="loop">
-                    <li class="step" style="--i: 0">
-                        <div class="step-art">
-                            <canvas data-icon="buyback" data-scale="4" aria-hidden="true"></canvas>
-                        </div>
-                        <p class="step-n">01 · Fund</p>
-                        <h3>People trade $BPROOF</h3>
-                        <p>
-                            Every trade pays a small fee into the AI's public wallet. That's its
-                            whole budget.
+                <div class="how">
+                    <div class="how-l">
+                        <h2 id="howH">How it works</h2>
+                        <p class="lede">
+                            BEARPROOF is a free survivors-like you play in the browser. You're a
+                            bull, the bear market never ends. The game is written by an AI
+                            developer, one new version every night.
                         </p>
-                        <p class="step-live" id="stepFund"></p>
-                    </li>
-                    <li class="step" style="--i: 1">
-                        <div class="step-art">
-                            <canvas
-                                data-sprite="emblem_large"
-                                data-scale="2"
-                                aria-hidden="true"
-                            ></canvas>
-                        </div>
-                        <p class="step-n">02 · Build</p>
-                        <h3>The AI ships every night</h3>
-                        <p>
-                            From 21:00 UTC it writes the code and tests it. The new version goes
-                            live at 00:00 UTC.
+                        <p class="lede">
+                            Every trade of <b>$BPROOF</b> pays a small fee into the AI's wallet, and
+                            that wallet pays for its compute and for the players' prizes. Anyone can
+                            vote on what it builds next.
                         </p>
-                        <p class="step-live" id="stepBuild"></p>
-                    </li>
-                    <li class="step" style="--i: 2">
-                        <div class="step-art">
-                            <canvas
-                                data-sprite="bull"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                        </div>
-                        <p class="step-n">03 · Play</p>
-                        <h3>Everyone plays, free</h3>
-                        <p>
-                            One Daily Challenge for the whole world. The best runs get paid in
-                            $ANSEM.
-                        </p>
-                        <p class="step-live" id="stepPlay"></p>
-                    </li>
-                    <li class="step" style="--i: 3">
-                        <div class="step-art">
-                            <canvas
-                                data-icon="diamond_hands"
-                                data-scale="4"
-                                aria-hidden="true"
-                            ></canvas>
-                        </div>
-                        <p class="step-n">04 · Steer</p>
-                        <h3>You pick what's next</h3>
-                        <p>
-                            The AI proposes three features. Everyone votes, free, and the winner is
-                            tonight's build.
-                        </p>
-                        <p class="step-live" id="stepSteer"></p>
-                    </li>
-                </ol>
-                <p class="loop-back" aria-hidden="true">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 4a8 8 0 1 1-7.7 10h2.1A6 6 0 1 0 12 6v3L7.5 5 12 1z" />
-                    </svg>
-                    and again tomorrow
-                </p>
+                    </div>
+                    <ol class="day panel" aria-label="A day of BEARPROOF, in UTC">
+                        <li>
+                            <time>00:00</time>
+                            <div>
+                                <b>A new build goes live.</b> A new Daily Challenge starts on it,
+                                the same map and seed for everyone.
+                            </div>
+                        </li>
+                        <li>
+                            <time>All day</time>
+                            <div>
+                                <b>Play and vote.</b> Free, no wallet. The AI's three ideas for
+                                tomorrow are on the ballot.
+                            </div>
+                        </li>
+                        <li>
+                            <time>00:10</time>
+                            <div>
+                                <b>Yesterday's best runs get paid</b> in $ANSEM, after the server
+                                replays every run.
+                            </div>
+                        </li>
+                        <li class="now">
+                            <time>21:00</time>
+                            <div>
+                                <b>The vote closes and the AI starts coding.</b> You can
+                                <a href="/live">watch it work</a>. If its tests pass, it ships at
+                                midnight.
+                            </div>
+                        </li>
+                    </ol>
+                </div>
             </section>
 
-            <!-- ======================================================= VOTE -->
+            <!-- Vote -->
             <section class="sec wrap" id="vote" aria-labelledby="voteH">
-                <header class="sec-h">
-                    <p class="eyebrow">Vote</p>
-                    <h2 id="voteH">You pick what it <span class="g">builds tonight.</span></h2>
-                    <p class="sec-sub" id="voteSub">
-                        The AI proposes three features. Everyone votes, free and without a wallet,
-                        until 21:00 UTC. The winner ships at 00:00 UTC.
-                    </p>
-                </header>
-
-                <div class="vote-bar">
-                    <span class="tag" id="voteFlag">Loading the ballot…</span>
-                    <span class="vote-meta" id="ballotMeta"></span>
-                    <button class="btn-solid sm" type="button" id="voteConnect" disabled>
-                        Connect wallet to vote
-                    </button>
+                <div class="sec-head">
+                    <h2 id="voteH">Vote for tomorrow's build</h2>
+                    <span class="tag" id="voteFlag">Loading…</span>
                 </div>
+                <p class="lede" id="voteSub">
+                    The AI proposes three features. Everyone votes, free and without a wallet, until
+                    21:00 UTC. The winner ships at 00:00 UTC.
+                </p>
+                <p class="vote-meta" id="ballotMeta"></p>
+                <button class="btn btn-sm" type="button" id="voteConnect" hidden>
+                    Connect wallet
+                </button>
                 <p class="vote-status" id="voteStatus" aria-live="polite"></p>
                 <div class="ideas-ts" id="voteTs"></div>
                 <p class="fine" id="voteTsHint" hidden>
                     One quick check: tap the box above, then your vote counts.
                 </p>
                 <ul class="ballot" id="ballot"></ul>
-                <p class="vote-rule" id="voteRule">
-                    One tap, no wallet, no signup. One vote per person, and you can change it until
-                    the close.
+                <p class="fine" id="voteRule">
+                    One vote per person, and you can change it until the vote closes.
                 </p>
 
-                <div class="voice one">
-                    <form class="voice-card" id="ideaForm" novalidate hidden>
-                        <div class="voice-main">
-                            <p class="voice-k">Got a better idea?</p>
-                            <h3>Send the AI an idea</h3>
-                            <p class="voice-p">
-                                It reads every idea each night before it writes the next ballot.
-                            </p>
-                            <label class="sr-only" for="ideaText">Your idea</label>
-                            <textarea
-                                id="ideaText"
-                                rows="2"
-                                maxlength="200"
-                                placeholder="A mini map so I can see where the bears are…"
-                            ></textarea>
-                            <div class="ideas-ts" id="ideaTs"></div>
-                            <p class="fine" id="ideaTsHint" hidden>
-                                One quick check: tap the box above.
-                            </p>
-                            <div class="voice-row">
-                                <span class="count" id="ideaCount">0 / 200</span>
-                                <button class="btn-solid sm" type="submit" id="ideaSubmit">
-                                    Send idea
-                                </button>
-                            </div>
-                            <p class="vote-status" id="ideaStatus" aria-live="polite"></p>
+                <form class="idea panel" id="ideaForm" novalidate hidden>
+                    <div class="idea-main">
+                        <h3>Got a better idea?</h3>
+                        <p>
+                            Send it. The AI reads every idea each night before it writes the next
+                            ballot.
+                        </p>
+                        <label class="sr-only" for="ideaText">Your idea</label>
+                        <textarea
+                            id="ideaText"
+                            rows="2"
+                            maxlength="200"
+                            placeholder="A mini map so I can see where the bears are"
+                        ></textarea>
+                        <div class="ideas-ts" id="ideaTs"></div>
+                        <p class="fine" id="ideaTsHint" hidden>
+                            One quick check: tap the box above.
+                        </p>
+                        <div class="idea-row">
+                            <span class="count" id="ideaCount">0 / 200</span>
+                            <button class="btn btn-sm" type="submit" id="ideaSubmit">
+                                Send idea
+                            </button>
                         </div>
-                        <div class="ideas-feed">
-                            <p class="ideas-k">
-                                <span>Latest ideas</span><span id="ideaMeta"></span>
-                            </p>
-                            <ul class="ideas-list" id="ideaList"></ul>
-                        </div>
-                    </form>
-                </div>
+                        <p class="vote-status" id="ideaStatus" aria-live="polite"></p>
+                    </div>
+                    <div class="idea-feed">
+                        <p class="idea-k"><span>Latest ideas</span><span id="ideaMeta"></span></p>
+                        <ul class="ideas-list" id="ideaList"></ul>
+                    </div>
+                </form>
             </section>
 
-            <!-- ============================================ DAILY CHALLENGE -->
+            <!-- Daily Challenge -->
             <section class="sec wrap" id="challenge" aria-labelledby="chH">
-                <header class="sec-h">
-                    <p class="eyebrow">Daily Challenge</p>
-                    <h2 id="chH">Play today. <span class="gold">Get paid in $ANSEM.</span></h2>
-                    <p class="sec-sub">
-                        Same map, same seed, same build for everyone. It resets at 00:00 UTC.
-                    </p>
-                </header>
-
+                <div class="sec-head">
+                    <h2 id="chH">Daily Challenge</h2>
+                    <span class="tag gold"
+                        >Ends in <b data-countdown id="dailyCountdown">--:--:--</b></span
+                    >
+                </div>
+                <p class="lede">
+                    Same map, same seed, same build for everyone. The best runs of the day are paid
+                    in $ANSEM.
+                </p>
                 <div class="daily">
-                    <div class="pot" id="pot">
-                        <div class="pot-top">
-                            <p class="pot-k">Today's pot</p>
-                            <p class="pot-v"><b id="potSol">—</b> <span>SOL</span></p>
-                            <p class="pot-note" id="potNote">
-                                Paid in $ANSEM after the day closes.
-                            </p>
-                        </div>
-                        <div class="pot-clock">
-                            <span>Ends in</span>
-                            <b data-countdown id="dailyCountdown">--:--:--</b>
-                        </div>
-                        <dl class="pot-facts" id="potFacts">
+                    <div class="pot panel gold">
+                        <p class="pot-k">Today's pot</p>
+                        <p class="pot-v"><b id="potSol">—</b> SOL</p>
+                        <p class="pot-note" id="potNote">Paid in $ANSEM after the day closes.</p>
+                        <dl class="facts">
                             <div>
                                 <dt>Map</dt>
                                 <dd id="dStage">—</dd>
@@ -421,19 +306,15 @@
                                 <dd id="dBounty">—</dd>
                             </div>
                         </dl>
-                        <a class="btn-play wide" href="/play" id="dailyPlay"
-                            >PLAY TODAY'S CHALLENGE</a
+                        <a class="btn btn-primary btn-block" href="/play" id="dailyPlay"
+                            >Play today's challenge</a
                         >
-                        <ol class="pot-how">
-                            <li><b>1</b>Play the Daily. Free, no wallet.</li>
-                            <li><b>2</b>Leave a Solana address at game over.</li>
-                            <li>
-                                <b>3</b>The server replays every run. Top runs and bounty clears get
-                                paid.
-                            </li>
-                        </ol>
+                        <p class="fine pot-how">
+                            Leave a Solana address on the game-over screen to get paid. The server
+                            replays every run before it counts. Holding $BPROOF is never needed.
+                        </p>
                         <details class="rules" id="potRules">
-                            <summary>The exact payout rules</summary>
+                            <summary>Payout rules</summary>
                             <p id="potRuleText"></p>
                             <ul id="potRuleList"></ul>
                         </details>
@@ -443,123 +324,106 @@
                                 <input
                                     id="prizeAddrIn"
                                     type="text"
-                                    inputmode="text"
                                     autocomplete="off"
                                     spellcheck="false"
                                     placeholder="Solana address (public, never a key)"
                                     maxlength="64"
                                 />
-                                <button class="btn-solid sm" type="submit">Save</button>
+                                <button class="btn btn-sm" type="submit">Save</button>
                             </div>
                             <p class="addr-note" id="prizeAddrNote">
                                 Only the public address. Never paste a private key or seed phrase.
                             </p>
                         </form>
                     </div>
-
-                    <div class="board">
+                    <div class="board panel">
                         <div class="board-head">
-                            <h3>Today's leaderboard</h3>
+                            <h3>High scores</h3>
                             <span id="lbMeta"></span>
                         </div>
                         <div id="lb" aria-live="polite">
                             <p class="board-empty">Loading today's board…</p>
                         </div>
-                        <button class="btn-line sm board-more" type="button" id="lbMore" hidden>
+                        <button
+                            class="btn btn-ghost btn-sm btn-block"
+                            type="button"
+                            id="lbMore"
+                            hidden
+                        >
                             Show the whole board
                         </button>
-                        <p class="board-fine">
-                            <span class="v-chip">✓ verified</span> the server re-played the run from
-                            its inputs and got the same score. Only verified runs can be paid.
+                        <p class="fine">
+                            <span class="ok">✓</span> means the server replayed the run from its
+                            inputs and got the same score. Only those can be paid.
                         </p>
                     </div>
                 </div>
-
-                <div class="paid" id="paid" hidden>
-                    <p class="paid-k">Latest payout</p>
+                <div class="paid panel" id="paid" hidden>
+                    <p class="paid-k">Last payout</p>
                     <div class="paid-row" id="paidRow"></div>
                 </div>
             </section>
 
-            <!-- ================================================ BUILD NIGHT -->
+            <!-- Patch notes -->
             <section class="sec wrap" id="build" aria-labelledby="buildH">
-                <header class="sec-h">
-                    <p class="eyebrow">The builds</p>
-                    <h2 id="buildH">Every night, it codes <span class="g">in public.</span></h2>
-                    <p class="sec-sub" id="buildSub">
-                        This is last night's real session log, replayed. Tonight's is streamed live
-                        at
-                        <a href="/live">/live</a> from 21:00 UTC.
-                    </p>
-                </header>
-
-                <div class="night">
-                    <div class="term" id="term" aria-label="Last night's build log">
-                        <div class="term-bar">
-                            <i></i><i></i><i></i>
-                            <span id="termTitle">build-agent · last night</span>
-                            <span class="term-state" id="termState">replay</span>
-                        </div>
-                        <ol class="term-body" id="termBody" aria-live="off"></ol>
-                    </div>
-
-                    <article class="latest" id="latest">
+                <div class="sec-head">
+                    <h2 id="buildH">Patch notes</h2>
+                    <span class="tag"><b id="tlCount">—</b> builds so far</span>
+                </div>
+                <p class="lede" id="buildSub">
+                    Every build is still playable. Last night's session is replayed below; tonight's
+                    streams live at <a href="/live">/live</a> from 21:00 UTC.
+                </p>
+                <div class="patch">
+                    <article class="latest panel green" id="latest">
                         <p class="latest-k">
                             <span class="tag live">Live now</span><span id="latestDate"></span>
                         </p>
-                        <p class="latest-n" id="latestN">#—</p>
-                        <h3 id="latestTitle">Loading the latest build…</h3>
+                        <h3>
+                            <span id="latestN">#—</span>
+                            <span id="latestTitle">Loading the latest build…</span>
+                        </h3>
                         <p class="latest-sum" id="latestSum"></p>
                         <ul class="chips" id="latestChips"></ul>
                         <div class="latest-cta">
-                            <a class="btn-solid" href="/play" id="latestPlay">Play this build</a>
+                            <a class="btn btn-primary btn-sm" href="/play" id="latestPlay"
+                                >Play this build</a
+                            >
                             <a
-                                class="btn-line"
+                                class="btn btn-ghost btn-sm"
                                 id="latestLog"
                                 href="https://github.com/0smanturgut/bearproof/tree/main/devlog"
                                 rel="noopener"
                                 target="_blank"
-                                >Read the devlog ↗</a
+                                >Full devlog</a
                             >
                         </div>
                     </article>
-                </div>
-
-                <div class="tl-head">
-                    <h3 class="tl-title">
-                        <b id="tlCount">—</b> builds so far.
-                        <span>Every one is still playable.</span>
-                    </h3>
-                    <div class="tl-nav">
-                        <button type="button" class="round" id="tlPrev" aria-label="Newer builds">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M15 5l-7 7 7 7" />
-                            </svg>
-                        </button>
-                        <button type="button" class="round" id="tlNext" aria-label="Older builds">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
+                    <div class="log panel" id="term" aria-label="The Build Agent's session log">
+                        <div class="log-bar">
+                            <span id="termTitle">Build session</span>
+                            <span class="log-state" id="termState">replay</span>
+                        </div>
+                        <ol class="log-body" id="termBody" aria-live="off"></ol>
                     </div>
                 </div>
-                <div class="tl-wrap">
-                    <ol class="tl" id="timeline" aria-label="Build history" tabindex="0"></ol>
-                </div>
-                <div class="tl-progress" aria-hidden="true"><i id="tlBar"></i></div>
+                <ol class="patches" id="timeline" aria-label="Every build"></ol>
+                <button class="btn btn-ghost btn-sm" type="button" id="tlMore" hidden>
+                    Show every build
+                </button>
             </section>
 
-            <!-- ======================================================= COIN -->
+            <!-- The coin -->
             <section class="sec wrap" id="coin" aria-labelledby="coinH">
-                <div class="coin">
+                <div class="coin panel">
                     <div class="coin-l">
-                        <p class="eyebrow">The coin</p>
-                        <h2 id="coinH"><span class="g">$BPROOF</span></h2>
-                        <p class="coin-lede">
-                            The AI's budget. Every trade pays for its compute, its hosting and the
-                            players' prizes. That's all it is.
+                        <h2 id="coinH">$BPROOF</h2>
+                        <p class="lede">
+                            The AI's budget. Every trade pays a small fee into its wallet, and that
+                            pays for its compute, its hosting and the players' prizes. It isn't
+                            needed to play, vote or win, and it isn't an investment.
                         </p>
-                        <div class="ca big" data-ca>
+                        <div class="ca ca-big" data-ca>
                             <span class="ca-k">Contract address</span>
                             <code class="ca-v" data-ca-v>loading…</code>
                             <button
@@ -569,134 +433,107 @@
                                 disabled
                                 aria-label="Copy the contract address"
                             >
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M8 8h11v13H8zM5 3h11v3H7v12H5z" />
-                                </svg>
-                                <span>Copy</span>
+                                Copy
                             </button>
                         </div>
                         <div class="coin-buy">
                             <a
-                                class="btn-solid"
-                                id="buyPump"
+                                class="btn btn-primary btn-sm"
                                 data-buy="pump"
                                 rel="noopener"
                                 target="_blank"
                                 href="https://pump.fun"
-                                >Buy on pump.fun ↗</a
+                                >Buy on pump.fun</a
                             >
                             <a
-                                class="btn-line"
-                                id="buyJup"
+                                class="btn btn-ghost btn-sm"
                                 data-buy="jup"
                                 rel="noopener"
                                 target="_blank"
                                 href="https://jup.ag"
-                                >Jupiter ↗</a
+                                >Jupiter</a
                             >
                             <a
-                                class="btn-line"
-                                id="buyDex"
+                                class="btn btn-ghost btn-sm"
                                 data-buy="dex"
                                 rel="noopener"
                                 target="_blank"
                                 href="https://dexscreener.com"
-                                >Chart ↗</a
+                                >Chart</a
                             >
                         </div>
                         <p class="fine">
-                            Always check the address above matches. Not an investment.
+                            Check the address before you buy. Anything else using the name is not
+                            us.
                         </p>
                     </div>
-                    <div class="coin-r">
-                        <canvas
-                            class="coin-art"
-                            data-sprite="bull_gold"
-                            data-scale="6"
-                            data-anim
-                            aria-hidden="true"
-                        ></canvas>
-                        <div class="does">
-                            <div>
-                                <h3 class="g">It does</h3>
-                                <ul class="ticks">
-                                    <li>Pay for the AI's compute and hosting</li>
-                                    <li>Fund the Daily Pot, paid to players in $ANSEM</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="r">It does not</h3>
-                                <ul class="crosses">
-                                    <li>Pay anything to holders</li>
-                                    <li>Gate playing, voting or ideas</li>
-                                    <li>Gate winning the daily prize</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                    <canvas
+                        class="coin-art"
+                        data-sprite="bull_gold"
+                        data-scale="7"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
                 </div>
             </section>
 
-            <!-- =================================================== RECEIPTS -->
+            <!-- Receipts -->
             <section class="sec wrap" id="receipts" aria-labelledby="rcH">
-                <header class="sec-h">
-                    <p class="eyebrow">Receipts</p>
-                    <h2 id="rcH">Don't trust. <span class="g">Verify.</span></h2>
-                    <p class="sec-sub">
-                        Every SOL in and out is on-chain, with a link, and SQD Network reads the
-                        same wallets on its own, so you don't have to take our word for it.
-                    </p>
-                </header>
-                <div class="rc-tiles">
-                    <a class="rc-tile" id="rcTreasury" rel="noopener" target="_blank">
-                        <span class="rc-k">Treasury wallet</span>
-                        <b class="rc-v">—</b>
-                        <span class="rc-s">Receives the creator fees · Solscan ↗</span>
+                <div class="sec-head">
+                    <h2 id="rcH">Receipts</h2>
+                    <a class="more" href="/receipts">Every transaction →</a>
+                </div>
+                <p class="lede">
+                    Where the money is, and what the AI has cost so far. Every number links to the
+                    chain or says it's an estimate.
+                </p>
+                <div class="stats">
+                    <a class="stat panel" id="rcTreasury" rel="noopener" target="_blank">
+                        <span class="stat-k">Treasury</span>
+                        <b class="stat-v">—</b>
+                        <span class="stat-s">gets the trading fees</span>
                     </a>
-                    <a class="rc-tile" id="rcPrize" rel="noopener" target="_blank">
-                        <span class="rc-k">Prize wallet</span>
-                        <b class="rc-v">—</b>
-                        <span class="rc-s">Holds a few days of prizes · Solscan ↗</span>
+                    <a class="stat panel" id="rcPrize" rel="noopener" target="_blank">
+                        <span class="stat-k">Prize wallet</span>
+                        <b class="stat-v">—</b>
+                        <span class="stat-s">pays the Daily Challenge</span>
                     </a>
-                    <div class="rc-tile">
-                        <span class="rc-k">AI compute</span>
-                        <b class="rc-v" id="rcSpent">—</b>
-                        <span class="rc-s" id="rcSpentS">measured, every night's run</span>
+                    <div class="stat panel">
+                        <span class="stat-k">AI compute so far</span>
+                        <b class="stat-v" id="rcSpent">—</b>
+                        <span class="stat-s" id="rcSpentS">measured</span>
                     </div>
                 </div>
-                <a class="sqd-strip" id="sqdStrip" href="/receipts#sqd">
+                <a class="sqd-strip panel blue" id="sqdStrip" href="/receipts#sqd">
                     <span class="sqd-mark">SQD</span>
                     <span class="sqd-text" id="sqdText"
-                        >An independent check of these wallets, read from SQD Network every 15
-                        minutes, separately from our own ledger.</span
+                        >SQD Network reads the same two wallets every 15 minutes, separately from
+                        our own ledger, so you can check one against the other.</span
                     >
-                    <span class="sqd-go">See the check →</span>
+                    <span class="sqd-go">Check it →</span>
                 </a>
-                <p class="rc-more">
-                    <a class="btn-line" href="/receipts"
-                        >Every transaction, who does what, the launch and the token lock →</a
-                    >
-                </p>
             </section>
 
-            <!-- ======================================================== FAQ -->
-            <section class="sec wrap narrow" id="faq" aria-labelledby="faqH">
-                <header class="sec-h center">
-                    <p class="eyebrow">FAQ</p>
-                    <h2 id="faqH">Fair questions.</h2>
-                </header>
+            <!-- FAQ -->
+            <section class="sec wrap" id="faq" aria-labelledby="faqH">
+                <h2 id="faqH">FAQ</h2>
                 <div class="faq">
                     <details>
-                        <summary>Is the AI really building it?</summary>
+                        <summary>Is an AI really building it?</summary>
                         <p>
-                            Yes, and you can check. Every night at 21:00 UTC the Build Agent (Claude
-                            Code, running on GitHub Actions with nobody in the session) picks the
-                            feature, writes the code, runs the tests and ships at 00:00 UTC. You can
-                            watch it at <a href="/live">/live</a>. Every build's tag says who made
-                            it: <code>agent</code>, <code>bootstrap</code> (the same AI in sessions
-                            Osman starts) or <code>human</code>. Build #0 is the untouched
-                            open-source game it started from, so the diff from
-                            <code>day-0</code> shows everything the AI added.
+                            Yes. Every night at 21:00 UTC the Build Agent (Claude Code on GitHub
+                            Actions, with nobody in the session) picks the feature, writes the code,
+                            runs the tests and ships at 00:00 UTC. You can watch it at
+                            <a href="/live">/live</a>. Every build is tagged with who made it:
+                            <code>agent</code>, <code>bootstrap</code> (the same AI in sessions
+                            Osman starts) or <code>human</code>. Build #0 is the open-source game it
+                            started from, so
+                            <a
+                                href="https://github.com/0smanturgut/bearproof/compare/day-0...main"
+                                rel="noopener"
+                                >the diff from day-0</a
+                            >
+                            shows everything it added.
                         </p>
                     </details>
                     <details>
@@ -706,20 +543,21 @@
                             the compute and hosting bills first and pays himself back from the
                             treasury by hand, tops up the prize wallet, posts the X updates the AI
                             drafts, and holds an emergency revert switch. Every treasury send is on
-                            the ledger. He doesn't write the daily features. He's on X as
+                            the <a href="/receipts">receipts page</a>. He doesn't write the daily
+                            features. He's on X as
                             <a href="https://x.com/0smanTrgut" rel="noopener">@0smanTrgut</a>.
                         </p>
                     </details>
                     <details>
                         <summary>Where does the money go?</summary>
                         <p>
-                            Trading fees go to the AI's public treasury wallet. 40% of each day's
-                            fees (at most 0.5 SOL) becomes the Daily Pot, paid to players in $ANSEM.
-                            The AI's compute and hosting are billed to Osman, and the treasury pays
-                            him back by hand: on 1, 3, 11 and 14 Oct he sent himself 14.97 SOL from
-                            it. He says the 13 SOL on 14 Oct also covers his other CrowLab projects,
-                            domains and hosting. Every inflow and outflow is in the
-                            <a href="/receipts">ledger</a> with a Solscan link.
+                            Trading fees go to the AI's treasury wallet. 40% of each day's fees (at
+                            most 0.5 SOL) becomes the Daily Pot, paid to players in $ANSEM. The AI's
+                            compute and hosting are billed to Osman, and the treasury pays him back
+                            by hand: on 1, 3, 11 and 14 Oct he sent himself 14.97 SOL from it. He
+                            says the 13 SOL on 14 Oct also covers his other CrowLab projects,
+                            domains and hosting. Every move is on the
+                            <a href="/receipts">receipts page</a> with a Solscan link.
                         </p>
                     </details>
                     <details>
@@ -727,18 +565,17 @@
                         <p>
                             Play today's Daily Challenge and leave a Solana address on the game-over
                             screen (just the public address, no wallet connection). After 00:10 UTC
-                            the server re-plays every run from its recorded inputs. The best
-                            verified runs, and everyone who cleared the AI's bounty, are paid in
-                            $ANSEM bought on-chain. You never need to hold $BPROOF to win.
+                            the server replays every run from its recorded inputs. The best verified
+                            runs, and everyone who cleared the AI's bounty, are paid in $ANSEM
+                            bought on-chain. You never need to hold $BPROOF to win.
                         </p>
                     </details>
                     <details>
                         <summary>Can I suggest a feature?</summary>
                         <p>
-                            Yes, anyone can. Send it in the ideas box under the vote, no wallet and
-                            no signup, or with /idea in the Telegram group. The AI reads every idea
-                            each night before it writes the next ballot, and a proposal it takes
-                            from one says it came from a player.
+                            Yes. Use the ideas box under the vote, or /idea in the Telegram group.
+                            No wallet, no signup. The AI reads every idea before it writes the next
+                            ballot, and says so when one of its proposals came from a player.
                         </p>
                     </details>
                     <details data-tg hidden>
@@ -762,64 +599,39 @@
                     </details>
                 </div>
             </section>
-
-            <!-- ===================================================== FINALE -->
-            <section class="finale" aria-labelledby="finH">
-                <div class="finale-in wrap">
-                    <canvas
-                        class="finale-bull"
-                        data-sprite="bull"
-                        data-scale="6"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                    <h2 id="finH">Are you <span class="g">bearproof?</span></h2>
-                    <p>
-                        A new build ships every night at 00:00 UTC. Play today's challenge, then
-                        come back tomorrow and see what the AI built.
-                    </p>
-                    <div class="finale-cta">
-                        <a class="btn-play" href="/play">
-                            <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
-                                <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
-                            </svg>
-                            PLAY NOW
-                        </a>
-                        <a class="btn-line" href="https://x.com/Bearproofapp_" rel="noopener"
-                            >Follow @Bearproofapp_</a
-                        >
-                        <a class="btn-line" data-tg-link data-tg hidden rel="noopener"
-                            >Join the Telegram</a
-                        >
-                    </div>
-                </div>
-            </section>
         </main>
 
         <footer class="foot">
-            <div class="wrap">
+            <div class="foot-cta-row">
+                <div class="foot-cta wrap">
+                    <canvas data-sprite="bull" data-scale="4" data-anim aria-hidden="true"></canvas>
+                    <p>Are you bearproof?</p>
+                    <a class="btn btn-primary" href="/play">Play now</a>
+                </div>
+            </div>
+            <div class="wrap foot-in">
                 <div class="foot-top">
                     <a class="brand" href="/" aria-label="BEARPROOF, home">
-                        <img src="/assets/bull.svg" alt="" width="28" height="28" loading="lazy" />
+                        <img src="/assets/bull.svg" alt="" width="24" height="24" loading="lazy" />
                         <span>BEARPROOF</span>
                     </a>
                     <nav class="foot-links" aria-label="Footer">
                         <a href="/play">Play</a>
                         <a href="/live">Watch live</a>
                         <a href="/receipts">Receipts</a>
-                        <a href="/b/0/">Build #0</a>
-                        <a href="/api/stats">Open data</a>
-                        <a data-tg-link data-tg hidden rel="noopener">Telegram</a>
-                        <a href="https://x.com/Bearproofapp_" rel="noopener">X @Bearproofapp_</a>
                         <a href="/bears">The enemies</a>
-                        <a href="/receipts#sqd">On-chain check: SQD</a>
+                        <a href="/b/0/">Build #0</a>
+                        <a href="https://x.com/Bearproofapp_" rel="noopener">X</a>
+                        <a data-tg-link data-tg hidden rel="noopener">Telegram</a>
                         <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
+                        <a href="/api/stats">Open data</a>
                     </nav>
                 </div>
-                <p class="foot-crow">
-                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project. BEARPROOF is
-                    product 001 of CrowLab, Osman Turgut's lab where AI agents build and run the
-                    products.
+                <p>
+                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project: BEARPROOF is
+                    product 001 of Osman Turgut's lab, where AI agents build and run the products.
+                    The independent on-chain check on the receipts page is powered by
+                    <a href="https://sqd.dev" rel="noopener">SQD Network</a>.
                 </p>
                 <p>
                     Build #0 is
@@ -828,16 +640,10 @@
                         rel="noopener"
                         >ricardo-foundry/canvas-vampire-survivors</a
                     >
-                    (MIT), used unmodified. Everything after the <code>day-0</code> tag is new (<a
-                        href="https://github.com/0smanturgut/bearproof/compare/day-0...main"
-                        rel="noopener"
-                        >see the diff</a
-                    >). Not affiliated with Vampire Survivors or poncle.
-                </p>
-                <p>
-                    $BPROOF funds the AI's compute, its hosting and the players' prizes. It is not
-                    an investment and it is never required to play, vote or win. Only trust the
-                    contract address shown on this site.
+                    (MIT), used unmodified; everything after the <code>day-0</code> tag is new. Not
+                    affiliated with Vampire Survivors or poncle. $BPROOF is not an investment and is
+                    never required to play, vote or win. Only trust the contract address on this
+                    site.
                 </p>
             </div>
         </footer>

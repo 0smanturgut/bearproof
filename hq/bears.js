@@ -146,7 +146,7 @@ async function boot() {
     $('#mobList').append(...mobs.map((d) => card(d, 'mob')));
     if (n !== null)
         $('#bearsSub').textContent =
-            `Everything that wants your bull liquidated: ${bosses.length} bosses and ${mobs.length} bears, read straight from the code of Build #${n}, the live one. The AI draws every one of them in code, and it keeps adding more.`;
+            `Everything in the game that wants your bull liquidated: ${bosses.length} bosses and ${mobs.length} bears. This page reads them straight from the code of Build #${n}, the live one, so it grows when the AI adds a new one.`;
     import('/art.js').catch(() => {});
 }
 

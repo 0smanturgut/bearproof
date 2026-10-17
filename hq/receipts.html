@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="color-scheme" content="dark" />
-        <meta name="theme-color" content="#05070a" />
+        <meta name="theme-color" content="#06080b" />
         <title>Receipts · BEARPROOF</title>
         <meta
             name="description"
@@ -39,59 +39,59 @@
     </head>
     <body class="page">
         <a class="skip" href="#main">Skip to content</a>
-        <header class="nav solid" id="nav">
+        <header class="nav">
             <div class="nav-in wrap">
                 <a class="brand" href="/" aria-label="BEARPROOF, home">
-                    <img src="/assets/bull.svg" alt="" width="30" height="30" />
+                    <img src="/assets/bull.svg" alt="" width="28" height="28" />
                     <span>BEARPROOF</span>
                 </a>
                 <nav class="nav-links" aria-label="Site">
                     <a href="/#how">How it works</a>
-                    <a href="/#build">Builds</a>
-                    <a href="/#challenge">Daily</a>
                     <a href="/#vote">Vote</a>
+                    <a href="/#challenge">Daily</a>
+                    <a href="/#build">Patch notes</a>
                     <a href="/#coin">$BPROOF</a>
                     <a href="/receipts" aria-current="page">Receipts</a>
-                    <a href="/live" class="nav-live"><i aria-hidden="true"></i>Live</a>
+                    <a href="/live" class="nav-live">Live</a>
                 </nav>
-                <div class="nav-cta">
-                    <a class="btn-play sm" href="/play">Play</a>
-                </div>
+                <a class="nav-back" href="/">Home</a>
+                <a class="btn btn-primary btn-sm nav-play" href="/play">Play</a>
             </div>
         </header>
 
         <main id="main" class="wrap">
             <header class="page-h">
-                <p class="eyebrow">Receipts</p>
-                <h1>Every SOL, <span class="g">in and out.</span></h1>
-                <p class="sec-sub">
+                <h1>Receipts</h1>
+                <p class="lede">
                     The treasury and the prize wallet, read from the chain every 15 minutes. Every
                     on-chain row links to Solscan and says whether its number is measured or an
                     estimate.
                 </p>
             </header>
 
-            <section class="rc-tiles wallets" aria-label="Wallets">
-                <div class="rc-tile w" data-wallet="treasury">
-                    <span class="rc-k">Treasury wallet</span>
-                    <b class="rc-v">—</b>
-                    <span class="rc-s">The ClawPump agent wallet. Receives the creator fees.</span>
+            <section class="stats wallets" aria-label="Wallets">
+                <div class="stat panel" data-wallet="treasury">
+                    <span class="stat-k">Treasury wallet</span>
+                    <b class="stat-v">—</b>
+                    <span class="stat-s"
+                        >The ClawPump agent wallet. Receives the creator fees.</span
+                    >
                     <code class="w-addr">—</code>
                     <span class="w-go"></span>
                 </div>
-                <div class="rc-tile w" data-wallet="prize">
-                    <span class="rc-k">Prize wallet</span>
-                    <b class="rc-v">—</b>
-                    <span class="rc-s"
+                <div class="stat panel" data-wallet="prize">
+                    <span class="stat-k">Prize wallet</span>
+                    <b class="stat-v">—</b>
+                    <span class="stat-s"
                         >A hot wallet that holds a few days of prizes and pays the Daily Pot.</span
                     >
                     <code class="w-addr">—</code>
                     <span class="w-go"></span>
                 </div>
-                <div class="rc-tile">
-                    <span class="rc-k">AI compute</span>
-                    <b class="rc-v" id="spent">—</b>
-                    <span class="rc-s" id="spentS"
+                <div class="stat panel">
+                    <span class="stat-k">AI compute</span>
+                    <b class="stat-v" id="spent">—</b>
+                    <span class="stat-s" id="spentS"
                         >Measured: Claude Code's own count for every nightly run, plus the Telegram
                         chat.</span
                     >
@@ -99,14 +99,11 @@
             </section>
 
             <section class="sec-s" id="sqd" aria-labelledby="sqdH">
-                <div class="sqd">
+                <div class="sqd panel blue">
                     <div class="sqd-top">
                         <div>
-                            <p class="eyebrow">Independent check</p>
-                            <h2 class="h2s" id="sqdH">
-                                Read by <span class="g">SQD Network</span>, not by us.
-                            </h2>
-                            <p class="sec-sub">
+                            <h2 class="h2s" id="sqdH">Checked by <span>SQD Network</span></h2>
+                            <p class="lede">
                                 Every 15 minutes our Worker reads the treasury and the prize wallet
                                 from SQD Network's index of Solana, separately from the code that
                                 writes our ledger. Each move below says whether our ledger lists the
@@ -142,8 +139,8 @@
             </section>
 
             <section class="sec-s" id="ledger" aria-labelledby="ledgerH">
-                <div class="rc-feed">
-                    <div class="rc-feed-h">
+                <div class="feed panel">
+                    <div class="feed-h">
                         <h2 id="ledgerH">Ledger</h2>
                         <div class="seg" role="group" aria-label="Filter the ledger">
                             <button type="button" class="on" data-f="all">All</button>
@@ -177,7 +174,7 @@
             <section class="sec-s" aria-labelledby="whoH">
                 <h2 class="h2s" id="whoH">Who does what</h2>
                 <div class="who">
-                    <div class="who-c ai">
+                    <div class="who-c panel green">
                         <h3>The AI, on its own</h3>
                         <p class="who-no" style="margin: 0 0 14px">
                             Since Build #3 (25 Sep): every night from 21:00 UTC, with nobody in the
@@ -197,7 +194,7 @@
                             </li>
                         </ul>
                     </div>
-                    <div class="who-c op">
+                    <div class="who-c panel">
                         <h3>Osman, the operator</h3>
                         <ul class="ticks dim">
                             <li>Set up the accounts and launched the coin</li>
@@ -222,7 +219,7 @@
 
             <section class="sec-s" aria-labelledby="potH">
                 <h2 class="h2s" id="potH">The Daily Pot, exactly</h2>
-                <div class="note">
+                <div class="note panel">
                     <p id="potText">Loading the rules…</p>
                     <ul class="rules-list" id="potList"></ul>
                 </div>
@@ -231,7 +228,7 @@
             <section class="sec-s" aria-labelledby="launchH">
                 <h2 class="h2s" id="launchH">Launch and the token lock</h2>
                 <div class="notes">
-                    <div class="note">
+                    <div class="note panel">
                         <h3>23 Sep · launch</h3>
                         <p>
                             At 22:59 UTC the agent wallet (the treasury) paid 0.7335 SOL to ClawPump
@@ -253,7 +250,7 @@
                             >
                         </p>
                     </div>
-                    <div class="note">
+                    <div class="note panel">
                         <h3>24 Sep · first lock</h3>
                         <p>
                             At 00:22 UTC all of it went into a Streamflow lock ("Founder
@@ -275,7 +272,7 @@
                             >
                         </p>
                     </div>
-                    <div class="note gold">
+                    <div class="note panel gold">
                         <h3>5 Oct · locked again, until 31 Dec 2026</h3>
                         <p>
                             At 00:22 UTC that lock released 24,798,035.65 $BPROOF to the treasury.
@@ -313,7 +310,7 @@
 
             <section class="sec-s" aria-labelledby="moneyH">
                 <h2 class="h2s" id="moneyH">Where the money goes</h2>
-                <div class="note">
+                <div class="note panel">
                     <p>
                         Creator fees from trading the coin go to the AI's public treasury wallet.
                         40% of each day's fees (at most 0.5 SOL a day since 15 Oct, when Osman
@@ -333,7 +330,7 @@
             <section class="sec-s" aria-labelledby="madeH">
                 <h2 class="h2s" id="madeH">How the builds are made</h2>
                 <div class="notes">
-                    <div class="note">
+                    <div class="note panel">
                         <h3>Nightly builds</h3>
                         <p>
                             The Build Agent's merges carry <code>Build-Mode: agent</code>. Every
@@ -341,7 +338,7 @@
                             <code>bootstrap</code> or <code>human</code>.
                         </p>
                     </div>
-                    <div class="note">
+                    <div class="note panel">
                         <h3>Bootstrap phase</h3>
                         <p>
                             Builds #1 and #2, and platform work since (this site included), were
@@ -350,7 +347,7 @@
                             after a nightly run is listed in that build's devlog.
                         </p>
                     </div>
-                    <div class="note">
+                    <div class="note panel">
                         <h3>Fork credit</h3>
                         <p>
                             Build #0 is
@@ -372,32 +369,30 @@
         </main>
 
         <footer class="foot">
-            <div class="wrap">
+            <div class="wrap foot-in">
                 <div class="foot-top">
                     <a class="brand" href="/" aria-label="BEARPROOF, home">
-                        <img src="/assets/bull.svg" alt="" width="28" height="28" loading="lazy" />
+                        <img src="/assets/bull.svg" alt="" width="24" height="24" loading="lazy" />
                         <span>BEARPROOF</span>
                     </a>
                     <nav class="foot-links" aria-label="Footer">
                         <a href="/">Home</a>
                         <a href="/play">Play</a>
                         <a href="/live">Watch live</a>
+                        <a href="/receipts">Receipts</a>
                         <a href="/bears">The enemies</a>
-                        <a href="/api/ledger">Ledger as JSON</a>
-                        <a href="/api/onchain">SQD view as JSON</a>
-                        <a href="https://x.com/Bearproofapp_" rel="noopener">X @Bearproofapp_</a>
-                        <a href="/api/stats">Open data</a>
+                        <a href="/api/ledger">Ledger JSON</a>
+                        <a href="/api/onchain">SQD view JSON</a>
+                        <a href="https://x.com/Bearproofapp_" rel="noopener">X</a>
                         <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
                     </nav>
                 </div>
-                <p class="foot-crow">
-                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project. BEARPROOF is
-                    product 001 of CrowLab, Osman Turgut's lab where AI agents build and run the
-                    products.
-                </p>
                 <p>
-                    $BPROOF funds the AI's compute, its hosting and the players' prizes. It is not
-                    an investment and it is never required to play or win.
+                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project: BEARPROOF is
+                    product 001 of Osman Turgut's lab, where AI agents build and run the products.
+                    The independent on-chain check is powered by
+                    <a href="https://sqd.dev" rel="noopener">SQD Network</a>. $BPROOF is not an
+                    investment and is never required to play, vote or win.
                 </p>
             </div>
         </footer>

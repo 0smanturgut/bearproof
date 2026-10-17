@@ -149,13 +149,10 @@ test('agent/operator-options.json: every entry is a valid, uniquely named operat
     }
 });
 
-test('open polls: from the 18 Oct ballot anyone votes, one vote each (D74)', () => {
-    assert.equal(OPEN_VOTE_FROM, '2026-10-18');
-    assert.equal(
-        isOpenPoll('2026-10-17'),
-        false,
-        'the holder ballot of 17 Oct keeps its rule to the close'
-    );
+test('open polls: from the 17 Oct ballot anyone votes, one vote each (D74)', () => {
+    assert.equal(OPEN_VOTE_FROM, '2026-10-17');
+    assert.equal(isOpenPoll('2026-10-16'), false, 'earlier holder ballots keep their rule');
+    assert.equal(isOpenPoll('2026-10-17'), true);
     assert.equal(isOpenPoll('2026-10-18'), true);
     assert.equal(isOpenPoll('2027-01-01'), true);
     assert.equal(isOpenPoll(undefined), false);
@@ -183,14 +180,14 @@ test('open polls count every vote as one, whatever weight was stored', () => {
         { proposal_id: 'b', weight: 1 },
         { proposal_id: 'b', weight: 1 }
     ];
-    const open = tally(options, countedRows('2026-10-18', rows));
+    const open = tally(options, countedRows('2026-10-17', rows));
     assert.equal(open.winner.id, 'b');
     assert.equal(open.totalWeight, 3);
     assert.deepEqual(
         open.proposals.map((p) => p.share),
         [33.3, 66.7]
     );
-    const holders = tally(options, countedRows('2026-10-17', rows));
+    const holders = tally(options, countedRows('2026-10-16', rows));
     assert.equal(holders.winner.id, 'a', 'a holder ballot keeps √tokens weights');
 });
 

@@ -2,7 +2,7 @@
  * The ballot on the HQ (site.js does the rest of the page). Reads GET /api/vote and renders the ballot for the next
  * build: the AI's three proposals (and the operator's, labelled).
  *
- * Open polls (rule.mode 'open', from 18 Oct 2026, D74): anyone votes with one tap, no wallet. The vote carries a
+ * Open polls (rule.mode 'open', from 17 Oct 2026, D74): anyone votes with one tap, no wallet. The vote carries a
  * random id this browser keeps (one vote per person, changeable until the close) and a bot check (turnstile.js).
  * Earlier polls were for holders, who voted or posted a request by signing a plain-text message; that path stays
  * for those polls, and its message formats must match worker/src/lib/vote.js voteMessage() and
@@ -397,22 +397,21 @@
             if (o.ai.reply) take.appendChild(el('p', null, o.ai.reply));
             li.appendChild(take);
         }
-        const pct = el('div', 'opt-pct');
-        pct.appendChild(el('b', null, live ? `${o.share || 0}%` : '—'));
-        pct.appendChild(
-            el(
-                'span',
-                null,
-                live
-                    ? `${fmt(o.voters || 0)} voter${o.voters === 1 ? '' : 's'}`
-                    : 'votes open at launch'
-            )
-        );
-        li.appendChild(pct);
-        const bar = el('div', 'opt-bar');
+        // Shares only once somebody has voted: an empty ballot shows no 0% and no "0 voters".
+        const counted = live && poll.voters > 0;
         const fillBar = el('i');
-        bar.appendChild(fillBar);
-        li.appendChild(bar);
+        if (counted) {
+            const pct = el('div', 'opt-pct');
+            pct.appendChild(el('b', null, `${o.share || 0}%`));
+            if (o.voters > 0)
+                pct.appendChild(
+                    el('span', null, `${fmt(o.voters)} vote${o.voters === 1 ? '' : 's'}`)
+                );
+            li.appendChild(pct);
+            const bar = el('div', 'opt-bar');
+            bar.appendChild(fillBar);
+            li.appendChild(bar);
+        } else li.appendChild(el('div', 'opt-gap'));
         // Grow the bars after paint, so a new share animates in.
         requestAnimationFrame(() =>
             requestAnimationFrame(() => {
@@ -519,7 +518,11 @@
             poll.proposals.length
                 ? `${poll.proposals.length - community - operator} from the AI${operator ? ` · ${operator} from the operator` : ''}${community ? ` · ${community} from holders` : ''}`
                 : null,
-            live ? `${fmt(poll.voters)} voter${poll.voters === 1 ? '' : 's'} so far` : null
+            live && poll.voters > 0
+                ? `${fmt(poll.voters)} vote${poll.voters === 1 ? '' : 's'} so far`
+                : live && poll.status === 'open'
+                  ? 'Be the first to vote'
+                  : null
         ]
             .filter(Boolean)
             .join(' · ');

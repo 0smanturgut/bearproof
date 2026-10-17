@@ -36,7 +36,7 @@ tests, ships and writes a devlog. Every step and every cost is public.
 - **Daily twists.** Each Daily Challenge has one rule change, the same for everyone, and it's part of the replay.
 - **Share cards.** `/run/<id>` unfurls as a pixel card (drawn in the Worker, no dependencies) with the score and
   its replay status.
-- **Open voting.** From the 18 Oct ballot anyone votes on the next build with one tap: no wallet, no signup, one
+- **Open voting.** From the 17 Oct ballot anyone votes on the next build with one tap: no wallet, no signup, one
   vote per person (a device id and a bot check, at most 5 votes from one connection per poll). Until then it was
   holder voting by wallet signature, weight = floor(√tokens) (D74).
 - **The Daily Pot in $ANSEM**, bought through Jupiter from a small prize wallet the treasury funds and sent by the

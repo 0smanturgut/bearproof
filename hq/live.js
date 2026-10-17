@@ -471,7 +471,8 @@
                           : 'AI';
                 name.append(src, o.title);
                 var share = document.createElement('b');
-                share.textContent = (o.share || 0) + '%';
+                // No 0% on a ballot nobody has voted on yet.
+                share.textContent = v.voters > 0 ? (o.share || 0) + '%' : '';
                 var bar = document.createElement('div');
                 bar.className = 'bar';
                 var fill = document.createElement('i');
@@ -488,9 +489,9 @@
                     ? 'Build #' +
                       v.forBuild +
                       ' · ' +
-                      voters +
-                      ' voter' +
-                      (voters === 1 ? '' : 's') +
+                      (voters > 0
+                          ? voters + ' vote' + (voters === 1 ? '' : 's')
+                          : 'vote free, no wallet') +
                       ' · closes 21:00 UTC'
                     : v.status === 'closed'
                       ? 'Closed · next ballot 00:00 UTC'

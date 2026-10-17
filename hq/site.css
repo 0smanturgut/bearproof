@@ -3568,3 +3568,7 @@ body.page .foot {
     background: var(--bull);
     color: var(--bull-ink);
 }
+.opt-gap {
+    margin-top: auto;
+    padding-top: 22px;
+}

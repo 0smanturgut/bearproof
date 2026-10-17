@@ -11,7 +11,7 @@
 
 export const POLL_CLOSE_UTC_HOUR = 21;
 export const MIN_TOKENS_TO_VOTE = 1000;
-export const OPEN_VOTE_FROM = '2026-10-18';
+export const OPEN_VOTE_FROM = '2026-10-17';
 export const VOTES_PER_IP = 5;
 
 /** True when the poll of this UTC date is open to everyone (no wallet, one vote each). */

@@ -27,7 +27,7 @@ const day = (date) =>
         timeZone: 'UTC'
     });
 const voterCount = (n) => `${n} voter${n === 1 ? '' : 's'}`;
-// From the 18 Oct 2026 ballot anyone votes, no wallet (D74); earlier ballots were holders' wallets.
+// From the 17 Oct 2026 ballot anyone votes, no wallet (D74); earlier ballots were holders' wallets.
 const openVote = (v) => v?.rule?.mode === 'open';
 
 function challengeLine(f) {

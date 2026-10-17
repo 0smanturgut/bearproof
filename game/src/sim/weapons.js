@@ -1,14 +1,14 @@
 /**
  * @module sim/weapons
  * @description One Weapon class driven by a content definition. `type` picks the firing strategy:
- * melee | projectile | instant | aura | mine | nova | drain | orbit | tongue | spray | honey. Scaling:
+ * melee | projectile | instant | aura | mine | nova | drain | orbit | tongue | spray | honey | wall. Scaling:
  *   damage   = base * (1 + 0.2 * (lvl - 1)) * player.damageMult (* evolveDamageMult)
  *   cooldown = base * 0.92^(lvl - 1) * player.cooldownMult (* evolveCooldownMult)
  *   range    = base * (1 + 0.1 * (lvl - 1)) * player.areaMult
  * Evolution (level >= evolveLevel) is driven by data flags, never by weapon id.
  */
 
-import { HoneyJar, Mine, OrbitShard, Projectile } from './entities.js';
+import { BuyWall, HoneyJar, Mine, OrbitShard, Projectile } from './entities.js';
 import { atan2, cos, hypot, ipow, sin } from './dmath.js';
 
 export class Weapon {
@@ -114,6 +114,44 @@ export class Weapon {
                 return this._spray(player, sim);
             case 'honey':
                 return this._honey(player, sim);
+            case 'wall':
+                return this._wall(player, sim);
+        }
+    }
+
+    /** Buy Wall: a ring rolls out from the Whale. Evolved: a wider, weaker one follows. Fires with no bear near. */
+    _wall(player, sim) {
+        const def = this.def;
+        const range = this.getRange(player);
+        const damage = this.getDamage(player);
+        const opts = {
+            range,
+            speed: def.speed,
+            damage,
+            crit: this.critChance(player),
+            knockback: def.knockback,
+            weaponId: this.id
+        };
+        const x = player.x;
+        const y = player.y;
+        sim.walls.push(new BuyWall(x, y, opts));
+        sim.emit({ t: 'wall', x, y, r: range });
+        sim.emit({ t: 'fire', w: this.id, x, y });
+        if (this.isEvolved()) {
+            // Sim-time delay, so it pauses with the game and replays identically.
+            sim.schedule(def.evolveDelay, () => {
+                if (player.dead) return;
+                const big = range * def.evolveRangeMult;
+                sim.walls.push(
+                    new BuyWall(x, y, {
+                        ...opts,
+                        range: big,
+                        damage: damage * def.evolveDamage,
+                        second: true
+                    })
+                );
+                sim.emit({ t: 'wall', x, y, r: big, second: true });
+            });
         }
     }
 

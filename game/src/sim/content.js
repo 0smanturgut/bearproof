@@ -377,6 +377,29 @@ export const WEAPONS = {
         evolveRadiusMult: 1.4,
         evolveLife: 6,
         evolveBurn: 0.4
+    },
+    // The Whale's signature weapon. A ring rolls out from where the Whale stands at `speed` units/s to the
+    // weapon's range; every bear the front passes is hit once and shoved `knockback` away (bosses don't move).
+    // Evolved: a second wall follows `evolveDelay` s later, `evolveRangeMult` wider, for `evolveDamage` of the hit.
+    BUY_WALL: {
+        id: 'buy_wall',
+        name: 'Buy Wall',
+        icon: 'buy_wall',
+        description:
+            'A wall of buy orders rolls out from you. Every bear it passes is hit and shoved back.',
+        type: 'wall',
+        character: 'whale',
+        baseDamage: 15,
+        baseCooldown: 2.8,
+        baseRange: 150,
+        speed: 360,
+        knockback: 32,
+        evolveLevel: 5,
+        evolveName: 'Tsunami Bid',
+        evolveDescription: 'A second, wider wall rolls out right behind the first.',
+        evolveDelay: 0.3,
+        evolveRangeMult: 1.35,
+        evolveDamage: 0.7
     }
 };
 
@@ -1101,11 +1124,12 @@ export function dailyTwistForSeed(seed) {
  * Playable characters. The chosen one is written into the run log (like the twist), so a replay needs nothing
  * else and the server re-simulates every run with the right character. CHARACTER_IDS is append-only: a
  * character's index is its byte in the log. The bull is index 0 and the default; unknown ids are the bull.
- * `starterWeapon` is the weapon a run starts with; `maxHp` and `speedMult` default to SIM.PLAYER_HP and 1. Add
- * more fields here as characters need them, and read them in the Simulation, never in the UI (`sprite` and
- * `tagline` are display only).
+ * `starterWeapon` is the weapon a run starts with; `maxHp`, `speedMult` and `size` default to SIM.PLAYER_HP, 1
+ * and SIM.PLAYER_SIZE. `sweepEvery` (s) and `sweepRadius`: every `sweepEvery` s of the run, each candle within
+ * `sweepRadius` flies to the player (the Whale's Sweep the Book). Add more fields here as characters need them,
+ * and read them in the Simulation, never in the UI (`sprite`, `tagline` and `trait` are display only).
  */
-export const CHARACTER_IDS = ['bull', 'pepe'];
+export const CHARACTER_IDS = ['bull', 'pepe', 'whale'];
 
 export const CHARACTERS = {
     bull: {
@@ -1127,6 +1151,22 @@ export const CHARACTERS = {
         starterWeapon: 'tongue',
         maxHp: 90,
         speedMult: 1.1
+    },
+    // Unlocked with CLOUT in the Market (profile.js); the run log carries it like any character.
+    whale: {
+        id: 'whale',
+        name: 'The Whale',
+        sprite: 'whale_hero',
+        tagline: 'You are a whale. The bear market is endless. You buy it anyway.',
+        emoji: '🐋',
+        description: 'Buy Wall · 120 HP · slow',
+        trait: 'Sweep the Book: once a minute, every candle on screen flies to you.',
+        starterWeapon: 'buy_wall',
+        maxHp: 120,
+        speedMult: 0.85,
+        size: 24,
+        sweepEvery: 60,
+        sweepRadius: 640
     }
 };
 

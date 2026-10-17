@@ -56,7 +56,8 @@ function travel(sim, e, seconds) {
 }
 
 test('honey trap: a weapon for every character, appended last', () => {
-    const all = Object.values(WEAPONS);
+    // last of the shared pool (a character's signature weapon, like Buy Wall, may come after it)
+    const all = Object.values(WEAPONS).filter((w) => !w.character);
     assert.equal(all[all.length - 1].id, 'honey_trap');
     assert.equal(HT.type, 'honey');
     assert.equal(HT.character, undefined);

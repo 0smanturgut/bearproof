@@ -7,7 +7,7 @@
 import { ICONS, bakeIcon, bakeSprite } from './art/sprites.js';
 import { CHARACTERS, PASSIVES, STAGES, WEAPONS } from './sim/content.js';
 import { fmtNum, fmtTime } from './format.js';
-import { ETERNAL_BEAR, MARKET, bearHp, levelForXp } from './profile.js';
+import { ETERNAL_BEAR, MARKET, bearHp, characterUnlocked, levelForXp } from './profile.js';
 
 const STAGE_NAME = Object.fromEntries(Object.values(STAGES).map((s) => [s.id, s.name]));
 const reduced = () => !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -498,9 +498,14 @@ export class UI {
      * The Market: tabs for skins, trails, finales and the profile's stats. `state` is { profile, tab };
      * handlers: buy(id), equip(id), tab(id).
      */
-    showMarket(profile, tab, handlers) {
+    showMarket(profile, tab, handlers, { character = 'bull' } = {}) {
         const tabs = [
-            ['skins', 'Skins', 'Redrawn looks for the bull and Pepe. Same hitbox, same stats.'],
+            [
+                'chars',
+                'Heroes',
+                'New ways to play. The bull and Pepe are free; the rest unlock with CLOUT, Daily included.'
+            ],
+            ['skins', 'Skins', 'Redrawn looks for your characters. Same hitbox, same stats.'],
             ['trail', 'Trails', 'What the bull leaves behind while it runs.'],
             ['finale', 'Finales', 'How a run goes out on the game-over beat.'],
             ['stats', 'Profile', 'Everything this device remembers about you.']
@@ -526,18 +531,33 @@ export class UI {
         if (current[0] === 'stats') this._marketStats(list, profile);
         else {
             const items = MARKET.filter((i) =>
-                current[0] === 'skins' ? i.slot.startsWith('skin:') : i.slot === current[0]
+                current[0] === 'chars'
+                    ? i.slot === 'character'
+                    : current[0] === 'skins'
+                      ? i.slot.startsWith('skin:') && characterUnlocked(profile, i.slot.slice(5)) // no skins for a locked character
+                      : i.slot === current[0]
             );
             for (const item of items) {
                 const owned = profile.owned.includes(item.id);
-                const on = profile.equipped[item.slot] === item.id;
+                const isChar = item.slot === 'character';
+                const on = isChar
+                    ? character === item.character
+                    : profile.equipped[item.slot] === item.id;
                 const li = document.createElement('li');
                 li.className = 'guide-entry market-item' + (on ? ' on' : '');
                 const who = item.slot.startsWith('skin:')
                     ? CHARACTERS[item.slot.slice(5)]?.name.replace(/^The /, '').toUpperCase()
                     : '';
                 const short = !owned && profile.clout < item.price;
-                const label = on ? 'EQUIPPED' : owned ? 'EQUIP' : `${fmtNum(item.price)} CLOUT`;
+                const label = on
+                    ? isChar
+                        ? 'PLAYING'
+                        : 'EQUIPPED'
+                    : owned
+                      ? isChar
+                          ? 'PLAY'
+                          : 'EQUIP'
+                      : `${fmtNum(item.price)} CLOUT`;
                 li.innerHTML = `
                     <div class="guide-art"><canvas aria-hidden="true"></canvas></div>
                     <div class="guide-body">
@@ -554,10 +574,14 @@ export class UI {
                 const btn = li.querySelector('button');
                 btn.setAttribute(
                     'aria-label',
-                    `${item.name}${who ? ` for ${who}` : ''}: ${on ? 'equipped' : owned ? 'equip' : `buy for ${item.price} CLOUT`}`
+                    `${item.name}${who ? ` for ${who}` : ''}: ${on ? label.toLowerCase() : owned ? (isChar ? 'play as' : 'equip') : `buy for ${item.price} CLOUT`}`
                 );
                 btn.addEventListener('click', () =>
-                    owned ? handlers.equip(item.id) : handlers.buy(item.id, btn)
+                    !owned
+                        ? handlers.buy(item.id, btn)
+                        : isChar
+                          ? handlers.play(item.character)
+                          : handlers.equip(item.id)
                 );
                 list.appendChild(li);
             }

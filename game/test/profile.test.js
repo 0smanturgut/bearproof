@@ -16,7 +16,9 @@ import {
     normalizeProfile,
     runPayout,
     skinSprite,
-    xpToNext
+    xpToNext,
+    characterUnlocked,
+    unlockItem
 } from '../src/profile.js';
 import { SPRITES } from '../src/art/sprites.js';
 import { ICONS } from '../src/art/sprites.js';
@@ -209,4 +211,33 @@ test('bossDamage counts the damage bosses took and leaves the simulation alone',
     assert.ok(sim.stats.bossDamage >= dmg - 1, `${sim.stats.bossDamage} vs ${dmg}`);
     assert.ok(sim.stats.bossDamage <= sim.stats.damageDealt);
     assert.equal(play().sim.stateHash(), sim.stateHash());
+});
+
+test('characters: the bull and Pepe are free, the Whale unlocks once for CLOUT and is never "equipped"', () => {
+    const fresh = defaultProfile();
+    for (const c of CHARACTER_IDS) assert.ok(unlockItem(c), `${c} is listed in the Market`);
+    assert.ok(characterUnlocked(fresh, 'bull') && characterUnlocked(fresh, 'pepe'));
+    assert.ok(!characterUnlocked(fresh, 'whale'));
+    const price = unlockItem('whale').price;
+    assert.ok(price >= 400, 'a few good runs');
+    // short of CLOUT: nothing changes
+    const short = buy({ ...fresh, clout: price - 1 }, 'char_whale');
+    assert.equal(short.ok, false);
+    assert.equal(short.error, 'short');
+    // bought: owned, paid for, playable, and no slot in `equipped`
+    const r = buy({ ...fresh, clout: price + 10 }, 'char_whale');
+    assert.ok(r.ok);
+    assert.equal(r.profile.clout, 10);
+    assert.ok(characterUnlocked(r.profile, 'whale'));
+    assert.ok(!('character' in r.profile.equipped));
+    assert.equal(equip(r.profile, 'char_whale').ok, false);
+    // survives a save round trip; can't be bought twice
+    const saved = normalizeProfile(JSON.parse(JSON.stringify(r.profile)));
+    assert.ok(characterUnlocked(saved, 'whale'));
+    assert.equal(buy({ ...saved, clout: 5000 }, 'char_whale').error, 'owned');
+    // a hand-edited save can't slip an unlock into `equipped`, and an older save simply doesn't own the Whale
+    const edited = normalizeProfile({ equipped: { character: 'char_whale' } });
+    assert.ok(!characterUnlocked(edited, 'whale'));
+    assert.ok(!('character' in edited.equipped));
+    assert.equal(edited.equipped['skin:whale'], 'whale_default');
 });

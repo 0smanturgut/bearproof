@@ -272,6 +272,8 @@ export class Renderer {
             if (!h.landed || !visible(h.x, h.y, h.radius)) continue;
             this._drawHoney(h, X(h.x), Y(h.y), t, fx.calm);
         }
+        for (const w of sim.walls || []) this._drawBuyWall(w, X(w.x), Y(w.y));
+        if (sim.sweepIn != null) this._drawSweepMeter(sim, X(p.x), Y(p.y), t, fx.calm);
 
         // --- XP candles (with a soft light under each)
         ctx.globalCompositeOperation = 'lighter';
@@ -494,6 +496,75 @@ export class Renderer {
                 ctx.fillText(`${e.bagCount}`, ax - c * r * 1.9, ay - s * r * 1.9);
             }
         }
+    }
+
+    // ---------------------------------------------------------------- The Whale
+
+    /**
+     * Buy Wall: a green ring at the wall's front with bid bars standing on it (an order book seen from above),
+     * fading as it nears its range. Tsunami Bid's second wall is pale blue. Drawn from the sim's state, so a
+     * replay shows exactly where it hit.
+     */
+    _drawBuyWall(w, sx, sy) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const k = Math.min(1, w.r / w.range);
+        const r = w.r * s;
+        if (r < 2) return;
+        const a = 0.85 * (1 - k * k * 0.75);
+        const rgb = w.second ? '166,210,255' : '22,224,138';
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = `rgba(${rgb},${a * 0.35})`;
+        ctx.lineWidth = Math.max(4, 10 * s);
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = `rgba(${rgb},${a})`;
+        ctx.lineWidth = Math.max(1.5, 2.5 * s);
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.stroke();
+        // the bids: short bars standing on the ring, every ~11 px of circumference, alternating heights
+        const n = Math.max(12, Math.min(64, Math.round((w.r * TAU) / 22)));
+        ctx.fillStyle = w.second ? `rgba(232,250,255,${a})` : `rgba(184,255,217,${a})`;
+        const bw = Math.max(2, 2.5 * s);
+        for (let i = 0; i < n; i++) {
+            const ang = (i / n) * TAU;
+            const h = (i % 3 === 0 ? 9 : i % 3 === 1 ? 6 : 4) * s;
+            ctx.fillRect(
+                Math.round(sx + Math.cos(ang) * r - bw / 2),
+                Math.round(sy + Math.sin(ang) * r - h),
+                bw,
+                h
+            );
+        }
+    }
+
+    /**
+     * Sweep the Book: a thin arc under the Whale fills over the minute; in the last 3 s it turns gold and pulses,
+     * so the player knows to swim away from the candles and let them come.
+     */
+    _drawSweepMeter(sim, sx, sy, t, calm) {
+        const every = sim.character.sweepEvery;
+        const left = sim.sweepIn;
+        const frac = 1 - left / every;
+        const ctx = this.ctx;
+        const k = this.k;
+        const soon = left <= 3;
+        const rx = 20 * k;
+        const ry = 7 * k;
+        const y = sy + 15 * k;
+        ctx.lineWidth = Math.max(2, 1.6 * k);
+        ctx.strokeStyle = 'rgba(7,9,12,0.55)';
+        ctx.beginPath();
+        ctx.ellipse(sx, y, rx, ry, 0, 0, TAU);
+        ctx.stroke();
+        const pulse = soon && !calm ? 0.65 + 0.35 * Math.sin(t * 14) : 1;
+        ctx.strokeStyle = soon ? `rgba(255,197,61,${pulse})` : 'rgba(22,224,138,0.8)';
+        ctx.beginPath();
+        ctx.ellipse(sx, y, rx, ry, 0, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
+        ctx.stroke();
     }
 
     // ---------------------------------------------------------------- Whale Alert

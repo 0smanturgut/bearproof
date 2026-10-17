@@ -3,7 +3,8 @@
  * @description The player's profile: lifetime stats, bests per character and per map, the player level, CLOUT
  * (the play-only currency) and the Market's cosmetics. It lives inside the one prefs save (prefs.profile), on
  * this device only. Pure functions, no DOM: game.js applies a finished run, ui.js shows it, main.js wires the
- * Market. Nothing here reaches the Simulation, so nothing bought can make a run (or the Daily) stronger.
+ * Market. Nothing here reaches the Simulation. The one thing CLOUT buys that plays differently is a character,
+ * and picking a character is the one choice the Daily allows: the run log carries it, so the server replays it.
  *
  * CLOUT is earned only by playing. It is never bought, sold, withdrawn or traded, and it is not a coin.
  */
@@ -38,8 +39,37 @@ export const ETERNAL_BEAR = Object.freeze({
 /**
  * The Market. `slot` says what an item replaces: a character's skin (`skin:<character>`), the trail, or the
  * finale (the burst when a run ends). Every slot has a free default (`price: 0`, owned from the start).
+ * The `character` slot is different: its items unlock a character to play (`character`), and are owned, never
+ * equipped. Which character a run plays stays in prefs.character, and the run log carries it.
  */
 export const MARKET = Object.freeze([
+    {
+        id: 'char_bull',
+        slot: 'character',
+        character: 'bull',
+        name: 'The Bull',
+        price: 0,
+        sprite: 'bull',
+        text: 'Horns, 100 HP. Free, forever.'
+    },
+    {
+        id: 'char_pepe',
+        slot: 'character',
+        character: 'pepe',
+        name: 'Pepe',
+        price: 0,
+        sprite: 'pepe',
+        text: 'Tongue Lash, 90 HP, 10% faster. Free, forever.'
+    },
+    {
+        id: 'char_whale',
+        slot: 'character',
+        character: 'whale',
+        name: 'The Whale',
+        price: 750,
+        sprite: 'whale_hero',
+        text: 'Buy Wall shoves bears back. 120 HP, slow and big. Once a minute it sweeps every candle on screen.'
+    },
     {
         id: 'bull_default',
         slot: 'skin:bull',
@@ -87,6 +117,14 @@ export const MARKET = Object.freeze([
         price: 1200,
         sprite: 'pepe_night',
         text: 'Violet skin, gold shades with a glow. Hasn’t slept since the halving.'
+    },
+    {
+        id: 'whale_default',
+        slot: 'skin:whale',
+        name: 'The Whale',
+        price: 0,
+        sprite: 'whale_hero',
+        text: 'Deep blue, gold chain. The original.'
     },
     {
         id: 'trail_none',
@@ -143,9 +181,13 @@ export const MARKET = Object.freeze([
 ]);
 
 export const MARKET_BY_ID = Object.freeze(Object.fromEntries(MARKET.map((i) => [i.id, i])));
+const UNLOCK = 'character';
 const DEFAULTS = Object.freeze(
-    Object.fromEntries(MARKET.filter((i) => i.price === 0).map((i) => [i.slot, i.id]))
+    Object.fromEntries(
+        MARKET.filter((i) => i.price === 0 && i.slot !== UNLOCK).map((i) => [i.slot, i.id])
+    )
 );
+const FREE = Object.freeze(MARKET.filter((i) => i.price === 0).map((i) => i.id));
 
 export function defaultProfile() {
     return {
@@ -162,7 +204,7 @@ export function defaultProfile() {
         wins: 0,
         bounties: 0,
         best: { character: {}, stage: {} }, // id -> { score, timeMs }
-        owned: Object.values(DEFAULTS),
+        owned: [...FREE],
         equipped: { ...DEFAULTS },
         bear: { tier: 1, damage: 0, felled: 0 }
     };
@@ -204,7 +246,7 @@ export function normalizeProfile(raw) {
     p.owned = MARKET.map((i) => i.id).filter((id) => owned.has(id));
     for (const [slot, id] of Object.entries(raw.equipped || {})) {
         const item = MARKET_BY_ID[id];
-        if (item && item.slot === slot && owned.has(id)) p.equipped[slot] = id;
+        if (item && item.slot === slot && slot !== UNLOCK && owned.has(id)) p.equipped[slot] = id;
     }
     const bear = raw.bear || {};
     p.bear = {
@@ -340,17 +382,28 @@ export function buy(profile, id) {
     if (p.clout < item.price) return { ok: false, profile: p, error: 'short' };
     p.clout -= item.price;
     p.owned = MARKET.map((i) => i.id).filter((x) => x === id || p.owned.includes(x));
-    p.equipped[item.slot] = id; // a new thing goes on right away
+    if (item.slot !== UNLOCK) p.equipped[item.slot] = id; // a new thing goes on right away
     return { ok: true, profile: p, error: null };
 }
 
-/** Equip an owned item in its slot. */
+/** Equip an owned item in its slot. Character unlocks aren't equipped (prefs.character picks the run's). */
 export function equip(profile, id) {
     const p = normalizeProfile(profile);
     const item = MARKET_BY_ID[id];
-    if (!item || !p.owned.includes(id)) return { ok: false, profile: p };
+    if (!item || item.slot === UNLOCK || !p.owned.includes(id)) return { ok: false, profile: p };
     p.equipped[item.slot] = id;
     return { ok: true, profile: p };
+}
+
+/** The Market item that unlocks a character, or null if nothing sells it. */
+export function unlockItem(character) {
+    return MARKET.find((i) => i.slot === UNLOCK && i.character === character) || null;
+}
+
+/** Can this profile play `character`? Free characters always; a priced one once its unlock is owned. */
+export function characterUnlocked(profile, character) {
+    const item = unlockItem(character);
+    return !item || item.price === 0 || !!profile?.owned?.includes(item.id);
 }
 
 /** The sprite a character wears (its skin if one is equipped), or null for the character's own. */

@@ -21,7 +21,15 @@ import { createBot } from './sim/bot.js';
 import { bountyText, readBounty } from './bounty.js';
 import { guideSections } from './guide.js';
 import { badgeSection } from './achievements.js';
-import { MARKET_BY_ID, buy, equip, normalizeProfile, skinSprite } from './profile.js';
+import {
+    MARKET_BY_ID,
+    buy,
+    characterUnlocked,
+    equip,
+    normalizeProfile,
+    skinSprite,
+    unlockItem
+} from './profile.js';
 import {
     CHARACTERS,
     CHARACTER_IDS,
@@ -135,45 +143,66 @@ async function boot() {
     $('btnGuideBack').addEventListener('click', () => ui.show(back));
 
     // The Market: spend CLOUT on cosmetics. Everything is drawing only; the Simulation never sees it.
-    let marketTab = 'skins';
+    let marketTab = 'chars';
     const openMarket = () => {
         prefs.profile = normalizeProfile(prefs.profile);
-        ui.showMarket(prefs.profile, marketTab, {
-            tab: (id) => {
-                marketTab = id;
-                audio.click();
-                openMarket();
-            },
-            buy: (id) => {
-                const r = buy(prefs.profile, id);
-                if (!r.ok) {
-                    audio.deny();
-                    haptics.hurt();
+        ui.showMarket(
+            prefs.profile,
+            marketTab,
+            {
+                tab: (id) => {
+                    marketTab = id;
+                    audio.click();
+                    openMarket();
+                },
+                play: (id) => {
+                    if (!characterUnlocked(prefs.profile, id)) return;
+                    prefs.character = id;
+                    persist();
+                    audio.click();
+                    ui.toast(`PLAYING AS ${characterDef(id).name.toUpperCase()}`, 'bull', 1400);
+                    lookChanged();
+                },
+                buy: (id) => {
+                    const r = buy(prefs.profile, id);
+                    if (!r.ok) {
+                        audio.deny();
+                        haptics.hurt();
+                        ui.toast(
+                            r.error === 'short'
+                                ? `NEED ${fmtNum(MARKET_BY_ID[id].price - prefs.profile.clout)} MORE CLOUT`
+                                : 'ALREADY YOURS',
+                            'bear',
+                            1400
+                        );
+                        return;
+                    }
+                    prefs.profile = r.profile;
+                    const unlocks = MARKET_BY_ID[id].character;
+                    if (unlocks) prefs.character = unlocks; // a new character is picked right away
+                    persist();
+                    audio.buy();
+                    haptics.levelUp();
                     ui.toast(
-                        r.error === 'short'
-                            ? `NEED ${fmtNum(MARKET_BY_ID[id].price - prefs.profile.clout)} MORE CLOUT`
-                            : 'ALREADY YOURS',
-                        'bear',
-                        1400
+                        unlocks
+                            ? `UNLOCKED: ${MARKET_BY_ID[id].name.toUpperCase()}`
+                            : `BOUGHT: ${MARKET_BY_ID[id].name.toUpperCase()}`,
+                        'gold',
+                        1500
                     );
-                    return;
+                    lookChanged();
+                },
+                equip: (id) => {
+                    const r = equip(prefs.profile, id);
+                    if (!r.ok) return;
+                    prefs.profile = r.profile;
+                    persist();
+                    audio.click();
+                    lookChanged();
                 }
-                prefs.profile = r.profile;
-                persist();
-                audio.buy();
-                haptics.levelUp();
-                ui.toast(`BOUGHT: ${MARKET_BY_ID[id].name.toUpperCase()}`, 'gold', 1500);
-                lookChanged();
             },
-            equip: (id) => {
-                const r = equip(prefs.profile, id);
-                if (!r.ok) return;
-                prefs.profile = r.profile;
-                persist();
-                audio.click();
-                lookChanged();
-            }
-        });
+            { character: prefs.character }
+        );
     };
     const lookChanged = () => {
         game.applyLook();
@@ -191,7 +220,13 @@ async function boot() {
     });
 
     game.startBackdrop(); // the title screen floats over the live build, played by the autopilot
-    const repaintCharacters = setupCharacterPick(prefs, persist);
+    const repaintCharacters = setupCharacterPick(prefs, persist, () => {
+        // a locked character's card opens the Market on the Characters tab
+        audio.unlock();
+        audio.deny();
+        marketTab = 'chars';
+        openMarket();
+    });
     animateTitleBull(
         $('titleBull'),
         () =>
@@ -244,9 +279,10 @@ async function boot() {
  * The character select on the title screen: one button per CHARACTERS entry, one tap, saved in prefs. The
  * Simulation reads the character's rules; this only shows them.
  */
-function setupCharacterPick(prefs, persist) {
+function setupCharacterPick(prefs, persist, onLocked) {
     const root = $('charPick');
-    if (!CHARACTERS[prefs.character]) prefs.character = 'bull';
+    const unlocked = (id) => characterUnlocked(normalizeProfile(prefs.profile), id);
+    if (!CHARACTERS[prefs.character] || !unlocked(prefs.character)) prefs.character = 'bull';
     const buttons = CHARACTER_IDS.map((id) => {
         const c = CHARACTERS[id];
         const b = document.createElement('button');
@@ -264,9 +300,11 @@ function setupCharacterPick(prefs, persist) {
         name.textContent = c.name.replace(/^The /, '').toUpperCase();
         const sub = document.createElement('small');
         sub.textContent = c.description;
+        b._sub = sub;
         text.append(name, sub);
         b.append(cv, text);
         b.addEventListener('click', () => {
+            if (!unlocked(id)) return onLocked(id);
             prefs.character = id;
             persist();
             sync();
@@ -275,9 +313,23 @@ function setupCharacterPick(prefs, persist) {
         return b;
     });
     const sync = () => {
-        for (const b of buttons)
-            b.setAttribute('aria-checked', String(b.dataset.char === prefs.character));
-        $('tagline').textContent = characterDef(prefs.character).tagline;
+        for (const b of buttons) {
+            const id = b.dataset.char;
+            const open = unlocked(id);
+            b.classList.toggle('locked', !open);
+            b.setAttribute('aria-checked', String(id === prefs.character));
+            b._sub.textContent = open
+                ? CHARACTERS[id].description
+                : `🔒 ${fmtNum(unlockItem(id).price)} CLOUT`;
+            b.setAttribute(
+                'aria-label',
+                open
+                    ? `${CHARACTERS[id].name}: ${CHARACTERS[id].description}`
+                    : `${CHARACTERS[id].name}: locked, unlock for ${unlockItem(id).price} CLOUT in the Market`
+            );
+        }
+        const c = characterDef(prefs.character);
+        $('tagline').textContent = c.trait ? `${c.tagline} ${c.trait}` : c.tagline;
     };
     // each card wears the skin bought for that character in the Market
     const paint = () => {
@@ -298,7 +350,10 @@ function setupCharacterPick(prefs, persist) {
     };
     sync();
     paint();
-    return paint;
+    return () => {
+        sync();
+        paint();
+    };
 }
 
 function animateTitleBull(canvas, spriteId) {

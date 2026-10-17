@@ -1,0 +1,22 @@
+{
+    // builds.bearproof.app: a standalone build log, every build so far, tonight's build and the milestones.
+    // Its own Worker, so the main site (worker "bearproof") is untouched and links nowhere to it.
+    // Reads the main Worker through a service binding and the same D1 database, read-only.
+    // Deploy: npx wrangler deploy -c recap/wrangler.jsonc (see recap/README.md).
+    "$schema": "../node_modules/wrangler/config-schema.json",
+    "name": "bearproof-builds",
+    "main": "worker.js",
+    "compatibility_date": "2026-09-01",
+    "workers_dev": false,
+    "preview_urls": false,
+    "routes": [{ "pattern": "builds.bearproof.app", "custom_domain": true }],
+    "observability": { "enabled": true },
+    "services": [{ "binding": "MAIN", "service": "bearproof" }],
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "bearproof-db",
+            "database_id": "ae037dee-5017-4ffb-b905-25d5926a83f7"
+        }
+    ]
+}

@@ -638,6 +638,20 @@ async function loadAgent(first = false) {
         (started
             ? ` · ${niceDay(started)}, ${clockOf(started).slice(0, 5)}${!running && ended ? `–${clockOf(ended).slice(0, 5)}` : ''} UTC`
             : '');
+    const sub = $('#buildSub');
+    sub.textContent = '';
+    if (running)
+        sub.append(
+            `This is the AI's session right now, live: it is writing Build #${d.build || ''} and ships it at 00:00 UTC. The full control room is at `,
+            h('a', { href: '/live' }, '/live'),
+            '.'
+        );
+    else
+        sub.append(
+            "This is last night's real session log, replayed. Tonight's is streamed live at ",
+            h('a', { href: '/live' }, '/live'),
+            ' from 21:00 UTC.'
+        );
     const st = $('#termState');
     st.textContent = running ? 'live now' : 'replay';
     st.classList.toggle('live', running);

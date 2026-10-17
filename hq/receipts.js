@@ -176,7 +176,120 @@ function render() {
         );
 }
 
+const WALLET = { treasury: 'Treasury', prize: 'Prize wallet', other: 'Other' };
+const signed = (amount, asset) => {
+    const n = Number(amount);
+    const txt = Math.abs(n).toLocaleString('en-US', {
+        maximumFractionDigits: asset === 'SOL' ? 6 : 2
+    });
+    return `${n < 0 ? '−' : '+'}${txt} ${asset === 'SOL' ? 'SOL' : asset === 'ANSEM' ? '$ANSEM' : short(asset)}`;
+};
+const ago = (iso) => {
+    const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+    return !Number.isFinite(m)
+        ? ''
+        : m < 1
+          ? 'just now'
+          : m < 60
+            ? `${m} min ago`
+            : `${Math.round(m / 60)} h ago`;
+};
+
+/** SQD Network's own view of the two wallets (GET /api/onchain), set against our ledger move by move. */
+async function sqd() {
+    const d = await getJSON('/api/onchain');
+    const sum = $('#sqdSum');
+    const body = $('#sqdRows');
+    sum.textContent = '';
+    if (!d || !Array.isArray(d.moves)) {
+        sum.append(
+            h(
+                'p',
+                { class: 'fine' },
+                "SQD's view is offline right now. The ledger below still links every row to Solscan."
+            )
+        );
+        return;
+    }
+    for (const t of d.last24h || [])
+        sum.append(
+            h(
+                'div',
+                { class: 'sqd-chip' },
+                h(
+                    'span',
+                    { class: 'rc-k' },
+                    `${WALLET[t.wallet] || t.wallet} · ${t.asset === 'SOL' ? 'SOL' : '$' + t.asset} · 24 h`
+                ),
+                h(
+                    'b',
+                    null,
+                    `+${Number(t.in).toLocaleString('en-US', { maximumFractionDigits: 4 })} / −${Number(t.out).toLocaleString('en-US', { maximumFractionDigits: 4 })}`
+                ),
+                h(
+                    'span',
+                    { class: 'fine' },
+                    `${t.moves} move${t.moves === 1 ? '' : 's'} · ${t.inLedger} in our ledger`
+                )
+            )
+        );
+    if (!(d.last24h || []).length)
+        sum.append(h('p', { class: 'fine' }, 'No moves in the last 24 hours yet.'));
+    body.textContent = '';
+    for (const m of d.moves) {
+        const ledger = m.inLedger
+            ? h('span', { class: 'mk m' }, '✓ listed')
+            : m.note
+              ? h(
+                    'span',
+                    { class: 'sqd-note' },
+                    h('span', { class: 'mk' }, 'not listed'),
+                    ' ',
+                    m.note
+                )
+              : h('span', { class: 'mk e' }, 'not listed');
+        body.append(
+            h(
+                'tr',
+                { class: m.direction },
+                h('td', { class: 'tm' }, m.ts.slice(0, 16).replace('T', ' ')),
+                h('td', null, WALLET[m.wallet] || m.wallet),
+                h('td', { class: `num-c amt ${m.direction}` }, signed(m.amount, m.asset)),
+                h('td', null, ledger),
+                h(
+                    'td',
+                    null,
+                    h('a', { href: m.solscan, rel: 'noopener', target: '_blank' }, 'Solscan ↗')
+                )
+            )
+        );
+    }
+    if (!d.moves.length)
+        body.append(
+            h(
+                'tr',
+                null,
+                h(
+                    'td',
+                    { colspan: '5', class: 'fine' },
+                    'SQD has not indexed a move yet. The first run reads the last 24 hours.'
+                )
+            )
+        );
+    $('#sqdMeta').textContent = [
+        d.indexedToSlot ? `Indexed up to slot ${d.indexedToSlot.toLocaleString('en-US')}` : null,
+        d.syncedAt ? `read ${ago(d.syncedAt)}` : null,
+        d.indexed && d.indexed.since
+            ? `${d.indexed.moves} moves since ${d.indexed.since.slice(0, 16).replace('T', ' ')} UTC`
+            : null,
+        'source: SQD Portal (portal.sqd.dev), finalized Solana blocks'
+    ]
+        .filter(Boolean)
+        .join(' · ');
+}
+
 async function boot() {
+    sqd();
     const [s, ledger, pot] = await Promise.all([
         getJSON('/api/stats'),
         getJSON('/api/ledger'),

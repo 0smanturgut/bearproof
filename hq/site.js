@@ -1402,6 +1402,18 @@ async function loadMoves() {
     }
 }
 
+/** The receipts strip: what SQD Network saw of the two wallets in the last 24 hours, against our ledger. */
+async function loadSqdStrip() {
+    const el = $('#sqdText');
+    if (!el) return;
+    const d = await getJSON('/api/onchain');
+    const day = d && Array.isArray(d.last24h) ? d.last24h : null;
+    if (!day || !day.length) return; // the designed sentence stays
+    const moves = day.reduce((n, t) => n + (t.moves || 0), 0);
+    const listed = day.reduce((n, t) => n + (t.inLedger || 0), 0);
+    el.textContent = `SQD Network saw ${fmtInt(moves)} move${moves === 1 ? '' : 's'} of these wallets in the last 24 hours, read separately from our ledger. Our ledger lists ${fmtInt(listed)} of them. See every one, side by side.`;
+}
+
 // ------------------------------------------------------------------------------------------- reveal on scroll
 
 function reveal() {
@@ -1601,6 +1613,7 @@ function boot() {
         '900px'
     );
     if ($('#moves')) whenNear($('#receipts'), loadMoves, '900px');
+    whenNear($('#receipts'), loadSqdStrip, '900px');
     // The game's pixel art: when the browser is idle, so it never delays the first paint.
     const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
     idle(() => import('/art.js').catch(() => {}));

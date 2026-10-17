@@ -31,6 +31,7 @@ import { STAGE_NAMES, dayNumber, isDateKey, nextUtcMidnight, utcDate } from './l
 import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
 import { edgeCached, error, json, redirect } from './lib/http.js';
 import { ledger } from './routes/ledger.js';
+import { onchain } from './routes/onchain.js';
 import { getRun, leaderboard, session, setPlayerName, submitRun } from './routes/runs.js';
 import { runCard, runPage } from './routes/share.js';
 import { twistFor } from './lib/twists.js';
@@ -234,6 +235,8 @@ export default {
                         return edgeCached(request, ctx, 15, () => leaderboard(request, env));
                     case '/api/ledger':
                         return edgeCached(request, ctx, 30, () => ledger(env));
+                    case '/api/onchain':
+                        return edgeCached(request, ctx, 60, () => onchain(env));
                     case '/api/vote':
                         return getVote(request, env);
                     case '/api/vote/result':

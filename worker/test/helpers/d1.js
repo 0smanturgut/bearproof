@@ -13,6 +13,11 @@ export function fakeD1() {
         if (f.endsWith('.sql')) db.exec(fs.readFileSync(new URL(f, MIGRATIONS), 'utf8'));
     return {
         db,
+        async batch(stmts) {
+            const out = [];
+            for (const st of stmts) out.push(await st.run());
+            return out;
+        },
         prepare(sql) {
             let args = [];
             const stmt = () => db.prepare(sql);

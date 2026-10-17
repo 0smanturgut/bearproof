@@ -291,6 +291,12 @@ export async function scheduled(event, env, ctx) {
             .then((m) => m.communityTick(env, now))
             .catch((err) => console.warn('[cron] telegram', err?.message || err))
     );
+    // SQD Network's view of the treasury and prize wallet (D75): beside the money steps, never in their way.
+    ctx.waitUntil(
+        import('./lib/sqd.js')
+            .then((m) => m.syncSqd(env, { now }))
+            .catch((err) => console.warn('[cron] sqd', err?.message || err))
+    );
     try {
         await snapshotFees(env, today);
     } catch (err) {

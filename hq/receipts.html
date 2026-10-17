@@ -98,6 +98,49 @@
                 </div>
             </section>
 
+            <section class="sec-s" id="sqd" aria-labelledby="sqdH">
+                <div class="sqd">
+                    <div class="sqd-top">
+                        <div>
+                            <p class="eyebrow">Independent check</p>
+                            <h2 class="h2s" id="sqdH">
+                                Read by <span class="g">SQD Network</span>, not by us.
+                            </h2>
+                            <p class="sec-sub">
+                                Every 15 minutes our Worker reads the treasury and the prize wallet
+                                from SQD Network's index of Solana, separately from the code that
+                                writes our ledger. Each move below says whether our ledger lists the
+                                same transaction, so you can check one against the other.
+                            </p>
+                        </div>
+                        <a class="sqd-badge" href="https://sqd.dev" rel="noopener" target="_blank"
+                            ><span>Independent check powered by</span><b>SQD</b></a
+                        >
+                    </div>
+                    <div class="sqd-sum" id="sqdSum">
+                        <p class="fine">Loading SQD's view of the wallets…</p>
+                    </div>
+                    <div class="lg-wrap">
+                        <table class="lg sqd-lg">
+                            <caption class="sr-only">
+                                The wallets' on-chain moves as SQD Network indexed them
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Time (UTC)</th>
+                                    <th scope="col">Wallet</th>
+                                    <th scope="col" class="num-c">Change</th>
+                                    <th scope="col">Our ledger</th>
+                                    <th scope="col">Tx</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sqdRows"></tbody>
+                        </table>
+                    </div>
+                    <p class="fine" id="sqdMeta"></p>
+                </div>
+            </section>
+
             <section class="sec-s" id="ledger" aria-labelledby="ledgerH">
                 <div class="rc-feed">
                     <div class="rc-feed-h">
@@ -341,6 +384,7 @@
                         <a href="/live">Watch live</a>
                         <a href="/bears">The enemies</a>
                         <a href="/api/ledger">Ledger as JSON</a>
+                        <a href="/api/onchain">SQD view as JSON</a>
                         <a href="https://x.com/Bearproofapp_" rel="noopener">X @Bearproofapp_</a>
                         <a href="/api/stats">Open data</a>
                         <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>

@@ -45,6 +45,9 @@ tests, ships and writes a devlog. Every step and every cost is public.
   board and 40% shared by everyone who clears the AI's bounty. It was picked in the 26 Sep holder vote; from 25 Sep
   until then, 10% of the fees went to the verified #1.
 - **Receipts.** Treasury balance and every SOL movement are read from chain into the public ledger ([bearproof.app/receipts](https://bearproof.app/receipts)).
+- **Independent on-chain check, powered by [SQD Network](https://sqd.dev).** Every 15 minutes the Worker reads the
+  treasury's and prize wallet's moves from the SQD Portal, separately from the ledger code, and
+  [/receipts](https://bearproof.app/receipts#sqd) shows each one next to the ledger (`/api/onchain`).
 - **A Telegram group the AI listens to.** BEARPROOF is in the group as a bot (it runs in the Worker): it posts every
   build, vote, prize and ledger row, answers mentions from live data, and at 20:30 UTC turns the day's chat into a
   short public digest (`/api/feedback`) that the Build Agent reads before it builds. Its instructions are in

@@ -224,9 +224,8 @@ on a night with no winner: the roadmap is the default.
 
 ## X draft
 
-Write `content/x/build-<n>.md`: the post Osman publishes from @bearproofapp when your build goes live at 00:00 UTC.
-(@bearproofapp is suspended by X since 27 Sep. Write the draft anyway, as yourself; Osman decides what goes out and
-from where. Don't mention any account in it.)
+Write `content/x/build-<n>.md`: the post Osman publishes from @Bearproofapp\_, the project's X account, when your build
+goes live at 00:00 UTC. Write it as yourself; Osman decides what goes out. Don't mention any account in it.
 You never post anything yourself. Format: a one-line note for Osman (what to attach, e.g. a screenshot of the new
 feature), then `---`, then the post (at most 280 characters), then optionally `---` and one reply. Lead with what
 shipped, in first person, and end the post with `https://bearproof.app`: that is the only link, once, after real

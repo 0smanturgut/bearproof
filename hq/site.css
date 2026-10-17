@@ -1269,12 +1269,11 @@ ol {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     gap: 20px;
-    align-items: stretch;
+    align-items: start;
 }
 .term {
     display: flex;
     flex-direction: column;
-    min-height: 460px;
     border-radius: var(--r);
     border: 1px solid var(--line);
     background: #06090c;
@@ -1328,12 +1327,13 @@ ol {
 }
 .term-body {
     position: relative;
-    flex: 1;
+    flex: none;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     gap: 2px;
     height: 400px;
+    contain: size layout paint;
     padding: 16px 18px 18px;
     overflow: hidden;
     font: 400 13px/1.65 var(--mono);
@@ -2905,9 +2905,6 @@ a.rc-tile:hover {
     .coin {
         grid-template-columns: minmax(0, 1fr);
     }
-    .term {
-        min-height: 400px;
-    }
     .ballot {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -3017,7 +3014,7 @@ a.rc-tile:hover {
         padding-top: 10px;
     }
     .term-body {
-        height: 340px;
+        height: 320px;
         font-size: 12px;
         padding: 14px;
     }
@@ -3423,4 +3420,140 @@ body.page .foot {
     .feed {
         display: none;
     }
+}
+
+/* ------------------------------------------------------------------ ideas box, one wide card */
+
+.voice.one {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 28px;
+}
+.voice.one .voice-card {
+    flex-direction: row;
+    gap: 32px;
+}
+.voice-main {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.voice.one .ideas-feed {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 0 32px;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+}
+@media (max-width: 720px) {
+    .voice.one .voice-card {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .voice.one .ideas-feed {
+        padding: 14px 0 0;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+    }
+}
+
+/* ------------------------------------------------------------------ /bears */
+
+.cast {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+}
+.cast.bosses-l,
+.cast.heroes {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+.cast-c {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px;
+    border-radius: var(--r);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--card-2), var(--card));
+}
+.cast-c.cast-boss {
+    border-color: rgba(255, 59, 92, 0.22);
+    background:
+        radial-gradient(70% 45% at 50% 22%, rgba(255, 59, 92, 0.16), transparent 70%),
+        linear-gradient(180deg, #120c10, #0b090c);
+}
+.cast-c.cast-hero {
+    border-color: rgba(22, 224, 138, 0.25);
+    background:
+        radial-gradient(70% 45% at 50% 22%, rgba(22, 224, 138, 0.14), transparent 70%),
+        linear-gradient(180deg, var(--card-2), var(--card));
+}
+.cast-art {
+    display: grid;
+    place-items: center;
+    height: 150px;
+    margin-bottom: 8px;
+}
+.cast-c.cast-mob .cast-art {
+    height: 110px;
+}
+.cast-c.cast-mob .cast-art canvas {
+    max-height: 110px;
+}
+.cast-art canvas {
+    max-height: 150px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55));
+}
+.cast-c h3 {
+    font: 400 28px/1 var(--display);
+}
+.cast-c.cast-boss h3 {
+    color: #ffd4dc;
+}
+.cast-tag {
+    align-self: flex-start;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 59, 92, 0.14);
+    color: #ff8da1;
+    font: 700 10px/1.3 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.cast-line {
+    color: var(--text);
+    font-size: 15px;
+    font-style: italic;
+}
+.cast-desc {
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.55;
+}
+.cast-tip {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.cast-tip b {
+    color: var(--bull);
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.bears-cta {
+    text-align: center;
+    padding: 40px 0 10px;
+}
+.bears-cta .h2s {
+    margin-bottom: 22px;
 }

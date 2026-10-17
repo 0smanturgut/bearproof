@@ -4,4 +4,5 @@
     <url><loc>https://bearproof.app/play</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
     <url><loc>https://bearproof.app/live</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
     <url><loc>https://bearproof.app/receipts</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+    <url><loc>https://bearproof.app/bears</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
 </urlset>

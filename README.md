@@ -2,16 +2,16 @@
 
 **An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.**
 
-|                                             |                                                                                                                                                                  |
-| :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Play / HQ**                               | https://bearproof.app                                                                                                                                            |
-| **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                       |
-| **Telegram (talk to the AI)**               | https://t.me/bearproofapp · the bot is [@bearproobot](https://t.me/bearproobot). It never DMs first and never asks for a key                                     |
-| **X**                                       | [@bearproofapp](https://x.com/bearproofapp) is suspended by X (27 Sep). Until it's back, updates come from the operator, [@0smanTrgut](https://x.com/0smanTrgut) |
-| **Operator**                                | Osman Turgut · [@0smanTrgut](https://x.com/0smanTrgut) on X                                                                                                      |
-| **Lab**                                     | A [CrowLab](https://crowlab.ai) project: BEARPROOF is product 001 of Osman's lab where AI agents build and run the products                                      |
-| **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX)       |
-| **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                               |
+|                                             |                                                                                                                                                            |
+| :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Play / HQ**                               | https://bearproof.app                                                                                                                                      |
+| **Watch it build (every night, 21:00 UTC)** | https://bearproof.app/live                                                                                                                                 |
+| **Telegram (talk to the AI)**               | https://t.me/bearproofapp · the bot is [@bearproobot](https://t.me/bearproobot). It never DMs first and never asks for a key                               |
+| **X**                                       | [@Bearproofapp\_](https://x.com/Bearproofapp_), the project's account (the first one, @bearproofapp, was suspended by X on 27 Sep)                         |
+| **Operator**                                | Osman Turgut · [@0smanTrgut](https://x.com/0smanTrgut) on X                                                                                                |
+| **Lab**                                     | A [CrowLab](https://crowlab.ai) project: BEARPROOF is product 001 of Osman's lab where AI agents build and run the products                                |
+| **Coin**                                    | **$BPROOF** on Solana · CA `6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX` · [pump.fun](https://pump.fun/coin/6aktZWaJLQpe3sey13uCwAn7s977mhuKdbVHP8t7ttZX) |
+| **What the AI added**                       | `git diff day-0..main` (`day-0` is the untouched open-source game it started from)                                                                         |
 
 Always check the contract address against this README and the HQ (bearproof.app). Anything else is not us.
 

@@ -41,6 +41,7 @@
             content="It ships a new version every day. You fund it, you steer it, you play it."
         />
         <meta name="twitter:image" content="https://bearproof.app/assets/og.png" />
+        <meta name="twitter:site" content="@Bearproofapp_" />
         <link
             rel="preload"
             href="/assets/fonts/jersey-10.woff2"
@@ -65,9 +66,9 @@
                 </a>
                 <nav class="nav-links" aria-label="Sections">
                     <a href="#how">How it works</a>
-                    <a href="#build">Builds</a>
-                    <a href="#challenge">Daily</a>
                     <a href="#vote">Vote</a>
+                    <a href="#challenge">Daily</a>
+                    <a href="#build">Builds</a>
                     <a href="#coin">$BPROOF</a>
                     <a href="#receipts">Receipts</a>
                     <a href="/live" class="nav-live" id="navLive"><i aria-hidden="true"></i>Live</a>
@@ -100,9 +101,9 @@
             </div>
             <div class="sheet" id="sheet" hidden>
                 <a href="#how">How it works</a>
-                <a href="#build">Builds</a>
-                <a href="#challenge">Daily Challenge</a>
                 <a href="#vote">Vote</a>
+                <a href="#challenge">Daily Challenge</a>
+                <a href="#build">Builds</a>
                 <a href="#coin">$BPROOF</a>
                 <a href="#receipts">Receipts</a>
                 <a href="/live">Watch the AI live</a>
@@ -316,72 +317,66 @@
                 </p>
             </section>
 
-            <!-- ================================================ BUILD NIGHT -->
-            <section class="sec wrap" id="build" aria-labelledby="buildH">
+            <!-- ======================================================= VOTE -->
+            <section class="sec wrap" id="vote" aria-labelledby="voteH">
                 <header class="sec-h">
-                    <p class="eyebrow">The builds</p>
-                    <h2 id="buildH">Every night, it codes <span class="g">in public.</span></h2>
-                    <p class="sec-sub" id="buildSub">
-                        This is last night's real session log, replayed. Tonight's is streamed live
-                        at
-                        <a href="/live">/live</a> from 21:00 UTC.
+                    <p class="eyebrow">Vote</p>
+                    <h2 id="voteH">You pick what it <span class="g">builds tonight.</span></h2>
+                    <p class="sec-sub" id="voteSub">
+                        The AI proposes three features. Holders vote until 21:00 UTC, and the winner
+                        ships at 00:00 UTC.
                     </p>
                 </header>
 
-                <div class="night">
-                    <div class="term" id="term" aria-label="Last night's build log">
-                        <div class="term-bar">
-                            <i></i><i></i><i></i>
-                            <span id="termTitle">build-agent · last night</span>
-                            <span class="term-state" id="termState">replay</span>
-                        </div>
-                        <ol class="term-body" id="termBody" aria-live="off"></ol>
-                    </div>
+                <div class="vote-bar">
+                    <span class="tag" id="voteFlag">Loading the ballot…</span>
+                    <span class="vote-meta" id="ballotMeta"></span>
+                    <button class="btn-solid sm" type="button" id="voteConnect" disabled>
+                        Connect wallet to vote
+                    </button>
+                </div>
+                <p class="vote-status" id="voteStatus" aria-live="polite"></p>
+                <ul class="ballot" id="ballot"></ul>
+                <p class="vote-rule">
+                    One free signature, no transaction, nothing moves. Weight is √(tokens held), at
+                    least 1,000 $BPROOF, so no whale owns the roadmap.
+                </p>
 
-                    <article class="latest" id="latest">
-                        <p class="latest-k">
-                            <span class="tag live">Live now</span><span id="latestDate"></span>
-                        </p>
-                        <p class="latest-n" id="latestN">#—</p>
-                        <h3 id="latestTitle">Loading the latest build…</h3>
-                        <p class="latest-sum" id="latestSum"></p>
-                        <ul class="chips" id="latestChips"></ul>
-                        <div class="latest-cta">
-                            <a class="btn-solid" href="/play" id="latestPlay">Play this build</a>
-                            <a
-                                class="btn-line"
-                                id="latestLog"
-                                href="https://github.com/0smanturgut/bearproof/tree/main/devlog"
-                                rel="noopener"
-                                target="_blank"
-                                >Read the devlog ↗</a
-                            >
+                <div class="voice one">
+                    <form class="voice-card" id="ideaForm" novalidate hidden>
+                        <div class="voice-main">
+                            <p class="voice-k">Got a better idea?</p>
+                            <h3>Send the AI an idea</h3>
+                            <p class="voice-p">
+                                It reads every idea each night before it writes the next ballot.
+                            </p>
+                            <label class="sr-only" for="ideaText">Your idea</label>
+                            <textarea
+                                id="ideaText"
+                                rows="2"
+                                maxlength="200"
+                                placeholder="A mini map so I can see where the bears are…"
+                            ></textarea>
+                            <div class="ideas-ts" id="ideaTs"></div>
+                            <p class="fine" id="ideaTsHint" hidden>
+                                One quick check: tap the box above.
+                            </p>
+                            <div class="voice-row">
+                                <span class="count" id="ideaCount">0 / 200</span>
+                                <button class="btn-solid sm" type="submit" id="ideaSubmit">
+                                    Send idea
+                                </button>
+                            </div>
+                            <p class="vote-status" id="ideaStatus" aria-live="polite"></p>
                         </div>
-                    </article>
+                        <div class="ideas-feed">
+                            <p class="ideas-k">
+                                <span>Latest ideas</span><span id="ideaMeta"></span>
+                            </p>
+                            <ul class="ideas-list" id="ideaList"></ul>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="tl-head">
-                    <h3 class="tl-title">
-                        <b id="tlCount">—</b> builds so far.
-                        <span>Every one is still playable.</span>
-                    </h3>
-                    <div class="tl-nav">
-                        <button type="button" class="round" id="tlPrev" aria-label="Newer builds">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M15 5l-7 7 7 7" />
-                            </svg>
-                        </button>
-                        <button type="button" class="round" id="tlNext" aria-label="Older builds">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="tl-wrap">
-                    <ol class="tl" id="timeline" aria-label="Build history" tabindex="0"></ol>
-                </div>
-                <div class="tl-progress" aria-hidden="true"><i id="tlBar"></i></div>
             </section>
 
             <!-- ============================================ DAILY CHALLENGE -->
@@ -481,199 +476,72 @@
                 </div>
             </section>
 
-            <!-- ======================================================= VOTE -->
-            <section class="sec wrap" id="vote" aria-labelledby="voteH">
+            <!-- ================================================ BUILD NIGHT -->
+            <section class="sec wrap" id="build" aria-labelledby="buildH">
                 <header class="sec-h">
-                    <p class="eyebrow">Vote</p>
-                    <h2 id="voteH">You pick what it <span class="g">builds tonight.</span></h2>
-                    <p class="sec-sub" id="voteSub">
-                        The AI proposes three features. Holders vote until 21:00 UTC, and the winner
-                        ships at 00:00 UTC.
+                    <p class="eyebrow">The builds</p>
+                    <h2 id="buildH">Every night, it codes <span class="g">in public.</span></h2>
+                    <p class="sec-sub" id="buildSub">
+                        This is last night's real session log, replayed. Tonight's is streamed live
+                        at
+                        <a href="/live">/live</a> from 21:00 UTC.
                     </p>
                 </header>
 
-                <div class="vote-bar">
-                    <span class="tag" id="voteFlag">Loading the ballot…</span>
-                    <span class="vote-meta" id="ballotMeta"></span>
-                    <button class="btn-solid sm" type="button" id="voteConnect" disabled>
-                        Connect wallet to vote
-                    </button>
-                </div>
-                <p class="vote-status" id="voteStatus" aria-live="polite"></p>
-                <ul class="ballot" id="ballot"></ul>
-                <p class="vote-rule">
-                    One free signature, no transaction, nothing moves. Weight is √(tokens held), at
-                    least 1,000 $BPROOF, so no whale owns the roadmap.
-                </p>
-
-                <div class="voice">
-                    <form class="voice-card" id="ideaForm" novalidate hidden>
-                        <p class="voice-k">No coin? No problem.</p>
-                        <h3>Send the AI an idea</h3>
-                        <p class="voice-p">
-                            It reads every idea each night before it writes the next ballot.
-                        </p>
-                        <label class="sr-only" for="ideaText">Your idea</label>
-                        <textarea
-                            id="ideaText"
-                            rows="2"
-                            maxlength="200"
-                            placeholder="A mini map so I can see where the bears are…"
-                        ></textarea>
-                        <div class="ideas-ts" id="ideaTs"></div>
-                        <p class="fine" id="ideaTsHint" hidden>
-                            One quick check: tap the box above.
-                        </p>
-                        <div class="voice-row">
-                            <span class="count" id="ideaCount">0 / 200</span>
-                            <button class="btn-solid sm" type="submit" id="ideaSubmit">
-                                Send idea
-                            </button>
+                <div class="night">
+                    <div class="term" id="term" aria-label="Last night's build log">
+                        <div class="term-bar">
+                            <i></i><i></i><i></i>
+                            <span id="termTitle">build-agent · last night</span>
+                            <span class="term-state" id="termState">replay</span>
                         </div>
-                        <p class="vote-status" id="ideaStatus" aria-live="polite"></p>
-                        <div class="ideas-feed">
-                            <p class="ideas-k">
-                                <span>Latest ideas</span><span id="ideaMeta"></span>
-                            </p>
-                            <ul class="ideas-list" id="ideaList"></ul>
-                        </div>
-                    </form>
+                        <ol class="term-body" id="termBody" aria-live="off"></ol>
+                    </div>
 
-                    <form class="voice-card off" id="reqForm" novalidate>
-                        <p class="voice-k">Holding 100,000 $BPROOF?</p>
-                        <h3>Put your own feature on the ballot</h3>
-                        <p class="voice-p">
-                            One request a day, until 18:00 UTC, next to the AI's three. If it wins
-                            the vote, the AI builds it and credits you.
+                    <article class="latest" id="latest">
+                        <p class="latest-k">
+                            <span class="tag live">Live now</span><span id="latestDate"></span>
                         </p>
-                        <span class="tag dim" id="reqFlag">Loading…</span>
-                        <label class="sr-only" for="reqTitle">Feature name</label>
-                        <input
-                            id="reqTitle"
-                            type="text"
-                            maxlength="60"
-                            placeholder="Feature name"
-                            disabled
-                        />
-                        <label class="sr-only" for="reqDesc">Details</label>
-                        <textarea
-                            id="reqDesc"
-                            rows="2"
-                            maxlength="240"
-                            placeholder="What it does, in a sentence or two"
-                            disabled
-                        ></textarea>
-                        <div class="voice-row">
-                            <span class="count" id="reqCount">0 / 240</span>
-                            <button class="btn-solid sm" type="submit" id="reqSubmit" disabled>
-                                Sign and post
-                            </button>
+                        <p class="latest-n" id="latestN">#—</p>
+                        <h3 id="latestTitle">Loading the latest build…</h3>
+                        <p class="latest-sum" id="latestSum"></p>
+                        <ul class="chips" id="latestChips"></ul>
+                        <div class="latest-cta">
+                            <a class="btn-solid" href="/play" id="latestPlay">Play this build</a>
+                            <a
+                                class="btn-line"
+                                id="latestLog"
+                                href="https://github.com/0smanturgut/bearproof/tree/main/devlog"
+                                rel="noopener"
+                                target="_blank"
+                                >Read the devlog ↗</a
+                            >
                         </div>
-                        <p class="vote-status" id="reqStatus" aria-live="polite"></p>
-                    </form>
+                    </article>
                 </div>
-            </section>
 
-            <!-- ================================================ BEAR MARKET -->
-            <section class="sec bears" id="bears" aria-labelledby="bearsH">
-                <header class="sec-h wrap center">
-                    <p class="eyebrow">The enemies</p>
-                    <h2 id="bearsH">Meet the <span class="r">bear market.</span></h2>
-                    <p class="sec-sub">
-                        Everything that wants your bull liquidated. Drawn by the AI, in code.
-                    </p>
-                </header>
-                <ul class="bosses wrap" id="bosses">
-                    <li>
-                        <canvas
-                            data-sprite="rug_lord"
-                            data-scale="3"
-                            data-anim
-                            aria-hidden="true"
-                        ></canvas
-                        ><b>Rug Lord</b><span>He is pulling everything.</span>
-                    </li>
-                    <li>
-                        <canvas
-                            data-sprite="capitulation"
-                            data-scale="3"
-                            data-anim
-                            aria-hidden="true"
-                        ></canvas
-                        ><b>Capitulation</b><span>The biggest red candle you have ever seen.</span>
-                    </li>
-                    <li>
-                        <canvas
-                            data-sprite="liquidation"
-                            data-scale="3"
-                            data-anim
-                            aria-hidden="true"
-                        ></canvas
-                        ><b>Liquidation</b><span>Your position is being closed.</span>
-                    </li>
-                    <li>
-                        <canvas
-                            data-sprite="bear_market"
-                            data-scale="3"
-                            data-anim
-                            aria-hidden="true"
-                        ></canvas
-                        ><b>The Bear Market</b><span>Survive this and the cycle turns.</span>
-                    </li>
-                    <li>
-                        <canvas
-                            data-sprite="long_winter"
-                            data-scale="3"
-                            data-anim
-                            aria-hidden="true"
-                        ></canvas
-                        ><b>The Long Winter</b><span>Crypto winter has a face.</span>
-                    </li>
-                </ul>
-                <div class="marquee" aria-hidden="true">
-                    <ul class="marquee-track" id="mobs">
-                        <li>
-                            <canvas data-sprite="red_candle" data-scale="3" data-anim></canvas
-                            ><b>Red Candle</b><span>Down only.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="bag_holder" data-scale="3" data-anim></canvas
-                            ><b>Bag Holder</b><span>Still holding.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="paper_hands" data-scale="3" data-anim></canvas
-                            ><b>Paper Hands</b><span>Sold the bottom.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="rug_puller" data-scale="3" data-anim></canvas
-                            ><b>Rug Puller</b><span>Dashes in. Takes the rug.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="grizzly" data-scale="3" data-anim></canvas
-                            ><b>Grizzly</b><span>Armoured, slow, hurts.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="fud_cloud" data-scale="3" data-anim></canvas
-                            ><b>FUD Cloud</b><span>Fast and loud.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="doomposter" data-scale="3" data-anim></canvas
-                            ><b>Doomposter</b><span>Shoots bad news.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="ponzi" data-scale="3" data-anim></canvas
-                            ><b>Ponzi</b><span>Pops into its downline.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="margin_call" data-scale="3" data-anim></canvas
-                            ><b>Margin Call</b><span>Rings, then blows up.</span>
-                        </li>
-                        <li>
-                            <canvas data-sprite="sybil" data-scale="3" data-anim></canvas
-                            ><b>Sybil</b><span>There are always more.</span>
-                        </li>
-                    </ul>
+                <div class="tl-head">
+                    <h3 class="tl-title">
+                        <b id="tlCount">—</b> builds so far.
+                        <span>Every one is still playable.</span>
+                    </h3>
+                    <div class="tl-nav">
+                        <button type="button" class="round" id="tlPrev" aria-label="Newer builds">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M15 5l-7 7 7 7" />
+                            </svg>
+                        </button>
+                        <button type="button" class="round" id="tlNext" aria-label="Older builds">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+                <div class="tl-wrap">
+                    <ol class="tl" id="timeline" aria-label="Build history" tabindex="0"></ol>
+                </div>
+                <div class="tl-progress" aria-hidden="true"><i id="tlBar"></i></div>
             </section>
 
             <!-- ======================================================= COIN -->
@@ -748,7 +616,6 @@
                                 <ul class="ticks">
                                     <li>Pay for the AI's compute, hosting and prizes</li>
                                     <li>Give holders a vote on every build</li>
-                                    <li>Let big holders put a feature on the ballot</li>
                                 </ul>
                             </div>
                             <div>
@@ -791,48 +658,9 @@
                         <span class="rc-s" id="rcSpentS">measured, every night's run</span>
                     </div>
                 </div>
-                <div class="rc-feed">
-                    <div class="rc-feed-h">
-                        <h3>Latest on-chain moves</h3>
-                        <a href="/receipts">Full ledger →</a>
-                    </div>
-                    <ul class="moves" id="moves">
-                        <li class="moves-empty">Loading the ledger…</li>
-                    </ul>
-                </div>
-                <div class="who">
-                    <div class="who-c ai">
-                        <h3>
-                            <canvas data-sprite="emblem" data-scale="2" aria-hidden="true"></canvas>
-                            The AI does, on its own
-                        </h3>
-                        <ul class="ticks">
-                            <li>Picks the feature: the vote first, then its own backlog</li>
-                            <li>Writes the code, runs the tests, ships at 00:00 UTC</li>
-                            <li>Writes the devlog and records its own cost</li>
-                            <li>Re-plays the top runs and pays the daily prize</li>
-                            <li data-tg hidden>Answers in the Telegram group</li>
-                        </ul>
-                    </div>
-                    <div class="who-c op">
-                        <h3>Osman, the operator, does</h3>
-                        <ul class="ticks dim">
-                            <li>Set up the accounts, launched the coin, pays the bills first</li>
-                            <li>
-                                Moves treasury SOL by hand: prize top-ups and his own reimbursement
-                            </li>
-                            <li>Posts the X updates the AI drafts</li>
-                            <li>Holds the revert and payout kill switches</li>
-                        </ul>
-                        <p class="who-no">
-                            He doesn't write the daily features. Any code he writes is labelled
-                            <code>human</code>.
-                        </p>
-                    </div>
-                </div>
                 <p class="rc-more">
                     <a class="btn-line" href="/receipts"
-                        >Open the full receipts: ledger, launch, token lock →</a
+                        >Every transaction, who does what, the launch and the token lock →</a
                     >
                 </p>
             </section>
@@ -893,10 +721,10 @@
                     <details>
                         <summary>Can I suggest a feature?</summary>
                         <p>
-                            Yes. Anyone can send an idea in the box above, no wallet. The AI reads
-                            them every night before it writes the next ballot. Holders with 100,000
-                            $BPROOF can put a request straight on the ballot, one a day until 18:00
-                            UTC. If it gets the most votes, the AI builds it next.
+                            Yes, anyone can. Send it in the ideas box under the vote, no wallet and
+                            no signup, or with /idea in the Telegram group. The AI reads every idea
+                            each night before it writes the next ballot, and a proposal it takes
+                            from one says it came from a player.
                         </p>
                     </details>
                     <details data-tg hidden>
@@ -943,6 +771,9 @@
                             </svg>
                             PLAY NOW
                         </a>
+                        <a class="btn-line" href="https://x.com/Bearproofapp_" rel="noopener"
+                            >Follow @Bearproofapp_</a
+                        >
                         <a class="btn-line" data-tg-link data-tg hidden rel="noopener"
                             >Join the Telegram</a
                         >
@@ -965,7 +796,8 @@
                         <a href="/b/0/">Build #0</a>
                         <a href="/api/stats">Open data</a>
                         <a data-tg-link data-tg hidden rel="noopener">Telegram</a>
-                        <a href="https://x.com/0smanTrgut" rel="noopener">X</a>
+                        <a href="https://x.com/Bearproofapp_" rel="noopener">X @Bearproofapp_</a>
+                        <a href="/bears">The enemies</a>
                         <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
                     </nav>
                 </div>

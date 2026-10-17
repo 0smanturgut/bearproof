@@ -190,6 +190,23 @@
         }
     }
 
+    /** The holder request form, on pages that still have one (the home page no longer does). */
+    function renderRequests() {
+        if (!$('#reqForm')) return;
+        const rq = poll.requests || { status: 'not_live' };
+        const open = rq.status === 'open';
+        const reqFlag = $('#reqFlag');
+        reqFlag.textContent = {
+            not_live: 'Opens with the coin',
+            open: `Open until ${hhmm(rq.closesAt)} UTC · ${rq.count}/${rq.maxPerPoll} on the ballot`,
+            full: `Ballot full · ${rq.maxPerPoll}/${rq.maxPerPoll}`,
+            closed: 'Closed today · reopens 00:00 UTC'
+        }[rq.status];
+        reqFlag.className = 'tag ' + (open ? 'live' : 'dim');
+        for (const id of ['#reqTitle', '#reqDesc', '#reqSubmit']) $(id).disabled = !open;
+        $('#reqForm').classList.toggle('off', !open);
+    }
+
     async function request(e) {
         e.preventDefault();
         if (!poll || !poll.requests || poll.requests.status !== 'open') return;
@@ -396,27 +413,7 @@
             .filter(Boolean)
             .join(' · ');
 
-        const rq = poll.requests || { status: 'not_live' };
-        const open = rq.status === 'open';
-        const reqFlag = $('#reqFlag');
-        reqFlag.textContent = {
-            not_live: 'Opens with the coin',
-            open: `Open until ${hhmm(rq.closesAt)} UTC · ${rq.count}/${rq.maxPerPoll} on the ballot`,
-            full: `Ballot full · ${rq.maxPerPoll}/${rq.maxPerPoll}`,
-            closed: 'Closed today · reopens 00:00 UTC'
-        }[rq.status];
-        reqFlag.className = 'tag ' + (open ? 'live' : 'dim');
-        for (const id of ['#reqTitle', '#reqDesc', '#reqSubmit']) $(id).disabled = !open;
-        $('#reqForm').classList.toggle('off', !open);
-        if (!$('#reqStatus').textContent && !open)
-            say(
-                '#reqStatus',
-                rq.status === 'not_live'
-                    ? 'Requests open when the coin launches.'
-                    : rq.status === 'full'
-                      ? 'Today\u2019s ballot is full. Vote for a request instead, or post tomorrow.'
-                      : 'Requests close at 18:00 UTC, so every one gets three hours of voting.'
-            );
+        renderRequests();
     }
 
     async function load() {
@@ -436,8 +433,10 @@
     }
 
     $('#voteConnect').addEventListener('click', () => connect());
-    $('#reqForm').addEventListener('submit', request);
-    $('#reqDesc').addEventListener('input', count);
+    if ($('#reqForm')) {
+        $('#reqForm').addEventListener('submit', request);
+        $('#reqDesc').addEventListener('input', count);
+    }
     load();
     setInterval(() => document.visibilityState === 'visible' && load(), 60000);
 })();

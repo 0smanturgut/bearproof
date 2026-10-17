@@ -1315,8 +1315,9 @@ function amountText(r) {
 }
 
 async function loadMoves() {
-    const data = await getJSON('/api/ledger');
     const box = $('#moves');
+    if (!box) return;
+    const data = await getJSON('/api/ledger');
     const rows = data && Array.isArray(data.entries) ? data.entries : [];
     box.textContent = '';
     if (!rows.length) {
@@ -1416,7 +1417,7 @@ function reveal() {
         { rootMargin: '0px 0px -8% 0px' }
     );
     const targets = $$(
-        '.numbers, .sec-h, .step, .term, .latest, .tl-head, .pot, .board, .paid, .vote-bar, .ballot, .voice-card, .bosses li, .coin, .rc-tile, .rc-feed, .who-c, .faq details, .finale-in'
+        '.numbers, .sec-h, .step, .term, .latest, .tl-head, .pot, .board, .paid, .vote-bar, .ballot, .voice-card, .coin, .rc-tile, .faq details, .finale-in'
     );
     let i = 0;
     let lastParent = null;
@@ -1599,7 +1600,7 @@ function boot() {
         },
         '900px'
     );
-    whenNear($('#receipts'), loadMoves, '900px');
+    if ($('#moves')) whenNear($('#receipts'), loadMoves, '900px');
     // The game's pixel art: when the browser is idle, so it never delays the first paint.
     const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
     idle(() => import('/art.js').catch(() => {}));

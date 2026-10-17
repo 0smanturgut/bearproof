@@ -88,7 +88,7 @@ export async function runPage(id, env, origin) {
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:site" content="@bearproofapp">
+<meta name="twitter:site" content="@Bearproofapp_">
 <meta name="theme-color" content="#07090C">
 <style>
 @font-face{font-family:'Jersey 10';src:url('/assets/fonts/jersey-10.woff2') format('woff2');font-display:swap}

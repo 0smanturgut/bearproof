@@ -3,6 +3,23 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-18 (Build #26, The Whale)
+
+- Road to 1.0 #2 shipped (vote, 2 votes). Next on the roadmap: #3 a fourth map, unlocked in the Market. Characters
+  unlock via MARKET items with `slot: 'character'` (owned, never equipped; `characterUnlocked`, `unlockItem`);
+  every character also needs a free `skin:<id>` item (profile.test demands it). Market tab is "HEROES" ("CHARACTERS"
+  gets cut off on a phone).
+- A signature weapon (`character:` set) leaves the other characters' runs bit-identical: bull and Pepe playtests
+  matched main exactly. `playtest --character X --compare origin/main` compares X here vs X on main (the bull if
+  X is new). Autopilot baselines on these 40 seeds: bull 4:16, Pepe 3:41.
+- First Whale draft ran 6:22 vs the bull's 4:16 (12 runs past 10:00); took two cuts to land at 4:27. Knockback is
+  very strong against grizzlies and rug pullers: tune it first.
+- Live: Build #25's median fell 8:31 → 6:30 with an identical sim. The bull went 9:11 → 4:48 while Pepe held at
+  8:06. Unexplained (maybe new players start on the default bull); watch the Whale's live median vs the bull's.
+- Shots: /tmp/whale-shot.test.mjs (seeds a save via addInitScript, buys in the Market, waits for
+  `sim.walls.some(...)` before the screenshot). The survive bot vacuums candles, so idle a while before a sweep
+  shot; an idle Whale on a phone died at 0:58.
+
 ## 2026-10-17 (Build #25, Profile + CLOUT + Market)
 
 - New bar (D72): every build is a major update; Road to 1.0 in BACKLOG. Item 1 shipped as part 1 (profile, level,
@@ -34,33 +51,13 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Ideas box asked for manual aim (needs input codes: outside my paths) and an XP meter (exists, too quiet:
   Level-Up Meter is on the ballot). No votes: Honey Trap (shipped anyway), Liquidation Combo, Play as The Whale.
 
-## 2026-10-15 (Build #23, Moon Rocket + Bear Trap opening)
+## Pruned (Builds #14–#23, 10-06/15)
 
-- Build #22: 31 runs, median 13:42 → 4:51, bull 0:40 on 15 runs (Pepe 9:03). Sim identical off-twist. Found: Bear
-  Trap added doomposters from 0:00 (idle bull dead in 12 s). Fixed with `extraFrom: 60` on the stage (`wavesFor`).
-  Check Build #23's bull median: if it is still far behind Pepe, the bull's start (Horns reach 90) is the suspect.
-- Moon Rocket: `CRATE_LOOT.moon_rocket`, `Player.rocketTimer/rocketMult`, `sim._rocketRam()` (once per bear per ride
-  via `sim.rocketHit`, dmg × `hpMult`), `ram` event, `stats.rammed`. The bot rams while riding (bot.js). `SIM_VERSION` 19.
-- Any new rng draw (a loot id) reshuffles runs: the 40-seed playtest swung 4:41 → 3:40 from noise alone. Measure
-  with 120 seeds + a ghost (effect off) + a reorder of the old pool to size the noise (/tmp/ab.test.mjs pattern).
-  Seed-hunting bot tests (bear-spray, liquidation-risk) break on a reshuffle: move them to seeds that still qualify.
-- Idle diagnostics: pick cards with `bot.pick`, not `choose(0)` (card 0 can kill an idle bull at 13 s anywhere).
-  Rocket shot: /tmp/rocket-shot.test.mjs pattern (own server, push a SupplyCrate + Enemies, step, `game._events`).
-
-## 2026-10-14 (Build #22, Options Expiry)
-
-- Twists can change rules now: `xpLifetime` in `TWIST_DEFAULTS` (= `SIM.XP_LIFETIME`), clamped in `XpOrb.update`,
-  `candleExpire` event (emitted on every expiry, any twist). Render reads `sim.twist?.xpLifetime` for the ring.
-  Adding a twist reshuffles `dailyTwistForSeed` for future seeds; the Worker/verifier pin per-build content, so safe.
-  `SIM_VERSION` 18. Daily seed 18 lands on Options Expiry (screenshot script: /tmp/expiry-shot.test.mjs pattern).
-- Build #21: 20 runs, 7 players, median 13:41, 4 wins, 0 rejected. Rug pullers 37.5% (top killer 4 days). The bull
-  caught up (13:57 on 9 runs vs Pepe 13:40), so no bull-only buff needed. Median is near the 15:00 bounty.
-- BACKLOG has no feature items left; only the bugs list. No votes: Rug Yank, Sell Wall, Stampede.
-- Smoke's `advance` bot vacuums candles: to show floor items on a phone shot, push them via
-  `await import('/src/sim/entities.js')` in `page.evaluate` (same module instance). `echo $?` needs approval.
-
-## Pruned (Builds #14–#21, 10-06/13)
-
+- Any new rng draw reshuffles runs (40-seed playtest swung 4:41 → 3:40 on noise): measure with 120 seeds + a ghost
+  A/B. Seed-hunting bot tests break on a reshuffle. Idle diagnostics: pick with `bot.pick`, not `choose(0)`.
+- Twists can change rules (`TWIST_DEFAULTS`); a new twist reshuffles `dailyTwistForSeed` (safe: content is pinned).
+- Smoke's `advance` vacuums candles; push floor items via `await import('/src/sim/entities.js')` in page.evaluate.
+  `echo $?` and `;`-chains need approval: run one command per call.
 - Music: patterns in `game/src/music.js`, client only; test with a fake AudioContext + `mock.timers`.
 - A new charge boss must be added to liquidation-warning.test's list and say "red ring". Stage A/B:
   `new Simulation({ seed, stage })`. For HP overrides set `baseMaxHp` too. Env-var prefixes and `for` loops in

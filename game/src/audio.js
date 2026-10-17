@@ -351,6 +351,23 @@ export class AudioEngine {
         this.tone({ noise: true, dur: 0.16, volume: 0.1, release: 0.12 });
         this.tone({ freq: 420, dur: 0.1, type: 'sine', volume: 0.06, sweep: -260 });
     }
+    /** Buy Wall rolls out: a low swell of water with a soft order-book tick on top. */
+    wall() {
+        this.tone({ freq: 140, dur: 0.28, type: 'sine', volume: 0.12, sweep: 70 });
+        this.tone({ noise: true, dur: 0.14, volume: 0.05, release: 0.12 });
+        this.tone({ freq: 1320, dur: 0.03, type: 'triangle', volume: 0.04 });
+    }
+    /** Sweep the Book: a big gulp (a falling sine), then a run of rising clinks as the candles pour in. */
+    sweep() {
+        this.tone({ freq: 260, dur: 0.3, type: 'sine', volume: 0.2, sweep: -170 });
+        for (let i = 0; i < 5; i++) {
+            setTimeout(
+                () =>
+                    this.tone({ freq: 1400 + i * 220, dur: 0.05, type: 'triangle', volume: 0.06 }),
+                160 + i * 55
+            );
+        }
+    }
     /** Exit Scam pockets a candle: a quick sly "swish" down. */
     scamGrab() {
         this.tone({ freq: 1600, dur: 0.06, type: 'triangle', volume: 0.07, sweep: -900 });

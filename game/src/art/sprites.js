@@ -27,6 +27,7 @@ const SPRITE_GENS = {
     // player and brand
     bull: make(creatures.bull, 4, { fps: 11 }),
     pepe: make(creatures.pepe, 4, { fps: 9 }),
+    whale_hero: make(creatures.whaleHero, 4, { fps: 7 }),
     // Market skins (profile.js): same size and animation as their character
     bull_gold: make(creatures.bullGold, 4, { fps: 11 }),
     bull_midnight: make(creatures.bullMidnight, 4, { fps: 11 }),
@@ -91,6 +92,7 @@ const ICON_GENS = {
     tongue: make(icons.tongue),
     bear_spray: make(icons.bearSpray),
     honey_trap: make(icons.honeyTrap),
+    buy_wall: make(icons.buyWall),
     thick_skin: make(icons.thickSkin),
     dca: make(icons.dca),
     cold_wallet: make(icons.coldWallet),
@@ -122,7 +124,7 @@ export const SPRITES = lazyTable(SPRITE_GENS);
 export const ICONS = lazyTable(ICON_GENS);
 
 export const SPRITE_GROUPS = {
-    player: ['bull', 'pepe'],
+    player: ['bull', 'pepe', 'whale_hero'],
     skins: ['bull_gold', 'bull_midnight', 'pepe_frost', 'pepe_night'],
     brand: ['emblem', 'emblem_large'],
     visitors: ['whale'],
@@ -184,7 +186,8 @@ export const ICON_GROUPS = {
         'dead_cat_bounce',
         'tongue',
         'bear_spray',
-        'honey_trap'
+        'honey_trap',
+        'buy_wall'
     ],
     passives: [
         'thick_skin',

@@ -58,6 +58,13 @@ export const M = {
     bellyNight: mat(['#2A2240', '#4A3E6A', '#6E6296', '#968CC0', '#C0B8E2', '#ECE6FF'], {
         line: '#120E20'
     }),
+    // The Whale (playable): a saturated ocean blue, deeper than Whale Alert's ice, and a pale grooved belly
+    whale: mat(['#06142E', '#0C2A5C', '#16468E', '#2468C4', '#4C96EA', '#A6D2FF'], {
+        line: '#030A18'
+    }),
+    whaleBelly: mat(['#3C4A60', '#66788E', '#98A8BC', '#C6D2E0', '#E6EEF6', '#FFFFFF'], {
+        line: '#1A2232'
+    }),
 
     // Bears, candles and everything bearish
     bear: mat(['#2B0714', '#6E0F2A', '#B81E40', '#FF3B5C', '#FF7E86', '#FFC9BF'], {

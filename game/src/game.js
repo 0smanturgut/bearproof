@@ -475,10 +475,30 @@ export class Game {
                         fx.burst(e.x, e.y, '#BDEEFF', 14, e.r * 2, 3, 'spark');
                     }
                     if (e.w === 'honey_trap') break; // the jar is heard when it splashes
+                    if (e.w === 'buy_wall') break; // the wall has its own sound ('wall')
                     this._sfx(
                         e.w === 'tongue' ? 'tongue' : e.w === 'bear_spray' ? 'spray' : 'shoot',
                         0.09
                     );
+                    break;
+                case 'wall':
+                    // Buy Wall: the ring itself is drawn from sim.walls; here, spray at the Whale's feet
+                    fx.burst(e.x, e.y + 8, e.second ? '#A6D2FF' : '#7BF5A6', 8, 160, 2.5, 'spark');
+                    this._sfx('wall', 0.2);
+                    break;
+                case 'sweep':
+                    // Sweep the Book: a ring closing in from the sweep's edge, then the candles pour in. An
+                    // empty book stays quiet: the meter under the Whale already showed the minute.
+                    if (!e.n) break;
+                    fx.ring(e.x, e.y, e.r * 0.55, 30, 0.45, '22,224,138', 6, true);
+                    fx.burst(e.x, e.y, '#7BF5A6', 18, 260, 3, 'spark');
+                    fx.burst(e.x, e.y - 20, '#E8FAFF', 8, 140, 2.5);
+                    fx.number(e.x, e.y - 46, `SWEPT ${e.n}`, 'info');
+                    this._sfx('sweep', 0.5);
+                    if (!this.attract) {
+                        this.haptics.levelUp?.();
+                        this.ui.toast('SWEEP THE BOOK', 'whale', 1400);
+                    }
                     break;
                 case 'honeySplash':
                     // Honey Trap: the jar breaks, gold drops fly out to the puddle's edge

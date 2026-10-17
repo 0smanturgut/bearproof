@@ -1,51 +1,48 @@
-# Build #25 plan: Profile, CLOUT and the Market (Road to 1.0, part 1)
+# Build #26 plan: Play as The Whale (Road to 1.0 #2)
 
 ## Why this wins tonight
 
-- The vote: "Global Boss Battle" (a holder's request, 1 wallet voted). Its core is a shared, server-side health bar,
-  which is outside my paths, and the operator's note for this build says so: ship a single-player slice of it under
-  "Also in this build" and headline Road to 1.0 item 1.
-- Road to 1.0 item 1 is the public promise ("levels and progression, an in-game shop") and nothing shipped covers it.
-- 246 verified runs from 43 players yesterday, median 8:12: people play many runs each (5.7 per player), so a
-  reward that carries over between runs fits how they play.
+- The vote: "Play as The Whale" won (2 votes), and it is Road to 1.0 item 2: a third character, unlocked in the
+  Market. The vote and the roadmap agree, so it headlines; `chosenBy: holders` (the field's name for the vote).
+- Regression check first: Build #25 was cosmetic. `playtest --compare build-24` is identical (4:16 → 4:16), so the
+  live drop (median 8:31 → 6:30, bull 9:11 → 4:48, boss kills 2.02 → 1.16) is the Daily seed, not code. Both windows
+  are 100% Daily, and #24's window held two Dailies. 1 replay rejected of 280: noted, not chased.
+- CLOUT has nothing to buy that changes how you play. A character is the first thing in the Market that does,
+  while staying fair: picking a character is allowed in the Daily, and the run log carries it.
+- Data: rug pullers 38.8% and grizzlies 22% of deaths. Both rush you in a straight line. A slow, big character
+  needs something that shoves rushers back, so the starter is a wall that pushes them away.
 
-## Parts
+## The Whale
 
-1. **Profile** (`game/src/profile.js`, stored inside the one prefs key): lifetime runs, time, kills, boss kills, wins,
-   boss damage, best run per character and per map, player XP and level, CLOUT balance, owned items, equipped items.
-   Normalised on load so an old save (or a broken one) never loses prefs, badges or name.
-2. **CLOUT**, the play-only currency: paid by every finished run (time survived, bears rekt, bosses, a win, the
-   bounty). Never bought, never traded, not a coin. Count-up on the game-over receipt, line by line, with a tick
-   sound, then the player-level bar fills; a level-up pays a small CLOUT bonus with its own moment.
-3. **Player level**: XP = CLOUT earned. Shown on the title screen in a profile strip (level, bar, balance) that opens
-   the Market.
-4. **The Market**: a screen off the title. Tabs: SKINS (2 bull, 2 Pepe, redrawn in the pixel engine), TRAILS (2),
-   FINALES (2 death effects), STATS (lifetime stats, bests, the Eternal Bear). Buy, equip, unequip. All cosmetic:
-   nothing touches the Simulation, so the Daily stays fair.
-5. **Also: the Eternal Bear** (single-player slice of the holders' Global Boss Battle): one persistent boss whose
-   bar every run's boss damage drains. When it falls you get a CLOUT bounty and it comes back bigger. The sim gets a
-   pure counter `stats.bossDamage` (no result changes, no SIM_VERSION bump).
+- **Stats:** 150 HP (bull 100, Pepe 90), 0.85× speed, a bigger body (size 24 vs 18: easier to touch, harder to
+  dodge with). Slow and huge, as promised.
+- **Starter weapon: Buy Wall** (Whale only, like Pepe's tongue). Every ~2.2 s a green wall of buy orders rolls out
+  from the Whale. It hits each bear once as it passes and shoves it back (bosses don't move). Evolves at Lv5 into
+  **Tsunami Bid**: a second, wider wall follows the first.
+- **Trait: Sweep the Book.** Once a minute (1:00, 2:00, ...) every XP candle within 640 units (a phone screen)
+  flies to the Whale, like a Magnet crate. Frozen and falling candles stay put. A HUD pip counts down to it, and it
+  has its own toast, sound and ring.
+- **Unlock:** 750 CLOUT in a new Market tab, Characters. The bull and Pepe stay free. The select card shows a lock
+  and the price; tapping it opens the Market. Bought = selected.
 
-## Art and sound
+## Parts, in build order (each step leaves a complete game)
 
-- Skins: `bull`/`pepe` generators take a skin (materials + details: shades, glowing eyes, a scarf). Registered
-  as sprites `bull_gold`, `bull_midnight`, `pepe_frost`, `pepe_night`.
-- Trails and finales are fx bursts (respect reduced motion via fx.calm).
-- Sounds: a CLOUT tick and a purchase chime in `audio.js`.
-
-## Tests
-
-- `game/test/profile.test.js`: payout formula, level curve, applyRun accumulates and keeps bests, buy/equip rules
-  (no buying without balance, no double buy), normalisation of old/broken saves, Eternal Bear rollover, sim
-  `bossDamage` counted and identical state hash.
-- art.test for new sprites; smoke shots of title, Market and receipt.
+1. Sim: `CHARACTERS.whale` (appended, index 2), `size`, `sweepEvery`/`sweepRadius`; `WEAPONS.BUY_WALL` (type
+   'wall', `character: 'whale'`); a `BuyWall` entity in `sim.walls`; `_sweep()`; stats `swept`, `sweeps`; events
+   `wall`, `sweep`. `SIM_VERSION` 21 (the new weapon changes the card pool for the other characters too).
+2. Tests: `game/test/the-whale.test.js` (stats, the wall hits each bear once and shoves it, bosses don't move,
+   evolved double wall, sweep timing/radius/frozen, card pool, run log round trip, determinism).
+3. Art: `creatures.whaleHero` (40×32, 4-frame waddle, deep ocean blue, a gold chain, a spout), the `buy_wall`
+   icon, the `whale` material; registered in sprites.js.
+4. Render + juice: the wall ring with order-book ticks, the sweep ring, the sweep countdown pip, sfx (`wall`,
+   `sweep`), toasts.
+5. Profile/Market: `char_whale` item (`unlock: 'whale'`), `characterUnlocked()`, the Characters tab, the locked
+   select card, fallback to the bull if not owned.
+6. Playtest `--character whale --compare origin/main`, tune; smoke shots on phone and desktop; gates.
+7. Devlog, proposals, X draft, notes.
 
 ## Files
 
-`game/src/profile.js` (new), `prefs.js`, `sim/sim.js` (counter), `art/creatures.js`, `art/sprites.js`, `render.js`,
-`game.js`, `ui.js`, `main.js`, `audio.js`, `index.html`, `styles.css`, `game/test/profile.test.js`.
-
-## Order (so a cut still ships whole)
-
-1. profile.js + tests → 2. payout on game over with count-up → 3. title strip → 4. Market with skins → 5. trails and
-   finales → 6. Eternal Bear → 7. shots, gates, devlog.
+`game/src/sim/{content,sim,entities,weapons}.js`, `game/src/art/{creatures,icons,materials,sprites}.js`,
+`game/src/{render,game,audio,ui,main,profile}.js`, `game/styles.css`, `game/test/the-whale.test.js`,
+`game/test/profile.test.js` (add cases), devlog, proposals, X draft, notes.

@@ -229,6 +229,30 @@ export function circuitBreaker() {
     return s.render();
 }
 
+/** Buy Wall: a ring of green bid bars rolling out from a deep-blue centre, the order book as a wave. */
+export function buyWall() {
+    const s = S();
+    s.auto('c', { R: 1.4, grad: 0.3 });
+    s.circle(7, 7, 2.6, M.whale, { g: 'c', bias: 0.1 });
+    for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2 + 0.3;
+        const x = 7 + Math.cos(a) * 5.4;
+        const y = 7 + Math.sin(a) * 5.4;
+        const tall = i % 2 ? 1.6 : 2.4;
+        s.box(x - 0.8, y - tall / 2, 1.6, tall, M.bull, { shade: 'flat', lum: i % 2 ? 0.6 : 0.85 });
+    }
+    s.pxs(
+        [
+            [7, 1],
+            [7, 12]
+        ],
+        '#D8FFD0',
+        { glow: '#16E08A' }
+    );
+    s.px(7, 7, '#A6D2FF');
+    return s.render();
+}
+
 export function buyback() {
     const s = S();
     s.auto('a', { R: 1.2, grad: 0.2 });

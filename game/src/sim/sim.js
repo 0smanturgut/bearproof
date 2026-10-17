@@ -53,8 +53,9 @@ import { Weapon } from './weapons.js';
  * mini-boss at 3:30 freezes candles near it; its death thaws them to the bull and slows the bears around him).
  * 18: Options Expiry (a Daily twist: XP candles expire after 6 s and are worth +50%). 19: Moon Rocket (a fifth
  * crate loot: 4 s of 1.8x speed, untouchable, ramming bears), and Bear Trap's extra doomposters join at 1:00.
- * 20: Honey Trap (a new weapon in the level-up pool: honey puddles slow bears, grizzlies stop to eat). */
-export const SIM_VERSION = 20;
+ * 20: Honey Trap (a new weapon in the level-up pool: honey puddles slow bears, grizzlies stop to eat).
+ * 21: The Whale (a third character: Buy Wall, a bigger body, and Sweep the Book once a minute). */
+export const SIM_VERSION = 21;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -79,6 +80,7 @@ export class Simulation {
             this.player.baseMaxHp = this.player.maxHp = this.player.hp = this.character.maxHp;
         }
         this.player.characterSpeedMult = this.character.speedMult || 1;
+        if (this.character.size) this.player.size = this.character.size;
         this.player.twistDamageMult = this.twist.playerDamageMult;
         this.player.twistExpMult = this.twist.xpMult;
         this.player.weapons.push(
@@ -89,6 +91,7 @@ export class Simulation {
         this.enemyProjectiles = [];
         this.mines = [];
         this.honey = []; // Honey Trap: jars in flight and puddles on the floor
+        this.walls = []; // Buy Wall: rings rolling out from the Whale
         this.xp = [];
         this.crates = [];
         this.nextCrateAt = SIM.CRATE_FIRST;
@@ -130,7 +133,10 @@ export class Simulation {
             candlesFrozen: 0, // Withdrawal Freeze: candles it iced
             candlesThawed: 0, // and the ones its death sent to the bull
             rammed: 0, // Moon Rocket: bears rammed
-            honeyEaten: 0 // Honey Trap: grizzlies that sat down to eat (once per puddle)
+            honeyEaten: 0, // Honey Trap: grizzlies that sat down to eat (once per puddle)
+            wallHits: 0, // Buy Wall: bears a wall hit
+            sweeps: 0, // Sweep the Book: sweeps that pulled at least one candle
+            swept: 0 // and the candles they pulled
         };
         this.rocketHit = new Set(); // bears rammed on the current ride
         this.events = [];
@@ -178,8 +184,10 @@ export class Simulation {
         this._updateList(this.enemyProjectiles, dt);
         this._updateList(this.mines, dt);
         this._updateList(this.honey, dt);
+        this._updateList(this.walls, dt);
         this._runDelayed(dt);
         this._cullDead();
+        this._sweep();
         this._updateList(this.xp, dt);
         this._updateList(this.crates, dt);
         this._dropCrate();
@@ -567,6 +575,33 @@ export class Simulation {
         );
         this.crates.push(crate);
         this.emit({ t: 'crateDrop', x: crate.x, y: crate.y });
+    }
+
+    // --- Sweep the Book (the Whale) ----------------------------------------------
+
+    /** Seconds until the character's next sweep, or null if it has none. */
+    get sweepIn() {
+        const every = this.character.sweepEvery;
+        if (!every) return null;
+        const period = every * SIM.TICK_RATE;
+        return (period - (this.tick % period)) / SIM.TICK_RATE;
+    }
+
+    /** Every `sweepEvery` s: each landed, unfrozen candle within `sweepRadius` flies to the player. */
+    _sweep() {
+        const c = this.character;
+        if (!c.sweepEvery || this.tick % (c.sweepEvery * SIM.TICK_RATE) !== 0) return;
+        const p = this.player;
+        let n = 0;
+        for (const o of this.xp) {
+            if (o.dead || o.fall > 0 || o.frozen || o.vacuum) continue;
+            if (hypot(o.x - p.x, o.y - p.y) > c.sweepRadius) continue;
+            o.vacuum = true;
+            n++;
+        }
+        if (n) this.stats.sweeps++;
+        this.stats.swept += n;
+        this.emit({ t: 'sweep', x: p.x, y: p.y, r: c.sweepRadius, n });
     }
 
     // --- Whale Alert ------------------------------------------------------------

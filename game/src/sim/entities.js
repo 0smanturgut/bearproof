@@ -651,6 +651,48 @@ export class OrbitShard {
     }
 }
 
+/**
+ * Buy Wall (the Whale's weapon): a ring that rolls out from where it was placed at `speed` units/s until it
+ * reaches `range`. Every bear inside the ring (body touching it) is hit once per wall (crit rolled with `crit`)
+ * and, unless it's a boss, shoved `knockback` straight away from the centre.
+ */
+const WALL_REACH = 72; // query margin: covers the biggest body (bosses are up to 64 across)
+export class BuyWall {
+    constructor(x, y, { range, speed, damage, crit, knockback, weaponId, second = false }) {
+        this.x = x;
+        this.y = y;
+        this.r = 0;
+        this.range = range;
+        this.speed = speed;
+        this.damage = damage;
+        this.crit = crit;
+        this.knockback = knockback;
+        this.weaponId = weaponId;
+        this.second = second; // Tsunami Bid's follow-up wall (drawn bigger)
+        this.hit = new Set();
+        this.dead = false;
+    }
+    update(dt, sim) {
+        this.r = Math.min(this.range, this.r + this.speed * dt);
+        for (const e of sim.spatial.queryRect(this.x, this.y, this.r + WALL_REACH)) {
+            if (e.hp <= 0 || this.hit.has(e.uid)) continue;
+            const dx = e.x - this.x;
+            const dy = e.y - this.y;
+            const d = hypot(dx, dy);
+            if (d > this.r + e.size) continue;
+            this.hit.add(e.uid);
+            const crit = this.crit > 0 && sim.rng.next() < this.crit;
+            sim.damageEnemy(e, crit ? this.damage * 2 : this.damage, crit, this.weaponId);
+            if (!e.boss && e.hp > 0) {
+                const k = d > 0.01 ? 1 / d : 0;
+                e.knock(k ? dx * k : 1, k ? dy * k : 0, this.knockback);
+            }
+            sim.stats.wallHits++;
+        }
+        if (this.r >= this.range) this.dead = true;
+    }
+}
+
 export class Mine {
     constructor(x, y, radius, damage, fuse, weaponId) {
         this.x = x;

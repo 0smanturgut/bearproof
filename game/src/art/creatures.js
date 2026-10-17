@@ -489,6 +489,140 @@ export function whale(f) {
     return s.render();
 }
 
+// ---------------------------------------------------------------- the whale (playable)
+
+/**
+ * 40×32 The Whale, the third playable character: a plump, deep-blue whale paddling through the air, facing
+ * right. A big round head, a pale grooved belly, a short flipper that paddles, a fluke curled up behind, a
+ * spout that puffs, and our own detail: a heavy gold chain with a medallion stamped with a green up-arrow.
+ * Not Whale Alert's visitor (long, pale, swimming past): this one is round, dark and wears the bling.
+ * Frames 0-3: a paddle cycle (bob, fluke beat, flipper stroke, spout puff on frames 1-2).
+ */
+export function whaleHero(f) {
+    const s = new PixelSprite(40, 32, { dither: 0.25 });
+    const W = M.whale;
+    const WB = M.whaleBelly;
+    const b = [0, -1, -1.5, -0.5][f % 4]; // body bob
+    const flap = [0, 2, 3, 1][f % 4]; // fluke lift
+    const stroke = [0, 1, 2, 1][f % 4]; // flipper sweep
+    s.auto('body', { R: 4.2, grad: 0.32 });
+    s.auto('tail', { R: 2, grad: 0.2 });
+    s.auto('fin', { R: 1.3, grad: 0.15 });
+    s.auto('far', { R: 1.2, grad: 0.1 });
+    // far flipper, darker, behind the body
+    s.capsule(25, 22 + b, 28 + stroke * 0.6, 27 + b - stroke * 0.4, 2, 1.1, W, {
+        g: 'far',
+        bias: -0.16
+    });
+    // tail stock curling up behind, and the fluke at its end
+    s.capsule(10, 20 + b, 5, 13 + b - flap * 0.6, 4.6, 2.4, W, { g: 'tail', bias: -0.06 });
+    const tx = 4.5;
+    const ty = 11.5 + b - flap * 0.6;
+    s.capsule(tx, ty, 0.8, ty - 4.5 - flap * 0.5, 2.6, 1.4, W, { g: 'tail', bias: -0.08 });
+    s.capsule(tx, ty, 9, ty - 5 - flap * 0.3, 2.6, 1.4, W, { g: 'tail', bias: -0.08 });
+    // the body: one plump mass, the head end high and round
+    s.ellipse(19, 19 + b, 12.5, 9.2, W, { g: 'body' });
+    s.ellipse(26.5, 16.5 + b, 10.2, 9.6, W, { g: 'body' });
+    // pale belly from chin to tail, with grooves
+    s.ellipse(25, 24.5 + b, 12.5, 4.4, WB, { g: 'body', clip: true, bias: 0.06 });
+    const gy = Math.round(24 + b);
+    for (let x = 17; x <= 34; x += 3) {
+        s.px(x, gy, WB.ramp[2]).px(x + 1, gy + 1, WB.ramp[2]);
+        s.px(x + 1, gy + 2, WB.ramp[2]);
+    }
+    // a back ridge highlight and a few pale freckles (our own markings)
+    const hy = Math.round(9 + b);
+    s.px(22, hy, W.ramp[5]).px(23, hy, W.ramp[5]).px(24, hy, W.ramp[4]);
+    s.px(16, Math.round(12 + b), '#A6D2FF')
+        .px(18, Math.round(11 + b), '#A6D2FF')
+        .px(15, Math.round(14 + b), '#7FB6F0');
+    // eye: a calm, knowing look under a heavy lid, with a catchlight
+    const ey = Math.round(16 + b);
+    s.px(31, ey, C.pupil)
+        .px(32, ey, C.pupil)
+        .px(31, ey + 1, C.pupil)
+        .px(32, ey + 1, '#0B1830');
+    s.px(32, ey, '#E8F4FF');
+    s.px(30, ey - 1, W.ramp[0])
+        .px(31, ey - 1, W.ramp[0])
+        .px(32, ey - 1, W.ramp[0])
+        .px(33, ey - 1, W.ramp[1]);
+    // a long, satisfied smile along the jaw, curling up at the back
+    const my = Math.round(20.6 + b);
+    for (let x = 27; x <= 36; x++) s.px(x, my, '#030A18');
+    s.px(26, my - 1, '#030A18').px(36, my - 1, '#030A18');
+    // near flipper: a short paddle stroke
+    s.capsule(22, 22 + b, 24 - stroke, 28 + b - stroke * 0.5, 2.4, 1.3, W, {
+        g: 'fin',
+        bias: -0.04
+    });
+    // the bling: a heavy gold chain round the throat, the medallion on the chest with a green up-arrow
+    const cy = Math.round(21.5 + b);
+    s.pxs(
+        [
+            [24, cy - 1],
+            [25, cy],
+            [26, cy],
+            [27, cy + 1],
+            [28, cy + 1],
+            [29, cy + 1],
+            [30, cy],
+            [31, cy],
+            [32, cy - 1]
+        ],
+        C.gold
+    );
+    s.pxs(
+        [
+            [26, cy + 1],
+            [30, cy + 1]
+        ],
+        '#B07A00'
+    );
+    s.circle(28.5, cy + 3.5, 2.2, M.gold, { g: 'medal', shade: 'flat', lum: 0.62 });
+    s.px(29, cy + 5, '#B07A00');
+    s.px(28, cy + 2, C.green, { glow: C.green })
+        .px(27, cy + 3, C.green, { glow: C.green })
+        .px(28, cy + 3, C.green, { glow: C.green })
+        .px(29, cy + 3, C.green, { glow: C.green })
+        .px(28, cy + 4, C.green, { glow: C.green })
+        .px(28, cy + 5, C.green, { glow: C.green });
+    // the spout: a short puff out of the blowhole on the paddle's up-beat
+    const sx = 25;
+    const sy = Math.round(7.5 + b);
+    const SP = '#E8FAFF';
+    const glow = { glow: '#4C96EA' };
+    if (f % 4 === 1) {
+        for (let y = 1; y <= 3; y++) s.px(sx, sy - y, SP, glow);
+        s.pxs(
+            [
+                [sx - 1, sy - 4],
+                [sx + 1, sy - 4],
+                [sx - 2, sy - 3],
+                [sx + 2, sy - 3]
+            ],
+            '#A6D2FF',
+            glow
+        );
+    } else if (f % 4 === 2) {
+        for (let y = 1; y <= 2; y++) s.px(sx, sy - y, '#A6D2FF', glow);
+        s.pxs(
+            [
+                [sx - 2, sy - 4],
+                [sx + 2, sy - 4],
+                [sx - 3, sy - 2],
+                [sx + 3, sy - 2],
+                [sx, sy - 5]
+            ],
+            SP,
+            glow
+        );
+    } else {
+        s.px(sx, sy, '#030A18').px(sx + 1, sy, '#030A18');
+    }
+    return s.render();
+}
+
 // ---------------------------------------------------------------- enemies
 
 /** 14×22 hopping red candle with an angry face. */

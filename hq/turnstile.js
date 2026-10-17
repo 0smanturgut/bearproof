@@ -53,6 +53,9 @@
         function hint(on) {
             needsTap = on;
             if (hintEl) hintEl.hidden = !on;
+            // Someone is waiting on the check and it wants a tap: bring the box into view.
+            if (on && waiter && box && box.scrollIntoView)
+                box.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function deliver(t) {

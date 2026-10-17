@@ -1,5 +1,5 @@
 /*
- * The ballot on the HQ. Loaded after hq.js. Reads GET /api/vote and renders tomorrow's ballot: the AI's three
+ * The ballot on the HQ (site.js does the rest of the page). Reads GET /api/vote and renders tomorrow's ballot: the AI's three
  * proposals plus holders' own requests. With the coin live, a holder votes, or posts a request, by signing a
  * plain-text message (no transaction). Message formats must match worker/src/lib/vote.js voteMessage() and
  * worker/src/lib/requests.js requestMessage() byte for byte.
@@ -123,9 +123,9 @@
             const pk = (res && res.publicKey) || found.p.publicKey;
             wallet = { p: found.p, name: found.name, address: pk.toString() };
             const btn = $('#voteConnect');
-            btn.textContent = `Connected: ${wallet.address.slice(0, 4)}…${wallet.address.slice(-4)}`;
+            btn.textContent = `Connected · ${wallet.address.slice(0, 4)}…${wallet.address.slice(-4)}`;
             btn.disabled = true;
-            say('#voteStatus', `Connected with ${found.name}. Pick an option below.`);
+            say('#voteStatus', `Connected with ${found.name}. Now pick an option.`);
             return wallet;
         } catch {
             say(target, 'Connection was cancelled.', 'bad');
@@ -257,20 +257,19 @@
         const human = o.source === 'community' || o.source === 'operator';
         // An AI proposal the AI took from the ideas box (worker: from === 'player').
         const player = !human && o.from === 'player';
-        const li = el(
-            'li',
-            'ex vote-card' + (human ? ` ${o.source}` : '') + (player ? ' player' : '')
-        );
+        const li = el('li', 'opt' + (human ? ` ${o.source}` : '') + (player ? ' player' : ''));
+        const fill = el('i', 'opt-fill');
+        li.appendChild(fill);
         li.appendChild(
             el(
                 'span',
-                'ex-stamp',
+                'opt-k',
                 o.source === 'community'
-                    ? `Holder · ${o.requestedBy || ''}`
+                    ? `Holder request · ${o.requestedBy || ''}`
                     : o.source === 'operator'
                       ? o.origin || 'Operator · human'
                       : player
-                        ? 'Suggested by a player'
+                        ? 'AI proposal · a player\u2019s idea'
                         : 'AI proposal'
             )
         );
@@ -287,30 +286,45 @@
                 el(
                     'span',
                     'ai-tag',
-                    { day: 'Doable in a day', slice: 'First slice', no: "Won't build" }[
-                        o.ai.verdict
-                    ] || o.ai.verdict
+                    {
+                        day: 'The AI: doable in a day',
+                        slice: 'The AI: a first slice',
+                        no: "The AI: won't build"
+                    }[o.ai.verdict] || o.ai.verdict
                 )
             );
             if (o.ai.reply) take.appendChild(el('p', null, o.ai.reply));
             li.appendChild(take);
         }
-        const bar = el('div', 'ex-bar');
-        const fill = el('i');
-        fill.style.width = `${live ? o.share || 0 : 0}%`;
-        bar.appendChild(fill);
-        li.appendChild(bar);
-        li.appendChild(
+        const pct = el('div', 'opt-pct');
+        pct.appendChild(el('b', null, live ? `${o.share || 0}%` : '—'));
+        pct.appendChild(
             el(
-                'p',
-                'ex-foot',
+                'span',
+                null,
                 live
-                    ? `${o.share || 0}% · ${o.voters || 0} voter${o.voters === 1 ? '' : 's'}`
-                    : 'Votes open at coin launch'
+                    ? `${fmt(o.voters || 0)} voter${o.voters === 1 ? '' : 's'}`
+                    : 'votes open at launch'
             )
         );
+        li.appendChild(pct);
+        const bar = el('div', 'opt-bar');
+        const fillBar = el('i');
+        bar.appendChild(fillBar);
+        li.appendChild(bar);
+        // Grow the bars after paint, so a new share animates in.
+        requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+                fillBar.style.width = `${live ? o.share || 0 : 0}%`;
+                fill.style.height = `${live ? Math.min(100, o.share || 0) : 0}%`;
+            })
+        );
         if (live) {
-            const b = el('button', 'btn btn-sm', 'Vote for this');
+            const b = el(
+                'button',
+                'btn-solid',
+                poll.status === 'open' ? 'Vote for this' : 'Voting closed'
+            );
             b.type = 'button';
             b.disabled = poll.status !== 'open';
             b.addEventListener('click', () => vote(o));
@@ -323,16 +337,21 @@
     function render() {
         const live = poll.status !== 'not_live';
         const flag = $('#voteFlag');
+        const left = poll.closesAt ? Date.parse(poll.closesAt) - Date.now() : 0;
         flag.textContent = !live
             ? 'Voting opens when the coin launches'
             : poll.status === 'open'
-              ? `Live · closes ${hhmm(poll.closesAt)} UTC`
+              ? `Open · closes ${hhmm(poll.closesAt)} UTC${left > 0 ? ` (in ${Math.floor(left / 3600000)}h ${Math.floor((left % 3600000) / 60000)}m)` : ''}`
               : 'Closed for today';
-        flag.className = 'flag ' + (poll.status === 'open' ? 'bull' : 'gold');
+        flag.className = 'tag ' + (poll.status === 'open' ? 'live' : 'gold');
+        const sub = $('#voteSub');
+        if (sub && poll.status !== 'open' && poll.winner)
+            sub.textContent = `The vote is in. "${poll.winner.title}" won with ${poll.winner.share}%, and the AI builds it tonight. The next ballot opens at 00:00 UTC.`;
         const connectBtn = $('#voteConnect');
         if (!wallet) {
             connectBtn.disabled = poll.status !== 'open';
-            connectBtn.textContent = 'Connect wallet to vote';
+            connectBtn.textContent =
+                poll.status === 'open' ? 'Connect wallet to vote' : 'Voting is closed';
         }
         if (!$('#voteStatus').textContent)
             say(
@@ -340,7 +359,7 @@
                 !live
                     ? 'Until the coin launches, the AI picks from its own proposals.'
                     : poll.status === 'open'
-                      ? 'Pick an option below. Change your vote any time before the close.'
+                      ? 'Pick an option. You can change your vote until the close.'
                       : poll.winner
                         ? `Winner: "${poll.winner.title}" (${poll.winner.share}%). It ships at 00:00 UTC.`
                         : 'No votes today, so the AI picks. The next ballot opens at 00:00 UTC.'
@@ -353,15 +372,14 @@
             .sort((a, b) => (live ? (b.weight || 0) - (a.weight || 0) : 0));
         for (const o of options) list.appendChild(card(o, live));
         if (!options.length) {
-            // Builds before the ritual started shipped without proposals: say when the next ballot comes.
-            const li = el('li', 'ex');
-            li.appendChild(el('span', 'ex-stamp', 'Next ballot'));
+            const li = el('li', 'opt empty');
+            li.appendChild(el('span', 'opt-k', 'Next ballot'));
             li.appendChild(el('h3', null, 'Opens at 00:00 UTC'));
             li.appendChild(
                 el(
                     'p',
                     null,
-                    'Every build ships with three proposals from the AI for the next one. The first ballot opens with the next build.'
+                    'Every build ships with three proposals from the AI for the next one.'
                 )
             );
             list.appendChild(li);
@@ -369,11 +387,11 @@
         const community = poll.proposals.filter((o) => o.source === 'community').length;
         const operator = poll.proposals.filter((o) => o.source === 'operator').length;
         $('#ballotMeta').textContent = [
-            `Build #${poll.forBuild}`,
+            `For Build #${poll.forBuild}`,
             poll.proposals.length
-                ? `${poll.proposals.length - community - operator} AI · ${operator ? `${operator} operator · ` : ''}${community} holder`
+                ? `${poll.proposals.length - community - operator} from the AI${operator ? ` · ${operator} operator` : ''}${community ? ` · ${community} from holders` : ''}`
                 : null,
-            live ? `${fmt(poll.voters)} voter${poll.voters === 1 ? '' : 's'}` : null
+            live ? `${fmt(poll.voters)} voter${poll.voters === 1 ? '' : 's'} so far` : null
         ]
             .filter(Boolean)
             .join(' · ');
@@ -383,11 +401,11 @@
         const reqFlag = $('#reqFlag');
         reqFlag.textContent = {
             not_live: 'Opens with the coin',
-            open: `Open until ${hhmm(rq.closesAt)} UTC · ${rq.count}/${rq.maxPerPoll}`,
+            open: `Open until ${hhmm(rq.closesAt)} UTC · ${rq.count}/${rq.maxPerPoll} on the ballot`,
             full: `Ballot full · ${rq.maxPerPoll}/${rq.maxPerPoll}`,
-            closed: 'Closed for today'
+            closed: 'Closed today · reopens 00:00 UTC'
         }[rq.status];
-        reqFlag.className = 'flag ' + (open ? 'bull' : 'dim');
+        reqFlag.className = 'tag ' + (open ? 'live' : 'dim');
         for (const id of ['#reqTitle', '#reqDesc', '#reqSubmit']) $(id).disabled = !open;
         $('#reqForm').classList.toggle('off', !open);
         if (!$('#reqStatus').textContent && !open)
@@ -396,8 +414,8 @@
                 rq.status === 'not_live'
                     ? 'Requests open when the coin launches.'
                     : rq.status === 'full'
-                      ? 'Today’s ballot is full. Vote for a request instead, or post tomorrow.'
-                      : 'Requests for this ballot closed at 18:00 UTC. Voting is open until 21:00 UTC.'
+                      ? 'Today\u2019s ballot is full. Vote for a request instead, or post tomorrow.'
+                      : 'Requests close at 18:00 UTC, so every one gets three hours of voting.'
             );
     }
 

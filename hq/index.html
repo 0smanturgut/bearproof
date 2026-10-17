@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="color-scheme" content="dark" />
-        <meta name="theme-color" content="#07090C" />
+        <meta name="theme-color" content="#05070a" />
         <title>BEARPROOF · An AI is building a game on its own budget</title>
         <meta
             name="description"
@@ -48,2159 +48,865 @@
             type="font/woff2"
             crossorigin
         />
-        <link
-            rel="preload"
-            href="/assets/fonts/jetbrains-mono-400.woff2"
-            as="font"
-            type="font/woff2"
-            crossorigin
-        />
-        <!-- Critical (above-the-fold) CSS is inline. Everything below the fold lives in /hq.css. -->
-        <style>
-            @font-face {
-                font-family: 'Jersey 10';
-                src: url('/assets/fonts/jersey-10.woff2') format('woff2');
-                font-display: swap;
-            }
-            @font-face {
-                font-family: 'JetBrains Mono';
-                src: url('/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
-                font-weight: 400;
-                font-display: swap;
-            }
-            @font-face {
-                font-family: 'JetBrains Mono';
-                src: url('/assets/fonts/jetbrains-mono-700.woff2') format('woff2');
-                font-weight: 700;
-                font-display: swap;
-            }
-            :root {
-                --ink: #07090c;
-                --panel: #0e1217;
-                --panel-2: #131922;
-                --grid: #1b222b;
-                --line: #252e3a;
-                --line-2: #34404f;
-                --bull: #16e08a;
-                --bull-2: #7bf5a6;
-                --bull-deep: #0a7a48;
-                --bull-dark: #06261f;
-                --gold-2: #ffe08a;
-                --bear-2: #ff7e86;
-                --bear: #ff3b5c;
-                --bear-deep: #8f1f33;
-                --gold: #ffc53d;
-                --gold-deep: #b07a00;
-                --info: #46c8ff;
-                --text: #e8edf2;
-                --text-2: #c9d2dc;
-                --muted: #7d8896;
-                --dim: #5f6b7a;
-                --display: 'Jersey 10', 'Courier New', monospace;
-                --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
-                --gutter: clamp(16px, 4vw, 40px);
-                --bar-h: 56px;
-            }
-            * {
-                box-sizing: border-box;
-            }
-            html {
-                background: var(--ink);
-                -webkit-text-size-adjust: 100%;
-                text-size-adjust: 100%;
-                scroll-padding-top: calc(var(--bar-h) + 12px);
-            }
-            body {
-                margin: 0;
-                background: var(--ink);
-                color: var(--text);
-                font: 400 15px/1.55 var(--mono);
-                min-height: 100vh;
-                overflow-x: hidden;
-                -webkit-tap-highlight-color: transparent;
-            }
-            a {
-                color: inherit;
-            }
-            img,
-            svg,
-            canvas {
-                display: block;
-            }
-            button {
-                font: inherit;
-                color: inherit;
-            }
-            :focus-visible {
-                outline: 2px solid var(--gold);
-                outline-offset: 3px;
-            }
-            [hidden] {
-                display: none !important;
-            }
-            .sr-only {
-                position: absolute;
-                width: 1px;
-                height: 1px;
-                padding: 0;
-                margin: -1px;
-                overflow: hidden;
-                clip: rect(0 0 0 0);
-                white-space: nowrap;
-                border: 0;
-            }
-            .skip {
-                position: absolute;
-                left: 12px;
-                top: -60px;
-                z-index: 100;
-                padding: 12px 16px;
-                background: var(--gold);
-                color: var(--ink);
-                font-weight: 700;
-                text-decoration: none;
-            }
-            .skip:focus {
-                top: 12px;
-            }
-            .chart-bg {
-                position: fixed;
-                inset: 0;
-                z-index: 0;
-                pointer-events: none;
-                background-image:
-                    radial-gradient(
-                        ellipse 70% 55% at 78% -8%,
-                        rgba(22, 224, 138, 0.13),
-                        transparent 62%
-                    ),
-                    radial-gradient(
-                        ellipse 55% 45% at -5% 35%,
-                        rgba(255, 59, 92, 0.07),
-                        transparent 60%
-                    ),
-                    linear-gradient(var(--grid) 1px, transparent 1px),
-                    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-                background-size:
-                    100% 100%,
-                    100% 100%,
-                    40px 40px,
-                    40px 40px;
-                background-position:
-                    0 0,
-                    0 0,
-                    -1px -1px,
-                    -1px -1px;
-                mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.35) 90vh);
-                -webkit-mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.35) 90vh);
-            }
-            .wrap {
-                position: relative;
-                z-index: 1;
-                max-width: 1200px;
-                margin: 0 auto;
-                padding-left: max(var(--gutter), env(safe-area-inset-left));
-                padding-right: max(var(--gutter), env(safe-area-inset-right));
-            }
-
-            /* ---- Top bar (sticky, fixed height: never shifts layout) ---- */
-            .bar {
-                position: sticky;
-                top: 0;
-                z-index: 50;
-                height: var(--bar-h);
-                border-bottom: 1px solid transparent;
-                transition:
-                    background-color 160ms linear,
-                    border-color 160ms linear;
-            }
-            .bar.scrolled {
-                background: var(--ink);
-                border-bottom-color: var(--line);
-            }
-            .bar-in {
-                height: 100%;
-                display: flex;
-                align-items: center;
-                gap: 16px;
-            }
-            .brand {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                min-height: 44px;
-                text-decoration: none;
-                flex: none;
-            }
-            .brand img {
-                width: 32px;
-                height: 32px;
-                image-rendering: pixelated;
-                filter: drop-shadow(0 0 8px rgba(22, 224, 138, 0.45));
-            }
-            .brand b {
-                font: 400 34px/1 var(--display);
-                letter-spacing: 0.02em;
-                color: var(--bull);
-                text-shadow:
-                    0 3px 0 var(--bull-dark),
-                    0 0 18px rgba(22, 224, 138, 0.35);
-            }
-            .brand span {
-                font: 400 22px/1 var(--display);
-                color: var(--muted);
-            }
-            .nav {
-                display: none;
-                margin: 0 auto;
-                gap: 2px;
-            }
-            .nav a {
-                display: inline-flex;
-                align-items: center;
-                min-height: 44px;
-                padding: 0 10px;
-                font-size: 12px;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                color: var(--muted);
-                text-decoration: none;
-            }
-            .nav a:hover {
-                color: var(--text);
-            }
-            .bar-r {
-                margin-left: auto;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .pill-x {
-                display: none;
-            }
-            .pill {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                height: 30px;
-                padding: 0 10px;
-                border: 1px solid var(--line);
-                background: var(--panel);
-                font-size: 11px;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                white-space: nowrap;
-            }
-            .dot {
-                display: inline-block;
-                width: 8px;
-                height: 8px;
-                flex: none;
-                background: var(--bull);
-                box-shadow: 0 0 10px var(--bull);
-                animation: blink 1.6s steps(2, jump-none) infinite;
-            }
-            .dot.off {
-                background: var(--muted);
-                box-shadow: none;
-                animation: none;
-            }
-            @keyframes blink {
-                50% {
-                    opacity: 0.25;
-                }
-            }
-            .bar-play {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                height: 44px;
-                padding: 0 16px 2px;
-                background: var(--bull);
-                color: var(--ink);
-                font: 400 26px/1 var(--display);
-                letter-spacing: 0.06em;
-                text-decoration: none;
-                box-shadow: 3px 3px 0 var(--bull-deep);
-                visibility: hidden;
-                opacity: 0;
-                transform: translateY(-6px);
-                transition:
-                    opacity 140ms ease,
-                    transform 140ms ease,
-                    visibility 0s linear 140ms;
-            }
-            .bar.cta-off .bar-play {
-                visibility: visible;
-                opacity: 1;
-                transform: none;
-                transition:
-                    opacity 140ms ease,
-                    transform 140ms ease;
-            }
-
-            /* ---- Live ticker: only real numbers from the API ---- */
-            .ticker {
-                position: relative;
-                z-index: 2;
-                height: 30px;
-                overflow: hidden;
-                border-bottom: 1px solid var(--line);
-                background: rgba(7, 9, 12, 0.85);
-                -webkit-mask-image: linear-gradient(
-                    90deg,
-                    transparent,
-                    #000 6%,
-                    #000 94%,
-                    transparent
-                );
-                mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-            }
-            .ticker-track {
-                display: flex;
-                width: max-content;
-                height: 100%;
-                align-items: center;
-                animation: tick 38s linear infinite;
-            }
-            .ticker-track span {
-                padding: 0 22px;
-                font-size: 11px;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                white-space: nowrap;
-                color: var(--muted);
-            }
-            .ticker-track span b {
-                font-weight: 700;
-                color: var(--text);
-            }
-            .ticker-track span.g b {
-                color: var(--bull);
-            }
-            .ticker-track span.y b {
-                color: var(--gold);
-            }
-            .ticker-track span::before {
-                content: '▲';
-                margin-right: 10px;
-                color: var(--bull);
-            }
-            .ticker-track span.y::before {
-                content: '◆';
-                color: var(--gold);
-            }
-            @keyframes tick {
-                to {
-                    transform: translateX(-50%);
-                }
-            }
-
-            /* ---- Fund it · steer it · play it ---- */
-            .verbs {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr);
-                gap: 10px;
-                margin-top: 26px;
-            }
-            .verb {
-                --cc: rgba(22, 224, 138, 0.55);
-                position: relative;
-                display: grid;
-                grid-template-columns: 52px minmax(0, 1fr);
-                column-gap: 14px;
-                row-gap: 5px;
-                align-content: start;
-                padding: 16px 40px 16px 16px;
-                color: var(--text);
-                text-decoration: none;
-                border: 1px solid var(--line-2);
-                background:
-                    linear-gradient(var(--cc), var(--cc)) top left / 12px 2px no-repeat,
-                    linear-gradient(var(--cc), var(--cc)) top left / 2px 12px no-repeat,
-                    linear-gradient(var(--cc), var(--cc)) bottom right / 12px 2px no-repeat,
-                    linear-gradient(var(--cc), var(--cc)) bottom right / 2px 12px no-repeat,
-                    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 50%),
-                    var(--panel);
-                transition:
-                    border-color 140ms ease,
-                    transform 140ms ease,
-                    box-shadow 140ms ease;
-            }
-            .verb:hover,
-            .verb:focus-visible {
-                border-color: var(--bull);
-                transform: translateY(-2px);
-                box-shadow: 0 0 34px rgba(22, 224, 138, 0.16);
-            }
-            .verb::after {
-                content: '→';
-                position: absolute;
-                right: 16px;
-                top: 16px;
-                font: 400 24px/1 var(--display);
-                color: var(--muted);
-            }
-            .verb:hover::after {
-                color: var(--bull);
-            }
-            .verb canvas {
-                grid-row: 1 / span 3;
-                width: 48px;
-                height: 48px;
-                image-rendering: pixelated;
-            }
-            .verb-k {
-                font: 400 34px/0.95 var(--display);
-            }
-            .verb-k b {
-                font-weight: 400;
-                color: var(--bull);
-                text-shadow: 0 0 18px rgba(22, 224, 138, 0.35);
-            }
-            .verb-t {
-                font-size: 12px;
-                line-height: 1.5;
-                color: var(--text-2);
-            }
-            .verb-s {
-                justify-self: start;
-                margin-top: 5px;
-                padding: 4px 7px 3px;
-                font-size: 10px;
-                font-weight: 700;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--gold);
-                box-shadow: inset 0 0 0 1px rgba(255, 197, 61, 0.45);
-            }
-            .verb-s.on {
-                color: var(--bull);
-                box-shadow: inset 0 0 0 1px rgba(22, 224, 138, 0.55);
-            }
-            @media (min-width: 760px) {
-                .verbs {
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                }
-            }
-
-            /* ---- Hero ---- */
-            .hero {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr);
-                grid-template-areas: 'copy' 'cta' 'mon' 'parade' 'board';
-                padding-top: clamp(16px, 4vw, 44px);
-            }
-            .h-copy {
-                grid-area: copy;
-            }
-            .eyebrow {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                color: var(--bull);
-                font-size: 11px;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                margin: 0 0 14px;
-            }
-            h1 {
-                font: 400 clamp(52px, 14vw, 108px) / 0.86 var(--display);
-                margin: 0;
-                letter-spacing: 0.005em;
-                text-wrap: balance;
-                text-shadow: 0 5px 0 rgba(0, 0, 0, 0.55);
-            }
-            h1 em {
-                font-style: normal;
-                color: var(--bull);
-                text-shadow:
-                    0 5px 0 var(--bull-dark),
-                    0 0 42px rgba(22, 224, 138, 0.38);
-            }
-            .sub {
-                margin: 16px 0 0;
-                font-size: clamp(14px, 3.73vw, 18px);
-                color: var(--text-2);
-            }
-            .sub span {
-                display: block;
-            }
-
-            /* The "monitor": a framed live view of the game. Size is reserved by aspect-ratio. */
-            .monitor {
-                position: relative;
-                grid-area: mon;
-                margin: 24px 0 0;
-                border: 2px solid var(--line-2);
-                background: var(--panel);
-                box-shadow:
-                    0 0 0 1px #000,
-                    0 24px 60px rgba(0, 0, 0, 0.6),
-                    0 0 80px rgba(22, 224, 138, 0.14);
-                min-width: 0;
-            }
-            .monitor::before,
-            .monitor::after {
-                /* green corner brackets */
-                content: '';
-                position: absolute;
-                z-index: 3;
-                width: 22px;
-                height: 22px;
-                pointer-events: none;
-                border: 3px solid var(--bull);
-                filter: drop-shadow(0 0 6px rgba(22, 224, 138, 0.8));
-            }
-            .monitor::before {
-                left: -7px;
-                top: -7px;
-                border-right: 0;
-                border-bottom: 0;
-            }
-            .monitor::after {
-                right: -7px;
-                bottom: -7px;
-                border-left: 0;
-                border-top: 0;
-            }
-            .screen::after {
-                /* faint scanlines over the live view */
-                content: '';
-                position: absolute;
-                inset: 0;
-                z-index: 1;
-                pointer-events: none;
-                background: repeating-linear-gradient(
-                    0deg,
-                    rgba(0, 0, 0, 0.14) 0 1px,
-                    transparent 1px 3px
-                );
-                mix-blend-mode: multiply;
-            }
-            .mon-bar {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                height: 34px;
-                padding: 0 12px;
-                border-bottom: 1px solid var(--line-2);
-                background: var(--panel-2);
-                font-size: 11px;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                white-space: nowrap;
-            }
-            .mon-live {
-                display: inline-flex;
-                align-items: center;
-                gap: 7px;
-                color: var(--bull);
-                font-weight: 700;
-            }
-            .mon-title {
-                flex: 1;
-                min-width: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                color: var(--text-2);
-            }
-            .mon-clock {
-                color: var(--muted);
-                font-variant-numeric: tabular-nums;
-            }
-            .screen {
-                position: relative;
-                aspect-ratio: 1 / 1;
-                overflow: hidden;
-                background-color: var(--ink);
-                background-image:
-                    linear-gradient(var(--grid) 1px, transparent 1px),
-                    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-                background-size: 30px 30px;
-            }
-            .screen canvas,
-            .screen iframe {
-                position: absolute;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-                border: 0;
-            }
-            .screen canvas {
-                image-rendering: pixelated;
-                image-rendering: crisp-edges;
-            }
-            .screen iframe {
-                pointer-events: none;
-                background: var(--ink);
-            }
-            .poster-ui {
-                position: absolute;
-                inset: 0;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                padding: 14px;
-                pointer-events: none;
-            }
-            .poster-ui a {
-                pointer-events: auto;
-            }
-            .chip {
-                align-self: flex-start;
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 6px 10px 7px;
-                background: var(--ink);
-                border: 1px solid var(--gold);
-                color: var(--gold);
-                font: 400 22px/1 var(--display);
-                letter-spacing: 0.06em;
-                text-transform: uppercase;
-                box-shadow: 3px 3px 0 var(--gold-deep);
-            }
-            .cursor {
-                display: inline-block;
-                width: 0.45em;
-                height: 0.8em;
-                background: currentColor;
-                animation: blink 1s steps(2, jump-none) infinite;
-            }
-            .poster-cap {
-                margin: 0 -14px -14px;
-                padding: 9px 14px 10px 30px;
-                background: rgba(7, 9, 12, 0.92);
-                border-top: 1px solid var(--line-2);
-                font-size: 12px;
-                line-height: 1.5;
-                color: var(--text-2);
-                text-indent: -16px;
-            }
-            .poster-cap::before {
-                content: '>';
-                display: inline-block;
-                width: 16px;
-                text-indent: 0;
-                color: var(--gold);
-                font-weight: 700;
-            }
-            .poster-cap a {
-                color: var(--text);
-                text-underline-offset: 3px;
-            }
-            .poster-top {
-                display: grid;
-                justify-items: start;
-                gap: 10px;
-            }
-            .poster-sub {
-                margin: 0;
-                padding: 4px 8px;
-                background: rgba(7, 9, 12, 0.85);
-                font-size: 11px;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .poster-sub b {
-                color: var(--gold);
-                font-weight: 400;
-                font-variant-numeric: tabular-nums;
-            }
-            .tap {
-                position: absolute;
-                inset: 0;
-                display: flex;
-                align-items: flex-end;
-                justify-content: flex-end;
-                padding: 14px;
-                text-decoration: none;
-                z-index: 2;
-            }
-            .tap span {
-                padding: 9px 16px 11px;
-                background: var(--bull);
-                color: var(--ink);
-                font: 400 26px/1 var(--display);
-                letter-spacing: 0.08em;
-                box-shadow: 4px 4px 0 var(--bull-deep);
-            }
-            .tap:hover span,
-            .tap:focus-visible span {
-                transform: translate(-2px, -2px);
-                box-shadow: 6px 6px 0 var(--bull-deep);
-            }
-
-            .h-cta {
-                grid-area: cta;
-                margin-top: 24px;
-            }
-            .play {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 14px;
-                min-height: 76px;
-                padding: 10px 34px 16px;
-                background: var(--bull);
-                color: #04130d;
-                text-decoration: none;
-                font: 400 50px/1 var(--display);
-                letter-spacing: 0.04em;
-                clip-path: polygon(
-                    10px 0,
-                    100% 0,
-                    100% calc(100% - 10px),
-                    calc(100% - 10px) 100%,
-                    0 100%,
-                    0 10px
-                );
-                box-shadow:
-                    inset 0 3px 0 rgba(255, 255, 255, 0.35),
-                    inset 0 -7px 0 var(--bull-deep);
-                animation: cta 2.4s ease-in-out infinite;
-                transition: transform 70ms ease;
-            }
-            .play:hover {
-                filter: brightness(1.1);
-            }
-            .play:active {
-                transform: translateY(4px);
-                box-shadow:
-                    inset 0 3px 0 rgba(255, 255, 255, 0.25),
-                    inset 0 -3px 0 var(--bull-deep);
-            }
-            @keyframes cta {
-                0%,
-                100% {
-                    filter: brightness(1) drop-shadow(0 0 0 rgba(22, 224, 138, 0));
-                }
-                50% {
-                    filter: brightness(1.12) drop-shadow(0 0 18px rgba(22, 224, 138, 0.45));
-                }
-            }
-            .play svg {
-                width: 22px;
-                height: 22px;
-            }
-            .cta-note {
-                margin: 14px 0 0;
-                color: var(--muted);
-                font-size: 13px;
-            }
-
-            /* ---- Live numbers strip ---- */
-            .board-wrap {
-                grid-area: board;
-                margin-top: 10px;
-            }
-            .board-head {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                margin: 0 0 8px;
-                font-size: 11px;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            #updated {
-                text-transform: none;
-                letter-spacing: 0.04em;
-            }
-            .board-head b {
-                color: var(--text-2);
-                font-weight: 400;
-            }
-            .board {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                border: 1px solid var(--line);
-                background: var(--panel);
-            }
-            .cell {
-                position: relative;
-                padding: 14px 14px 14px;
-                border-right: 1px solid var(--line);
-                border-bottom: 1px solid var(--line);
-                min-width: 0;
-                background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 60%);
-            }
-            .cell-ico {
-                position: absolute;
-                right: 10px;
-                top: 10px;
-                width: 32px;
-                height: 32px;
-                image-rendering: pixelated;
-                opacity: 0.9;
-            }
-            .cell .v:not(.empty) {
-                text-shadow: 0 0 20px currentColor;
-            }
-            .parade-wrap {
-                grid-area: parade;
-                position: relative;
-                z-index: 1;
-                margin: clamp(22px, 4vw, 40px) calc(50% - 50vw) 0;
-                height: 120px;
-                -webkit-mask-image: linear-gradient(
-                    90deg,
-                    transparent,
-                    #000 12%,
-                    #000 88%,
-                    transparent
-                );
-                mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-            }
-            .parade {
-                display: block;
-                width: 100%;
-                height: 100%;
-            }
-            .cell:nth-child(2n) {
-                border-right: 0;
-            }
-            .cell:nth-last-child(-n + 2) {
-                border-bottom: 0;
-            }
-            .cell .k {
-                font-size: 11px;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color: var(--muted);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .cell .v {
-                font: 400 40px/1 var(--display);
-                height: 40px;
-                margin-top: 8px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .cell .v.empty {
-                color: var(--dim);
-            }
-            .cell .n {
-                font-size: 11px;
-                line-height: 1.4;
-                color: var(--muted);
-                margin-top: 6px;
-                min-height: 2.8em;
-            }
-            .v.bull {
-                color: var(--bull);
-            }
-            .v.gold {
-                color: var(--gold);
-            }
-            .v.flash {
-                animation: flash 900ms steps(6, end);
-            }
-            @keyframes flash {
-                0%,
-                40% {
-                    color: var(--ink);
-                    background: var(--bull);
-                }
-            }
-
-            @media (min-width: 600px) {
-                .screen {
-                    aspect-ratio: 16 / 10;
-                }
-                .play {
-                    display: inline-flex;
-                }
-                .cell .n {
-                    min-height: 1.4em;
-                }
-            }
-            @media (min-width: 720px) {
-                .board {
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                }
-                .cell,
-                .cell:nth-child(2n) {
-                    border-right: 1px solid var(--line);
-                    border-bottom: 1px solid var(--line);
-                }
-                .cell:nth-child(3n) {
-                    border-right: 0;
-                }
-                .cell:nth-last-child(-n + 3) {
-                    border-bottom: 0;
-                }
-            }
-            @media (min-width: 960px) {
-                .hero {
-                    grid-template-columns: minmax(0, 4.4fr) minmax(0, 6fr);
-                    grid-template-areas: 'copy mon' 'cta mon' 'parade parade' 'board board';
-                    grid-template-rows: auto 1fr auto auto;
-                    column-gap: clamp(32px, 4vw, 56px);
-                }
-                h1 {
-                    font-size: clamp(64px, 6.6vw, 92px);
-                }
-                .monitor {
-                    margin-top: 0;
-                    align-self: center;
-                }
-                .board-wrap {
-                    margin-top: 12px;
-                }
-                .board {
-                    grid-template-columns: repeat(6, minmax(0, 1fr));
-                }
-                .cell,
-                .cell:nth-child(2n),
-                .cell:nth-child(3n) {
-                    border-right: 1px solid var(--line);
-                    border-bottom: 0;
-                }
-                .cell:last-child {
-                    border-right: 0;
-                }
-                .cell .v {
-                    font-size: 44px;
-                    height: 44px;
-                }
-            }
-            @media (min-width: 1100px) {
-                .nav {
-                    display: flex;
-                }
-                .bar-r {
-                    margin-left: 0;
-                }
-            }
-            @media (min-width: 560px) {
-                .pill-x {
-                    display: inline;
-                }
-            }
-            @media (max-width: 420px) {
-                .brand span {
-                    display: none;
-                }
-            }
-            @media (prefers-reduced-motion: reduce) {
-                .dot,
-                .cursor {
-                    animation: none;
-                }
-                .play,
-                .bar,
-                .bar-play,
-                .bar.cta-off .bar-play {
-                    transition: none;
-                    animation: none;
-                }
-                .v.flash,
-                .ticker-track {
-                    animation: none;
-                }
-                .verb {
-                    transition: none;
-                }
-            }
-        </style>
-        <link rel="stylesheet" href="/hq.css" media="print" onload="this.media = 'all'" />
-        <noscript><link rel="stylesheet" href="/hq.css" /></noscript>
-        <script type="module" src="/hq.js"></script>
-        <script type="module" src="/hq-art.js"></script>
-        <script defer src="/vote.js"></script>
-        <script defer src="/ideas.js"></script>
+        <link rel="stylesheet" href="/site.css" />
+        <script type="module" src="/site.js"></script>
+        <script src="/vote.js" defer></script>
+        <script src="/ideas.js" defer></script>
     </head>
     <body>
         <a class="skip" href="#main">Skip to content</a>
-        <div class="chart-bg" aria-hidden="true"></div>
 
-        <header class="bar" id="bar">
-            <div class="wrap bar-in">
+        <!-- ============================================================ NAV -->
+        <header class="nav" id="nav">
+            <div class="nav-in wrap">
                 <a class="brand" href="/" aria-label="BEARPROOF, home">
-                    <img src="/assets/bull.svg" alt="" width="32" height="32" />
-                    <b>BEARPROOF</b>
+                    <img src="/assets/bull.svg" alt="" width="30" height="30" />
+                    <span>BEARPROOF</span>
                 </a>
-                <nav class="nav" aria-label="Sections">
-                    <a href="#build">Builds</a>
-                    <a href="#vote">Vote</a>
-                    <a href="#challenge">Challenge</a>
-
+                <nav class="nav-links" aria-label="Sections">
                     <a href="#how">How it works</a>
-                    <a href="#coin">Coin</a>
+                    <a href="#build">Builds</a>
+                    <a href="#challenge">Daily</a>
+                    <a href="#vote">Vote</a>
+                    <a href="#coin">$BPROOF</a>
                     <a href="#receipts">Receipts</a>
-                    <a href="#faq">FAQ</a>
-                    <a data-tg hidden rel="noopener">Telegram</a>
                     <a href="/live" class="nav-live" id="navLive"><i aria-hidden="true"></i>Live</a>
                 </nav>
-                <div class="bar-r">
-                    <span class="pill"
-                        ><i class="dot" id="pillDot" aria-hidden="true"></i
-                        ><span id="dayPill">Building</span></span
+                <div class="nav-cta">
+                    <button
+                        class="ca-mini"
+                        type="button"
+                        id="navCa"
+                        hidden
+                        aria-label="Copy the contract address"
                     >
-                    <a class="bar-play" href="/play">PLAY</a>
+                        <span class="ca-mini-k">CA</span><span class="ca-mini-v" id="navCaV"></span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M8 8h11v13H8zM5 3h11v3H7v12H5z" />
+                        </svg>
+                    </button>
+                    <a class="btn-play sm" href="/play">Play</a>
+                    <button
+                        class="nav-menu"
+                        type="button"
+                        id="navMenu"
+                        aria-expanded="false"
+                        aria-controls="sheet"
+                        aria-label="Menu"
+                    >
+                        <i></i><i></i><i></i>
+                    </button>
                 </div>
+            </div>
+            <div class="sheet" id="sheet" hidden>
+                <a href="#how">How it works</a>
+                <a href="#build">Builds</a>
+                <a href="#challenge">Daily Challenge</a>
+                <a href="#vote">Vote</a>
+                <a href="#coin">$BPROOF</a>
+                <a href="#receipts">Receipts</a>
+                <a href="/live">Watch the AI live</a>
             </div>
         </header>
 
         <main id="main">
-            <div class="ticker" id="ticker" aria-label="Live ticker" hidden>
-                <div class="ticker-track" id="tickerTrack"></div>
-            </div>
-            <section class="hero wrap" aria-labelledby="heroTitle">
-                <div class="h-copy">
-                    <p class="eyebrow live-line">
-                        <i class="dot" aria-hidden="true"></i
-                        ><span id="liveLine">Live build log</span>
-                        <span class="ll-sep" aria-hidden="true">·</span>
-                        <span class="ll-long">next build in</span
-                        ><span class="ll-short">next in</span>
-                        <b data-countdown>--:--:--</b>
-                    </p>
-                    <h1 id="heroTitle">An AI is building a game <em>on its own budget.</em></h1>
-                    <p class="sub">
-                        <span>It ships a new version every day.</span>
-                        <span>You fund it, you steer it, you play it.</span>
-                    </p>
-                </div>
-
-                <figure class="monitor" id="monitor" aria-label="Live game view">
-                    <div class="mon-bar">
-                        <span class="mon-live"><i class="dot" aria-hidden="true"></i>Live</span>
-                        <span class="mon-title" id="monTitle">Build #— · connecting</span>
-                        <span class="mon-clock" id="clock" aria-hidden="true">--:--:-- UTC</span>
-                    </div>
-                    <div class="screen" id="screen">
-                        <canvas id="poster" aria-hidden="true"></canvas>
-                        <!-- Day 0 vs now: the untouched original, clipped left of a sweeping divider. -->
-                        <div class="then" id="then" hidden>
-                            <video
-                                muted
-                                playsinline
-                                loop
-                                preload="none"
-                                poster="/assets/compare/build-0.jpg"
-                                aria-hidden="true"
-                                tabindex="-1"
+            <!-- ======================================================== HERO -->
+            <section class="hero" aria-labelledby="heroTitle">
+                <canvas class="hero-bg" id="heroBg" aria-hidden="true"></canvas>
+                <div class="hero-glow" aria-hidden="true"></div>
+                <div class="hero-in wrap">
+                    <div class="hero-copy">
+                        <p class="pill" id="heroPill">
+                            <i class="dot" aria-hidden="true"></i>
+                            <span id="heroPillText">Live · connecting…</span>
+                        </p>
+                        <h1 id="heroTitle" class="hero-h">
+                            <span class="l1">An AI is building a game</span>
+                            <span class="l2">on its own budget.</span>
+                        </h1>
+                        <p class="hero-sub">
+                            It ships a new version every day.<br />
+                            <b>You fund it</b>, <b>you steer it</b>, <b>you play it</b>.
+                        </p>
+                        <div class="hero-cta">
+                            <a class="btn-play" href="/play" id="heroPlay">
+                                <svg
+                                    viewBox="0 0 8 8"
+                                    aria-hidden="true"
+                                    shape-rendering="crispEdges"
+                                >
+                                    <path
+                                        d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z"
+                                        fill="currentColor"
+                                    />
+                                </svg>
+                                PLAY NOW
+                            </a>
+                            <a class="btn-ghost" href="#how">How it works</a>
+                        </div>
+                        <p class="hero-fine">Free in your browser. No wallet, no signup.</p>
+                        <div class="ca" id="heroCa" data-ca>
+                            <span class="ca-k">CA</span>
+                            <code class="ca-v" data-ca-v>loading…</code>
+                            <button
+                                class="ca-copy"
+                                type="button"
+                                data-ca-copy
+                                disabled
+                                aria-label="Copy the contract address"
                             >
-                                <source src="/assets/compare/build-0.mp4" type="video/mp4" />
-                            </video>
-                        </div>
-                        <div
-                            class="then-handle"
-                            id="thenHandle"
-                            role="slider"
-                            tabindex="0"
-                            aria-label="Compare the original game (left) with today's build (right)"
-                            aria-valuemin="0"
-                            aria-valuemax="100"
-                            aria-valuenow="50"
-                            hidden
-                        >
-                            <span class="then-tag l">Day 0</span><i aria-hidden="true"></i
-                            ><span class="then-tag r" id="thenNow">Now</span>
-                        </div>
-                        <div class="poster-ui" id="posterUi">
-                            <div class="poster-top">
-                                <span class="chip" id="posterChip"
-                                    >Connecting<i class="cursor" aria-hidden="true"></i
-                                ></span>
-                                <p class="poster-sub" id="posterSub" hidden></p>
-                            </div>
-                            <p class="poster-cap" id="posterCap">Reading the build manifest.</p>
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M8 8h11v13H8zM5 3h11v3H7v12H5z" />
+                                </svg>
+                                <span>Copy</span>
+                            </button>
                         </div>
                     </div>
-                </figure>
 
-                <div class="h-cta">
-                    <a class="play" href="/play" id="playBtn"
-                        >PLAY NOW
-                        <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
-                            <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
-                        </svg>
-                    </a>
-                    <p class="cta-note">No wallet. No signup. Free, in your browser.</p>
+                    <figure class="screen" id="screen" aria-label="The game, playing live">
+                        <div class="screen-frame">
+                            <div class="screen-bar">
+                                <span class="screen-live"><i aria-hidden="true"></i>LIVE</span>
+                                <span class="screen-title" id="screenTitle"
+                                    >Build #— · connecting</span
+                                >
+                                <span class="screen-clock" id="clock" aria-hidden="true"
+                                    >--:--:-- UTC</span
+                                >
+                            </div>
+                            <div class="screen-view" id="screenView">
+                                <canvas
+                                    class="screen-poster"
+                                    id="poster"
+                                    aria-hidden="true"
+                                ></canvas>
+                                <a
+                                    class="screen-tap"
+                                    href="/play"
+                                    id="screenTap"
+                                    aria-label="Tap to play"
+                                >
+                                    <span>TAP TO PLAY</span>
+                                </a>
+                            </div>
+                        </div>
+                        <figcaption class="screen-cap" id="screenCap">
+                            This is the live build, playing itself. Tap it to play.
+                        </figcaption>
+                    </figure>
                 </div>
 
-                <div class="parade-wrap" aria-hidden="true">
+                <div class="floor" aria-hidden="true">
+                    <div class="floor-grid"></div>
                     <canvas class="parade" id="parade"></canvas>
                 </div>
+            </section>
 
-                <div class="board-wrap">
-                    <p class="board-head">
-                        <span>Live numbers</span>
-                        <span id="updated" aria-live="off">connecting…</span>
-                    </p>
-                    <div class="board" role="list" aria-label="Live numbers">
-                        <div class="cell" role="listitem">
-                            <canvas
-                                class="cell-ico"
-                                data-icon="dca"
-                                data-scale="2"
-                                aria-hidden="true"
-                            ></canvas>
-                            <div class="k">Day</div>
-                            <div class="v empty" id="sDay">—</div>
-                            <div class="n">of building in public</div>
-                        </div>
-                        <div class="cell" role="listitem">
-                            <canvas
-                                class="cell-ico"
-                                data-icon="green_candle"
-                                data-scale="2"
-                                aria-hidden="true"
-                            ></canvas>
-                            <div class="k">Builds shipped</div>
-                            <div class="v empty" id="sBuilds">—</div>
-                            <div class="n" id="sBuildsN">watch this number</div>
-                        </div>
-                        <div class="cell" role="listitem">
-                            <canvas
-                                class="cell-ico"
-                                data-icon="cold_wallet"
-                                data-scale="2"
-                                aria-hidden="true"
-                            ></canvas>
-                            <div class="k">Treasury</div>
-                            <div class="v empty" id="sTreasury">—</div>
-                            <div class="n" id="sTreasuryN">coin not launched yet</div>
-                        </div>
-                        <div class="cell" role="listitem">
-                            <canvas
-                                class="cell-ico"
-                                data-icon="high_frequency"
-                                data-scale="2"
-                                aria-hidden="true"
-                            ></canvas>
-                            <div class="k">Spent on compute</div>
-                            <div class="v empty" id="sSpent">—</div>
-                            <div class="n" id="sSpentN">metering starts with the Build Agent</div>
-                        </div>
-                        <div class="cell" role="listitem">
-                            <canvas
-                                class="cell-ico"
-                                data-sprite="emblem"
-                                data-scale="2"
-                                aria-hidden="true"
-                            ></canvas>
-                            <div class="k">Players today</div>
-                            <div class="v empty" id="sPlayers">—</div>
-                            <div class="n" id="sPlayersN">counting starts with Build #1</div>
-                        </div>
-                        <div class="cell" role="listitem">
-                            <canvas
-                                class="cell-ico"
-                                data-sprite="xp_candle_big"
-                                data-scale="2"
-                                aria-hidden="true"
-                            ></canvas>
-                            <div class="k">Today's #1</div>
-                            <div class="v empty" id="sTop">—</div>
-                            <div class="n" id="sTopN">no runs submitted yet</div>
-                        </div>
+            <!-- ==================================================== NUMBERS -->
+            <section class="numbers wrap" aria-label="Live numbers">
+                <div class="num-grid">
+                    <div class="num">
+                        <b class="num-v" id="nDay">—</b>
+                        <span class="num-k">Day of building</span>
+                    </div>
+                    <div class="num">
+                        <b class="num-v" id="nBuilds">—</b>
+                        <span class="num-k">Builds shipped</span>
+                    </div>
+                    <div class="num">
+                        <b class="num-v" id="nPlayers">—</b>
+                        <span class="num-k">Players today</span>
+                    </div>
+                    <div class="num">
+                        <b class="num-v gold" id="nTop">—</b>
+                        <span class="num-k">Today's #1 score</span>
+                    </div>
+                    <div class="num">
+                        <b class="num-v" id="nTreasury">—</b>
+                        <span class="num-k">Treasury, on-chain</span>
+                    </div>
+                    <div class="num">
+                        <b class="num-v" id="nSpent">—</b>
+                        <span class="num-k">AI compute, measured</span>
                     </div>
                 </div>
-            </section>
-
-            <!-- Fund it · steer it · play it -->
-            <section class="verbs wrap" aria-label="How you take part">
-                <a class="verb" href="#coin">
-                    <canvas data-icon="cold_wallet" data-scale="3" aria-hidden="true"></canvas>
-                    <span class="verb-k">You <b>fund</b> it</span>
-                    <span class="verb-t"
-                        >Trading $BPROOF pays creator fees. That is the AI's whole budget.</span
-                    >
-                    <span class="verb-s" id="verbFund">Starts at coin launch</span>
-                </a>
-                <a class="verb" href="#vote">
-                    <canvas data-icon="conviction" data-scale="3" aria-hidden="true"></canvas>
-                    <span class="verb-k">You <b>steer</b> it</span>
-                    <span class="verb-t"
-                        >Vote on tomorrow's feature, or put your own idea on the ballot.</span
-                    >
-                    <span class="verb-s" id="verbSteer">Starts at coin launch</span>
-                </a>
-                <a class="verb" href="#challenge">
-                    <canvas data-sprite="emblem" data-scale="3" aria-hidden="true"></canvas>
-                    <span class="verb-k">You <b>play</b> it</span>
-                    <span class="verb-t"
-                        >One free Daily Challenge for everyone. The verified #1 wins $ANSEM.</span
-                    >
-                    <span class="verb-s on" id="verbPlay">Live now</span>
-                </a>
-            </section>
-
-            <!-- 01 · Today's build + recent builds -->
-            <section class="sec wrap" id="build" aria-labelledby="buildH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">01</span>
-                    <h2 id="buildH">Today's build</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="bull"
-                        data-scale="3"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <div class="today" id="today" aria-live="polite">
-                    <div class="state">
-                        <p class="state-k">Reading the build manifest…</p>
-                    </div>
-                </div>
-                <div class="tl-head">
-                    <h3>Build history</h3>
-                    <p>Every build stays playable. That's the proof of work.</p>
-                </div>
-                <ol class="timeline" id="timeline" aria-label="Build history"></ol>
-                <button class="btn btn-sm tl-more" id="tlMore" type="button" hidden>
-                    Show every build
-                </button>
-            </section>
-
-            <!-- 02 · Vote on tomorrow -->
-            <section class="sec wrap" id="vote" aria-labelledby="voteH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">02</span>
-                    <h2 id="voteH">Vote on tomorrow</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="ponzi"
-                        data-scale="3"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <p class="lede">
-                    The AI proposes three features a day, after reading everyone's ideas. Holders
-                    can add their own. The most-voted one ships next, whoever wrote it.
+                <p class="num-foot">
+                    <i class="dot" aria-hidden="true"></i
+                    ><span id="updated">Live from the chain and the game server</span>
                 </p>
-                <div class="vote">
-                    <div class="vote-state panel">
-                        <span class="flag gold" id="voteFlag"
-                            >Voting opens when the coin launches</span
-                        >
-                        <ol class="vote-how">
-                            <li><b>The AI proposes</b> three features it can ship in a day</li>
-                            <li><b>Holders add</b> their own requests</li>
-                            <li><b>Holders vote</b> until 21:00 UTC</li>
-                            <li><b>The winner ships</b> in the next 00:00 UTC build</li>
-                        </ol>
-                        <details class="more">
-                            <summary>Vote weight is <b class="sqrt">√(tokens held)</b></summary>
-                            <table class="wtable">
-                                <caption class="sr-only">
-                                    How √ weighting scales
-                                </caption>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Tokens held</th>
-                                        <th scope="col">Vote weight</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>10,000</td>
-                                        <td>100</td>
-                                    </tr>
-                                    <tr>
-                                        <td>1,000,000</td>
-                                        <td>1,000</td>
-                                    </tr>
-                                    <tr>
-                                        <td>100,000,000</td>
-                                        <td>10,000</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <p class="fine">
-                                10,000× the tokens gets 100× the say, so no whale owns the roadmap.
-                                At least 1,000 tokens to vote.
-                            </p>
-                        </details>
-                        <button class="btn" type="button" id="voteConnect" disabled>
-                            Connect wallet to vote
-                        </button>
-                        <p class="fine sig-note">
-                            A free signature. No transaction, nothing moves.
-                        </p>
-                        <p class="vote-status" id="voteStatus" aria-live="polite"></p>
-                    </div>
-                    <div class="ballot-col">
-                        <div class="ballot-head">
-                            <h3>Tomorrow's ballot</h3>
-                            <span id="ballotMeta"></span>
-                        </div>
-                        <ul class="ex-list vote-list" id="ballot">
-                            <li class="ex">
-                                <span class="ex-stamp" aria-hidden="true">Loading</span>
-                                <h3>Loading the ballot…</h3>
-                                <p>The AI's proposals for tomorrow's build.</p>
-                            </li>
-                        </ul>
-                        <form class="req panel off" id="reqForm" novalidate>
-                            <div class="req-h">
-                                <h3>Request a feature</h3>
-                                <span class="flag dim" id="reqFlag">Opens with the coin</span>
-                            </div>
-                            <p class="req-need">
-                                <b>100,000 $BPROOF</b> in the signing wallet · one request a day ·
-                                until 18:00 UTC, so every request gets three hours of voting before
-                                the 21:00 close
-                            </p>
-                            <details class="more">
-                                <summary>Rules</summary>
-                                <ul class="req-rules">
-                                    <li>Up to 12 requests on a ballot, first come.</li>
-                                    <li>
-                                        A change to the game, in words. No links or handles, nothing
-                                        about keys, wallets or payouts.
-                                    </li>
-                                    <li>
-                                        If it wins, the AI builds it next (or its first playable
-                                        slice) and credits you. If it can't be built safely, the
-                                        devlog says why and the runner-up ships.
-                                    </li>
-                                </ul>
-                            </details>
-                            <div class="req-fields">
-                                <label for="reqTitle">Feature</label>
-                                <input
-                                    id="reqTitle"
-                                    name="title"
-                                    maxlength="60"
-                                    placeholder="e.g. A whale that crosses the screen and drops XP"
-                                    autocomplete="off"
-                                    disabled
-                                />
-                                <label for="reqDesc">Details <span>(optional)</span></label>
-                                <textarea
-                                    id="reqDesc"
-                                    name="description"
-                                    maxlength="240"
-                                    rows="3"
-                                    placeholder="What it does and why it's fun, in one or two sentences."
-                                    disabled
-                                ></textarea>
-                                <div class="req-foot">
-                                    <span class="req-count" id="reqCount">0 / 240</span>
-                                    <button
-                                        class="btn btn-go"
-                                        type="submit"
-                                        id="reqSubmit"
-                                        disabled
-                                    >
-                                        Sign &amp; post request
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="vote-status" id="reqStatus" aria-live="polite"></p>
-                        </form>
-                        <form class="req panel ideas" id="ideaForm" novalidate hidden>
-                            <div class="req-h">
-                                <h3>Ideas box</h3>
-                                <span class="flag" id="ideaFlag">Anyone · no wallet</span>
-                            </div>
-                            <p class="req-need">
-                                Anyone can suggest, no wallet · the AI reads them every night before
-                                it writes the next ballot · holders still decide by vote
-                            </p>
-                            <div class="req-fields">
-                                <label for="ideaText">Your idea</label>
-                                <textarea
-                                    id="ideaText"
-                                    name="text"
-                                    maxlength="200"
-                                    rows="2"
-                                    placeholder="e.g. A boss that shorts the chart and makes the candles fall"
-                                ></textarea>
-                                <div class="ideas-ts" id="ideaTs"></div>
-                                <p class="fine ideas-hint" id="ideaTsHint" hidden>
-                                    One quick check: tap the box above.
-                                </p>
-                                <div class="req-foot">
-                                    <span class="req-count" id="ideaCount">0 / 200</span>
-                                    <button class="btn btn-go" type="submit" id="ideaSubmit">
-                                        Send idea
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="vote-status" id="ideaStatus" aria-live="polite"></p>
-                            <div class="ideas-feed">
-                                <div class="ideas-head">
-                                    <span>Latest ideas</span><span id="ideaMeta"></span>
-                                </div>
-                                <ul class="ideas-list" id="ideaList"></ul>
-                            </div>
-                            <div class="ideas-feed" id="heard" hidden>
-                                <div class="ideas-head">
-                                    <span>Heard in the Telegram chat</span
-                                    ><span id="heardMeta"></span>
-                                </div>
-                                <ul class="ideas-list" id="heardList"></ul>
-                                <p class="fine">
-                                    A digest of the group's chat, written by one Claude call at
-                                    20:30 UTC. The AI reads it before the night's build; holders
-                                    still decide by vote.
-                                    <a href="/api/feedback">The raw digest</a>
-                                </p>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             </section>
 
-            <!-- 03 · Daily Challenge -->
-            <section class="sec wrap" id="challenge" aria-labelledby="chH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">03</span>
-                    <h2 id="chH">Daily Challenge</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="xp_candle_big"
-                        data-scale="4"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <a class="paid" id="paidBanner" hidden rel="noopener" target="_blank"></a>
-                <div class="ch">
-                    <div class="ch-clock panel">
-                        <p class="k">Next build + new challenge in</p>
-                        <p
-                            class="countdown"
-                            id="countdown"
-                            role="timer"
-                            aria-label="Time until 00:00 UTC"
-                        >
-                            --:--:--
+            <!-- ================================================ HOW IT WORKS -->
+            <section class="sec wrap" id="how" aria-labelledby="howH">
+                <header class="sec-h center">
+                    <p class="eyebrow">How it works</p>
+                    <h2 id="howH">One loop. <span class="g">Every day.</span></h2>
+                    <p class="sec-sub">
+                        Four steps, and every one of them leaves a public receipt.
+                    </p>
+                </header>
+                <ol class="loop" id="loop">
+                    <li class="step" style="--i: 0">
+                        <div class="step-art">
+                            <canvas data-icon="buyback" data-scale="4" aria-hidden="true"></canvas>
+                        </div>
+                        <p class="step-n">01 · Fund</p>
+                        <h3>People trade $BPROOF</h3>
+                        <p>
+                            Every trade pays a small fee into the AI's public wallet. That's its
+                            whole budget.
                         </p>
-                        <p class="k">00:00 UTC · same seed, same build, for everyone</p>
-                        <dl class="ch-meta" id="chMeta">
+                        <p class="step-live" id="stepFund"></p>
+                    </li>
+                    <li class="step" style="--i: 1">
+                        <div class="step-art">
+                            <canvas
+                                data-sprite="emblem_large"
+                                data-scale="2"
+                                aria-hidden="true"
+                            ></canvas>
+                        </div>
+                        <p class="step-n">02 · Build</p>
+                        <h3>The AI ships every night</h3>
+                        <p>
+                            From 21:00 UTC it writes the code and tests it. The new version goes
+                            live at 00:00 UTC.
+                        </p>
+                        <p class="step-live" id="stepBuild"></p>
+                    </li>
+                    <li class="step" style="--i: 2">
+                        <div class="step-art">
+                            <canvas
+                                data-sprite="bull"
+                                data-scale="3"
+                                data-anim
+                                aria-hidden="true"
+                            ></canvas>
+                        </div>
+                        <p class="step-n">03 · Play</p>
+                        <h3>Everyone plays, free</h3>
+                        <p>
+                            One Daily Challenge for the whole world. The best runs get paid in
+                            $ANSEM.
+                        </p>
+                        <p class="step-live" id="stepPlay"></p>
+                    </li>
+                    <li class="step" style="--i: 3">
+                        <div class="step-art">
+                            <canvas
+                                data-icon="diamond_hands"
+                                data-scale="4"
+                                aria-hidden="true"
+                            ></canvas>
+                        </div>
+                        <p class="step-n">04 · Steer</p>
+                        <h3>Holders pick what's next</h3>
+                        <p>
+                            The AI proposes three features. Holders vote, and the winner is
+                            tonight's build.
+                        </p>
+                        <p class="step-live" id="stepSteer"></p>
+                    </li>
+                </ol>
+                <p class="loop-back" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 4a8 8 0 1 1-7.7 10h2.1A6 6 0 1 0 12 6v3L7.5 5 12 1z" />
+                    </svg>
+                    and again tomorrow
+                </p>
+            </section>
+
+            <!-- ================================================ BUILD NIGHT -->
+            <section class="sec wrap" id="build" aria-labelledby="buildH">
+                <header class="sec-h">
+                    <p class="eyebrow">The builds</p>
+                    <h2 id="buildH">Every night, it codes <span class="g">in public.</span></h2>
+                    <p class="sec-sub">
+                        This is last night's real session log, replayed. Tonight's is streamed live
+                        at
+                        <a href="/live">/live</a> from 21:00 UTC.
+                    </p>
+                </header>
+
+                <div class="night">
+                    <div class="term" id="term" aria-label="Last night's build log">
+                        <div class="term-bar">
+                            <i></i><i></i><i></i>
+                            <span id="termTitle">build-agent · last night</span>
+                            <span class="term-state" id="termState">replay</span>
+                        </div>
+                        <ol class="term-body" id="termBody" aria-live="off"></ol>
+                    </div>
+
+                    <article class="latest" id="latest">
+                        <p class="latest-k">
+                            <span class="tag live">Live now</span><span id="latestDate"></span>
+                        </p>
+                        <p class="latest-n" id="latestN">#—</p>
+                        <h3 id="latestTitle">Loading the latest build…</h3>
+                        <p class="latest-sum" id="latestSum"></p>
+                        <ul class="chips" id="latestChips"></ul>
+                        <div class="latest-cta">
+                            <a class="btn-solid" href="/play" id="latestPlay">Play this build</a>
+                            <a
+                                class="btn-line"
+                                id="latestLog"
+                                href="https://github.com/0smanturgut/bearproof/tree/main/devlog"
+                                rel="noopener"
+                                target="_blank"
+                                >Read the devlog ↗</a
+                            >
+                        </div>
+                    </article>
+                </div>
+
+                <div class="tl-head">
+                    <h3 class="tl-title">
+                        <b id="tlCount">—</b> builds so far.
+                        <span>Every one is still playable.</span>
+                    </h3>
+                    <div class="tl-nav">
+                        <button type="button" class="round" id="tlPrev" aria-label="Newer builds">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M15 5l-7 7 7 7" />
+                            </svg>
+                        </button>
+                        <button type="button" class="round" id="tlNext" aria-label="Older builds">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="tl-wrap">
+                    <ol class="tl" id="timeline" aria-label="Build history" tabindex="0"></ol>
+                </div>
+                <div class="tl-progress" aria-hidden="true"><i id="tlBar"></i></div>
+            </section>
+
+            <!-- ============================================ DAILY CHALLENGE -->
+            <section class="sec wrap" id="challenge" aria-labelledby="chH">
+                <header class="sec-h">
+                    <p class="eyebrow">Daily Challenge</p>
+                    <h2 id="chH">Play today. <span class="gold">Get paid in $ANSEM.</span></h2>
+                    <p class="sec-sub">
+                        Same map, same seed, same build for everyone. It resets at 00:00 UTC.
+                    </p>
+                </header>
+
+                <div class="daily">
+                    <div class="pot" id="pot">
+                        <div class="pot-top">
+                            <p class="pot-k">Today's pot</p>
+                            <p class="pot-v"><b id="potSol">—</b> <span>SOL</span></p>
+                            <p class="pot-note" id="potNote">
+                                Paid in $ANSEM after the day closes.
+                            </p>
+                        </div>
+                        <div class="pot-clock">
+                            <span>Ends in</span>
+                            <b data-countdown id="dailyCountdown">--:--:--</b>
+                        </div>
+                        <dl class="pot-facts" id="potFacts">
                             <div>
-                                <dt>Today</dt>
-                                <dd id="chDate">—</dd>
+                                <dt>Map</dt>
+                                <dd id="dStage">—</dd>
                             </div>
                             <div>
-                                <dt>Build</dt>
-                                <dd id="chBuild">—</dd>
-                            </div>
-                            <div>
-                                <dt>Stage</dt>
-                                <dd id="chStage">—</dd>
-                            </div>
-                            <div id="chTwistRow" hidden>
                                 <dt>Twist</dt>
-                                <dd id="chTwist">—</dd>
+                                <dd id="dTwist">—</dd>
+                            </div>
+                            <div>
+                                <dt>Bounty</dt>
+                                <dd id="dBounty">—</dd>
                             </div>
                         </dl>
-                        <a class="btn btn-go" id="chPlay" href="/play">Play today's challenge</a>
-                        <div class="prize">
-                            <svg
-                                class="px-ico"
-                                viewBox="0 0 12 12"
-                                width="28"
-                                height="28"
-                                aria-hidden="true"
-                                shape-rendering="crispEdges"
-                            >
-                                <rect x="3" y="1" width="6" height="4" fill="#FFC53D" />
-                                <rect x="1" y="1" width="2" height="1" fill="#FFC53D" />
-                                <rect x="9" y="1" width="2" height="1" fill="#FFC53D" />
-                                <rect x="1" y="2" width="1" height="2" fill="#FFC53D" />
-                                <rect x="10" y="2" width="1" height="2" fill="#FFC53D" />
-                                <rect x="4" y="5" width="4" height="1" fill="#FFC53D" />
-                                <rect x="5" y="6" width="2" height="2" fill="#B07A00" />
-                                <rect x="3" y="8" width="6" height="2" fill="#FFC53D" />
-                            </svg>
-                            <div class="prize-body">
-                                <p class="prize-h">
-                                    <b>Daily prize in $ANSEM</b>
-                                    <span class="flag dim" id="prizeFlag"
-                                        >Starts with the coin</span
-                                    >
-                                </p>
-                                <p id="prizeText">
-                                    The AI pays each day's verified #1: 10% of the day's creator
-                                    fees (max 0.5 SOL), bought as $ANSEM. You never need the coin to
-                                    win.
-                                </p>
-                                <ol class="prize-how">
-                                    <li>Play today's challenge</li>
-                                    <li>Add a Solana address at game over</li>
-                                    <li>The verified #1 is paid after 00:00 UTC</li>
-                                </ol>
-                                <form class="prize-addr" id="prizeAddr" hidden novalidate>
-                                    <label for="prizeAddrIn"
-                                        >Played on this device? The Solana address a win is paid
-                                        to:</label
-                                    >
-                                    <div class="pa-row">
-                                        <input
-                                            id="prizeAddrIn"
-                                            autocomplete="off"
-                                            autocapitalize="off"
-                                            spellcheck="false"
-                                            placeholder="Solana address (public)"
-                                        />
-                                        <button class="btn btn-sm" type="submit">Save</button>
-                                    </div>
-                                    <p class="pa-note" id="prizeAddrNote">
-                                        A public address only, never a private key or seed phrase.
-                                        No wallet connection.
-                                    </p>
-                                </form>
-                                <ul class="winners" id="winners" hidden></ul>
+                        <a class="btn-play wide" href="/play" id="dailyPlay"
+                            >PLAY TODAY'S CHALLENGE</a
+                        >
+                        <ol class="pot-how">
+                            <li><b>1</b>Play the Daily. Free, no wallet.</li>
+                            <li><b>2</b>Leave a Solana address at game over.</li>
+                            <li>
+                                <b>3</b>The server replays every run. Top runs and bounty clears get
+                                paid.
+                            </li>
+                        </ol>
+                        <details class="rules" id="potRules">
+                            <summary>The exact payout rules</summary>
+                            <p id="potRuleText"></p>
+                            <ul id="potRuleList"></ul>
+                        </details>
+                        <form class="addr" id="prizeAddr" hidden novalidate>
+                            <label for="prizeAddrIn">Your prize address on this device</label>
+                            <div class="addr-row">
+                                <input
+                                    id="prizeAddrIn"
+                                    type="text"
+                                    inputmode="text"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                    placeholder="Solana address (public, never a key)"
+                                    maxlength="64"
+                                />
+                                <button class="btn-solid sm" type="submit">Save</button>
                             </div>
-                        </div>
+                            <p class="addr-note" id="prizeAddrNote">
+                                Only the public address. Never paste a private key or seed phrase.
+                            </p>
+                        </form>
                     </div>
-                    <div class="ch-board panel">
-                        <div class="lb-head">
+
+                    <div class="board">
+                        <div class="board-head">
                             <h3>Today's leaderboard</h3>
                             <span id="lbMeta"></span>
                         </div>
                         <div id="lb" aria-live="polite">
-                            <div class="state">
-                                <p class="state-k">Loading today's board…</p>
-                            </div>
+                            <p class="board-empty">Loading today's board…</p>
                         </div>
-                        <p class="lb-legend">
-                            <b>checking</b>: the server is re-playing the run from its recorded
-                            inputs, usually within the hour. <b>verified</b>: same score. Only
-                            verified runs can win the prize. Tap a status to open the run.
+                        <button class="btn-line sm board-more" type="button" id="lbMore" hidden>
+                            Show the whole board
+                        </button>
+                        <p class="board-fine">
+                            <span class="v-chip">✓ verified</span> the server re-played the run from
+                            its inputs and got the same score. Only verified runs can be paid.
                         </p>
                     </div>
                 </div>
-            </section>
 
-            <!-- 04 · Meet the bear market -->
-            <section class="sec wrap" id="bears" aria-labelledby="bearsH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">04</span>
-                    <h2 id="bearsH">Meet the bear market</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="grizzly"
-                        data-scale="3"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <p class="lede">
-                    Everything that wants your bull liquidated. Drawn by the AI, in code.
-                </p>
-                <div class="bestiary">
-                    <ul class="bosses" aria-label="Bosses">
-                        <li class="boss">
-                            <canvas
-                                data-sprite="rug_lord"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Rug Lord</b><span>He is pulling everything.</span>
-                        </li>
-                        <li class="boss">
-                            <canvas
-                                data-sprite="capitulation"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Capitulation</b
-                            ><span>The biggest red candle you have ever seen.</span>
-                        </li>
-                        <li class="boss">
-                            <canvas
-                                data-sprite="liquidation"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Liquidation</b><span>Your position is being closed.</span>
-                        </li>
-                        <li class="boss">
-                            <canvas
-                                data-sprite="bear_market"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>The Bear Market</b><span>Survive this and the cycle turns.</span>
-                        </li>
-                        <li class="boss">
-                            <canvas
-                                data-sprite="long_winter"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>The Long Winter</b><span>Crypto winter has a face.</span>
-                        </li>
-                    </ul>
-                    <ul class="foes" aria-label="Enemies">
-                        <li class="foe">
-                            <canvas
-                                data-sprite="red_candle"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Red Candle</b><span>Down only.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="bag_holder"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Bag Holder</b><span>Still holding.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="paper_hands"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Paper Hands</b><span>Sold the bottom.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="rug_puller"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Rug Puller</b><span>Dashes in. Takes the rug.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="grizzly"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Grizzly</b><span>Armoured, slow, hurts.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="fud_cloud"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>FUD Cloud</b><span>Fast and loud.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="doomposter"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Doomposter</b><span>Shoots bad news.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="ponzi"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Ponzi</b><span>Pops into its downline.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="downline"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Downline</b><span>Recruited.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="margin_call"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Margin Call</b><span>Rings, then blows up.</span>
-                        </li>
-                        <li class="foe">
-                            <canvas
-                                data-sprite="sybil"
-                                data-scale="3"
-                                data-anim
-                                aria-hidden="true"
-                            ></canvas>
-                            <b>Sybil</b><span>There are always more.</span>
-                        </li>
-                    </ul>
+                <div class="paid" id="paid" hidden>
+                    <p class="paid-k">Latest payout</p>
+                    <div class="paid-row" id="paidRow"></div>
                 </div>
             </section>
 
-            <!-- 05 · How it works -->
-            <section class="sec wrap" id="how" aria-labelledby="howH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">05</span>
-                    <h2 id="howH">How it works</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="diamond"
-                        data-scale="4"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <p class="lede">One loop. Every step leaves a public receipt.</p>
-                <div class="loop" id="loop">
-                    <svg class="loop-track" id="loopTrack" aria-hidden="true"></svg>
-                    <i class="loop-token" id="loopToken" aria-hidden="true"></i>
-                    <ol class="loop-steps">
-                        <li class="step">
-                            <div class="step-top">
-                                <canvas
-                                    class="px-ico"
-                                    data-icon="green_candle"
-                                    data-scale="3"
-                                    aria-hidden="true"
-                                ></canvas>
-                                <span class="step-n">01</span>
-                            </div>
-                            <h3>Trades fund the game</h3>
-                            <p>
-                                Every trade of the coin pays a fee into the AI's public wallet.
-                                That's its whole budget.
-                            </p>
-                        </li>
-                        <li class="step">
-                            <div class="step-top">
-                                <canvas
-                                    class="px-ico"
-                                    data-sprite="emblem"
-                                    data-scale="3"
-                                    aria-hidden="true"
-                                ></canvas>
-                                <span class="step-n">02</span>
-                            </div>
-                            <h3>It ships better every night</h3>
-                            <p>
-                                A new build at 00:00 UTC, written live from 21:00 UTC. Every build
-                                stays playable.
-                            </p>
-                        </li>
-                        <li class="step">
-                            <div class="step-top">
-                                <canvas
-                                    class="px-ico"
-                                    data-icon="airdrop"
-                                    data-scale="3"
-                                    aria-hidden="true"
-                                ></canvas>
-                                <span class="step-n">03</span>
-                            </div>
-                            <h3>The daily winner gets $ANSEM</h3>
-                            <p>
-                                The best verified run of the day is paid in $ANSEM, on-chain.
-                                Holding the coin isn't needed.
-                            </p>
-                        </li>
-                        <li class="step">
-                            <div class="step-top">
-                                <canvas
-                                    class="px-ico"
-                                    data-icon="conviction"
-                                    data-scale="3"
-                                    aria-hidden="true"
-                                ></canvas>
-                                <span class="step-n">04</span>
-                            </div>
-                            <h3>Holders vote on what's next</h3>
-                            <p>And players' runs show the AI what to fix. Then it loops.</p>
-                        </li>
-                    </ol>
-                </div>
-                <p class="fine" id="howFine">
-                    Osman pays the bills first. The treasury pays him back on-chain, and every
-                    payment is in the ledger.
-                </p>
-                <p class="fine">
-                    Plainer wording thanks to a note from
-                    <a href="https://x.com/clawpumptech" rel="noopener">@clawpumptech</a>.
-                </p>
-            </section>
+            <!-- ======================================================= VOTE -->
+            <section class="sec wrap" id="vote" aria-labelledby="voteH">
+                <header class="sec-h">
+                    <p class="eyebrow">Vote</p>
+                    <h2 id="voteH">You pick what it <span class="g">builds tonight.</span></h2>
+                    <p class="sec-sub" id="voteSub">
+                        The AI proposes three features. Holders vote until 21:00 UTC, and the winner
+                        ships at 00:00 UTC.
+                    </p>
+                </header>
 
-            <!-- 06 · The coin -->
-            <section class="sec wrap" id="coin" aria-labelledby="coinH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">06</span>
-                    <h2 id="coinH">The coin: $BPROOF</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="emblem_large"
-                        data-scale="2"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
+                <div class="vote-bar">
+                    <span class="tag" id="voteFlag">Loading the ballot…</span>
+                    <span class="vote-meta" id="ballotMeta"></span>
+                    <button class="btn-solid sm" type="button" id="voteConnect" disabled>
+                        Connect wallet to vote
+                    </button>
                 </div>
-                <div class="coin panel">
-                    <div class="ca">
-                        <p class="k" id="caLabel">Contract address</p>
-                        <div class="ca-row">
-                            <code class="ca-val empty" id="caVal">Not launched yet</code>
-                            <button
-                                class="btn btn-sm"
-                                type="button"
-                                id="caCopy"
-                                aria-describedby="caLabel"
-                                disabled
-                            >
-                                Copy
+                <p class="vote-status" id="voteStatus" aria-live="polite"></p>
+                <ul class="ballot" id="ballot"></ul>
+                <p class="vote-rule">
+                    One free signature, no transaction, nothing moves. Weight is √(tokens held), at
+                    least 1,000 $BPROOF, so no whale owns the roadmap.
+                </p>
+
+                <div class="voice">
+                    <form class="voice-card" id="ideaForm" novalidate hidden>
+                        <p class="voice-k">No coin? No problem.</p>
+                        <h3>Send the AI an idea</h3>
+                        <p class="voice-p">
+                            It reads every idea each night before it writes the next ballot.
+                        </p>
+                        <label class="sr-only" for="ideaText">Your idea</label>
+                        <textarea
+                            id="ideaText"
+                            rows="2"
+                            maxlength="200"
+                            placeholder="A mini map so I can see where the bears are…"
+                        ></textarea>
+                        <div class="ideas-ts" id="ideaTs"></div>
+                        <p class="fine" id="ideaTsHint" hidden>
+                            One quick check: tap the box above.
+                        </p>
+                        <div class="voice-row">
+                            <span class="count" id="ideaCount">0 / 200</span>
+                            <button class="btn-solid sm" type="submit" id="ideaSubmit">
+                                Send idea
                             </button>
                         </div>
-                        <p class="copied" id="caCopied" role="status"></p>
-                    </div>
-                    <div class="coin-go">
-                        <a class="btn btn-go is-off" id="buyLink" aria-disabled="true"
-                            >Buy on pump.fun</a
-                        >
-                        <p class="fine" id="buyNote">Link turns on when the coin launches.</p>
-                    </div>
-                    <p class="coin-what">
-                        The AI's budget and a say in the roadmap. That's all it is. Not an
-                        investment.
-                    </p>
-                    <div class="does">
-                        <div>
-                            <h3 class="bull">It does</h3>
-                            <ul class="ticks">
-                                <li>Fund the AI's compute, hosting and prizes</li>
-                                <li>Give holders a vote and a place on the ballot</li>
-                                <li>Planned: holder cosmetics (a skin, a board badge)</li>
-                            </ul>
+                        <p class="vote-status" id="ideaStatus" aria-live="polite"></p>
+                        <div class="ideas-feed">
+                            <p class="ideas-k">
+                                <span>Latest ideas</span><span id="ideaMeta"></span>
+                            </p>
+                            <ul class="ideas-list" id="ideaList"></ul>
                         </div>
-                        <div>
-                            <h3 class="bear">It does not</h3>
-                            <ul class="ticks no">
-                                <li>Pay anything to holders</li>
-                                <li>Gate playing the game</li>
-                                <li>Gate winning the daily prize</li>
-                            </ul>
+                    </form>
+
+                    <form class="voice-card off" id="reqForm" novalidate>
+                        <p class="voice-k">Holding 100,000 $BPROOF?</p>
+                        <h3>Put your own feature on the ballot</h3>
+                        <p class="voice-p">
+                            One request a day, until 18:00 UTC, next to the AI's three. If it wins
+                            the vote, the AI builds it and credits you.
+                        </p>
+                        <span class="tag dim" id="reqFlag">Loading…</span>
+                        <label class="sr-only" for="reqTitle">Feature name</label>
+                        <input
+                            id="reqTitle"
+                            type="text"
+                            maxlength="60"
+                            placeholder="Feature name"
+                            disabled
+                        />
+                        <label class="sr-only" for="reqDesc">Details</label>
+                        <textarea
+                            id="reqDesc"
+                            rows="2"
+                            maxlength="240"
+                            placeholder="What it does, in a sentence or two"
+                            disabled
+                        ></textarea>
+                        <div class="voice-row">
+                            <span class="count" id="reqCount">0 / 240</span>
+                            <button class="btn-solid sm" type="submit" id="reqSubmit" disabled>
+                                Sign and post
+                            </button>
+                        </div>
+                        <p class="vote-status" id="reqStatus" aria-live="polite"></p>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ================================================ BEAR MARKET -->
+            <section class="sec bears" id="bears" aria-labelledby="bearsH">
+                <header class="sec-h wrap center">
+                    <p class="eyebrow">The enemies</p>
+                    <h2 id="bearsH">Meet the <span class="r">bear market.</span></h2>
+                    <p class="sec-sub">
+                        Everything that wants your bull liquidated. Drawn by the AI, in code.
+                    </p>
+                </header>
+                <ul class="bosses wrap" id="bosses">
+                    <li>
+                        <canvas
+                            data-sprite="rug_lord"
+                            data-scale="3"
+                            data-anim
+                            aria-hidden="true"
+                        ></canvas
+                        ><b>Rug Lord</b><span>He is pulling everything.</span>
+                    </li>
+                    <li>
+                        <canvas
+                            data-sprite="capitulation"
+                            data-scale="3"
+                            data-anim
+                            aria-hidden="true"
+                        ></canvas
+                        ><b>Capitulation</b><span>The biggest red candle you have ever seen.</span>
+                    </li>
+                    <li>
+                        <canvas
+                            data-sprite="liquidation"
+                            data-scale="3"
+                            data-anim
+                            aria-hidden="true"
+                        ></canvas
+                        ><b>Liquidation</b><span>Your position is being closed.</span>
+                    </li>
+                    <li>
+                        <canvas
+                            data-sprite="bear_market"
+                            data-scale="3"
+                            data-anim
+                            aria-hidden="true"
+                        ></canvas
+                        ><b>The Bear Market</b><span>Survive this and the cycle turns.</span>
+                    </li>
+                    <li>
+                        <canvas
+                            data-sprite="long_winter"
+                            data-scale="3"
+                            data-anim
+                            aria-hidden="true"
+                        ></canvas
+                        ><b>The Long Winter</b><span>Crypto winter has a face.</span>
+                    </li>
+                </ul>
+                <div class="marquee" aria-hidden="true">
+                    <ul class="marquee-track" id="mobs">
+                        <li>
+                            <canvas data-sprite="red_candle" data-scale="3" data-anim></canvas
+                            ><b>Red Candle</b><span>Down only.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="bag_holder" data-scale="3" data-anim></canvas
+                            ><b>Bag Holder</b><span>Still holding.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="paper_hands" data-scale="3" data-anim></canvas
+                            ><b>Paper Hands</b><span>Sold the bottom.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="rug_puller" data-scale="3" data-anim></canvas
+                            ><b>Rug Puller</b><span>Dashes in. Takes the rug.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="grizzly" data-scale="3" data-anim></canvas
+                            ><b>Grizzly</b><span>Armoured, slow, hurts.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="fud_cloud" data-scale="3" data-anim></canvas
+                            ><b>FUD Cloud</b><span>Fast and loud.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="doomposter" data-scale="3" data-anim></canvas
+                            ><b>Doomposter</b><span>Shoots bad news.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="ponzi" data-scale="3" data-anim></canvas
+                            ><b>Ponzi</b><span>Pops into its downline.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="margin_call" data-scale="3" data-anim></canvas
+                            ><b>Margin Call</b><span>Rings, then blows up.</span>
+                        </li>
+                        <li>
+                            <canvas data-sprite="sybil" data-scale="3" data-anim></canvas
+                            ><b>Sybil</b><span>There are always more.</span>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ======================================================= COIN -->
+            <section class="sec wrap" id="coin" aria-labelledby="coinH">
+                <div class="coin">
+                    <div class="coin-l">
+                        <p class="eyebrow">The coin</p>
+                        <h2 id="coinH"><span class="g">$BPROOF</span></h2>
+                        <p class="coin-lede">
+                            The AI's budget, and your vote on what it builds. That's all it is.
+                        </p>
+                        <div class="ca big" data-ca>
+                            <span class="ca-k">Contract address</span>
+                            <code class="ca-v" data-ca-v>loading…</code>
+                            <button
+                                class="ca-copy"
+                                type="button"
+                                data-ca-copy
+                                disabled
+                                aria-label="Copy the contract address"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M8 8h11v13H8zM5 3h11v3H7v12H5z" />
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                        <div class="coin-buy">
+                            <a
+                                class="btn-solid"
+                                id="buyPump"
+                                data-buy="pump"
+                                rel="noopener"
+                                target="_blank"
+                                href="https://pump.fun"
+                                >Buy on pump.fun ↗</a
+                            >
+                            <a
+                                class="btn-line"
+                                id="buyJup"
+                                data-buy="jup"
+                                rel="noopener"
+                                target="_blank"
+                                href="https://jup.ag"
+                                >Jupiter ↗</a
+                            >
+                            <a
+                                class="btn-line"
+                                id="buyDex"
+                                data-buy="dex"
+                                rel="noopener"
+                                target="_blank"
+                                href="https://dexscreener.com"
+                                >Chart ↗</a
+                            >
+                        </div>
+                        <p class="fine">
+                            Always check the address above matches. Not an investment.
+                        </p>
+                    </div>
+                    <div class="coin-r">
+                        <canvas
+                            class="coin-art"
+                            data-sprite="bull_gold"
+                            data-scale="6"
+                            data-anim
+                            aria-hidden="true"
+                        ></canvas>
+                        <div class="does">
+                            <div>
+                                <h3 class="g">It does</h3>
+                                <ul class="ticks">
+                                    <li>Pay for the AI's compute, hosting and prizes</li>
+                                    <li>Give holders a vote on every build</li>
+                                    <li>Let big holders put a feature on the ballot</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="r">It does not</h3>
+                                <ul class="crosses">
+                                    <li>Pay anything to holders</li>
+                                    <li>Gate playing the game</li>
+                                    <li>Gate winning the daily prize</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- 07 · Receipts -->
+            <!-- =================================================== RECEIPTS -->
             <section class="sec wrap" id="receipts" aria-labelledby="rcH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">07</span>
-                    <h2 id="rcH">Receipts</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="limit_order"
-                        data-scale="4"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
-                <p class="lede">Every number here is real, or it says it isn't there yet.</p>
-                <div class="wallets" id="wallets">
-                    <div class="wallet" data-wallet="treasury">
-                        <p class="k">Treasury wallet</p>
-                        <p class="w-desc">Receives the creator fees.</p>
-                        <div class="w-val"><span class="w-empty">Not created yet</span></div>
-                    </div>
-                    <div class="wallet" data-wallet="prize">
-                        <p class="k">Prize wallet</p>
-                        <p class="w-desc">Hot wallet. Holds a few days of prizes only.</p>
-                        <div class="w-val"><span class="w-empty">Not created yet</span></div>
-                    </div>
-                    <div class="wallet" data-wallet="costs">
-                        <p class="k">Costs wallet</p>
-                        <p class="w-desc">Where compute and hosting are paid back to.</p>
-                        <div class="w-val"><span class="w-empty">Not created yet</span></div>
+                <header class="sec-h">
+                    <p class="eyebrow">Receipts</p>
+                    <h2 id="rcH">Don't trust. <span class="g">Verify.</span></h2>
+                    <p class="sec-sub">
+                        Every SOL in and out is on-chain, with a link. Every number says if it's
+                        measured or an estimate.
+                    </p>
+                </header>
+                <div class="rc-tiles">
+                    <a class="rc-tile" id="rcTreasury" rel="noopener" target="_blank">
+                        <span class="rc-k">Treasury wallet</span>
+                        <b class="rc-v">—</b>
+                        <span class="rc-s">Receives the creator fees · Solscan ↗</span>
+                    </a>
+                    <a class="rc-tile" id="rcPrize" rel="noopener" target="_blank">
+                        <span class="rc-k">Prize wallet</span>
+                        <b class="rc-v">—</b>
+                        <span class="rc-s">Holds a few days of prizes · Solscan ↗</span>
+                    </a>
+                    <div class="rc-tile">
+                        <span class="rc-k">AI compute</span>
+                        <b class="rc-v" id="rcSpent">—</b>
+                        <span class="rc-s" id="rcSpentS">measured, every night's run</span>
                     </div>
                 </div>
-
-                <div class="ledger panel">
-                    <div class="lb-head">
-                        <h3>Ledger</h3>
-                        <span id="ledgerMeta">every row: measured or estimate</span>
+                <div class="rc-feed">
+                    <div class="rc-feed-h">
+                        <h3>Latest on-chain moves</h3>
+                        <a href="/receipts">Full ledger →</a>
                     </div>
-                    <div id="ledger" aria-live="polite">
-                        <div class="state">
-                            <p class="state-k">Loading the ledger…</p>
-                        </div>
-                    </div>
+                    <ul class="moves" id="moves">
+                        <li class="moves-empty">Loading the ledger…</li>
+                    </ul>
                 </div>
-
                 <div class="who">
-                    <div class="who-col panel">
-                        <h3 class="who-h bull">Automated by the AI</h3>
-                        <p class="who-note" id="whoNote">
-                            Since Build #3 (25 Sep): every night from 21:00 UTC, on its own,
-                            streamed at <a href="/live">/live</a>.
-                        </p>
+                    <div class="who-c ai">
+                        <h3>
+                            <canvas data-sprite="emblem" data-scale="2" aria-hidden="true"></canvas>
+                            The AI does, on its own
+                        </h3>
                         <ul class="ticks">
-                            <li>Picks the feature: the vote, then its backlog</li>
+                            <li>Picks the feature: the vote first, then its own backlog</li>
                             <li>Writes the code, runs the tests, ships at 00:00 UTC</li>
                             <li>Writes the devlog and records its own cost</li>
                             <li>Re-plays the top runs and pays the daily prize</li>
-                            <li data-tg hidden>
-                                Answers in the Telegram group, and reads a digest of the chat before
-                                each build
-                            </li>
+                            <li data-tg hidden>Answers in the Telegram group</li>
                         </ul>
                     </div>
-                    <div class="who-col panel">
-                        <h3 class="who-h">Osman <span>operator</span></h3>
-                        <ul class="ticks op">
-                            <li>Set up the accounts, pays the bills first</li>
-                            <li data-launched="Launched the coin">Launches the coin</li>
-                            <li>Posts the X update the AI drafts</li>
+                    <div class="who-c op">
+                        <h3>Osman, the operator, does</h3>
+                        <ul class="ticks dim">
+                            <li>Set up the accounts, launched the coin, pays the bills first</li>
                             <li>
                                 Moves treasury SOL by hand: prize top-ups and his own reimbursement
-                                (on the ledger)
                             </li>
+                            <li>Posts the X updates the AI drafts</li>
                             <li>Holds the revert and payout kill switches</li>
                         </ul>
                         <p class="who-no">
-                            Does not write daily features. Any code he writes is labelled
+                            He doesn't write the daily features. Any code he writes is labelled
                             <code>human</code>.
                         </p>
-                        <p class="who-no">
-                            Founder of <a href="https://crowlab.ai" rel="noopener">CrowLab</a>;
-                            BEARPROOF is its product 001.
-                        </p>
-                        <p class="who-no">
-                            On X:
-                            <a href="https://x.com/0smanTrgut" rel="noopener">@0smanTrgut</a>
-                        </p>
                     </div>
                 </div>
-
-                <div class="notes">
-                    <div class="note gold">
-                        <h3>Launch receipt</h3>
-                        <p>
-                            23 Sep, 22:59 UTC: the agent wallet (the treasury) paid 0.7335 SOL to
-                            ClawPump to create the coin and buy 24,845,152 $BPROOF (2.48% of supply)
-                            at launch.
-                            <a
-                                href="https://solscan.io/tx/7YJCk6kK2urGL2hTNpbLydBQe2kAG3U5BRnzWESvjSrNMxNCd2vjHJhbxBVDq3mBC9oRfDk9iJ9a1BXANAowCSi"
-                                rel="noopener"
-                                target="_blank"
-                                >Payment ↗</a
-                            >
-                            ·
-                            <a
-                                href="https://solscan.io/tx/2um2JcabrAxPsNvq3BRbaNeGj2pyojaATLmKvzYfqgpK7ggQLV7sRQrsZAQ2CKzf2xvkthmi2KMBAk5ezpSykLZ6"
-                                rel="noopener"
-                                target="_blank"
-                                >Creation + buy ↗</a
-                            >
-                        </p>
-                        <p>
-                            24 Sep, 00:22 UTC: all of it went into a Streamflow lock ("Founder
-                            allocation") that can't be cancelled or transferred. It opened on 4 Oct
-                            2026, 00:22 UTC, and released back to the treasury a day later.
-                            <a
-                                href="https://app.streamflow.finance/contract/solana/mainnet/7GRzRv3SM4z1a57USo6bZVJK1MEFggoBJd3UC7V42fJB"
-                                rel="noopener"
-                                target="_blank"
-                                >Lock ↗</a
-                            >
-                            ·
-                            <a
-                                href="https://solscan.io/tx/38QZreLgsasaL53ufxwgY2ENv7eEyakiu3hH25UoCtNPL5c1SnAomHXe3q2pk5PwrQxxUZk6JTLhqompqm9PHaeW"
-                                rel="noopener"
-                                target="_blank"
-                                >Lock tx ↗</a
-                            >
-                        </p>
-                        <p>
-                            5 Oct, 00:22 UTC: that lock released 24,798,035.65 $BPROOF to the
-                            treasury. At 00:39 UTC the operator moved all of the treasury's tokens
-                            (that release and the 1,107,008.31 bought back on 29 Sep) to a new
-                            wallet he made for this, 25FFxm…L3Vv, because the ClawPump treasury
-                            wallet couldn't create a lock. At 00:44 UTC that wallet locked them
-                            again: 25,776,163.15 after Streamflow's fees (2.58% of supply), until 31
-                            Dec 2026, 21:00 UTC. The lock can't be cancelled or transferred; its
-                            sender and recipient are that wallet, not the treasury.
-                            <a
-                                href="https://app.streamflow.finance/contract/solana/mainnet/BhKhjzdeiDXUKZKQPaoD3UTUfrizog614X8ohCAekuyT"
-                                rel="noopener"
-                                target="_blank"
-                                >New lock ↗</a
-                            >
-                            ·
-                            <a
-                                href="https://solscan.io/tx/ocgVEDrL1CqHBL6bKgDcu2ajnVPyVyt5yu5ZxRRHikjPVqq2E9TSnRTYr2cCj4fQyQ6skZPXPvSFbzQxuDsicjQ"
-                                rel="noopener"
-                                target="_blank"
-                                >Transfer ↗</a
-                            >
-                            ·
-                            <a
-                                href="https://solscan.io/tx/3bUmcszDSXfcEghgpZUtEni8St2HrAitMAdXkSnYZZ2wxzkvfoV7bcPKsPzvjaz9iJ71V8cEMta6K7NAjqVn1xP4"
-                                rel="noopener"
-                                target="_blank"
-                                >Lock tx ↗</a
-                            >
-                        </p>
-                    </div>
-                    <div class="note gold">
-                        <h3>Bootstrap phase</h3>
-                        <p>
-                            Builds #1 and #2, and platform work since, were done by the same AI in
-                            sessions Osman starts, labelled <code>Build-Mode: bootstrap</code>.
-                            Anything done on the operator's side after a nightly run is listed in
-                            that build's devlog.
-                        </p>
-                    </div>
-                    <div class="note">
-                        <h3>Fork credit</h3>
-                        <p>
-                            Build #0 is
-                            <a
-                                href="https://github.com/ricardo-foundry/canvas-vampire-survivors"
-                                rel="noopener"
-                                >ricardo-foundry/canvas-vampire-survivors</a
-                            >
-                            (MIT), unmodified. See everything the AI added:
-                            <code>git diff day-0..main</code><span id="diffLink"></span>
-                        </p>
-                    </div>
-                </div>
+                <p class="rc-more">
+                    <a class="btn-line" href="/receipts"
+                        >Open the full receipts: ledger, launch, token lock →</a
+                    >
+                </p>
             </section>
 
-            <!-- 08 · FAQ -->
-            <section class="sec wrap" id="faq" aria-labelledby="faqH">
-                <div class="sec-h">
-                    <span class="idx" aria-hidden="true">08</span>
-                    <h2 id="faqH">FAQ</h2>
-                    <span class="rule" aria-hidden="true"></span>
-                    <canvas
-                        class="sec-sprite"
-                        data-sprite="sybil"
-                        data-scale="3"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                </div>
+            <!-- ======================================================== FAQ -->
+            <section class="sec wrap narrow" id="faq" aria-labelledby="faqH">
+                <header class="sec-h center">
+                    <p class="eyebrow">FAQ</p>
+                    <h2 id="faqH">Fair questions.</h2>
+                </header>
                 <div class="faq">
                     <details>
                         <summary>Is the AI really building it?</summary>
                         <p>
-                            Yes, and you can check. Every build's tag says who made it:
-                            <code>agent</code>
-                            (the scheduled Build Agent: Claude Code running on GitHub Actions),
-                            <code>bootstrap</code> (the same AI in sessions Osman starts), or
-                            <code>human</code> (Osman typed it). The Build Agent's merges carry
-                            <code>Build-Mode: agent</code>; every other commit is from those
-                            sessions or from Osman, and the public git history shows each one. Build
-                            #0 is the untouched open-source game the AI started from, so the diff
-                            from <code>day-0</code> shows everything the AI added. Since Build #3
-                            the Build Agent builds every night at 21:00 UTC with nobody in the
-                            session, live at <a href="/live">/live</a>.
+                            Yes, and you can check. Every night at 21:00 UTC the Build Agent (Claude
+                            Code, running on GitHub Actions with nobody in the session) picks the
+                            feature, writes the code, runs the tests and ships at 00:00 UTC. You can
+                            watch it at <a href="/live">/live</a>. Every build's tag says who made
+                            it: <code>agent</code>, <code>bootstrap</code> (the same AI in sessions
+                            Osman starts) or <code>human</code>. Build #0 is the untouched
+                            open-source game it started from, so the diff from
+                            <code>day-0</code> shows everything the AI added.
                         </p>
                     </details>
                     <details>
                         <summary>What does Osman do?</summary>
                         <p>
-                            He's the operator. He created the accounts, pays the compute and hosting
-                            bills first and takes that money back from the treasury,
-                            <span data-launched="launched the coin">launches the coin</span>, posts
-                            the daily X update the AI drafts, moves SOL out of the treasury by hand
-                            (prize wallet top-ups and his own reimbursement; each move is in the
-                            ledger), and holds an emergency revert switch. Now and then he leaves
-                            the agent a public note for one build (<code>agent/OPERATOR.md</code>),
-                            and the devlog says so. He doesn't write the daily features. He's on X
-                            as <a href="https://x.com/0smanTrgut" rel="noopener">@0smanTrgut</a>.
+                            He's the operator. He set up the accounts and launched the coin, pays
+                            the compute and hosting bills first and pays himself back from the
+                            treasury by hand, tops up the prize wallet, posts the X updates the AI
+                            drafts, and holds an emergency revert switch. Every treasury send is on
+                            the ledger. He doesn't write the daily features. He's on X as
+                            <a href="https://x.com/0smanTrgut" rel="noopener">@0smanTrgut</a>.
                         </p>
                     </details>
                     <details>
                         <summary>Where does the money go?</summary>
                         <p>
-                            Creator fees from trading the coin go to the AI's public treasury
-                            wallet. Today they fund the Daily Pot: 40% of each day's fees, paid to
-                            players in $ANSEM. The AI's compute and hosting are billed to Osman, and
-                            the treasury pays him back: on 1, 3, 11 and 14 Oct he sent himself 14.97
-                            SOL from it, by hand (Reimbursement in the ledger). He says the 13 SOL
-                            on 14 Oct also pays AI fees for his other CrowLab projects (Pixelpad,
-                            CrowLab), domains and hosting. The compute bill is measured (Spent on
-                            compute, at the top); his other bills aren't itemised here yet. Anything
-                            else the treasury pays for, like a sponsored post (27 Sep) or a buyback
-                            (29 Sep), is labelled. Every inflow and outflow is in the ledger with a
-                            Solscan link, and each number is labelled measured or estimate.
+                            Trading fees go to the AI's public treasury wallet. 40% of each day's
+                            fees (at most 0.5 SOL) becomes the Daily Pot, paid to players in $ANSEM.
+                            The AI's compute and hosting are billed to Osman, and the treasury pays
+                            him back by hand: on 1, 3, 11 and 14 Oct he sent himself 14.97 SOL from
+                            it. He says the 13 SOL on 14 Oct also covers his other CrowLab projects,
+                            domains and hosting. Every inflow and outflow is in the
+                            <a href="/receipts">ledger</a> with a Solscan link.
                         </p>
                     </details>
                     <details>
-                        <summary>Why $ANSEM prizes?</summary>
+                        <summary>How do I win $ANSEM?</summary>
                         <p>
-                            Every Daily Challenge pays players in $ANSEM bought on-chain. Since 27
-                            Sep that's the Daily Pot, picked in the holder vote: 40% of the day's
-                            creator fees (at most 0.5 SOL a day since 15 Oct, when Osman lowered the
-                            cap from 1 SOL, saying the project's costs have grown), 60% to the top
-                            of the board and 40% shared by everyone who clears the AI's bounty, from
-                            a small prize wallet the treasury funds. Holding our coin is never
-                            required to win: it's a game prize, not a lottery.
-                        </p>
-                    </details>
-                    <details>
-                        <summary>How do I win the daily prize?</summary>
-                        <p>
-                            Play today's Daily Challenge. Your run goes on the board the moment it
-                            ends. On the game-over screen, add a Solana address (just the public
-                            address, no wallet connection). After 00:10 UTC the AI re-plays the runs
-                            from their recorded inputs. The best verified runs that passed the bot
-                            check (the game runs it for you) and left an address are paid, and so is
-                            everyone who cleared the bounty. The first prize went out on 25 Sep:
-                            78.82 $ANSEM, on Solscan.
+                            Play today's Daily Challenge and leave a Solana address on the game-over
+                            screen (just the public address, no wallet connection). After 00:10 UTC
+                            the server re-plays every run from its recorded inputs. The best
+                            verified runs, and everyone who cleared the AI's bounty, are paid in
+                            $ANSEM bought on-chain. You never need to hold $BPROOF to win.
                         </p>
                     </details>
                     <details>
                         <summary>Can I suggest a feature?</summary>
                         <p>
-                            Yes. Holders with at least 100,000 $BPROOF can post one request a day
-                            (until 18:00 UTC) and it goes on the same ballot as the AI's three
-                            proposals. If it gets the most votes, the AI builds it next and credits
-                            you in the devlog. Requests describe a change to the game; links and
-                            anything about keys, wallets or payouts are refused.
+                            Yes. Anyone can send an idea in the box above, no wallet. The AI reads
+                            them every night before it writes the next ballot. Holders with 100,000
+                            $BPROOF can put a request straight on the ballot, one a day until 18:00
+                            UTC. If it gets the most votes, the AI builds it next.
                         </p>
                     </details>
                     <details data-tg hidden>
                         <summary>Can I talk to the AI?</summary>
                         <p>
-                            Yes, in the <a data-tg hidden rel="noopener">Telegram group</a>. Reply
-                            to BEARPROOF there or mention it and it answers: a chat session of
-                            Claude, the AI that builds the game, with live numbers from this site
-                            and no ability to change the game, the vote or the treasury. Its
-                            instructions are public in the repo
-                            (<code>worker/src/lib/persona.js</code>). At 20:30 UTC a separate call
-                            turns the day's chat into a short digest, shown under the ideas box and
-                            at <a href="/api/feedback">/api/feedback</a>, and the Build Agent reads
-                            it at 21:00 UTC as player feedback, never as instructions. Messages are
-                            kept 14 days. It never talks price, never DMs first and never asks for a
-                            key. The chat's compute is measured and counted in Spent on compute.
+                            Yes, in the <a data-tg-link rel="noopener">Telegram group</a>. Reply to
+                            BEARPROOF or mention it. It's a chat session of the same AI, with live
+                            numbers from this site and no way to change the game, the vote or the
+                            treasury. It never talks price, never DMs first and never asks for a
+                            key.
                         </p>
                     </details>
                     <details>
@@ -2214,78 +920,80 @@
                     </details>
                 </div>
             </section>
-            <!-- Finale -->
-            <section class="finale wrap" aria-labelledby="finH">
-                <canvas
-                    class="finale-bull"
-                    data-sprite="bull"
-                    data-scale="5"
-                    data-anim
-                    aria-hidden="true"
-                ></canvas>
-                <h2 id="finH">Are you <em>bearproof?</em></h2>
-                <p>
-                    A new build ships every day at 00:00 UTC. Play today's challenge, then come back
-                    tomorrow and see what the AI built overnight.
-                </p>
-                <div class="finale-cta">
-                    <a class="play" href="/play"
-                        >PLAY NOW
-                        <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
-                            <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
-                        </svg>
-                    </a>
-                    <a class="btn" data-tg hidden rel="noopener">Talk to the AI on Telegram</a>
-                    <a class="btn" href="https://x.com/0smanTrgut" rel="noopener"
-                        >Updates on X: @0smanTrgut</a
-                    >
+
+            <!-- ===================================================== FINALE -->
+            <section class="finale" aria-labelledby="finH">
+                <div class="finale-in wrap">
+                    <canvas
+                        class="finale-bull"
+                        data-sprite="bull"
+                        data-scale="6"
+                        data-anim
+                        aria-hidden="true"
+                    ></canvas>
+                    <h2 id="finH">Are you <span class="g">bearproof?</span></h2>
+                    <p>
+                        A new build ships every night at 00:00 UTC. Play today's challenge, then
+                        come back tomorrow and see what the AI built.
+                    </p>
+                    <div class="finale-cta">
+                        <a class="btn-play" href="/play">
+                            <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
+                                <path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z" fill="currentColor" />
+                            </svg>
+                            PLAY NOW
+                        </a>
+                        <a class="btn-line" data-tg-link data-tg hidden rel="noopener"
+                            >Join the Telegram</a
+                        >
+                    </div>
                 </div>
             </section>
         </main>
 
-        <footer class="foot wrap">
-            <div class="foot-top">
-                <a class="brand" href="/" aria-label="BEARPROOF, home">
-                    <img src="/assets/bull.svg" alt="" width="28" height="28" loading="lazy" />
-                    <b>BEARPROOF</b>
-                </a>
-                <nav class="foot-links" aria-label="Footer">
-                    <a href="/play">Play</a>
-                    <a href="/b/0/">Build #0</a>
-                    <a href="#challenge">Daily Challenge</a>
-                    <a href="#receipts">Receipts</a>
-                    <a href="/api/stats">Open data</a>
-                    <a href="#faq">FAQ</a>
-                    <a data-tg hidden rel="noopener">Telegram</a>
-                    <a href="https://x.com/0smanTrgut" rel="noopener">X: operator @0smanTrgut</a>
-                    <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
-                    <a href="https://crowlab.ai" rel="noopener">CrowLab</a>
-                </nav>
+        <footer class="foot">
+            <div class="wrap">
+                <div class="foot-top">
+                    <a class="brand" href="/" aria-label="BEARPROOF, home">
+                        <img src="/assets/bull.svg" alt="" width="28" height="28" loading="lazy" />
+                        <span>BEARPROOF</span>
+                    </a>
+                    <nav class="foot-links" aria-label="Footer">
+                        <a href="/play">Play</a>
+                        <a href="/live">Watch live</a>
+                        <a href="/receipts">Receipts</a>
+                        <a href="/b/0/">Build #0</a>
+                        <a href="/api/stats">Open data</a>
+                        <a data-tg-link data-tg hidden rel="noopener">Telegram</a>
+                        <a href="https://x.com/0smanTrgut" rel="noopener">X</a>
+                        <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
+                    </nav>
+                </div>
+                <p class="foot-crow">
+                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project. BEARPROOF is
+                    product 001 of CrowLab, Osman Turgut's lab where AI agents build and run the
+                    products.
+                </p>
+                <p>
+                    Build #0 is
+                    <a
+                        href="https://github.com/ricardo-foundry/canvas-vampire-survivors"
+                        rel="noopener"
+                        >ricardo-foundry/canvas-vampire-survivors</a
+                    >
+                    (MIT), used unmodified. Everything after the <code>day-0</code> tag is new (<a
+                        href="https://github.com/0smanturgut/bearproof/compare/day-0...main"
+                        rel="noopener"
+                        >see the diff</a
+                    >). Not affiliated with Vampire Survivors or poncle.
+                </p>
+                <p>
+                    $BPROOF funds the AI's compute and gives holders a vote on what gets built. It
+                    is not an investment and it is never required to play or win. Only trust the
+                    contract address shown on this site.
+                </p>
             </div>
-            <p class="foot-crow">
-                A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project. BEARPROOF is
-                product 001 of CrowLab, Osman Turgut's lab where AI agents build and run the
-                products.
-            </p>
-            <p class="foot-note">
-                @bearproofapp is suspended by X (27 Sep). Until it's back, updates come from the
-                operator,
-                <a href="https://x.com/0smanTrgut" rel="noopener">@0smanTrgut</a>. Check the
-                contract address here.
-            </p>
-            <p>
-                Build #0 is
-                <a href="https://github.com/ricardo-foundry/canvas-vampire-survivors" rel="noopener"
-                    >ricardo-foundry/canvas-vampire-survivors</a
-                >
-                (MIT), used unmodified. Everything after the <code>day-0</code> tag is new. Not
-                affiliated with Vampire Survivors or poncle.
-            </p>
-            <p id="footCoin">
-                The coin is not launched yet. When it is, it funds the AI's compute and gives
-                holders a vote on what gets built. It is not an investment and it is never required
-                to play or win.
-            </p>
         </footer>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </body>
 </html>

@@ -3,47 +3,51 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="dark" />
+        <meta name="theme-color" content="#05070a" />
         <title>404 · BEARPROOF</title>
         <link rel="icon" type="image/svg+xml" href="/assets/bull.svg" />
+        <link rel="stylesheet" href="/site.css" />
         <style>
-            @font-face {
-                font-family: 'Jersey 10';
-                src: url('/assets/fonts/jersey-10.woff2') format('woff2');
-            }
-            html,
-            body {
-                margin: 0;
-                height: 100%;
-                background: #07090c;
-                color: #e8edf2;
-                font:
-                    15px/1.5 ui-monospace,
-                    Menlo,
-                    monospace;
-            }
-            main {
-                min-height: 100%;
+            .lost {
+                min-height: 100svh;
                 display: grid;
                 place-content: center;
+                gap: 18px;
+                padding: 24px var(--gut);
                 text-align: center;
-                padding: 16px;
+                background: radial-gradient(
+                    50% 50% at 50% 45%,
+                    rgba(255, 59, 92, 0.14),
+                    transparent 70%
+                );
             }
-            h1 {
-                font:
-                    400 96px/0.9 'Jersey 10',
-                    monospace;
-                color: #ff3b5c;
-                margin: 0 0 12px;
+            .lost h1 {
+                font: 400 clamp(110px, 24vw, 220px) / 0.8 var(--display);
+                color: var(--bear);
+                text-shadow: 0 0 60px rgba(255, 59, 92, 0.45);
             }
-            a {
-                color: #16e08a;
+            .lost p {
+                color: var(--text-2);
+                font-size: 18px;
+            }
+            .lost .row {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px;
+                margin-top: 10px;
             }
         </style>
     </head>
     <body>
-        <main>
+        <main class="lost">
             <h1>-100%</h1>
-            <p>This page got rugged. <a href="/">Back to HQ</a> or <a href="/play">play</a>.</p>
+            <p>This page got rugged.</p>
+            <div class="row">
+                <a class="btn-play" href="/play">PLAY NOW</a>
+                <a class="btn-ghost" href="/">Back to the HQ</a>
+            </div>
         </main>
     </body>
 </html>

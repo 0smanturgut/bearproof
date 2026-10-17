@@ -3,14 +3,14 @@
  * every night before it writes the next ballot, and a proposal it takes from one is marked "suggested by a
  * player". Server side: POST and GET /api/ideas (same text filters as holder requests, Turnstile, 3 per IP and
  * 100 in all per UTC day). The box stays hidden until GET /api/ideas answers, so the page never offers a form
- * the server can't take.
+ * the server can't take. (The 20:30 UTC Telegram digest the AI reads is at /api/feedback.)
  */
 (function () {
     'use strict';
     const $ = (s) => document.querySelector(s);
     const MIN = 8;
     const MAX = 200;
-    const SHOWN = 8;
+    const SHOWN = 3;
 
     function el(tag, cls, text) {
         const e = document.createElement(tag);
@@ -64,43 +64,6 @@
         $('#ideaMeta').textContent = `${today} today · ${data.perIp || 3} per person a day`;
     }
 
-    const HEARD = {
-        bug: 'Bug',
-        balance: 'Balance',
-        idea: 'Idea',
-        praise: 'Liked',
-        complaint: 'Disliked',
-        question: 'Asked'
-    };
-
-    /**
-     * What the AI took from the Telegram group: the latest 20:30 UTC digest (GET /api/feedback). Hidden until a
-     * digest with something in it exists. The text is a model's summary of players' words: textContent only.
-     */
-    async function loadHeard() {
-        try {
-            const r = await fetch('/api/feedback', { headers: { accept: 'application/json' } });
-            if (!r.ok) return;
-            const d = (await r.json()).digest;
-            if (!d || !Array.isArray(d.items) || !d.items.length) return;
-            const list = $('#heardList');
-            list.textContent = '';
-            for (const item of d.items.slice(0, 8)) {
-                const li = el('li', null, String(item.text || ''));
-                const n = Number(item.people) || 1;
-                li.appendChild(
-                    el('time', null, (HEARD[item.kind] || 'Note') + (n > 1 ? ` · ${n} people` : ''))
-                );
-                list.appendChild(li);
-            }
-            $('#heardMeta').textContent =
-                `${ago(d.writtenAt)} · ${Number(d.messages) || 0} messages, ${Number(d.people) || 0} people`;
-            $('#heard').hidden = false;
-        } catch {
-            /* nothing heard, nothing shown */
-        }
-    }
-
     async function load() {
         try {
             const r = await fetch('/api/ideas', { headers: { accept: 'application/json' } });
@@ -109,7 +72,6 @@
             if (!data || !Array.isArray(data.ideas)) return;
             $('#ideaForm').hidden = false;
             render(data);
-            loadHeard();
         } catch {
             /* no box until the server answers */
         }

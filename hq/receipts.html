@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="color-scheme" content="dark" />
+        <meta name="theme-color" content="#05070a" />
+        <title>Receipts · BEARPROOF</title>
+        <meta
+            name="description"
+            content="Every SOL in and out of BEARPROOF's treasury and prize wallet, with a Solscan link. What the AI does on its own and what the operator does by hand."
+        />
+        <link rel="icon" type="image/svg+xml" href="/assets/bull.svg" />
+        <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+        <link rel="canonical" href="https://bearproof.app/receipts" />
+        <meta property="og:url" content="https://bearproof.app/receipts" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="BEARPROOF" />
+        <meta property="og:title" content="BEARPROOF receipts: every SOL in and out" />
+        <meta
+            property="og:description"
+            content="The treasury, the prize wallet and every transaction, with Solscan links. Measured or estimate, always labelled."
+        />
+        <meta property="og:image" content="https://bearproof.app/assets/og.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://bearproof.app/assets/og.png" />
+        <link
+            rel="preload"
+            href="/assets/fonts/jersey-10.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <link rel="stylesheet" href="/site.css" />
+        <script type="module" src="/receipts.js"></script>
+    </head>
+    <body class="page">
+        <a class="skip" href="#main">Skip to content</a>
+        <header class="nav solid" id="nav">
+            <div class="nav-in wrap">
+                <a class="brand" href="/" aria-label="BEARPROOF, home">
+                    <img src="/assets/bull.svg" alt="" width="30" height="30" />
+                    <span>BEARPROOF</span>
+                </a>
+                <nav class="nav-links" aria-label="Site">
+                    <a href="/#how">How it works</a>
+                    <a href="/#build">Builds</a>
+                    <a href="/#challenge">Daily</a>
+                    <a href="/#vote">Vote</a>
+                    <a href="/#coin">$BPROOF</a>
+                    <a href="/receipts" aria-current="page">Receipts</a>
+                    <a href="/live" class="nav-live"><i aria-hidden="true"></i>Live</a>
+                </nav>
+                <div class="nav-cta">
+                    <a class="btn-play sm" href="/play">Play</a>
+                </div>
+            </div>
+        </header>
+
+        <main id="main" class="wrap">
+            <header class="page-h">
+                <p class="eyebrow">Receipts</p>
+                <h1>Every SOL, <span class="g">in and out.</span></h1>
+                <p class="sec-sub">
+                    The treasury and the prize wallet, read from the chain every 15 minutes. Every
+                    on-chain row links to Solscan and says whether its number is measured or an
+                    estimate.
+                </p>
+            </header>
+
+            <section class="rc-tiles wallets" aria-label="Wallets">
+                <div class="rc-tile w" data-wallet="treasury">
+                    <span class="rc-k">Treasury wallet</span>
+                    <b class="rc-v">—</b>
+                    <span class="rc-s">The ClawPump agent wallet. Receives the creator fees.</span>
+                    <code class="w-addr">—</code>
+                    <span class="w-go"></span>
+                </div>
+                <div class="rc-tile w" data-wallet="prize">
+                    <span class="rc-k">Prize wallet</span>
+                    <b class="rc-v">—</b>
+                    <span class="rc-s"
+                        >A hot wallet that holds a few days of prizes and pays the Daily Pot.</span
+                    >
+                    <code class="w-addr">—</code>
+                    <span class="w-go"></span>
+                </div>
+                <div class="rc-tile">
+                    <span class="rc-k">AI compute</span>
+                    <b class="rc-v" id="spent">—</b>
+                    <span class="rc-s" id="spentS"
+                        >Measured: Claude Code's own count for every nightly run, plus the Telegram
+                        chat.</span
+                    >
+                </div>
+            </section>
+
+            <section class="sec-s" id="ledger" aria-labelledby="ledgerH">
+                <div class="rc-feed">
+                    <div class="rc-feed-h">
+                        <h2 id="ledgerH">Ledger</h2>
+                        <div class="seg" role="group" aria-label="Filter the ledger">
+                            <button type="button" class="on" data-f="all">All</button>
+                            <button type="button" data-f="in">In</button>
+                            <button type="button" data-f="out">Out</button>
+                            <button type="button" data-f="prize">Prizes</button>
+                            <button type="button" data-f="operator">Treasury sends</button>
+                        </div>
+                    </div>
+                    <p class="fine" id="ledgerMeta">Loading the ledger…</p>
+                    <div class="lg-wrap">
+                        <table class="lg">
+                            <caption class="sr-only">
+                                Treasury and prize wallet ledger
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Time (UTC)</th>
+                                    <th scope="col">What</th>
+                                    <th scope="col" class="num-c">Amount</th>
+                                    <th scope="col">Memo</th>
+                                    <th scope="col">Tx</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledgerRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="sec-s" aria-labelledby="whoH">
+                <h2 class="h2s" id="whoH">Who does what</h2>
+                <div class="who">
+                    <div class="who-c ai">
+                        <h3>The AI, on its own</h3>
+                        <p class="who-no" style="margin: 0 0 14px">
+                            Since Build #3 (25 Sep): every night from 21:00 UTC, with nobody in the
+                            session, streamed at
+                            <a href="/live">/live</a>.
+                        </p>
+                        <ul class="ticks">
+                            <li>Picks the feature: the vote first, then its own backlog</li>
+                            <li>Writes the code, runs the tests, ships at 00:00 UTC</li>
+                            <li>Writes the devlog and records its own measured cost</li>
+                            <li>
+                                Re-plays the top runs and pays the Daily Pot from the prize wallet
+                            </li>
+                            <li>
+                                Answers in the Telegram group, and reads a digest of the chat before
+                                each build
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="who-c op">
+                        <h3>Osman, the operator</h3>
+                        <ul class="ticks dim">
+                            <li>Set up the accounts and launched the coin</li>
+                            <li>Pays the compute and hosting bills first</li>
+                            <li>
+                                Moves treasury SOL by hand: prize wallet top-ups and his own
+                                reimbursement. Each send is in the ledger
+                            </li>
+                            <li>Posts the X updates the AI drafts</li>
+                            <li>Holds the revert and payout kill switches</li>
+                        </ul>
+                        <p class="who-no">
+                            He doesn't write the daily features; any code he writes is labelled
+                            <code>human</code>. Founder of
+                            <a href="https://crowlab.ai" rel="noopener">CrowLab</a>; BEARPROOF is
+                            its product 001. On X:
+                            <a href="https://x.com/0smanTrgut" rel="noopener">@0smanTrgut</a>.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="sec-s" aria-labelledby="potH">
+                <h2 class="h2s" id="potH">The Daily Pot, exactly</h2>
+                <div class="note">
+                    <p id="potText">Loading the rules…</p>
+                    <ul class="rules-list" id="potList"></ul>
+                </div>
+            </section>
+
+            <section class="sec-s" aria-labelledby="launchH">
+                <h2 class="h2s" id="launchH">Launch and the token lock</h2>
+                <div class="notes">
+                    <div class="note">
+                        <h3>23 Sep · launch</h3>
+                        <p>
+                            At 22:59 UTC the agent wallet (the treasury) paid 0.7335 SOL to ClawPump
+                            to create the coin and buy 24,845,152 $BPROOF (2.48% of supply) at
+                            launch.
+                        </p>
+                        <p class="links">
+                            <a
+                                href="https://solscan.io/tx/7YJCk6kK2urGL2hTNpbLydBQe2kAG3U5BRnzWESvjSrNMxNCd2vjHJhbxBVDq3mBC9oRfDk9iJ9a1BXANAowCSi"
+                                rel="noopener"
+                                target="_blank"
+                                >Payment ↗</a
+                            >
+                            <a
+                                href="https://solscan.io/tx/2um2JcabrAxPsNvq3BRbaNeGj2pyojaATLmKvzYfqgpK7ggQLV7sRQrsZAQ2CKzf2xvkthmi2KMBAk5ezpSykLZ6"
+                                rel="noopener"
+                                target="_blank"
+                                >Creation + buy ↗</a
+                            >
+                        </p>
+                    </div>
+                    <div class="note">
+                        <h3>24 Sep · first lock</h3>
+                        <p>
+                            At 00:22 UTC all of it went into a Streamflow lock ("Founder
+                            allocation") that couldn't be cancelled or transferred. It opened on 4
+                            Oct 2026, 00:22 UTC, and released back to the treasury a day later.
+                        </p>
+                        <p class="links">
+                            <a
+                                href="https://app.streamflow.finance/contract/solana/mainnet/7GRzRv3SM4z1a57USo6bZVJK1MEFggoBJd3UC7V42fJB"
+                                rel="noopener"
+                                target="_blank"
+                                >Lock ↗</a
+                            >
+                            <a
+                                href="https://solscan.io/tx/38QZreLgsasaL53ufxwgY2ENv7eEyakiu3hH25UoCtNPL5c1SnAomHXe3q2pk5PwrQxxUZk6JTLhqompqm9PHaeW"
+                                rel="noopener"
+                                target="_blank"
+                                >Lock tx ↗</a
+                            >
+                        </p>
+                    </div>
+                    <div class="note gold">
+                        <h3>5 Oct · locked again, until 31 Dec 2026</h3>
+                        <p>
+                            At 00:22 UTC that lock released 24,798,035.65 $BPROOF to the treasury.
+                            At 00:39 UTC the operator moved all of the treasury's tokens (that
+                            release and the 1,107,008.31 bought back on 29 Sep) to a new wallet he
+                            made for this, 25FFxm…L3Vv, because the ClawPump treasury wallet
+                            couldn't create a lock. At 00:44 UTC that wallet locked them again:
+                            25,776,163.15 after Streamflow's fees (2.58% of supply), until 31 Dec
+                            2026, 21:00 UTC. The lock can't be cancelled or transferred; its sender
+                            and recipient are that wallet, not the treasury.
+                        </p>
+                        <p class="links">
+                            <a
+                                href="https://app.streamflow.finance/contract/solana/mainnet/BhKhjzdeiDXUKZKQPaoD3UTUfrizog614X8ohCAekuyT"
+                                rel="noopener"
+                                target="_blank"
+                                >New lock ↗</a
+                            >
+                            <a
+                                href="https://solscan.io/tx/ocgVEDrL1CqHBL6bKgDcu2ajnVPyVyt5yu5ZxRRHikjPVqq2E9TSnRTYr2cCj4fQyQ6skZPXPvSFbzQxuDsicjQ"
+                                rel="noopener"
+                                target="_blank"
+                                >Transfer ↗</a
+                            >
+                            <a
+                                href="https://solscan.io/tx/3bUmcszDSXfcEghgpZUtEni8St2HrAitMAdXkSnYZZ2wxzkvfoV7bcPKsPzvjaz9iJ71V8cEMta6K7NAjqVn1xP4"
+                                rel="noopener"
+                                target="_blank"
+                                >Lock tx ↗</a
+                            >
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="sec-s" aria-labelledby="moneyH">
+                <h2 class="h2s" id="moneyH">Where the money goes</h2>
+                <div class="note">
+                    <p>
+                        Creator fees from trading the coin go to the AI's public treasury wallet.
+                        40% of each day's fees (at most 0.5 SOL a day since 15 Oct, when Osman
+                        lowered the cap from 1 SOL, saying the project's costs have grown) becomes
+                        the Daily Pot, paid to players in $ANSEM. The AI's compute and hosting are
+                        billed to Osman, and the treasury pays him back by hand: on 1, 3, 11 and 14
+                        Oct he sent himself 14.97 SOL from it (Reimbursement in the ledger). He says
+                        the 13 SOL on 14 Oct also pays AI fees for his other CrowLab projects
+                        (Pixelpad, CrowLab), domains and hosting. The compute bill is measured (AI
+                        compute, above); his other bills aren't itemised here yet. Anything else the
+                        treasury paid for, like a sponsored post (27 Sep) or a buyback (29 Sep), is
+                        labelled in the ledger.
+                    </p>
+                </div>
+            </section>
+
+            <section class="sec-s" aria-labelledby="madeH">
+                <h2 class="h2s" id="madeH">How the builds are made</h2>
+                <div class="notes">
+                    <div class="note">
+                        <h3>Nightly builds</h3>
+                        <p>
+                            The Build Agent's merges carry <code>Build-Mode: agent</code>. Every
+                            build's tag says who made it: <code>agent</code>,
+                            <code>bootstrap</code> or <code>human</code>.
+                        </p>
+                    </div>
+                    <div class="note">
+                        <h3>Bootstrap phase</h3>
+                        <p>
+                            Builds #1 and #2, and platform work since (this site included), were
+                            done by the same AI in sessions Osman starts, labelled
+                            <code>Build-Mode: bootstrap</code>. Anything done on the operator's side
+                            after a nightly run is listed in that build's devlog.
+                        </p>
+                    </div>
+                    <div class="note">
+                        <h3>Fork credit</h3>
+                        <p>
+                            Build #0 is
+                            <a
+                                href="https://github.com/ricardo-foundry/canvas-vampire-survivors"
+                                rel="noopener"
+                                >ricardo-foundry/canvas-vampire-survivors</a
+                            >
+                            (MIT), unmodified. Everything the AI added:
+                            <a
+                                href="https://github.com/0smanturgut/bearproof/compare/day-0...main"
+                                rel="noopener"
+                                >git diff day-0..main</a
+                            >.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="foot">
+            <div class="wrap">
+                <div class="foot-top">
+                    <a class="brand" href="/" aria-label="BEARPROOF, home">
+                        <img src="/assets/bull.svg" alt="" width="28" height="28" loading="lazy" />
+                        <span>BEARPROOF</span>
+                    </a>
+                    <nav class="foot-links" aria-label="Footer">
+                        <a href="/">Home</a>
+                        <a href="/play">Play</a>
+                        <a href="/live">Watch live</a>
+                        <a href="/api/ledger">Ledger as JSON</a>
+                        <a href="/api/stats">Open data</a>
+                        <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
+                    </nav>
+                </div>
+                <p class="foot-crow">
+                    A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project. BEARPROOF is
+                    product 001 of CrowLab, Osman Turgut's lab where AI agents build and run the
+                    products.
+                </p>
+                <p>
+                    $BPROOF funds the AI's compute and gives holders a vote on what gets built. It
+                    is not an investment and it is never required to play or win.
+                </p>
+            </div>
+        </footer>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </body>
+</html>

@@ -171,6 +171,7 @@ const jobs = [
     ['scripts/og/x/furnace.html', 'content/x/img/152-buyback-and-burn.png', 1200, 1500],
     ['scripts/og/x/parksign.html', 'content/x/img/157-feed-the-bears.png', 1200, 1500],
     ['scripts/og/x/pcphones.html', 'content/x/img/159-coming-to-steam-logos.png', 1200, 1500],
+    ['scripts/og/x/skins.html', 'content/x/img/162-the-market-is-open.png', 1200, 1500],
     [
         'scripts/og/x/furnace.html?d=%7B%22total%22%3A%2268%2C926%2C685%22%2C%22pct%22%3A%226.89%25%22%2C%22rows%22%3A%5B%5D%2C%22next%22%3A%22%3Cspan%3ENEXT%20FUEL%3C/span%3EAPP%20STORE%20REVENUE%22%2C%22small%22%3A%22SUPPLY%201%2C000%2C000%2C000%20%E2%86%92%20931%2C073%2C315%20%C2%B7%20EVERY%20BURN%20IS%20ON-CHAIN%22%7D',
         'content/x/img/153-burn-just-the-start.png',

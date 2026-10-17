@@ -1236,7 +1236,7 @@ test('announcements: hello once, the day’s build pinned, the ballot, and never
         .sent()
         .slice(-3)
         .map((m) => m.text);
-    assert.match(late[0], /Winner: “Honeypot” \(2 wallets voted\)/);
+    assert.match(late[0], /Winner: “Honeypot” \(2 voters\)/);
     assert.match(
         late[1],
         /^<b>Built tonight: Rug &lt;Radar&gt;\.<\/b> Build #13 is done[\s\S]*\$3\.10/

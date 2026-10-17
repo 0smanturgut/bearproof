@@ -1,15 +1,19 @@
 /**
- * Holder voting.
+ * The daily vote.
  *
- *   GET  /api/vote          today's poll: proposals for the next build, live weights and shares
- *   POST /api/vote          { wallet, proposalId, nonce, issuedAt, signature } (signature = base58 ed25519)
+ *   GET  /api/vote          today's poll: proposals for the next build, live votes and shares
+ *   POST /api/vote          open polls (from OPEN_VOTE_FROM, D74): { proposalId, voterId, turnstileToken }
+ *                           earlier polls: { wallet, proposalId, nonce, issuedAt, signature } (base58 ed25519)
  *   POST /api/vote/request  { wallet, title, description, nonce, issuedAt, signature }: a holder's feature
- *                           request, which joins today's ballot next to the AI's proposals (lib/requests.js)
+ *                           request (lib/requests.js). Only for polls before OPEN_VOTE_FROM: since then ideas go
+ *                           in the ideas box, which needs no wallet.
  *   GET  /api/vote/result   ?date=YYYY-MM-DD, the winner (read by the Build Agent at 21:00 UTC)
  *
- * Rules (public): one vote per wallet per poll, changeable until close; weight = floor(sqrt(tokens held)) at
- * the time of the vote; at least MIN_TOKENS_TO_VOTE tokens; the poll closes at 21:00 UTC. Any option can win,
- * the AI's, the operator's (agent/operator-options.json, labelled on the ballot) or a holder's.
+ * Rules (public), open polls: anyone votes, no wallet; one vote per person (the page's device id), changeable
+ * until close; a bot check on every vote; at most VOTES_PER_IP votes from one connection per poll; every vote
+ * counts 1. Earlier polls: one vote per wallet, weight = floor(sqrt(tokens held)), at least MIN_TOKENS_TO_VOTE.
+ * The poll closes at 21:00 UTC. Any option can win: the AI's, or the operator's (agent/operator-options.json,
+ * labelled on the ballot), or a holder's request on the polls that had them.
  */
 
 import { PublicKey } from '@solana/web3.js';
@@ -20,9 +24,9 @@ import {
 } from '@solana/spl-token';
 import { BUILDS } from '../manifest.js';
 import { liveBuild } from '../lib/builds.js';
-import { all, buildOverride } from '../lib/db.js';
+import { all, buildOverride, first } from '../lib/db.js';
 import { isDateKey, utcDate } from '../lib/daily.js';
-import { clientIp, ipKey, underLimit } from '../lib/guard.js';
+import { clientIp, ipKey, underLimit, verifyTurnstile } from '../lib/guard.js';
 import { error, json, readJson } from '../lib/http.js';
 import { rpc } from '../lib/rpc.js';
 import {
@@ -38,13 +42,18 @@ import {
 } from '../lib/requests.js';
 import {
     MIN_TOKENS_TO_VOTE,
+    VOTES_PER_IP,
+    countedRows,
+    isOpenPoll,
+    isVoterId,
     isWallet,
     operatorOptions,
     pollWindow,
     tally,
     verifySignature,
     voteMessage,
-    voteWeight
+    voteWeight,
+    voterKey
 } from '../lib/vote.js';
 import OPERATOR_OPTIONS from '../../../agent/operator-options.json';
 
@@ -99,7 +108,7 @@ export async function pollWinner(env, date) {
     if (!p || !p.requestsRead) return undefined;
     const rows = await all(env, 'SELECT proposal_id, weight FROM votes WHERE poll_date = ?', date);
     if (!rows) return undefined;
-    return tally(p.options, rows).winner;
+    return tally(p.options, countedRows(date, rows)).winner;
 }
 
 /** An option as the public sees it (the requester's full wallet stays out of the ballot). */
@@ -136,27 +145,40 @@ export async function getVote(request, env) {
     if (!p) return error(503, 'no_build', 'No build is live yet.');
     const rows =
         (await all(env, 'SELECT proposal_id, weight FROM votes WHERE poll_date = ?', p.date)) || [];
-    const t = tally(p.options, rows);
+    const t = tally(p.options, countedRows(p.date, rows));
     const req = requestWindow(p.date);
+    const open = isOpenPoll(p.date);
     return json(
         {
             pollDate: p.date,
             forBuild: p.forBuild,
             status: !env.TOKEN_MINT ? 'not_live' : now < p.close ? 'open' : 'closed',
             closesAt: new Date(p.close).toISOString(),
-            rule: {
-                weight: 'floor(sqrt(tokens held))',
-                minTokens: MIN_TOKENS_TO_VOTE,
-                oneVotePerWallet: true
-            },
+            rule: open
+                ? {
+                      mode: 'open',
+                      who: 'anyone, no wallet',
+                      weight: 1,
+                      oneVotePerPerson: true,
+                      perConnection: VOTES_PER_IP,
+                      botCheck: true
+                  }
+                : {
+                      mode: 'wallet',
+                      weight: 'floor(sqrt(tokens held))',
+                      minTokens: MIN_TOKENS_TO_VOTE,
+                      oneVotePerWallet: true
+                  },
             requests: {
-                status: !env.TOKEN_MINT
-                    ? 'not_live'
-                    : now >= req.close
-                      ? 'closed'
-                      : p.requestCount >= MAX_REQUESTS_PER_POLL
-                        ? 'full'
-                        : 'open',
+                status: open
+                    ? 'off'
+                    : !env.TOKEN_MINT
+                      ? 'not_live'
+                      : now >= req.close
+                        ? 'closed'
+                        : p.requestCount >= MAX_REQUESTS_PER_POLL
+                          ? 'full'
+                          : 'open',
                 closesAt: new Date(req.close).toISOString(),
                 minTokens: REQUEST_MIN_TOKENS,
                 maxPerPoll: MAX_REQUESTS_PER_POLL,
@@ -192,7 +214,7 @@ export async function voteResult(request, env) {
     if (!p) return error(404, 'no_poll', 'No poll for that date.');
     const rows =
         (await all(env, 'SELECT proposal_id, weight FROM votes WHERE poll_date = ?', date)) || [];
-    const t = tally(p.options, rows);
+    const t = tally(p.options, countedRows(date, rows));
     const closed = Date.now() >= p.close;
     const ranked = t.proposals
         .filter((o) => o.weight > 0)
@@ -219,10 +241,73 @@ export async function voteResult(request, env) {
     });
 }
 
+/** An open poll's vote: anyone, no wallet, one per device id, a bot check, at most VOTES_PER_IP per connection. */
+async function castOpenVote(request, env, data, now) {
+    const { proposalId, voterId, turnstileToken } = data || {};
+    if (data && data.wallet)
+        return error(
+            409,
+            'no_wallet_needed',
+            'Voting no longer needs a wallet. Reload the page and vote with one tap.'
+        );
+    if (!isVoterId(voterId))
+        return error(400, 'invalid_field', 'Reload the page and try again.', { field: 'voterId' });
+    if (typeof proposalId !== 'string')
+        return error(400, 'invalid_field', 'Unknown proposal.', { field: 'proposalId' });
+    const ip = clientIp(request);
+    const key = await ipKey(ip);
+    if (!(await underLimit(env.RL_SUBMIT, `vote:${voterId}`, `vote-ip:${key}`)))
+        return error(429, 'rate_limited', 'Too many requests. Try again in a minute.');
+    const p = await poll(env, utcDate(now));
+    if (!p || now >= p.close)
+        return error(
+            409,
+            'poll_closed',
+            'Today’s poll is closed. The next one opens at 00:00 UTC.'
+        );
+    if (!p.options.some((x) => x.id === proposalId))
+        return error(400, 'invalid_field', 'Unknown proposal.', { field: 'proposalId' });
+    const bot = await verifyTurnstile(env, turnstileToken, ip);
+    if (bot !== 'passed' && bot !== 'skipped')
+        return error(403, 'bot_check', "The bot check didn't pass. Reload the page and try again.");
+    const voter = voterKey(voterId);
+    // Changing your own vote never counts against the cap.
+    const others = await first(
+        env,
+        'SELECT COUNT(*) AS n FROM votes WHERE poll_date = ?1 AND ip_key = ?2 AND wallet != ?3',
+        p.date,
+        key,
+        voter
+    );
+    if (!others) return error(503, 'db_unavailable', 'Storage is unavailable.');
+    if (others.n >= VOTES_PER_IP)
+        return error(
+            429,
+            'connection_cap',
+            `${VOTES_PER_IP} people have already voted from this connection today. You can still change a vote.`
+        );
+    try {
+        await env.DB.prepare(
+            `INSERT INTO votes (poll_date, wallet, proposal_id, weight, balance_raw, signature, created_at, ip_key)
+             VALUES (?1, ?2, ?3, 1, '0', 'open', ?4, ?5)
+             ON CONFLICT (poll_date, wallet) DO UPDATE SET proposal_id = excluded.proposal_id,
+                 created_at = excluded.created_at, ip_key = excluded.ip_key`
+        )
+            .bind(p.date, voter, proposalId, now, key)
+            .run();
+    } catch (err) {
+        console.warn('[vote] db', err?.message || err);
+        return error(503, 'db_unavailable', 'Storage is unavailable.');
+    }
+    return json({ ok: true, pollDate: p.date, proposalId, weight: 1 });
+}
+
 export async function castVote(request, env) {
-    if (!env.TOKEN_MINT) return error(503, 'not_live', 'Voting opens when the coin launches.');
     const { data, error: bad } = await readJson(request, 4096);
     if (bad) return bad;
+    const at = Date.now();
+    if (isOpenPoll(utcDate(at))) return castOpenVote(request, env, data, at);
+    if (!env.TOKEN_MINT) return error(503, 'not_live', 'Voting opens when the coin launches.');
     const { wallet, proposalId, nonce, issuedAt, signature } = data || {};
     if (!isWallet(wallet)) return error(400, 'invalid_field', 'Bad wallet.', { field: 'wallet' });
     if (typeof nonce !== 'string' || !/^[A-Za-z0-9]{8,64}$/.test(nonce))
@@ -296,6 +381,12 @@ export async function castVote(request, env) {
 
 /** POST /api/vote/request: a holder puts their own feature on today's ballot. */
 export async function postRequest(request, env) {
+    if (isOpenPoll(utcDate(Date.now())))
+        return error(
+            410,
+            'requests_off',
+            'Requests are now the ideas box: anyone can send one, no wallet. The AI reads them every night.'
+        );
     if (!env.TOKEN_MINT) return error(503, 'not_live', 'Requests open when the coin launches.');
     const { data, error: bad } = await readJson(request, 4096);
     if (bad) return bad;

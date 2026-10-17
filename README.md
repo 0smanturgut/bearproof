@@ -17,7 +17,7 @@ Always check the contract address against this README and the HQ (bearproof.app)
 
 BEARPROOF is a fast, mobile-first survivors-like browser game. You are a bull surviving an endless bear market.
 An AI game developer is building it in public. Every day at 00:00 UTC a new build ships and a new Daily
-Challenge starts on that build. It picks the next feature from holder votes and its own judgment, then implements,
+Challenge starts on that build. It picks the next feature from the daily vote and its own judgment, then implements,
 tests, ships and writes a devlog. Every step and every cost is public.
 
 > Status: live since 23 Sep, one build a night. From Build #3 on, the scheduled Build Agent writes each build at
@@ -36,7 +36,9 @@ tests, ships and writes a devlog. Every step and every cost is public.
 - **Daily twists.** Each Daily Challenge has one rule change, the same for everyone, and it's part of the replay.
 - **Share cards.** `/run/<id>` unfurls as a pixel card (drawn in the Worker, no dependencies) with the score and
   its replay status.
-- **Holder voting.** Sign a plain-text message with a Solana wallet (no transaction). Weight = floor(√tokens).
+- **Open voting.** From the 18 Oct ballot anyone votes on the next build with one tap: no wallet, no signup, one
+  vote per person (a device id and a bot check, at most 5 votes from one connection per poll). Until then it was
+  holder voting by wallet signature, weight = floor(√tokens) (D74).
 - **The Daily Pot in $ANSEM**, bought through Jupiter from a small prize wallet the treasury funds and sent by the
   Worker, with a kill switch: 40% of the day's creator fees (at most 0.5 SOL a day from 15 Oct; 1 SOL before, lowered
   by the operator, who says the project's costs have grown), 60% to the top of the Daily Challenge
@@ -96,8 +98,8 @@ $BPROOF launched through ClawPump on Solana (CA `6aktZWaJLQpe3sey13uCwAn7s977mhu
 to the AI's public treasury, which funds the Daily Pot and pays back the AI's bills: Osman pays compute and hosting
 first, and on 1, 3, 11 and 14 Oct he sent himself 14.97 SOL from the treasury, by hand; he says the 13 SOL on 14 Oct
 also pays AI fees for his other CrowLab projects (Pixelpad, CrowLab), domains and hosting. Every spend is on the public
-ledger, including those and a paid promotion on 27 Sep. Holders get a vote on what gets built next (holder cosmetics
-are planned). The coin is not needed to play or to win anything, and it is not an investment.
+ledger, including those and a paid promotion on 27 Sep. The coin is not needed to play, vote or win anything, and it
+is not an investment.
 
 ## License
 

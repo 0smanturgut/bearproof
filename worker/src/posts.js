@@ -26,7 +26,9 @@ const day = (date) =>
         month: 'short',
         timeZone: 'UTC'
     });
-const wallets = (n) => `${n} wallet${n === 1 ? '' : 's'}`;
+const voterCount = (n) => `${n} voter${n === 1 ? '' : 's'}`;
+// From the 18 Oct 2026 ballot anyone votes, no wallet (D74); earlier ballots were holders' wallets.
+const openVote = (v) => v?.rule?.mode === 'open';
 
 function challengeLine(f) {
     if (!f.daily) return '';
@@ -103,7 +105,7 @@ export function postToday(f, env) {
             (f.live.costUsd !== null ? ` Measured cost: ${fmtUsd(f.live.costUsd)}.` : '') +
             (f.entry
                 ? f.entry.chosenBy === 'holders'
-                    ? ' Picked in the holder vote.'
+                    ? ' Picked in the vote.'
                     : ' Picked from the backlog.'
                 : '')
     );
@@ -121,7 +123,7 @@ function ballot(v, { shares }) {
         (o) =>
             `${o.n}. <b>${esc(o.title)}</b>${esc(o.who)}` +
             (shares
-                ? `: ${o.share}% (${wallets(o.voters)})`
+                ? `: ${o.share}% (${voterCount(o.voters)})`
                 : o.description
                   ? `: ${esc(o.description)}`
                   : '')
@@ -141,17 +143,19 @@ export function postVote(f, env) {
         lines.push('');
         lines.push(
             v.voters > 0
-                ? `${wallets(v.voters)} voted so far.`
+                ? `${voterCount(v.voters)} so far.`
                 : 'Nobody has voted yet. If it stays that way, I pick from my backlog.'
         );
         lines.push(
-            'One vote per wallet, weight = √tokens held, by signing a free message. No transaction.'
+            openVote(v)
+                ? 'Anyone can vote on the site: one tap, free, no wallet. One vote per person.'
+                : 'One vote per wallet, weight = √tokens held, by signing a free message. No transaction.'
         );
     } else {
         lines.push(`<b>The vote for Build #${v.forBuild} is closed.</b>`);
         lines.push(
             v.winner
-                ? `Winner: “${esc(v.winner.title)}” (${wallets(v.voters)} voted).`
+                ? `Winner: “${esc(v.winner.title)}” (${voterCount(v.voters)}).`
                 : 'Nobody voted, so I pick from my backlog.'
         );
         lines.push('The next ballot opens at 00:00 UTC.');
@@ -261,7 +265,7 @@ export function postHeard(f) {
             head,
             ...digestLines(d),
             '',
-            'It went to that night’s build session as player feedback. The holder vote still picks the feature.'
+            'It went to that night’s build session as player feedback. The vote still picks the feature.'
         ].join('\n')
     };
 }
@@ -295,7 +299,7 @@ export function postIntro(f, env) {
 }
 
 /**
- * The 00:00 UTC post. `info`: { fresh (a build went live today), voters (wallets in the vote that led to it),
+ * The 00:00 UTC post. `info`: { fresh (a build went live today), voters (votes in the poll that led to it),
  * failed (last night's run reported a failure), yesterday: { players, top: { score, name } | null } }.
  */
 export function postDay(f, env, info) {
@@ -309,7 +313,7 @@ export function postDay(f, env, info) {
             `Made by ${madeBy(f.live.mode)}.` +
                 (f.live.costUsd !== null ? ` Measured cost: ${fmtUsd(f.live.costUsd)}.` : '') +
                 (f.entry?.chosenBy === 'holders'
-                    ? ` Picked in the holder vote${info.voters ? ` (${wallets(info.voters)} voted)` : ''}.`
+                    ? ` Picked in the vote${info.voters ? ` (${voterCount(info.voters)})` : ''}.`
                     : info.voters === 0
                       ? ' Nobody voted, so it came from the backlog.'
                       : ' The devlog says why this one.')
@@ -356,7 +360,9 @@ export function postVoteOpen(f, env) {
             `<b>The ballot for Build #${v.forBuild} is open</b> until 21:00 UTC.`,
             ...ballot(v, { shares: false }),
             '',
-            'Holders vote by signing a free message: no transaction. No coin? /idea puts your idea in front of me before I write tomorrow’s ballot.'
+            openVote(v)
+                ? 'Anyone can vote on the site: one tap, free, no wallet. Got a better idea? /idea puts it in front of me before I write tomorrow’s ballot.'
+                : 'Holders vote by signing a free message: no transaction. No coin? /idea puts your idea in front of me before I write tomorrow’s ballot.'
         ].join('\n'),
         markup: buttons([[page(env, 'Vote', '#vote')]])
     };
@@ -371,7 +377,7 @@ export function postVoteLastCall(f, env) {
             ...ballot(v, { shares: true }),
             '',
             v.voters > 0
-                ? `${wallets(v.voters)} voted so far.`
+                ? `${voterCount(v.voters)} so far.`
                 : 'Nobody has voted yet. If it stays that way, I pick from my backlog.'
         ].join('\n'),
         markup: buttons([[page(env, 'Vote', '#vote')]])
@@ -386,7 +392,7 @@ export function postVoteClosed(result, env) {
         text: [
             '<b>The vote is closed.</b> ' +
                 (w
-                    ? `Winner: “${esc(w.title)}” (${wallets(result.voters)} voted).`
+                    ? `Winner: “${esc(w.title)}” (${voterCount(result.voters)}).`
                     : 'Nobody voted, so I pick from my backlog.'),
             `The build session for Build #${result.forBuild} starts now, and you can watch it work. If it passes every gate, it goes live at 00:00 UTC.`
         ].join('\n'),
@@ -404,7 +410,7 @@ export function postDigest(d, bugs) {
     if (bugs) lines.push(`• ${bugs} bug report${bugs === 1 ? '' : 's'} sent with /bug`);
     lines.push(
         '',
-        'This goes to tonight’s build session at 21:00 UTC as player feedback. The holder vote still picks the feature. Wrong or missing? Say so: tomorrow’s digest starts now.'
+        'This goes to tonight’s build session at 21:00 UTC as player feedback. The vote still picks the feature. Wrong or missing? Say so: tomorrow’s digest starts now.'
     );
     return { text: lines.join('\n') };
 }

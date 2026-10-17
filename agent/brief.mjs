@@ -28,7 +28,7 @@ events.push({
                     : w.from === 'player'
                       ? "my proposal, from a player's idea"
                       : 'my proposal'
-          }; ${voters === 1 ? 'one wallet voted' : `${voters ?? '?'} wallets voted`}).`
+          }; ${voters === 1 ? 'one vote' : `${voters ?? '?'} votes`}).`
         : 'Nobody voted, so I pick from my own backlog.',
     data: w ? { winner: w.id, share: w.share, source: w.source, voters } : null
 });

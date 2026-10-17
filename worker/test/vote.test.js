@@ -4,15 +4,21 @@ import { generateKeyPairSync, sign } from 'node:crypto';
 import { base58 } from '../../scripts/new-wallet.mjs';
 import { readFileSync } from 'node:fs';
 import {
+    OPEN_VOTE_FROM,
     base58Decode,
+    countedRows,
+    isOpenPoll,
+    isVoterId,
     isWallet,
     operatorOptions,
     pollWindow,
     tally,
     verifySignature,
     voteMessage,
-    voteWeight
+    voteWeight,
+    voterKey
 } from '../src/lib/vote.js';
+import { fakeD1 } from './helpers/d1.js';
 
 test('vote weight is floor(sqrt(tokens)) above the minimum', () => {
     assert.equal(voteWeight(999), 0);
@@ -141,4 +147,74 @@ test('agent/operator-options.json: every entry is a valid, uniquely named operat
             ids.add(o.id);
         }
     }
+});
+
+test('open polls: from the 18 Oct ballot anyone votes, one vote each (D74)', () => {
+    assert.equal(OPEN_VOTE_FROM, '2026-10-18');
+    assert.equal(
+        isOpenPoll('2026-10-17'),
+        false,
+        'the holder ballot of 17 Oct keeps its rule to the close'
+    );
+    assert.equal(isOpenPoll('2026-10-18'), true);
+    assert.equal(isOpenPoll('2027-01-01'), true);
+    assert.equal(isOpenPoll(undefined), false);
+    assert.ok(isVoterId('abc123def456ghi789jk'));
+    assert.ok(!isVoterId('short'));
+    assert.ok(!isVoterId('UPPERCASE1234567890'));
+    assert.ok(
+        !isVoterId('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        'a wallet is not a voter id'
+    );
+    assert.ok(
+        !isWallet(voterKey('abc123def456ghi789jk')),
+        'an open vote never looks like a wallet'
+    );
+});
+
+test('open polls count every vote as one, whatever weight was stored', () => {
+    const options = [
+        { id: 'a', title: 'A' },
+        { id: 'b', title: 'B' }
+    ];
+    // One whale wallet vote (cast before the switch reached the poll) and two open votes.
+    const rows = [
+        { proposal_id: 'a', weight: 3162 },
+        { proposal_id: 'b', weight: 1 },
+        { proposal_id: 'b', weight: 1 }
+    ];
+    const open = tally(options, countedRows('2026-10-18', rows));
+    assert.equal(open.winner.id, 'b');
+    assert.equal(open.totalWeight, 3);
+    assert.deepEqual(
+        open.proposals.map((p) => p.share),
+        [33.3, 66.7]
+    );
+    const holders = tally(options, countedRows('2026-10-17', rows));
+    assert.equal(holders.winner.id, 'a', 'a holder ballot keeps √tokens weights');
+});
+
+test('votes table takes open votes: one row per device, a change is an update, the cap counts others', () => {
+    const d1 = fakeD1();
+    const upsert = d1.db.prepare(
+        `INSERT INTO votes (poll_date, wallet, proposal_id, weight, balance_raw, signature, created_at, ip_key)
+         VALUES (?1, ?2, ?3, 1, '0', 'open', ?4, ?5)
+         ON CONFLICT (poll_date, wallet) DO UPDATE SET proposal_id = excluded.proposal_id,
+             created_at = excluded.created_at, ip_key = excluded.ip_key`
+    );
+    const me = voterKey('abc123def456ghi789jk');
+    upsert.run('2026-10-18', me, 'a', 1, 'ip1');
+    upsert.run('2026-10-18', me, 'b', 2, 'ip1');
+    upsert.run('2026-10-18', voterKey('zzz123def456ghi789jk'), 'a', 3, 'ip1');
+    const rows = d1.db
+        .prepare('SELECT wallet, proposal_id FROM votes WHERE poll_date = ?')
+        .all('2026-10-18');
+    assert.equal(rows.length, 2, 'changing a vote does not add one');
+    assert.equal(rows.find((r) => r.wallet === me).proposal_id, 'b');
+    const others = d1.db
+        .prepare(
+            'SELECT COUNT(*) AS n FROM votes WHERE poll_date = ?1 AND ip_key = ?2 AND wallet != ?3'
+        )
+        .get('2026-10-18', 'ip1', me);
+    assert.equal(others.n, 1);
 });

@@ -1,7 +1,11 @@
 /*
- * The ballot on the HQ (site.js does the rest of the page). Reads GET /api/vote and renders tomorrow's ballot: the AI's three
- * proposals plus holders' own requests. With the coin live, a holder votes, or posts a request, by signing a
- * plain-text message (no transaction). Message formats must match worker/src/lib/vote.js voteMessage() and
+ * The ballot on the HQ (site.js does the rest of the page). Reads GET /api/vote and renders the ballot for the next
+ * build: the AI's three proposals (and the operator's, labelled).
+ *
+ * Open polls (rule.mode 'open', from 18 Oct 2026, D74): anyone votes with one tap, no wallet. The vote carries a
+ * random id this browser keeps (one vote per person, changeable until the close) and a bot check (turnstile.js).
+ * Earlier polls were for holders, who voted or posted a request by signing a plain-text message; that path stays
+ * for those polls, and its message formats must match worker/src/lib/vote.js voteMessage() and
  * worker/src/lib/requests.js requestMessage() byte for byte.
  */
 (function () {
@@ -90,6 +94,86 @@
 
     let poll = null;
     let wallet = null;
+    let busy = false;
+    const isOpen = () => !!(poll && poll.rule && poll.rule.mode === 'open');
+    const bot = window.bpBotCheck ? window.bpBotCheck($('#voteTs'), $('#voteTsHint')) : null;
+
+    function store(k, v) {
+        try {
+            if (v === undefined) return localStorage.getItem(k);
+            localStorage.setItem(k, v);
+        } catch {
+            /* private mode: the vote still counts, the page just won't remember it */
+        }
+        return null;
+    }
+
+    /** The random id this browser votes with: one vote per person, changeable until the close. */
+    let memoryId = null;
+    function voterId() {
+        let id = store('bearproof_voter_id');
+        if (!id || !/^[0-9a-z]{16,40}$/.test(id)) {
+            const a = new Uint8Array(24);
+            crypto.getRandomValues(a);
+            id = Array.from(a, (b) => (b % 36).toString(36)).join('');
+            store('bearproof_voter_id', id);
+            if (store('bearproof_voter_id') !== id) id = memoryId || (memoryId = id);
+        }
+        return id;
+    }
+    const myVote = () => (poll ? store(`bearproof_vote_${poll.pollDate}`) : null);
+
+    /** An open poll's vote: one tap, a bot check, no wallet. */
+    async function openVote(option) {
+        if (busy) return;
+        busy = true;
+        for (const b of document.querySelectorAll('#ballot button')) b.disabled = true;
+        say('#voteStatus', 'Counting your vote…');
+        try {
+            const sitekey = bot ? await bot.key() : null;
+            let t = sitekey ? await bot.token() : null;
+            if (sitekey && !t) t = await bot.token(); // one more go: a check can fail once on a flaky connection
+            if (sitekey && !t) {
+                say(
+                    '#voteStatus',
+                    `The bot check didn't finish${bot.error() ? ` (${bot.error()})` : ''}. Tap your pick again. Inside the X app? Open bearproof.app in your phone's browser instead.`,
+                    'bad'
+                );
+                return;
+            }
+            const body = (tok) => ({
+                proposalId: option.id,
+                voterId: voterId(),
+                turnstileToken: tok
+            });
+            let r = await post('/api/vote', body(t));
+            if (r.status === 403 && sitekey) {
+                // Rejected (used, expired or failed): one retry with a fresh token.
+                const t2 = await bot.token();
+                if (t2) r = await post('/api/vote', body(t2));
+            }
+            if (r.ok) {
+                store(`bearproof_vote_${poll.pollDate}`, option.id);
+                say(
+                    '#voteStatus',
+                    `Your vote is in: "${option.title}". You can change it until ${hhmm(poll.closesAt)} UTC.`,
+                    'good'
+                );
+            } else {
+                say(
+                    '#voteStatus',
+                    (r.data && r.data.error && r.data.error.message) ||
+                        `Vote failed (${r.status}).`,
+                    'bad'
+                );
+            }
+        } catch {
+            say('#voteStatus', 'Network error. Try again.', 'bad');
+        } finally {
+            busy = false;
+            load();
+        }
+    }
 
     function say(target, text, tone) {
         const box = $(target);
@@ -337,14 +421,26 @@
             })
         );
         if (live) {
+            const mine = isOpen() && myVote() === o.id;
+            if (mine) li.classList.add('mine');
             const b = el(
                 'button',
                 'btn-solid',
-                poll.status === 'open' ? 'Vote for this' : 'Voting closed'
+                poll.status !== 'open'
+                    ? mine
+                        ? 'Your vote'
+                        : 'Voting closed'
+                    : mine
+                      ? 'Your vote ✓'
+                      : myVote() && isOpen()
+                        ? 'Switch to this'
+                        : 'Vote for this'
             );
             b.type = 'button';
-            b.disabled = poll.status !== 'open';
-            b.addEventListener('click', () => vote(o));
+            b.disabled = poll.status !== 'open' || mine;
+            b.addEventListener('click', () => (isOpen() ? openVote(o) : vote(o)));
+            if (isOpen() && bot)
+                b.addEventListener('pointerenter', () => bot.warmUp(), { once: true });
             li.appendChild(b);
         }
         if (poll.winner && poll.winner.id === o.id) li.classList.add('winner');
@@ -362,21 +458,36 @@
               : 'Closed for today';
         flag.className = 'tag ' + (poll.status === 'open' ? 'live' : 'gold');
         const sub = $('#voteSub');
-        if (sub && poll.status !== 'open' && poll.winner)
-            sub.textContent = `The vote is in. "${poll.winner.title}" won with ${poll.winner.share}%, and the AI builds it tonight. The next ballot opens at 00:00 UTC.`;
+        if (sub)
+            sub.textContent =
+                poll.status !== 'open' && poll.winner
+                    ? `The vote is in. "${poll.winner.title}" won with ${poll.winner.share}%, and the AI builds it tonight. The next ballot opens at 00:00 UTC.`
+                    : isOpen()
+                      ? 'The AI proposes three features. Everyone votes, free and without a wallet, until 21:00 UTC. The winner ships at 00:00 UTC.'
+                      : 'The AI proposes three features. Holders vote until 21:00 UTC, and the winner ships at 00:00 UTC.';
+        const rule = $('#voteRule');
+        if (rule)
+            rule.textContent = isOpen()
+                ? `One tap, no wallet, no signup. One vote per person, and you can change it until the close. A quick bot check keeps it fair, and at most ${poll.rule.perConnection || 5} people can vote from one connection.`
+                : 'This ballot is for holders: one free signature, no transaction. Weight is √(tokens held), at least 1,000 $BPROOF. From the next ballot on, anyone votes, no wallet.';
         const connectBtn = $('#voteConnect');
-        if (!wallet) {
+        connectBtn.hidden = isOpen() || poll.status !== 'open';
+        if (!wallet && !isOpen()) {
             connectBtn.disabled = poll.status !== 'open';
-            connectBtn.textContent =
-                poll.status === 'open' ? 'Connect wallet to vote' : 'Voting is closed';
+            connectBtn.textContent = 'Connect wallet to vote';
         }
-        if (!$('#voteStatus').textContent)
+        // Keep a vote's own result on screen; otherwise say what to do.
+        if (!/good|bad/.test($('#voteStatus').className))
             say(
                 '#voteStatus',
                 !live
                     ? 'Until the coin launches, the AI picks from its own proposals.'
                     : poll.status === 'open'
-                      ? 'Pick an option. You can change your vote until the close.'
+                      ? isOpen()
+                          ? myVote()
+                              ? 'You voted. Tap another option to change it.'
+                              : 'Tap an option to vote. Free, no wallet.'
+                          : 'Pick an option. You can change your vote until the close.'
                       : poll.winner
                         ? `Winner: "${poll.winner.title}" (${poll.winner.share}%). It ships at 00:00 UTC.`
                         : 'No votes today, so the AI picks. The next ballot opens at 00:00 UTC.'
@@ -406,7 +517,7 @@
         $('#ballotMeta').textContent = [
             `For Build #${poll.forBuild}`,
             poll.proposals.length
-                ? `${poll.proposals.length - community - operator} from the AI${operator ? ` · ${operator} operator` : ''}${community ? ` · ${community} from holders` : ''}`
+                ? `${poll.proposals.length - community - operator} from the AI${operator ? ` · ${operator} from the operator` : ''}${community ? ` · ${community} from holders` : ''}`
                 : null,
             live ? `${fmt(poll.voters)} voter${poll.voters === 1 ? '' : 's'} so far` : null
         ]
@@ -433,6 +544,15 @@
     }
 
     $('#voteConnect').addEventListener('click', () => connect());
+    // Start the bot check when the ballot comes into view, so a tap usually counts at once.
+    if (bot && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver((es) => {
+            if (!es.some((e) => e.isIntersecting) || !isOpen() || poll.status !== 'open') return;
+            io.disconnect();
+            bot.warmUp();
+        });
+        io.observe($('#ballot'));
+    }
     if ($('#reqForm')) {
         $('#reqForm').addEventListener('submit', request);
         $('#reqDesc').addEventListener('input', count);

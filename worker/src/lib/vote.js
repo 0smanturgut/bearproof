@@ -1,14 +1,41 @@
 /**
- * Holder voting helpers (pure, unit-tested).
+ * Voting helpers (pure, unit-tested).
  *
  * The daily poll: Proof proposes three features in each devlog (`agent/proposals.json` at the build's tag).
- * Holders vote from 00:00 UTC until the Build Agent starts at 21:00 UTC; the winner ships at the next 00:00 UTC.
- * Voting = signing a plain-text message with a Solana wallet. No transaction, no approval, nothing moves.
- * Weight = floor(sqrt(whole tokens held)), read from chain when the vote is cast.
+ * The poll runs from 00:00 UTC until the Build Agent starts at 21:00 UTC; the winner ships at the next 00:00 UTC.
+ *
+ * From OPEN_VOTE_FROM on (D74), anyone votes: no wallet, one vote per person (a device id the page keeps, a bot
+ * check, at most VOTES_PER_IP votes from one connection per poll), and every vote counts as 1. Before that, voting
+ * was for holders: signing a plain-text message with a Solana wallet, weight = floor(sqrt(whole tokens held)).
  */
 
 export const POLL_CLOSE_UTC_HOUR = 21;
 export const MIN_TOKENS_TO_VOTE = 1000;
+export const OPEN_VOTE_FROM = '2026-10-18';
+export const VOTES_PER_IP = 5;
+
+/** True when the poll of this UTC date is open to everyone (no wallet, one vote each). */
+export function isOpenPoll(date) {
+    return typeof date === 'string' && date >= OPEN_VOTE_FROM;
+}
+
+const VOTER_ID = /^[0-9a-z]{16,40}$/;
+/** The random id a browser votes with (hq/vote.js keeps it in localStorage). */
+export function isVoterId(s) {
+    return typeof s === 'string' && VOTER_ID.test(s);
+}
+/** How an open vote is keyed in the votes table's `wallet` column: never a valid wallet, never a collision. */
+export function voterKey(id) {
+    return `v:${id}`;
+}
+
+/**
+ * The rows a poll counts. In an open poll every vote is one vote, whatever weight it was stored with (a wallet vote
+ * cast before the switch reached an open poll counts as one too).
+ */
+export function countedRows(date, rows) {
+    return isOpenPoll(date) ? rows.map((r) => ({ ...r, weight: 1 })) : rows;
+}
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 export function base58Decode(s) {

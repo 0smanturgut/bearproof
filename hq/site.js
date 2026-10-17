@@ -737,7 +737,7 @@ function renderLatest(live, d) {
                 'li',
                 null,
                 d.chosenBy === 'holders'
-                    ? 'chosen by holders'
+                    ? 'chosen in the vote'
                     : d.chosenBy === 'agent'
                       ? 'chosen by the AI'
                       : `chosen by ${d.chosenBy}`
@@ -839,7 +839,7 @@ function nextCard(n, scheduled) {
                 { class: 'bc-s' },
                 scheduled
                     ? 'It goes live at 00:00 UTC.'
-                    : 'Holders pick it, the AI codes it live, and it ships at midnight. '
+                    : 'You vote for it, the AI codes it live, and it ships at midnight. '
             ),
             h(
                 'p',

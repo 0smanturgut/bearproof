@@ -3557,3 +3557,14 @@ body.page .foot {
 .bears-cta .h2s {
     margin-bottom: 22px;
 }
+
+/* your own vote, in an open poll */
+.opt.mine {
+    border-color: rgba(22, 224, 138, 0.6);
+    box-shadow: 0 0 44px rgba(22, 224, 138, 0.14);
+}
+.opt.mine .btn-solid:disabled {
+    opacity: 1;
+    background: var(--bull);
+    color: var(--bull-ink);
+}

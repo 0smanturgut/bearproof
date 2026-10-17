@@ -51,6 +51,7 @@
         />
         <link rel="stylesheet" href="/site.css" />
         <script type="module" src="/site.js"></script>
+        <script src="/turnstile.js" defer></script>
         <script src="/vote.js" defer></script>
         <script src="/ideas.js" defer></script>
     </head>
@@ -301,9 +302,9 @@
                             ></canvas>
                         </div>
                         <p class="step-n">04 · Steer</p>
-                        <h3>Holders pick what's next</h3>
+                        <h3>You pick what's next</h3>
                         <p>
-                            The AI proposes three features. Holders vote, and the winner is
+                            The AI proposes three features. Everyone votes, free, and the winner is
                             tonight's build.
                         </p>
                         <p class="step-live" id="stepSteer"></p>
@@ -323,8 +324,8 @@
                     <p class="eyebrow">Vote</p>
                     <h2 id="voteH">You pick what it <span class="g">builds tonight.</span></h2>
                     <p class="sec-sub" id="voteSub">
-                        The AI proposes three features. Holders vote until 21:00 UTC, and the winner
-                        ships at 00:00 UTC.
+                        The AI proposes three features. Everyone votes, free and without a wallet,
+                        until 21:00 UTC. The winner ships at 00:00 UTC.
                     </p>
                 </header>
 
@@ -337,9 +338,11 @@
                 </div>
                 <p class="vote-status" id="voteStatus" aria-live="polite"></p>
                 <ul class="ballot" id="ballot"></ul>
-                <p class="vote-rule">
-                    One free signature, no transaction, nothing moves. Weight is √(tokens held), at
-                    least 1,000 $BPROOF, so no whale owns the roadmap.
+                <div class="ideas-ts" id="voteTs"></div>
+                <p class="fine" id="voteTsHint" hidden>One quick check: tap the box above.</p>
+                <p class="vote-rule" id="voteRule">
+                    One tap, no wallet, no signup. One vote per person, and you can change it until
+                    the close.
                 </p>
 
                 <div class="voice one">
@@ -551,7 +554,8 @@
                         <p class="eyebrow">The coin</p>
                         <h2 id="coinH"><span class="g">$BPROOF</span></h2>
                         <p class="coin-lede">
-                            The AI's budget, and your vote on what it builds. That's all it is.
+                            The AI's budget. Every trade pays for its compute, its hosting and the
+                            players' prizes. That's all it is.
                         </p>
                         <div class="ca big" data-ca>
                             <span class="ca-k">Contract address</span>
@@ -614,15 +618,15 @@
                             <div>
                                 <h3 class="g">It does</h3>
                                 <ul class="ticks">
-                                    <li>Pay for the AI's compute, hosting and prizes</li>
-                                    <li>Give holders a vote on every build</li>
+                                    <li>Pay for the AI's compute and hosting</li>
+                                    <li>Fund the Daily Pot, paid to players in $ANSEM</li>
                                 </ul>
                             </div>
                             <div>
                                 <h3 class="r">It does not</h3>
                                 <ul class="crosses">
                                     <li>Pay anything to holders</li>
-                                    <li>Gate playing the game</li>
+                                    <li>Gate playing, voting or ideas</li>
                                     <li>Gate winning the daily prize</li>
                                 </ul>
                             </div>
@@ -738,12 +742,12 @@
                         </p>
                     </details>
                     <details>
-                        <summary>Is it safe to connect my wallet?</summary>
+                        <summary>Do I need a wallet?</summary>
                         <p>
-                            You only need a wallet to vote or post a request. Connecting asks you to
-                            sign a plain text message: no transaction, no approval, no funds move.
-                            We read your token balance to weight your vote. Playing never needs a
-                            wallet, and the prize address is typed in, never connected.
+                            No. Playing, voting and sending ideas need no wallet and no signup. The
+                            only thing you ever type is a Solana address on the game-over screen, if
+                            you want a prize paid to it: a public address, never a key or a
+                            signature.
                         </p>
                     </details>
                 </div>
@@ -820,8 +824,8 @@
                     >). Not affiliated with Vampire Survivors or poncle.
                 </p>
                 <p>
-                    $BPROOF funds the AI's compute and gives holders a vote on what gets built. It
-                    is not an investment and it is never required to play or win. Only trust the
+                    $BPROOF funds the AI's compute, its hosting and the players' prizes. It is not
+                    an investment and it is never required to play, vote or win. Only trust the
                     contract address shown on this site.
                 </p>
             </div>

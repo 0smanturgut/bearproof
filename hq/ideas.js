@@ -77,147 +77,17 @@
         }
     }
 
-    // --- Turnstile, as in the game (game/src/turnstile.js): invisible for most people. ---
-    // The check starts when someone starts typing, so on a slow phone it has usually finished by the time they
-    // press Send. A token is single use and lives five minutes; the widget refreshes it on its own.
-    let siteKey;
-    let loading = null;
-    let widgetId = null;
-    let running = false; // a check is under way
-    let ready = null; // { token, at }: a token nobody has used yet
-    let waiter = null; // resolves the token a submit is waiting for
-    let needsTap = false;
-    let lastError = '';
-
-    async function key() {
-        if (siteKey !== undefined) return siteKey;
-        try {
-            const r = await fetch('/api/daily');
-            const d = await r.json();
-            siteKey = (d && d.turnstileSiteKey) || null;
-        } catch {
-            siteKey = null;
-        }
-        return siteKey;
-    }
-
-    function loadTurnstile() {
-        if (window.turnstile && window.turnstile.render) return Promise.resolve(window.turnstile);
-        if (loading) return loading;
-        loading = new Promise((resolve, reject) => {
-            window.__bearproofIdeasTurnstile = () => resolve(window.turnstile);
-            const s = document.createElement('script');
-            s.src =
-                'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__bearproofIdeasTurnstile';
-            s.async = true;
-            s.onerror = () => {
-                loading = null; // let a later try load it again
-                reject(new Error('turnstile failed to load'));
-            };
-            document.head.appendChild(s);
-        });
-        return loading;
-    }
-
-    function hint(on) {
-        needsTap = on;
-        $('#ideaTsHint').hidden = !on;
-    }
-
-    function deliver(t) {
-        running = false;
-        if (waiter) waiter(t);
-        else if (t) ready = { token: t, at: Date.now() };
-    }
-
-    /** Run the check: render the widget the first time, reset it after. Resolves false if it can't start. */
-    async function check() {
-        running = true;
-        const sitekey = await key();
-        let ts;
-        try {
-            if (!sitekey) throw new Error('no site key');
-            ts = await loadTurnstile();
-        } catch {
-            lastError = sitekey ? 'script' : '';
-            running = false;
-            return false;
-        }
-        try {
-            if (widgetId !== null) {
-                ts.reset(widgetId);
-                return true;
-            }
-            widgetId = ts.render($('#ideaTs'), {
-                sitekey,
-                appearance: 'interaction-only',
-                theme: 'dark',
-                'refresh-expired': 'auto',
-                callback: (t) => {
-                    lastError = '';
-                    hint(false);
-                    deliver(t);
-                },
-                'error-callback': (code) => {
-                    lastError = String(code || 'error');
-                    hint(false);
-                    deliver(null);
-                    return true; // handled: no console noise
-                },
-                'expired-callback': () => {
-                    ready = null;
-                },
-                'before-interactive-callback': () => hint(true),
-                'after-interactive-callback': () => hint(false)
-            });
-            return true;
-        } catch {
-            lastError = 'render';
-            running = false;
-            return false;
-        }
-    }
-
-    function warmUp() {
-        if (widgetId === null && !running) check();
-    }
-
-    /**
-     * A fresh token, or null. Waits up to 45 s, or 3 minutes once the check wants a tap (the hint under the box
-     * says so).
-     */
-    function token() {
-        if (ready && Date.now() - ready.at < 280000) {
-            const t = ready.token;
-            ready = null;
-            return Promise.resolve(t);
-        }
-        ready = null;
-        return new Promise((resolve) => {
-            const t0 = Date.now();
-            let timer = null;
-            const finish = (t) => {
-                if (!waiter) return;
-                waiter = null;
-                clearInterval(timer);
-                resolve(t);
-            };
-            waiter = finish;
-            timer = setInterval(() => {
-                if (Date.now() - t0 > (needsTap ? 180000 : 45000)) {
-                    lastError = lastError || 'timeout';
-                    finish(null);
-                }
-            }, 500);
-            if (!running)
-                check().then((ok) => {
-                    if (!ok) finish(null);
-                });
-        });
-    }
+    // The bot check (Turnstile), shared with the vote (hq/turnstile.js): invisible for most people.
+    const bot = window.bpBotCheck(
+        document.getElementById('ideaTs'),
+        document.getElementById('ideaTsHint')
+    );
+    const key = bot.key;
+    const token = bot.token;
+    const warmUp = bot.warmUp;
 
     function botMessage() {
-        const code = lastError ? ` (${lastError})` : '';
+        const code = bot.error() ? ` (${bot.error()})` : '';
         return `The bot check didn't finish${code}. Press Send to try again. Inside the X app? Open bearproof.app in your phone's browser instead.`;
     }
 

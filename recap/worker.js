@@ -15,6 +15,26 @@ export default {
             return new Response('User-agent: *\nAllow: /\n', {
                 headers: { 'content-type': 'text/plain' }
             });
+        if (url.pathname === '/stats.json') {
+            const d = await data(env);
+            const body = JSON.stringify({
+                builds: d.stats?.buildsShipped ?? null,
+                players: d.players ?? null,
+                verifiedRuns: d.runs ?? null,
+                ansemPaid: d.ansem,
+                busiestDay: d.busiest?.d
+                    ? { date: d.busiest.d, runs: d.busiest.n, players: d.busiest.p }
+                    : null,
+                at: new Date().toISOString()
+            });
+            return new Response(body, {
+                headers: {
+                    'content-type': 'application/json',
+                    'access-control-allow-origin': '*',
+                    'cache-control': `public, max-age=${CACHE_SECONDS}`
+                }
+            });
+        }
         if (url.pathname !== '/') return Response.redirect(url.origin + '/', 302);
         const cache = caches.default;
         const key = new Request(url.origin + '/');

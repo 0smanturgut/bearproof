@@ -10,7 +10,10 @@ import {
     CHARACTERS,
     CHARACTER_IDS,
     ENEMIES,
+    GOLD_SHARE,
     PASSIVES,
+    PICKUPS,
+    PIGGY_LOOT,
     SIM,
     STAGE_ROTATION,
     WAVES,
@@ -124,7 +127,101 @@ function bossEntry(b) {
     };
 }
 
-/** The guide's tabs, in order. Every weapon, passive, bear and boss in content.js appears exactly once. */
+const pct = (x) => `${Math.round(x * 100)}%`;
+
+/** A piggy bank's odds of dropping `id` (PIGGY_LOOT weights), e.g. "30%"; null if it never does. */
+export function dropChance(id) {
+    const total = PIGGY_LOOT.reduce((a, l) => a + l.weight, 0);
+    const l = PIGGY_LOOT.find((x) => x.id === id);
+    return l && total ? pct(l.weight / total) : null;
+}
+
+/** The line of numbers under a pickup (the rest of what it does is its description). */
+function pickupStats(p) {
+    const wait = `waits ${SIM.PICKUP_LIFE} s on the floor`;
+    if (p.heal) return `+${p.heal} HP · ${wait}`;
+    if (p.clout) return `+${p.clout} CLOUT, banked with the run · ${wait}`;
+    if (p.duration)
+        return `${num(p.duration)} s${p.bossSlow ? ` · bosses ${pct(p.bossSlow)} slower` : ''} · ${wait}`;
+    if (p.radius)
+        return `Reach ${fmtNum(p.radius)}${p.bossShare ? ` · bosses lose ${pct(p.bossShare)} HP` : ''} · ${wait}`;
+    return wait.charAt(0).toUpperCase() + wait.slice(1);
+}
+
+/**
+ * The Loot tab: the piggy bank, everything it drops (PIGGY_LOOT order; the gold candle isn't a PICKUP, it's an
+ * XP candle), the boss chest, and what the scenery does. Every PICKUPS entry appears exactly once.
+ */
+function lootEntries() {
+    const finalBoss = Object.values(BOSSES).find((b) => b.final);
+    const entries = [
+        {
+            id: 'piggy_bank',
+            name: 'Piggy Bank',
+            art: 'piggy_bank',
+            tags: ['On every map'],
+            text: 'Smash it with anything, or run into it. Out falls one of the pickups below.',
+            stats: PIGGY_LOOT.map(
+                (l) => `${PICKUPS[l.id]?.name || 'Gold Candle'} ${dropChance(l.id)}`
+            ).join(' · '),
+            extra: 'Each one breaks once a run.'
+        }
+    ];
+    const seen = new Set();
+    const pickup = (p) => {
+        seen.add(p.id);
+        const chance = dropChance(p.id);
+        return {
+            id: p.id,
+            name: p.name,
+            art: p.sprite,
+            tags: chance ? [`${chance} of piggy banks`] : [],
+            text: p.description,
+            stats: pickupStats(p)
+        };
+    };
+    for (const l of PIGGY_LOOT) {
+        if (PICKUPS[l.id]) entries.push(pickup(PICKUPS[l.id]));
+        else if (l.id === 'gold')
+            entries.push({
+                id: 'gold',
+                name: 'Gold Candle',
+                art: 'xp_candle_big',
+                tags: [`${dropChance('gold')} of piggy banks`],
+                text: 'A fat XP candle. Grab it before the bears crowd it.',
+                stats: `Worth ${pct(GOLD_SHARE)} of your next level`
+            });
+    }
+    if (PICKUPS.chest) {
+        seen.add('chest');
+        const c = PICKUPS.chest;
+        entries.push({
+            id: 'chest',
+            name: c.name,
+            art: c.sprite,
+            tags: [finalBoss ? `Every boss but ${finalBoss.name}` : 'Every boss'],
+            text: c.description,
+            stats: `${pct(SIM.CHEST_TRIPLE)} hold three · waits ${SIM.CHEST_LIFE} s`
+        });
+    }
+    // anything new in PICKUPS that no piggy bank drops yet still gets its row
+    for (const p of Object.values(PICKUPS)) if (!seen.has(p.id)) entries.push(pickup(p));
+    const flyers = Object.values(ENEMIES)
+        .filter((e) => e.flies)
+        .map((e) => `${e.name}s`);
+    entries.push({
+        id: 'scenery',
+        name: 'Scenery',
+        art: 'chop_pine_small',
+        scale: 1,
+        tags: ['Solid'],
+        text: `Trees, walls and wrecks are solid. Bosses${flyers.length ? ` and ${flyers.join(' and ')}` : ''} fly over them.`,
+        stats: 'Bears have to walk around it too.'
+    });
+    return entries;
+}
+
+/** The guide's tabs, in order. Every weapon, passive, bear, boss and pickup in content.js appears exactly once. */
 export function guideSections() {
     return [
         {
@@ -150,6 +247,12 @@ export function guideSections() {
             label: 'Bosses',
             intro: `A boss kill pays its jackpot in score and rains gold candles. Beat ${Object.values(BOSSES).find((b) => b.final)?.name || 'the final boss'} to win.`,
             entries: Object.values(BOSSES).map(bossEntry)
+        },
+        {
+            id: 'loot',
+            label: 'Loot',
+            intro: `Piggy banks sit all over every map. Smash one and walk over what falls out: it waits ${SIM.PICKUP_LIFE} s. Bosses leave a chest.`,
+            entries: lootEntries()
         }
     ];
 }

@@ -11,14 +11,15 @@
  *   9   u8   character (index into CHARACTER_IDS, 0 = the bull)
  *   10  u32  ticks simulated
  *   13  runs of move codes:    u8 code, varint count   … until counts sum to `ticks`
- *   ..  varint pick count, then per pick: varint tick (delta from previous pick), u8 card index
+ *   ..  varint pick count, then per pick: varint tick (delta from previous pick), u8 card index (0-2, or
+ *       CHOICE_REROLL / CHOICE_SKIP from sim version 22)
  *
  * A 15-minute run is usually a few KB. `replay()` runs the log through a fresh Simulation headlessly;
  * the server uses it to verify scores, and tests use it to prove determinism.
  */
 
 import { Simulation, SIM_VERSION } from './sim.js';
-import { CHARACTER_IDS, SIM, TWIST_IDS } from './content.js';
+import { CHARACTER_IDS, CHOICE_REROLL, CHOICE_SKIP, SIM, TWIST_IDS } from './content.js';
 import { isValidCode } from './input-codes.js';
 
 export const RUNLOG_VERSION = 3;
@@ -113,7 +114,8 @@ export function decodeRunLog(bytes) {
     for (let i = 0; i < nPicks; i++) {
         t += r.varint();
         const idx = r.u8();
-        if (idx > 2 || t > ticks) throw new Error('bad pick');
+        if ((idx > 2 && idx !== CHOICE_REROLL && idx !== CHOICE_SKIP) || t > ticks)
+            throw new Error('bad pick');
         picks.push([t, idx]);
     }
     if (!r.done()) throw new Error('trailing bytes');

@@ -20,6 +20,7 @@
  *   - boss:      80-50-80 ms triple-pulse → "warning"
  *   - level up:  20-40-60 ms ascending ramp → "reward"
  *   - game over: 200-100-200 ms long double → "death knell"
+ *   - chest:     25-35-25-35-70 ms tap-tap-thump → "treasure"
  *
  * Dependencies: navigator (feature-detected). Pure-Node tests inject a fake
  * navigator via the constructor's optional second argument.
@@ -40,7 +41,8 @@ export const VIBRATION_PATTERNS = Object.freeze({
     hurt: Object.freeze([30]),
     bossSpawn: Object.freeze([80, 50, 80]),
     levelUp: Object.freeze([20, 40, 60]),
-    gameOver: Object.freeze([200, 100, 200])
+    gameOver: Object.freeze([200, 100, 200]),
+    chest: Object.freeze([25, 35, 25, 35, 70]) // a boss chest opens: two taps and a thump
 });
 
 /**
@@ -130,5 +132,8 @@ export class HapticEngine {
     }
     gameOver() {
         return this.vibrate('gameOver');
+    }
+    chest() {
+        return this.vibrate('chest');
     }
 }

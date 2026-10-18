@@ -10,6 +10,9 @@ import { encodeMove } from './input-codes.js';
 
 export function createBot({ style = 'survive', phase = 0 } = {}) {
     let t = phase;
+    let turn = phase & 1 ? 1 : -1; // which way it goes round things
+    let last = null; // where the bull was half a second ago
+    let detour = 0;
     return {
         /** Move code for this tick. */
         move(sim) {
@@ -53,6 +56,18 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
                         fy += (dy * 1.5) / (d2 + 30);
                     }
                 }
+                // Loot on the floor (a boss chest, a pickup) and piggy banks to smash, when it's quiet enough.
+                const loot = nearest(sim.pickups || [], p, 520);
+                const pig = nearest(sim.breakables || [], p, 360, (b) => b.hp > 0);
+                if (loot && crowd < 2) {
+                    const d = Math.hypot(loot.x - p.x, loot.y - p.y) || 1;
+                    fx += ((loot.x - p.x) / d) * 0.025;
+                    fy += ((loot.y - p.y) / d) * 0.025;
+                } else if (pig && crowd < 1) {
+                    const d = Math.hypot(pig.x - p.x, pig.y - p.y) || 1;
+                    fx += ((pig.x - p.x) / d) * 0.012;
+                    fy += ((pig.y - p.y) / d) * 0.012;
+                }
                 // Airdrop crates beat candles: head for the nearest one unless it's a mob scene.
                 const crate = nearest(sim.crates || [], p, 520);
                 const orb = nearest(sim.xp, p, 420, (o) => !o.frozen);
@@ -83,7 +98,34 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
             }
             const len = Math.hypot(fx, fy);
             if (len < 1e-6) return 0;
-            return encodeMove(fx / len, fy / len);
+            let ux = fx / len;
+            let uy = fy / len;
+            // Walls, trees and wrecks: steer round what's ahead; if a solid prop still holds it up for half a
+            // second (pinned in a corner), take a detour the other way for a while
+            if (t % 30 === 0) {
+                const p0 = last;
+                last = [p.x, p.y];
+                const pinned =
+                    p0 &&
+                    Math.hypot(p.x - p0[0], p.y - p0[1]) < 20 &&
+                    sim.terrain?.blocked(
+                        p.x + ux * 30,
+                        p.y + p.size * 0.9 + uy * 30,
+                        p.size * 0.72
+                    );
+                if (pinned) {
+                    detour = 40;
+                    turn = -turn;
+                }
+            }
+            if (detour > 0) {
+                detour--;
+                const a = Math.atan2(uy, ux) + turn * 1.2;
+                ux = Math.cos(a);
+                uy = Math.sin(a);
+            }
+            [ux, uy] = steer(sim, ux, uy, () => turn);
+            return encodeMove(ux, uy);
         },
         /** Card to pick: prefer evolutions, then new weapons, then weapon levels, then passives. */
         pick(sim) {
@@ -104,6 +146,30 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
             return best;
         }
     };
+}
+
+/**
+ * Steer round solid scenery: if the way ahead is blocked, try turning further and further, the usual way first.
+ * The bull on a rocket flies, so it never steers.
+ */
+function steer(sim, ux, uy, side) {
+    const t = sim.terrain;
+    const p = sim.player;
+    if (!t || p.rocketTimer > 0) return [ux, uy];
+    const feet = p.y + p.size * 0.9;
+    const r = p.size * 0.72;
+    const free = (x, y) => !t.blocked(p.x + x * 30, feet + y * 30, r);
+    if (free(ux, uy)) return [ux, uy];
+    const a0 = Math.atan2(uy, ux);
+    for (const k of [0.5, 1, 1.5, 2, 2.5]) {
+        for (const s of [side(), -side()]) {
+            const a = a0 + s * k;
+            const x = Math.cos(a);
+            const y = Math.sin(a);
+            if (free(x, y)) return [x, y];
+        }
+    }
+    return [ux, uy];
 }
 
 const canRam = (sim, e) => !e.boss && e.hp > 0 && !sim.rocketHit?.has(e.uid);

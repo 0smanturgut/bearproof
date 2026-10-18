@@ -300,6 +300,9 @@ export function runPayout(summary, { bountyCleared = false } = {}) {
             v: Math.floor(kills / PAY.perKills)
         }
     ];
+    // CLOUT the bull picked up off the map (smashed piggy banks): banked as it was found
+    const found = Math.max(0, Math.floor(Number(summary.clout) || 0));
+    if (found) lines.push({ id: 'found', label: 'CLOUT FOUND', detail: '', v: found });
     if (bosses)
         lines.push({ id: 'bosses', label: 'BOSSES', detail: `×${bosses}`, v: bosses * PAY.boss });
     if (summary.won) lines.push({ id: 'win', label: 'BEAR MARKET ENDED', detail: '', v: PAY.win });

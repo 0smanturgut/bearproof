@@ -16,9 +16,14 @@
  */
 
 import {
+    CHOICE_REROLL,
+    CHOICE_SKIP,
     CRATE_LOOT,
     CRATE_LOOT_IDS,
+    GOLD_SHARE,
     PASSIVES,
+    PICKUPS,
+    PIGGY_LOOT,
     SIM,
     STARTER_WEAPON,
     WEAPONS,
@@ -33,10 +38,20 @@ import {
     characterDef
 } from './content.js';
 import { cos, hypot, sin } from './dmath.js';
-import { Enemy, Player, SupplyCrate, Whale, XpOrb, resetEntityIds } from './entities.js';
+import {
+    Breakable,
+    Enemy,
+    Pickup,
+    Player,
+    SupplyCrate,
+    Whale,
+    XpOrb,
+    resetEntityIds
+} from './entities.js';
 import { MOVE_TABLE, isValidCode } from './input-codes.js';
 import { Rng } from './rng.js';
 import { SpatialHash } from './spatial.js';
+import { Terrain } from './terrain.js';
 import { Weapon } from './weapons.js';
 
 /** Bump when a change alters simulation results for the same inputs. 2: daily twists. 3: closer spawns and the
@@ -54,8 +69,11 @@ import { Weapon } from './weapons.js';
  * 18: Options Expiry (a Daily twist: XP candles expire after 6 s and are worth +50%). 19: Moon Rocket (a fifth
  * crate loot: 4 s of 1.8x speed, untouchable, ramming bears), and Bear Trap's extra doomposters join at 1:00.
  * 20: Honey Trap (a new weapon in the level-up pool: honey puddles slow bears, grizzlies stop to eat).
- * 21: The Whale (a third character: Buy Wall, a bigger body, and Sweep the Book once a minute). */
-export const SIM_VERSION = 21;
+ * 21: The Whale (a third character: Buy Wall, a bigger body, and Sweep the Book once a minute).
+ * 22: The map is solid (sim/terrain.js: trees, walls, wrecks stop the bull and the bears; bosses and FUD clouds go
+ * over), piggy banks to smash for pickups (ramen, a gold candle, CLOUT, Liquidity Sweep, Trading Halt, Short
+ * Squeeze), a treasure chest from every boss (free level-ups), and two rerolls and two skips of level-up cards. */
+export const SIM_VERSION = 22;
 
 export class Simulation {
     constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
@@ -67,6 +85,7 @@ export class Simulation {
         this.character = characterDef(character);
         this.characterId = this.character.id;
         this.rng = new Rng(this.seed);
+        this.terrain = new Terrain(this.stageId, this.seed);
         this.stageMods = stageModifiers(this.stageId);
         this.waves = wavesFor(this.stageId);
         this.bossPlan = bossesFor(this.stageId);
@@ -94,6 +113,12 @@ export class Simulation {
         this.walls = []; // Buy Wall: rings rolling out from the Whale
         this.xp = [];
         this.crates = [];
+        this.pickups = []; // what piggy banks and bosses dropped (PICKUPS)
+        this.breakables = []; // the piggy banks near the bull (sim/terrain.js places them)
+        this.broken = new Set(); // keys of the ones smashed this run
+        this.haltUntil = 0; // Trading Halt: bears stand frozen while time < haltUntil
+        this.rerolls = SIM.REROLLS;
+        this.skips = SIM.SKIPS;
         this.nextCrateAt = SIM.CRATE_FIRST;
         this.lastLoot = null;
         this.whale = null;
@@ -136,7 +161,13 @@ export class Simulation {
             honeyEaten: 0, // Honey Trap: grizzlies that sat down to eat (once per puddle)
             wallHits: 0, // Buy Wall: bears a wall hit
             sweeps: 0, // Sweep the Book: sweeps that pulled at least one candle
-            swept: 0 // and the candles they pulled
+            swept: 0, // and the candles they pulled
+            smashed: 0, // piggy banks smashed
+            pickups: 0, // pickups taken (chests not counted)
+            chests: 0, // boss treasure chests opened
+            clout: 0, // CLOUT picked up (the profile banks it with the run)
+            rerolls: 0,
+            skips: 0
         };
         this.rocketHit = new Set(); // bears rammed on the current ride
         this.events = [];
@@ -171,15 +202,19 @@ export class Simulation {
         this.enemyDmgMult = timeDiff * this.twist.enemyDmgMult;
         this._selectWave();
 
+        if (this.tick % SIM.BREAK_EVERY === 1) this._activateBreakables();
         this.spatial.rebuild(this.enemies);
+        for (const b of this.breakables) this.spatial.insert(b);
         const p = this.player;
         p.update(dt, this, mx, my);
         if (p.dead) return this._end('liquidated');
         if (p.rocketTimer > 0) this._rocketRam();
+        this._smashByContact();
 
         this._coldTick(dt);
         this._updateEnemies(dt);
         if (p.dead) return this._end('liquidated');
+        if (p.rocketTimer <= 0) this.collidePlayer(); // a rug pull can drag the bull into a wall
         this._updateProjectiles(dt);
         this._updateList(this.enemyProjectiles, dt);
         this._updateList(this.mines, dt);
@@ -190,6 +225,7 @@ export class Simulation {
         this._sweep();
         this._updateList(this.xp, dt);
         this._updateList(this.crates, dt);
+        this._updateList(this.pickups, dt);
         this._dropCrate();
         this._whaleTick(dt);
         this._spawn(dt);
@@ -255,7 +291,8 @@ export class Simulation {
             e.update(dt, this);
             if (e.hp <= 0) continue;
             const d = hypot(e.x - p.x, e.y - p.y);
-            if (d < e.size + p.size && !p.invincible) p.takeDamage(e.damage, this);
+            const frozen = !e.boss && this.time < this.haltUntil;
+            if (d < e.size + p.size && !p.invincible && !frozen) p.takeDamage(e.damage, this);
             if (d > SIM.DESPAWN_RADIUS && !e.boss) e.despawned = true;
         }
     }
@@ -341,6 +378,12 @@ export class Simulation {
             this.stats.bossKills++;
             this.emit({ t: 'bossDown', id: e.id, name: e.def.name, x: e.x, y: e.y, jackpot });
             if (e.def.final) this.won = true;
+            else if (!e.selfDestructed) {
+                // the boss leaves its treasure where it fell (or the nearest free spot)
+                const [cx, cy] = this.terrain.free(e.x, e.y, 22);
+                this.pickups.push(new Pickup(cx, cy, 'chest', SIM.CHEST_LIFE));
+                this.emit({ t: 'chestDrop', x: cx, y: cy });
+            }
         }
         if (e.def.splitter && e.def.splitInto) {
             const child = enemyDef(e.def.splitInto);
@@ -568,11 +611,12 @@ export class Simulation {
         const pool = CRATE_LOOT_IDS.filter((id) => id !== this.lastLoot);
         const loot = pool[this.rng.int(pool.length)];
         this.lastLoot = loot;
-        const crate = new SupplyCrate(
+        const [cx, cy] = this.terrain.free(
             this.player.x + cos(a) * dist,
             this.player.y + sin(a) * dist,
-            loot
+            24
         );
+        const crate = new SupplyCrate(cx, cy, loot);
         this.crates.push(crate);
         this.emit({ t: 'crateDrop', x: crate.x, y: crate.y });
     }
@@ -659,7 +703,7 @@ export class Simulation {
         const p = this.player;
         const dmg = def.ramDamage * this.hpMult;
         for (const e of this.spatial.queryRect(p.x, p.y, p.size + def.ramReach + 40)) {
-            if (e.hp <= 0 || this.rocketHit.has(e.uid)) continue;
+            if (e.hp <= 0 || e.breakable || this.rocketHit.has(e.uid)) continue;
             const dx = e.x - p.x;
             const dy = e.y - p.y;
             const d = hypot(dx, dy);
@@ -693,6 +737,152 @@ export class Simulation {
         }
         this.calmUntil = this.time + def.calm;
         this.emit({ t: 'godCandle', x: p.x, y: p.y, r: def.radius, wiped, calm: def.calm });
+    }
+
+    // --- The map: solid scenery, piggy banks and pickups ---------------------------------
+
+    /** Push the bull out of any solid prop its feet overlap. */
+    collidePlayer() {
+        const p = this.player;
+        const hit = this.terrain.push(p.x, p.y + p.size * SIM.BODY_FEET, p.size * SIM.BODY_R);
+        if (!hit) return;
+        p.x += hit.dx;
+        p.y += hit.dy;
+    }
+
+    /** The piggy banks within BREAK_ACTIVE of the bull, minus the smashed ones (kept as the same objects). */
+    _activateBreakables() {
+        const p = this.player;
+        const R = SIM.BREAK_ACTIVE;
+        const had = new Map(this.breakables.map((b) => [b.key, b]));
+        const next = [];
+        for (const b of this.terrain.breakablesNear(p.x, p.y, R)) {
+            if (this.broken.has(b.key)) continue;
+            if ((b.x - p.x) * (b.x - p.x) + (b.y - p.y) * (b.y - p.y) > R * R) continue;
+            next.push(had.get(b.key) || new Breakable(b.key, b.x, b.y));
+        }
+        this.breakables = next;
+    }
+
+    /** The bull charging into a piggy bank smashes it. */
+    _smashByContact() {
+        const p = this.player;
+        for (const b of this.breakables) {
+            if (b.hp <= 0) continue;
+            if (hypot(b.x - p.x, b.y - p.y) < b.size + p.size) {
+                b.hp = 0;
+                this._smash(b);
+            }
+        }
+    }
+
+    /** A piggy bank breaks: it's gone for the run, and it drops one of PIGGY_LOOT. */
+    _smash(b) {
+        this.broken.add(b.key);
+        this.breakables = this.breakables.filter((x) => x !== b);
+        this.stats.smashed++;
+        let r = this.rng.next() * PIGGY_LOOT.reduce((a, l) => a + l.weight, 0);
+        let loot = PIGGY_LOOT[PIGGY_LOOT.length - 1].id;
+        for (const l of PIGGY_LOOT) {
+            if (r < l.weight) {
+                loot = l.id;
+                break;
+            }
+            r -= l.weight;
+        }
+        if (loot === 'gold') {
+            const v = Math.max(50, Math.floor(this.player.expToNext * GOLD_SHARE));
+            this.xp.push(new XpOrb(b.x, b.y, v));
+        } else this.pickups.push(new Pickup(b.x, b.y, loot, SIM.PICKUP_LIFE));
+        this.emit({ t: 'smash', x: b.x, y: b.y, loot });
+    }
+
+    /** The bull walked over a pickup. */
+    collectPickup(pk) {
+        const p = this.player;
+        const def = PICKUPS[pk.kind];
+        if (pk.kind === 'chest') return this._openChest(pk);
+        this.stats.pickups++;
+        let v = 0;
+        if (pk.kind === 'ramen') {
+            const before = p.hp;
+            p.heal(def.heal);
+            v = p.hp - before;
+        } else if (pk.kind === 'clout') {
+            this.stats.clout += def.clout;
+            v = def.clout;
+        } else if (pk.kind === 'magnet') {
+            for (const o of this.xp) {
+                if (o.dead || o.fall > 0 || o.frozen || o.vacuum) continue;
+                o.vacuum = true;
+                v++;
+            }
+        } else if (pk.kind === 'halt') {
+            this.haltUntil = this.time + def.duration;
+            for (const e of this.enemies) {
+                if (!e.boss || e.hp <= 0) continue;
+                e.slowTimer = Math.max(e.slowTimer, def.duration);
+                e.slowPct = Math.max(e.slowPct || 0, def.bossSlow);
+            }
+        } else if (pk.kind === 'squeeze') {
+            v = this._squeeze(def);
+        }
+        this.emit({ t: 'pickupGet', kind: pk.kind, name: def.name, x: pk.x, y: pk.y, v });
+    }
+
+    /** Short Squeeze: every bear within `def.radius` of the bull dies; a boss loses `bossShare` of its HP. */
+    _squeeze(def) {
+        const p = this.player;
+        let wiped = 0;
+        for (const e of this.enemies) {
+            if (e.hp <= 0 || e.despawned || hypot(e.x - p.x, e.y - p.y) > def.radius) continue;
+            if (e.boss) {
+                this.damageEnemy(e, e.maxHp * def.bossShare, true, 'squeeze');
+                continue;
+            }
+            e.shielded = false;
+            e.shieldHp = 0;
+            this.damageEnemy(e, e.hp, false, 'squeeze', true);
+            wiped++;
+        }
+        this.emit({ t: 'squeeze', x: p.x, y: p.y, r: def.radius, wiped });
+        return wiped;
+    }
+
+    /**
+     * A boss's treasure chest: one free level-up for a weapon or passive the bull already has (three, with luck),
+     * drawn like the cards; an evolution can come out of it. Nothing left to level: it heals instead.
+     */
+    _openChest(pk) {
+        const p = this.player;
+        const n = this.rng.next() < SIM.CHEST_TRIPLE ? 3 : 1;
+        const items = [];
+        for (let k = 0; k < n; k++) {
+            const pool = [];
+            for (const w of p.weapons) if (w.level < SIM.WEAPON_MAX_LEVEL) pool.push(w);
+            for (const id of p.passiveOrder)
+                if (p.passives[id].count < SIM.PASSIVE_MAX_STACK) pool.push(p.passives[id]);
+            if (!pool.length) {
+                p.heal(40);
+                items.push({ kind: 'heal', id: 'take_profit', amount: 40 });
+                continue;
+            }
+            const pick = pool[this.rng.int(pool.length)];
+            if (pick.levelUp) {
+                pick.levelUp();
+                const evolves = pick.level === pick.def.evolveLevel;
+                items.push({ kind: 'weapon', id: pick.id, level: pick.level, evolves });
+                if (evolves) this.emit({ t: 'evolve', id: pick.id });
+            } else {
+                p.addPassive(pick.def);
+                const level = pick.count;
+                const evolves = !!pick.def.evolveName && level === SIM.PASSIVE_MAX_STACK;
+                items.push({ kind: 'passive', id: pick.def.id, level, evolves });
+                if (evolves) this.emit({ t: 'evolve', id: pick.def.id });
+            }
+        }
+        this.stats.chests++;
+        this.emit({ t: 'chest', x: pk.x, y: pk.y, items });
     }
 
     bossAbility(boss) {
@@ -752,6 +942,13 @@ export class Simulation {
 
     /** Apply damage to an enemy and emit the number. Returns damage actually dealt. */
     damageEnemy(e, amount, crit, src, quiet = false) {
+        if (e.breakable) {
+            if (e.hp > 0) {
+                e.takeDamage(amount);
+                this._smash(e);
+            }
+            return 0;
+        }
         const dealt = e.takeDamage(amount);
         this.stats.damageDealt += dealt;
         if (e.boss) this.stats.bossDamage += dealt;
@@ -772,7 +969,7 @@ export class Simulation {
             let next = null;
             let bestD2 = def.evolveChainRange * def.evolveChainRange;
             for (const e of this.spatial.queryRect(at.x, at.y, def.evolveChainRange)) {
-                if (e.hp <= 0 || hit.has(e)) continue;
+                if (e.hp <= 0 || e.breakable || hit.has(e)) continue;
                 const d2 = (e.x - at.x) * (e.x - at.x) + (e.y - at.y) * (e.y - at.y);
                 if (d2 < bestD2) {
                     bestD2 = d2;
@@ -833,7 +1030,7 @@ export class Simulation {
         return { live, maxed };
     }
 
-    _rollChoices() {
+    _rollChoices(event = 'levelup') {
         const { live } = this._upgradePool();
         const picks = [];
         const pool = live.slice();
@@ -841,12 +1038,30 @@ export class Simulation {
             picks.push(pool.splice(this.rng.int(pool.length), 1)[0]);
         while (picks.length < 3) picks.push({ kind: 'heal', id: 'take_profit', amount: 30 });
         this.choices = picks;
-        this.emit({ t: 'levelup', level: this.player.level, choices: picks });
+        this.emit({ t: event, level: this.player.level, choices: picks });
     }
 
-    /** Apply the level-up card at `index` (0..2). */
+    /**
+     * Apply the level-up card at `index` (0..2), or CHOICE_REROLL (three new cards, while rerolls last) or
+     * CHOICE_SKIP (take none, while skips last). Without one left, those fall back to the last card.
+     */
     choose(index) {
         if (!this.choices) return false;
+        if (index === CHOICE_REROLL && this.rerolls > 0) {
+            this.rerolls--;
+            this.stats.rerolls++;
+            this._rollChoices('reroll');
+            return true;
+        }
+        if (index === CHOICE_SKIP && this.skips > 0) {
+            this.skips--;
+            this.stats.skips++;
+            this.pendingLevelUps--;
+            this.choices = null;
+            this.emit({ t: 'skip' });
+            if (this.pendingLevelUps > 0) this._rollChoices();
+            return true;
+        }
         const c = this.choices[Math.max(0, Math.min(this.choices.length - 1, index | 0))];
         const p = this.player;
         if (c.kind === 'weapon') {
@@ -887,6 +1102,9 @@ export class Simulation {
             stage: this.stageId,
             twist: this.twistId,
             character: this.characterId,
+            clout: this.stats.clout,
+            smashed: this.stats.smashed,
+            chests: this.stats.chests,
             weapons: this.player.weapons.map((w) => [w.id, w.level]),
             passives: this.player.passiveOrder.map((id) => [id, this.player.passives[id].count])
         };

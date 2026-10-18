@@ -24,6 +24,15 @@ export class SpatialHash {
         }
     }
 
+    /** Add one more item (after a rebuild): the piggy banks join the bears this way. */
+    insert(it) {
+        const c = this.cell;
+        const k = Math.floor(it.x / c) * STRIDE + Math.floor(it.y / c);
+        const b = this.map.get(k);
+        if (b) b.push(it);
+        else this.map.set(k, [it]);
+    }
+
     /** Items whose cell overlaps the square (x ± r, y ± r). Callers do the exact distance test. */
     queryRect(x, y, r) {
         const c = this.cell;
@@ -41,13 +50,13 @@ export class SpatialHash {
         return out;
     }
 
-    /** Closest live item within maxRange, or null. Ties keep the first found. */
+    /** Closest live item within maxRange, or null (never a piggy bank: weapons aim at bears). Ties keep the first. */
     findNearest(x, y, maxRange) {
         let best = null;
         let bestD2 = maxRange * maxRange;
         const r = Math.min(maxRange, 1400);
         for (const e of this.queryRect(x, y, r)) {
-            if (e.hp <= 0) continue;
+            if (e.hp <= 0 || e.breakable) continue;
             const dx = e.x - x;
             const dy = e.y - y;
             const d2 = dx * dx + dy * dy;

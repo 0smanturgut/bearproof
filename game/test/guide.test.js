@@ -3,18 +3,27 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bossArrival, clock, firstSeen, guideSections } from '../src/guide.js';
+import { bossArrival, clock, dropChance, firstSeen, guideSections } from '../src/guide.js';
 import { ICONS, SPRITES } from '../src/art/sprites.js';
-import { BOSSES, ENEMIES, PASSIVES, SIM, WAVES, WEAPONS } from '../src/sim/content.js';
+import {
+    BOSSES,
+    ENEMIES,
+    PASSIVES,
+    PICKUPS,
+    PIGGY_LOOT,
+    SIM,
+    WAVES,
+    WEAPONS
+} from '../src/sim/content.js';
 
 const sections = guideSections();
 const tab = (id) => sections.find((s) => s.id === id);
 const entry = (tabId, id) => tab(tabId).entries.find((e) => e.id === id);
 
-test('guide: four tabs, and every content entry appears exactly once in its tab', () => {
+test('guide: five tabs, and every content entry appears exactly once in its tab', () => {
     assert.deepEqual(
         sections.map((s) => s.id),
-        ['weapons', 'passives', 'bears', 'bosses']
+        ['weapons', 'passives', 'bears', 'bosses', 'loot']
     );
     const want = {
         weapons: Object.values(WEAPONS),
@@ -98,4 +107,34 @@ test('guide: bosses show when they arrive on each Daily stage and what they pay'
     assert.ok(rl.stats.endsWith('jackpot 7,500'), rl.stats);
     for (const b of Object.values(BOSSES)) assert.ok(entry('bosses', b.id).text, b.id);
     assert.match(tab('bosses').intro, /The Bear Market/);
+});
+
+test('guide: the Loot tab has the piggy bank, every pickup once, the boss chest and the scenery', () => {
+    const loot = tab('loot');
+    const ids = loot.entries.map((e) => e.id);
+    assert.equal(ids[0], 'piggy_bank');
+    assert.equal(ids[ids.length - 1], 'scenery');
+    assert.equal(new Set(ids).size, ids.length, 'no duplicates');
+    for (const p of Object.values(PICKUPS)) {
+        const e = entry('loot', p.id);
+        assert.ok(e, `${p.id} is in the Loot tab`);
+        assert.equal(e.name, p.name);
+        assert.equal(e.art, p.sprite);
+        assert.equal(e.text, p.description);
+    }
+    // every piggy bank drop is listed (the gold candle is an XP candle, not a PICKUP), with its odds
+    for (const l of PIGGY_LOOT) assert.ok(ids.includes(l.id), l.id);
+    const odds = PIGGY_LOOT.map((l) => parseInt(dropChance(l.id), 10));
+    assert.ok(Math.abs(odds.reduce((a, x) => a + x, 0) - 100) <= PIGGY_LOOT.length, odds.join());
+    assert.equal(dropChance('chest'), null, 'no piggy bank drops a chest');
+    assert.deepEqual(entry('loot', 'ramen').tags, [`${dropChance('ramen')} of piggy banks`]);
+    assert.match(entry('loot', 'piggy_bank').text, /Smash it with anything, or run into it/);
+    assert.ok(entry('loot', 'ramen').stats.startsWith(`+${PICKUPS.ramen.heal} HP`));
+    assert.ok(entry('loot', 'halt').stats.startsWith(`${PICKUPS.halt.duration} s`));
+    assert.ok(entry('loot', 'chest').stats.includes(`waits ${SIM.CHEST_LIFE} s`));
+    assert.match(entry('loot', 'chest').tags[0], /The Bear Market/, 'the final boss drops none');
+    assert.equal(
+        entry('loot', 'scenery').text,
+        'Trees, walls and wrecks are solid. Bosses and FUD Clouds fly over them.'
+    );
 });

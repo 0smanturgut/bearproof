@@ -15,9 +15,11 @@ import { atan2, cos, hypot, ipow, sin, wrapAngle } from './dmath.js';
 const KNOCK_TIME = 0.15;
 
 let nextEntityId = 1;
+let nextBreakId = 1;
 /** Reset per simulation so ids (used only for stable hashing/debug) are deterministic. */
 export function resetEntityIds() {
     nextEntityId = 1;
+    nextBreakId = 1;
 }
 
 export class Player {
@@ -64,6 +66,8 @@ export class Player {
             (this.rocketTimer > 0 ? this.rocketMult : 1);
         this.x += mx * speed * dt;
         this.y += my * speed * dt;
+        // the map's solid scenery stops the bull (not on a Moon Rocket: it flies)
+        if (this.rocketTimer <= 0) sim.collidePlayer();
         this.moving = mx !== 0 || my !== 0;
         if (mx > 0) this.facing = 1;
         else if (mx < 0) this.facing = -1;
@@ -331,6 +335,8 @@ export class Enemy {
 
     update(dt, sim) {
         const def = this.def;
+        // Trading Halt: every bear but a boss stands frozen, its clocks stopped
+        if (!this.boss && sim.time < sim.haltUntil) return;
         const p = sim.player;
         const dx = p.x - this.x;
         const dy = p.y - this.y;
@@ -474,6 +480,7 @@ export class Enemy {
             this.y += this.knockVy * kt;
             this.knockTimer -= dt;
         }
+        if (!this.boss && !def.flies) this._collide(sim, vx, vy, dt);
 
         if (this.boss) {
             this.abilityTimer -= dt;
@@ -484,6 +491,29 @@ export class Enemy {
             if (def.phase2) this._rugPhase(dt, sim);
             if (def.freezeRadius) sim.freezeCandles(this);
         }
+    }
+
+    /**
+     * The map's solid scenery: pushed out of anything its feet overlap, and walking into it head-on it steps along
+     * the surface (the way it already leans, else a fixed side per bear) so it goes round instead of sticking.
+     */
+    _collide(sim, vx, vy, dt) {
+        const hit = sim.terrain.push(
+            this.x,
+            this.y + this.size * 0.5,
+            Math.max(6, this.size * 0.6)
+        );
+        if (!hit) return;
+        this.x += hit.dx;
+        this.y += hit.dy;
+        const sp = hypot(vx, vy);
+        if (sp < 1) return;
+        const into = -(vx * hit.nx + vy * hit.ny) / sp;
+        if (into < 0.5) return;
+        const cross = vx * hit.ny - vy * hit.nx;
+        const side = cross > 0.5 ? -1 : cross < -0.5 ? 1 : this.uid & 1 ? 1 : -1;
+        this.x += -hit.ny * side * sp * dt * into;
+        this.y += hit.nx * side * sp * dt * into;
     }
 
     /** Below `phase2.at` of his HP: every few seconds a warning, then the floor slides the bull toward him. */
@@ -681,6 +711,10 @@ export class BuyWall {
             const d = hypot(dx, dy);
             if (d > this.r + e.size) continue;
             this.hit.add(e.uid);
+            if (e.breakable) {
+                sim.damageEnemy(e, this.damage, false, this.weaponId);
+                continue;
+            }
             const crit = this.crit > 0 && sim.rng.next() < this.crit;
             sim.damageEnemy(e, crit ? this.damage * 2 : this.damage, crit, this.weaponId);
             if (!e.boss && e.hp > 0) {
@@ -878,6 +912,66 @@ export class SupplyCrate {
  * get shoved out of the way and dazed (bosses hold their ground); every SIM.WHALE_DROP_EVERY units it swims it
  * leaves a candle. It never touches the bull.
  */
+/**
+ * A piggy bank (placed by sim/terrain.js). Any hit smashes it, and so does the bull running into it; it drops one
+ * of PIGGY_LOOT. It shares the bears' spatial hash so every weapon can hit it, but it never moves, never hurts,
+ * is never aimed at (SpatialHash.findNearest skips it) and never counts as a kill or as damage dealt.
+ */
+export class Breakable {
+    constructor(key, x, y) {
+        this.uid = -nextBreakId++;
+        this.key = key;
+        this.x = x;
+        this.y = y;
+        this.id = 'piggy_bank';
+        this.def = BREAKABLE_DEF;
+        this.size = BREAKABLE_DEF.size;
+        this.hp = 1;
+        this.maxHp = 1;
+        this.breakable = true;
+        this.boss = false;
+        this.shielded = false;
+        this.shieldHp = 0;
+        this.slowTimer = 0;
+        this.slowPct = 0;
+        this.auraSlowTimer = 0;
+        this.auraSlowPct = 0;
+        this.honeyTimer = 0;
+        this.honeyPct = 0;
+        this.despawned = false;
+    }
+    knock() {}
+    takeDamage() {
+        const was = this.hp;
+        this.hp = 0;
+        return was;
+    }
+}
+const BREAKABLE_DEF = Object.freeze({ id: 'piggy_bank', sprite: 'piggy_bank', size: 14 });
+
+/** Something on the floor to walk over and take (PICKUPS): it waits `life` s, then it's gone. */
+export class Pickup {
+    constructor(x, y, kind, life) {
+        this.x = x;
+        this.y = y;
+        this.kind = kind;
+        this.life = life;
+        this.maxLife = life;
+        this.dead = false;
+    }
+    update(dt, sim) {
+        this.life -= dt;
+        const p = sim.player;
+        if (hypot(p.x - this.x, p.y - this.y) < SIM.PICKUP_DISTANCE + p.size) {
+            this.dead = true;
+            sim.collectPickup(this);
+        } else if (this.life <= 0) {
+            this.dead = true;
+            sim.emit({ t: 'pickupGone', x: this.x, y: this.y, kind: this.kind });
+        }
+    }
+}
+
 export class Whale {
     constructor(x, y, dir) {
         this.x = x;

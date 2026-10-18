@@ -15,6 +15,7 @@ import * as bosses from './bosses.js';
 import * as items from './items.js';
 import * as icons from './icons.js';
 import * as critters from './critters.js';
+import * as loot from './loot.js';
 import { PROP_DEFS, propSpriteGens } from './props.js';
 
 const make =
@@ -79,6 +80,14 @@ const SPRITE_GENS = {
     moon_rocket: make(items.moonRocket, 4, { fps: 14 }),
     honey_jar: make(items.honeyJar, 2, { fps: 4 }),
     // the maps' small life (life.js) and scenery (props.js): drawn by the renderer, never seen by the simulation
+    // breakables, what they drop, and the boss's treasure chest (loot.js)
+    piggy_bank: make(loot.piggyBank, 4, { fps: 6 }),
+    pk_ramen: make(loot.ramen, 2, { fps: 3 }),
+    pk_clout: make(loot.cloutGem, 4, { fps: 8 }),
+    pk_magnet: make(loot.magnet, 2, { fps: 4 }),
+    pk_halt: make(loot.halt, 2, { fps: 2 }),
+    pk_squeeze: make(loot.squeeze, 2, { fps: 6 }),
+    chest: make(loot.chest, 4, { fps: 6 }),
     crow: make(critters.crow, 4, { fps: 12 }),
     pigeon: make(critters.pigeon, 4, { fps: 12 }),
     rat: make(critters.rat, 2, { fps: 14 }),
@@ -178,6 +187,7 @@ export const SPRITE_GROUPS = {
         'moon_rocket',
         'honey_jar'
     ],
+    loot: ['piggy_bank', 'pk_ramen', 'pk_clout', 'pk_magnet', 'pk_halt', 'pk_squeeze', 'chest'],
     critters: ['crow', 'pigeon', 'rat', 'hare'],
     props: Object.keys(PROP_DEFS)
 };

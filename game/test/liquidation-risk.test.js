@@ -172,8 +172,9 @@ test('liquidation risk: a run that evolves Leverage chains and replays bit for b
         return { sim, rec };
     };
     let run = null;
-    // from seed 5: since SIM_VERSION 19 seed 4 evolves it too late to chain 20 times
-    for (let seed = 5; seed <= 12 && !run; seed++) {
+    // from seed 9: since SIM_VERSION 19 seed 4 evolves it too late to chain 20 times, and since 22 (the solid
+    // map) so does seed 8
+    for (let seed = 9; seed <= 16 && !run; seed++) {
         const r = play(seed);
         if (r.sim.player.evolvedPassive('leverage')) run = r;
     }

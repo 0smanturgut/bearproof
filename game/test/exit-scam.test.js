@@ -21,6 +21,7 @@ function quiet(seed = 5) {
     sim._dropCrate = () => {};
     sim.player.weapons.length = 0;
     sim.player.shieldTimer = 1e9;
+    sim.terrain.push = () => null; // open ground: these tests are about the scammer, not the scenery
     return sim;
 }
 

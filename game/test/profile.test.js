@@ -59,6 +59,50 @@ test('a run pays CLOUT for time, kills, bosses, a win and the bounty', () => {
     assert.equal(short.total, 2);
 });
 
+test('CLOUT picked up off the map is a line on the receipt, banked with the run', () => {
+    const p = runPayout(run({ timeMs: 60000, kills: 40, bossKills: 1, clout: 30 }));
+    assert.deepEqual(
+        p.lines.map((l) => l.id),
+        ['time', 'kills', 'found', 'bosses'],
+        'found right after the kills, in the count-up'
+    );
+    const found = p.lines.find((l) => l.id === 'found');
+    assert.equal(found.label, 'CLOUT FOUND');
+    assert.equal(found.v, 30);
+    assert.equal(p.total, 12 + 2 + 30 + PAY.boss);
+    // none found: no line; junk never pays
+    for (const clout of [0, undefined, -10, NaN, 'x'])
+        assert.ok(!runPayout(run({ clout })).lines.some((l) => l.id === 'found'), String(clout));
+    assert.equal(runPayout(run({ clout: 12.9 })).lines.find((l) => l.id === 'found').v, 12);
+    // applyRun banks it: balance, lifetime earnings and XP
+    const a = applyRun(defaultProfile(), run({ timeMs: 60000, kills: 40, clout: 30 }));
+    assert.equal(a.payout.total, 12 + 2 + 30);
+    assert.equal(a.profile.clout, 44);
+    assert.equal(a.profile.earned, 44);
+    assert.equal(a.profile.xp, 44);
+});
+
+test('a real run that smashes piggy banks banks the CLOUT it picked up', () => {
+    // a bot run long enough to break some piggy banks; whatever CLOUT it found is on its receipt
+    let found = null;
+    for (const seed of [11, 12, 13, 14, 15, 16, 17, 18]) {
+        const sim = new Simulation({ seed, stage: 'chop' });
+        const bot = createBot({ style: 'survive', phase: seed });
+        while (!sim.over && sim.time < 150) {
+            while (sim.choices) sim.choose(bot.pick(sim));
+            sim.step(bot.move(sim));
+            sim.drainEvents();
+        }
+        const s = sim.summary();
+        if (s.clout > 0) {
+            found = s;
+            break;
+        }
+    }
+    assert.ok(found, 'some run picked up CLOUT');
+    assert.equal(runPayout(found).lines.find((l) => l.id === 'found').v, found.clout);
+});
+
 test('the player level curve: 200 XP, then 100 more per level', () => {
     assert.equal(xpToNext(1), LEVEL.base);
     assert.equal(xpToNext(3), LEVEL.base + 2 * LEVEL.step);
@@ -190,7 +234,7 @@ test('every Market item has its art and a free default in every slot', () => {
 
 test('bossDamage counts the damage bosses took and leaves the simulation alone', () => {
     const play = () => {
-        const sim = new Simulation({ seed: 1 });
+        const sim = new Simulation({ seed: 5 }); // seed 1 until SIM_VERSION 22: it no longer reaches a boss
         const bot = createBot();
         let dmg = 0;
         while (!sim.over && sim.tick < 60 * 60 * 12) {
@@ -205,7 +249,7 @@ test('bossDamage counts the damage bosses took and leaves the simulation alone',
         return { sim, dmg };
     };
     const { sim, dmg } = play();
-    assert.ok(sim.stats.bossKills >= 1, 'seed 1 kills a boss');
+    assert.ok(sim.stats.bossKills >= 1, 'seed 5 kills a boss');
     assert.ok(sim.summary().bossDamage > 0);
     // at least what the bosses' HP bars lost (a killing blow's overkill counts too), never more than all damage
     assert.ok(sim.stats.bossDamage >= dmg - 1, `${sim.stats.bossDamage} vs ${dmg}`);

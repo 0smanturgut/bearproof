@@ -5,7 +5,14 @@
  */
 
 import { ICONS, bakeIcon, bakeSprite } from './art/sprites.js';
-import { CHARACTERS, PASSIVES, STAGES, WEAPONS } from './sim/content.js';
+import {
+    CHARACTERS,
+    CHOICE_REROLL,
+    CHOICE_SKIP,
+    PASSIVES,
+    STAGES,
+    WEAPONS
+} from './sim/content.js';
 import { fmtNum, fmtTime } from './format.js';
 import { ETERNAL_BEAR, MARKET, bearHp, characterUnlocked, levelForXp } from './profile.js';
 
@@ -78,12 +85,21 @@ export class UI {
             bossbar: $('bossbar'),
             bossName: $('bossName'),
             bossHp: $('bossHp'),
-            loadout: $('loadout')
+            loadout: $('loadout'),
+            halt: $('hHalt'),
+            haltVeil: $('haltVeil')
         };
         this._last = {};
         this._toastTimer = 0;
         this._bossTimer = 0;
         this._loadoutKey = '';
+        this._chestUntil = 0;
+        // Whether the key being handled is an auto-repeat: a held S (moving down) must never press SKIP. This runs
+        // before the input layer's own keydown listener (the UI is built first), so levelKey() can read it.
+        this._keyRepeat = false;
+        globalThis.addEventListener?.('keydown', (e) => (this._keyRepeat = !!e.repeat), true);
+        $('btnReroll').addEventListener('click', () => this._levelAct?.(CHOICE_REROLL));
+        $('btnSkip').addEventListener('click', () => this._levelAct?.(CHOICE_SKIP));
     }
 
     show(id, { focus = true } = {}) {
@@ -155,6 +171,15 @@ export class UI {
         set('score', sim.stats.score, (v) => (this.hud.score.textContent = fmtNum(v)));
         set('kills', sim.stats.kills, (v) => (this.hud.kills.textContent = fmtNum(v)));
         set('wave', sim.wave.label, (v) => (this.hud.wave.textContent = v));
+        // Trading Halt: the seconds left under the timer, and a frost edge on the screen; it thaws in the last one
+        const haltLeft = (sim.haltUntil || 0) - sim.time;
+        set('halt', haltLeft > 0 ? Math.ceil(haltLeft) : 0, (v) => {
+            this.hud.halt.hidden = !v;
+            this.hud.halt.textContent = v ? `HALT ${v}s` : '';
+            this.hud.halt.parentElement.classList.toggle('halted', !!v);
+            this.hud.haltVeil.hidden = !v;
+            this.hud.haltVeil.classList.toggle('thaw', v === 1);
+        });
 
         const boss = sim.enemies.find((e) => e.boss && e.hp > 0);
         set('boss', boss ? boss.uid : 0, () => {
@@ -207,9 +232,21 @@ export class UI {
         this._last = {};
         this._loadoutKey = '';
         this.hud.bossbar.hidden = true;
+        this.hud.halt.hidden = true;
+        this.hud.haltVeil.hidden = true;
+        this.chestReveal(null);
+        clearTimeout(this._toastLater); // a toast held back by the last run's chest banner
     }
 
     toast(text, tone = 'gold', ms = 1400) {
+        // The chest banner owns the middle of the screen for its 2.5 s: a toast waits until it's gone.
+        const wait = this._chestUntil - performance.now();
+        clearTimeout(this._toastLater);
+        if (wait > 0) {
+            // (dropped if a screen, say the level-up cards, has opened over the run meanwhile)
+            this._toastLater = setTimeout(() => !this.current && this.toast(text, tone, ms), wait);
+            return;
+        }
         const el = $('toast');
         el.textContent = text;
         el.className = `toast ${tone} show`;
@@ -221,6 +258,7 @@ export class UI {
     bossIntro(name, tagline, id) {
         const card = $('bossCard');
         $('toast').classList.remove('show');
+        this.chestReveal(null);
         const portrait = $('bossPortrait');
         portrait.hidden = !id;
         if (id) paintIcon(portrait, id, 4);
@@ -239,6 +277,75 @@ export class UI {
 
     moveHint(on) {
         $('hint').hidden = !on;
+    }
+
+    /**
+     * A boss's treasure chest opens: a banner above the bull with the 1 or 3 level-ups that came out of it
+     * (sim `chest` event items: { kind: 'weapon'|'passive'|'heal', id, level, evolves, amount }), popping in one
+     * after another under gold rays. It never takes a tap and never pauses the run; gone in ~2.5 s. `calm` only
+     * fades. null hides it.
+     */
+    chestReveal(items, { calm = false } = {}) {
+        const card = $('chestCard');
+        clearTimeout(this._chestTimer);
+        card.hidden = true;
+        this._chestUntil = 0;
+        if (!items?.length) return;
+        $('toast').classList.remove('show');
+        const evolved = items.find((it) => it.evolves);
+        const heals = items.every((it) => it.kind === 'heal');
+        $('chestTitle').textContent = evolved
+            ? 'EVOLVED!'
+            : heals
+              ? 'TAKE PROFIT'
+              : items.length > 1
+                ? 'TRIPLE PUMP'
+                : 'BAGS PUMPED';
+        const list = $('chestItems');
+        list.innerHTML = '';
+        const said = [];
+        const big = !!globalThis.matchMedia?.('(min-width: 900px) and (min-height: 600px)')
+            ?.matches;
+        items.forEach((it, i) => {
+            const def =
+                it.kind === 'weapon'
+                    ? WEAPON_BY_ID[it.id]
+                    : it.kind === 'passive'
+                      ? PASSIVE_BY_ID[it.id]
+                      : null;
+            const name =
+                it.evolves && def?.evolveName ? def.evolveName : def?.name || 'Take Profit';
+            const tag =
+                it.kind === 'heal'
+                    ? `+${it.amount || 0} HP`
+                    : it.evolves
+                      ? 'EVOLVED'
+                      : it.kind === 'passive'
+                        ? `×${it.level}`
+                        : `LV ${it.level}`;
+            const li = document.createElement('li');
+            li.className = `cr-item ${it.kind}${it.evolves ? ' evo' : ''}`;
+            li.style.setProperty('--d', `${260 + i * 220}ms`);
+            li.innerHTML = `
+                <span class="cr-ic"><canvas aria-hidden="true"></canvas></span>
+                <b class="cr-name">${esc(name)}</b>
+                <span class="cr-tag">${esc(tag)}</span>`;
+            paintIcon(li.querySelector('canvas'), def?.icon || 'dca', big ? 4 : 3);
+            list.appendChild(li);
+            said.push(`${name} ${tag}`);
+        });
+        const ms = 2500 + (items.length - 1) * 220;
+        card.style.setProperty('--cr-dur', `${ms}ms`);
+        card.classList.toggle('calm', !!calm || reduced());
+        card.classList.toggle('triple', items.length > 1);
+        void card.offsetWidth; // from display:none, so every animation in the banner starts over
+        card.hidden = false;
+        this._chestUntil = performance.now() + ms;
+        this._chestTimer = setTimeout(() => {
+            card.hidden = true;
+            this._chestUntil = 0;
+        }, ms);
+        this.announce(`Boss treasure: ${said.join(', ')}.`);
     }
 
     /**
@@ -395,19 +502,84 @@ export class UI {
 
     // --- Level-up ------------------------------------------------------------
 
-    /** Render three cards; `onPick(i)` fires once. Taps are ignored for a moment so a held thumb can't misfire. */
-    showLevelUp(level, choices, onPick) {
+    /**
+     * Render three cards, and REROLL / SKIP while the run has any left. `onPick(i)` fires once, with a card index
+     * or CHOICE_REROLL / CHOICE_SKIP. Taps are ignored for a moment so a held thumb can't misfire. `shuffle`: the
+     * cards on screen were just rerolled, so the old ones flip away and the new ones are dealt in.
+     */
+    showLevelUp(
+        level,
+        choices,
+        onPick,
+        { rerolls = 0, skips = 0, shuffle = false, calm = false } = {}
+    ) {
         $('lvN').textContent = level;
         const wrap = $('cards');
-        wrap.innerHTML = '';
+        const gen = (this._lvGen = (this._lvGen || 0) + 1);
         wrap.classList.add('locked');
         let armed = false;
         let done = false;
         const pick = (i) => {
             if (!armed || done) return;
+            if (i === CHOICE_REROLL && rerolls <= 0) return;
+            if (i === CHOICE_SKIP && skips <= 0) return;
             done = true;
             onPick(i);
         };
+        this._levelAct = pick;
+        const acts = [
+            [$('btnReroll'), $('rerollN'), rerolls, 'Reroll: three new cards'],
+            [$('btnSkip'), $('skipN'), skips, 'Skip: take no card']
+        ];
+        for (const [btn, n, left, label] of acts) {
+            btn.hidden = left <= 0;
+            n.textContent = `×${left}`;
+            btn.setAttribute('aria-label', `${label}, ${left} left`);
+        }
+        $('lvActs').hidden = rerolls <= 0 && skips <= 0;
+        $('lvHint').textContent = [
+            'Pick one · keys 1 2 3',
+            rerolls > 0 ? 'R reroll' : '',
+            skips > 0 ? 'S skip' : ''
+        ]
+            .filter(Boolean)
+            .join(' · ');
+        const motion = !calm && !reduced();
+        const deal = () => {
+            if (gen !== this._lvGen) return;
+            wrap.innerHTML = '';
+            wrap.classList.toggle('shuffle', shuffle && motion);
+            this._dealCards(wrap, choices, pick);
+            setTimeout(() => {
+                if (gen !== this._lvGen) return;
+                armed = true;
+                wrap.classList.remove('locked');
+            }, 380);
+        };
+        // A reroll: the three old cards flip away first, then the new three are dealt.
+        const old = shuffle && motion ? [...wrap.children] : [];
+        if (old.length) {
+            for (const c of old) c.classList.add('out');
+            setTimeout(deal, 170);
+        } else deal();
+        if (!shuffle || $('screenLevel').hidden) this.show('screenLevel');
+        this._levelKeys = (key, { pad = false } = {}) => {
+            const n = Number(key);
+            if (n >= 1 && n <= choices.length) return pick(n - 1);
+            // R / S: a fresh press only. A key held from running (S is "down") repeats, and must not spend these.
+            if (!pad && this._keyRepeat) return;
+            if (key === 'r') pick(CHOICE_REROLL);
+            else if (key === 's') pick(CHOICE_SKIP);
+        };
+        this.announce(
+            shuffle
+                ? `Rerolled. ${rerolls} reroll${rerolls === 1 ? '' : 's'} left.`
+                : `Level ${level}. Choose an upgrade.`
+        );
+    }
+
+    /** The three level-up cards (the buttons inside #cards). */
+    _dealCards(wrap, choices, pick) {
         choices.forEach((c, i) => {
             const def =
                 c.kind === 'weapon'
@@ -460,20 +632,11 @@ export class UI {
             btn.setAttribute('aria-label', `${name}, ${tag}. ${desc} ${evo}`);
             wrap.appendChild(btn);
         });
-        this.show('screenLevel');
-        setTimeout(() => {
-            armed = true;
-            wrap.classList.remove('locked');
-        }, 380);
-        this._levelKeys = (key) => {
-            const n = Number(key);
-            if (n >= 1 && n <= choices.length) pick(n - 1);
-        };
-        this.announce(`Level ${level}. Choose an upgrade.`);
     }
 
-    levelKey(key) {
-        this._levelKeys?.(key);
+    /** A key (or a pad button, `{ pad: true }`) on the level-up screen: 1 2 3 pick a card, R rerolls, S skips. */
+    levelKey(key, opts) {
+        this._levelKeys?.(key, opts);
     }
 
     // --- Title / over / board / settings ---------------------------------------

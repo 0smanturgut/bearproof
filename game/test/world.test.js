@@ -10,6 +10,7 @@ import { CHUNK, Layout, BIOMES } from '../src/world.js';
 import { DECAL_DEFS, PROP_DEFS, decal } from '../src/art/props.js';
 import { SPRITES } from '../src/art/sprites.js';
 import { STAGE_ROTATION } from '../src/sim/content.js';
+import { PROPS } from '../src/sim/terrain.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const src = path.join(here, '..', 'src');
@@ -105,18 +106,31 @@ test('world: the ground is a colour for every pixel, the same every time', () =>
     }
 });
 
-test('world: the simulation never imports the scenery, and the scenery never writes the simulation', () => {
+test('world: the simulation never imports the renderer or the art, and the renderer only reads its layout', () => {
     const simDir = path.join(src, 'sim');
     for (const f of fs.readdirSync(simDir)) {
         const text = fs.readFileSync(path.join(simDir, f), 'utf8');
         assert.doesNotMatch(
             text,
-            /from '\.\.\/(world|life|lighting)\.js'|art\/props|art\/biomes/,
-            f
+            /from '\.\.\/|from '\.\.\/art|art\/props|art\/biomes/,
+            `sim/${f}`
         );
     }
-    for (const f of ['world.js', 'life.js', 'lighting.js', 'art/props.js']) {
+    // the props the renderer draws are the ones the simulation collides with: one layout, from sim/terrain.js
+    const world = fs.readFileSync(path.join(src, 'world.js'), 'utf8');
+    const simImports = [...world.matchAll(/from '\.\/sim\/([^']+)'/g)].map((m) => m[1]);
+    assert.deepEqual(simImports, ['terrain.js']);
+    for (const f of ['life.js', 'lighting.js', 'art/props.js']) {
         const text = fs.readFileSync(path.join(src, f), 'utf8');
         assert.doesNotMatch(text, /from '\.\/sim\/|from '\.\.\/sim\//, `${f} imports the sim`);
     }
+});
+
+test('world: every prop the terrain can place has art, so nothing solid is ever invisible', () => {
+    for (const id of Object.keys(PROPS)) {
+        assert.ok(PROP_DEFS[id], `${id}: art/props.js`);
+        assert.ok(SPRITES[id], `${id}: sprite`);
+    }
+    for (const id of Object.keys(PROP_DEFS))
+        assert.ok(PROPS[id], `${id}: placed by sim/terrain.js`);
 });

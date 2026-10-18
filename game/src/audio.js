@@ -409,6 +409,114 @@ export class AudioEngine {
             200
         );
     }
+    /** A piggy bank smashes: a ceramic crunch (noise over a falling crack), then two coins skittering out. */
+    smash() {
+        this.tone({ noise: true, dur: 0.07, volume: 0.2, release: 0.05 });
+        this.tone({ freq: 1700, dur: 0.05, type: 'square', volume: 0.06, sweep: -1100 });
+        this.tone({ freq: 210, dur: 0.06, type: 'triangle', volume: 0.12, sweep: -90 });
+        setTimeout(() => this.tone({ freq: 2300, dur: 0.035, type: 'triangle', volume: 0.06 }), 70);
+        setTimeout(
+            () => this.tone({ freq: 2750, dur: 0.035, type: 'triangle', volume: 0.05 }),
+            125
+        );
+    }
+    /** Instant Ramen: a warm slurp, a low sine bending up, and a soft blip on top. */
+    ramen() {
+        this.tone({ freq: 240, dur: 0.16, type: 'sine', volume: 0.16, sweep: 300 });
+        this.tone({ noise: true, dur: 0.1, volume: 0.04, attack: 0.03, release: 0.06 });
+        setTimeout(() => this.tone({ freq: 880, dur: 0.08, type: 'sine', volume: 0.1 }), 120);
+    }
+    /** CLOUT picked up: a bright gem "ding-ding", a fifth apart. */
+    cloutGet() {
+        this.tone({ freq: 1568, dur: 0.06, type: 'square', volume: 0.07 });
+        setTimeout(() => this.tone({ freq: 2349, dur: 0.16, type: 'triangle', volume: 0.12 }), 70);
+    }
+    /** Liquidity Sweep: a rising whoosh, then the candles pouring in as a quick run of clinks. */
+    liquiditySweep() {
+        this.tone({ freq: 220, dur: 0.32, type: 'sine', volume: 0.14, sweep: 660 });
+        this.tone({ noise: true, dur: 0.24, volume: 0.06, attack: 0.08, release: 0.1 });
+        for (let i = 0; i < 6; i++) {
+            setTimeout(
+                () =>
+                    this.tone({ freq: 1500 + i * 180, dur: 0.04, type: 'triangle', volume: 0.06 }),
+                220 + i * 45
+            );
+        }
+    }
+    /** Trading Halt: the market freezes, a glassy chord falling into a cold hum. */
+    halt() {
+        this.tone({ freq: 2600, dur: 0.08, type: 'triangle', volume: 0.08, sweep: -1400 });
+        this.tone({ noise: true, dur: 0.12, volume: 0.08, release: 0.1 });
+        for (const f of [1319, 988, 659])
+            this.tone({ freq: f, dur: 0.5, type: 'sine', volume: 0.07, release: 0.3 });
+        setTimeout(
+            () => this.tone({ freq: 165, dur: 0.6, type: 'triangle', volume: 0.1, sweep: -30 }),
+            90
+        );
+    }
+    /** Short Squeeze: the price rips (a fast rising sweep), then a huge green boom. */
+    squeeze() {
+        this.tone({ freq: 180, dur: 0.22, type: 'sawtooth', volume: 0.1, sweep: 1400 });
+        setTimeout(() => {
+            this.tone({ noise: true, dur: 0.35, volume: 0.28, release: 0.25 });
+            this.tone({ freq: 70, dur: 0.55, type: 'sine', volume: 0.3, sweep: -30 });
+            for (const f of [392, 523, 784])
+                this.tone({ freq: f, dur: 0.4, type: 'square', volume: 0.05, release: 0.2 });
+        }, 220);
+    }
+    /** A boss's treasure chest lands: a bright shimmer climbing, like light pouring down. */
+    chestDrop() {
+        [1047, 1319, 1568, 2093, 2637].forEach((f, i) =>
+            setTimeout(
+                () => this.tone({ freq: f, dur: 0.12, type: 'triangle', volume: 0.08 }),
+                i * 55
+            )
+        );
+        this.tone({ freq: 523, dur: 0.5, type: 'sine', volume: 0.1, release: 0.3 });
+    }
+    /**
+     * The chest opens: a wooden creak and a thump, then one bright "pop" per item, in time with the cards on the
+     * reveal banner (ui.js chestReveal: 260 ms, then one every 220 ms), and a chord when the last one lands.
+     */
+    chest(n = 1) {
+        this.tone({ freq: 120, dur: 0.12, type: 'triangle', volume: 0.2, sweep: -50 });
+        this.tone({ freq: 340, dur: 0.14, type: 'square', volume: 0.04, sweep: 180 });
+        const pops = [1175, 1568, 2093];
+        for (let i = 0; i < n; i++) {
+            setTimeout(
+                () => {
+                    this.tone({ freq: pops[i % 3], dur: 0.07, type: 'square', volume: 0.09 });
+                    this.tone({
+                        freq: pops[i % 3] * 1.5,
+                        dur: 0.12,
+                        type: 'triangle',
+                        volume: 0.07
+                    });
+                },
+                260 + i * 220
+            );
+        }
+        setTimeout(
+            () => {
+                for (const f of [784, 988, 1175, 1568])
+                    this.tone({ freq: f, dur: 0.55, type: 'triangle', volume: 0.07, release: 0.3 });
+            },
+            260 + n * 220
+        );
+    }
+    /** Level-up REROLL: the deck riffles, quick ticks climbing. */
+    reroll() {
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                this.tone({ noise: true, dur: 0.015, volume: 0.07, release: 0.01 });
+                this.tone({ freq: 900 + i * 160, dur: 0.02, type: 'square', volume: 0.035 });
+            }, i * 32);
+        }
+    }
+    /** Level-up SKIP: a soft pass, one note sliding down. */
+    skip() {
+        this.tone({ freq: 620, dur: 0.14, type: 'triangle', volume: 0.1, sweep: -300 });
+    }
     achievement() {
         this.tone({ freq: 880, dur: 0.08, type: 'triangle', volume: 0.18 });
         setTimeout(() => this.tone({ freq: 1174, dur: 0.1, type: 'triangle', volume: 0.2 }), 70);

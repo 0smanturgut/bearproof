@@ -76,8 +76,87 @@ export const SIM = Object.freeze({
     DIP_AT: 0.3,
     DIP_TIME: 5,
     DIP_COOLDOWN: 60,
-    DIP_HEAL: 2
+    DIP_HEAL: 2,
+    // The map (sim/terrain.js): solid scenery stops the bull and the bears (bosses and FUD clouds go over it). A body
+    // is a circle at its feet: the bull's is BODY_R × its size, BODY_FEET × its size below its centre.
+    BODY_R: 0.72,
+    BODY_FEET: 0.9,
+    // Piggy banks: the ones within BREAK_ACTIVE of the bull can be hit (they join the bears' spatial hash, checked
+    // every BREAK_EVERY ticks). Smash one with any weapon, or run into it, and it drops one of PIGGY_LOOT.
+    BREAK_ACTIVE: 900,
+    BREAK_EVERY: 20,
+    PICKUP_LIFE: 40, // s a dropped pickup waits on the floor
+    CHEST_LIFE: 90, // and a boss's treasure chest
+    CHEST_TRIPLE: 0.25, // chance a chest holds three level-ups instead of one
+    // Level-up cards: per run, this many rerolls (draw three new cards) and skips (take none).
+    REROLLS: 2,
+    SKIPS: 2
 });
+
+/** Special level-up "card" indices in the run log: draw three new cards, or take none. */
+export const CHOICE_REROLL = 7;
+export const CHOICE_SKIP = 8;
+
+/**
+ * What a smashed piggy bank drops, by weight. `gold` is a big XP candle worth GOLD_SHARE of the next level
+ * (at least 50, so it's always the gold one); the rest are PICKUPS.
+ */
+export const PIGGY_LOOT = [
+    { id: 'ramen', weight: 30 },
+    { id: 'gold', weight: 26 },
+    { id: 'clout', weight: 14 },
+    { id: 'magnet', weight: 12 },
+    { id: 'halt', weight: 10 },
+    { id: 'squeeze', weight: 8 }
+];
+export const GOLD_SHARE = 0.35;
+
+/** Pickups on the floor: walk over one to take it. `sprite` / `name` / `description` are display only. */
+export const PICKUPS = {
+    ramen: {
+        id: 'ramen',
+        name: 'Instant Ramen',
+        sprite: 'pk_ramen',
+        description: 'Bear market food. +30 HP.',
+        heal: 30
+    },
+    clout: {
+        id: 'clout',
+        name: 'CLOUT',
+        sprite: 'pk_clout',
+        description: '+10 CLOUT for the Market when the run ends.',
+        clout: 10
+    },
+    magnet: {
+        id: 'magnet',
+        name: 'Liquidity Sweep',
+        sprite: 'pk_magnet',
+        description: 'Every candle on the map flies to you.'
+    },
+    halt: {
+        id: 'halt',
+        name: 'Trading Halt',
+        sprite: 'pk_halt',
+        description: 'Every bear freezes for 5 s. Bosses only slow down.',
+        duration: 5,
+        bossSlow: 0.5
+    },
+    squeeze: {
+        id: 'squeeze',
+        name: 'Short Squeeze',
+        sprite: 'pk_squeeze',
+        description: 'Wipes out every bear near you. Bosses lose 8% HP.',
+        radius: 650,
+        bossShare: 0.08
+    },
+    chest: {
+        id: 'chest',
+        name: 'Boss Treasure',
+        sprite: 'chest',
+        description:
+            'Every boss drops one: a free level-up for your weapons or passives, sometimes three.'
+    }
+};
 
 // ---------------------------------------------------------------- airdrop crates
 
@@ -595,7 +674,8 @@ export const ENEMIES = {
         speed: 130,
         damage: 18,
         exp: 18,
-        size: 15
+        size: 15,
+        flies: true // over the scenery, like the bosses
     },
     DOOMPOSTER: {
         id: 'doomposter',

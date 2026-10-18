@@ -2,13 +2,13 @@
  * @module report
  * @description Run reports for the screens, read from the simulation and never written back to it:
  *  - the damage report on the game-over receipt: damage per source, summed from the sim's `dmg` events, plus the
- *    hits the sim deals quietly (no event: Hopium's cloud, the God Candle's wipe), recovered from the
+ *    hits the sim deals quietly (no event: Hopium's cloud, the God Candle's and Short Squeeze's wipes), from the
  *    `stats.damageDealt` counter;
  *  - the build sheet on the pause screen: the loadout and the player's real stat multipliers.
  * No DOM here, so both are unit-tested (test/report.test.js).
  */
 
-import { CRATE_LOOT, PASSIVES, SIM, WEAPONS } from './sim/content.js';
+import { CRATE_LOOT, PASSIVES, PICKUPS, SIM, WEAPONS } from './sim/content.js';
 
 const WEAPON_BY_ID = Object.fromEntries(Object.values(WEAPONS).map((d) => [d.id, d]));
 const PASSIVE_BY_ID = Object.fromEntries(Object.values(PASSIVES).map((d) => [d.id, d]));
@@ -25,7 +25,8 @@ export const OTHER_SOURCES = Object.freeze({
         icon: 'moon_rocket',
         tag: 'CRATE',
         crate: true
-    }
+    },
+    squeeze: { name: PICKUPS.squeeze.name, icon: 'pk_squeeze', tag: 'LOOT', crate: true }
 });
 
 const titleCase = (id) =>
@@ -59,18 +60,19 @@ export function createDamageReport() {
             // Liquidation Risk's clock starts when Leverage evolves, not at its first chain.
             if (!('liquidation' in since) && p.evolvedPassive?.('leverage')) since.liquidation = t;
             let loud = 0;
-            let wipe = false;
+            let wipe = null;
             for (const e of events) {
                 if (e.t === 'dmg') {
                     add(e.src, e.v, t);
                     loud += e.v;
-                } else if (e.t === 'godCandle') wipe = true;
+                } else if (e.t === 'godCandle') wipe = 'god_candle';
+                else if (e.t === 'squeeze') wipe = 'squeeze'; // a Short Squeeze pickup wipes quietly too
             }
             const dealt = sim.stats.damageDealt || 0;
             const quiet = dealt - counted - loud;
             counted = dealt;
             if (quiet > 1e-6) {
-                const src = wipe ? 'god_candle' : p.weapons.find((w) => w.def?.type === 'aura')?.id;
+                const src = wipe || p.weapons.find((w) => w.def?.type === 'aura')?.id;
                 if (src) add(src, quiet, t);
             }
         },

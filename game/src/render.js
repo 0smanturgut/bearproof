@@ -19,7 +19,7 @@ import { DECAL_DEFS, PROP_DEFS } from './art/props.js';
 import { THEMES } from './art/stages.js';
 import { Life } from './life.js';
 import { Lighting } from './lighting.js';
-import { SIM } from './sim/content.js';
+import { PICKUPS, SIM } from './sim/content.js';
 import { BIOMES, World, warmDecal } from './world.js';
 
 const ART_UNIT = 2; // world units per art pixel
@@ -50,6 +50,16 @@ export const KILL_COLORS = {
 
 // Things that hover: their shadow sits lower and smaller.
 const FLOATERS = new Set(['fud_cloud', 'liquidation', 'capitulation']);
+
+// The glow of each pickup on the floor (and of its light on the ground around it).
+const PICKUP_GLOW = {
+    ramen: '255,214,150',
+    clout: '255,197,61',
+    magnet: '170,225,255',
+    halt: '120,220,255',
+    squeeze: '255,150,70',
+    chest: '255,200,90'
+};
 
 // What a footstep kicks up on each map: forest dirt, street grit, snow.
 const DUST = {
@@ -339,6 +349,8 @@ export class Renderer {
         this.X = X;
         this.Y = Y;
         const quality = this.quality(dt);
+        this._halted = sim.time < (sim.haltUntil || 0);
+        this._pickGlows = []; // the pickups' glowing pixels, drawn in the bloom pass with the rest
 
         // --- the map: its ground, with every decal baked in
         const world = this.world;
@@ -420,6 +432,11 @@ export class Renderer {
             if (!visible(c.x, c.y, 60)) continue;
             this._drawCrateGround(c, X(c.x), Y(c.y), t);
         }
+        // --- what piggy banks and bosses dropped: pickups, and the boss's treasure chest
+        for (const pk of sim.pickups || []) {
+            if (!visible(pk.x, pk.y, 80)) continue;
+            this._drawPickup(pk, X(pk.x), Y(pk.y), t, fx.calm);
+        }
 
         // --- Rug Lord's second phase: a red glow under him, and the rug under the bull while he pulls it
         for (const e of sim.enemies) if (e.enraged && e.hp > 0) this._drawRug(e, p, X, Y, t, fx);
@@ -464,17 +481,26 @@ export class Renderer {
                 if (sh > 0) this._shadow(X(pr.x), Y(pr.y) - k, sd.w * k * sh, 0.9);
             }
 
-        // what a tall prop must never hide: the bull, and a crate on the ground
+        // what a tall prop must never hide: the bull, a crate, a chest
         this._focus = [[p.x, p.y]];
         for (const c of sim.crates) if (c.landed) this._focus.push([c.x, c.y]);
+        for (const pk of sim.pickups || []) if (pk.kind === 'chest') this._focus.push([pk.x, pk.y]);
         const drawList = list.slice();
         drawList.push(p);
         for (const pr of props) drawList.push(pr);
+        // piggy banks stand on the floor like props
+        const pig = SPRITES.piggy_bank;
+        for (const b of sim.breakables || []) {
+            if (b.hp <= 0 || !visible(b.x, b.y, 40)) continue;
+            drawList.push(b);
+            this._shadow(X(b.x), Y(b.y) - k, pig.w * k * 0.8, 0.9);
+        }
         drawList.sort((a, b) => a.y - b.y);
-        const glows = [];
+        const glows = this._pickGlows;
         for (const e of drawList) {
             if (e === p) this._drawBull(p, X(p.x), Y(p.y), t, dt, fx, glows, sim);
             else if (e.prop) this._drawProp(e, X, Y, t, dt, p, glows);
+            else if (e.breakable) this._drawPiggy(e, X(e.x), Y(e.y), t, glows);
             else this._drawEnemy(e, X(e.x), Y(e.y), t, glows);
         }
         // doomposters typing: bubbles over the crowd, so nothing hides the tell
@@ -557,6 +583,8 @@ export class Renderer {
             if (e.boss && e.hp > 0 && !e.fleeing)
                 marks.push([e.x, e.y, '#FF3B5C', e.def.sprite || e.id]);
         for (const c of sim.crates) if (c.landed) marks.push([c.x, c.y, '#FFC53D', 'supply_crate']);
+        for (const pk of sim.pickups || [])
+            if (pk.kind === 'chest') marks.push([pk.x, pk.y, '#FFC53D', 'chest']);
         if (!marks.length) return;
         const ctx = this.ctx;
         const k = this.k;
@@ -890,6 +918,10 @@ export class Renderer {
             tint = '#FFFFFF';
             sxs *= 1.12;
             sys *= 0.9;
+        } else if (this._halted && !e.boss) {
+            // Trading Halt: iced over, mid-stride
+            tint = '#BDEFFF';
+            frame = 0;
         } else if (e.honeyTimer > 0) {
             // Honey Trap: no tint (gold on a gold puddle hides the bear); a grizzly that sat down to eat bobs
             if (e.honeyPct >= 1) {
@@ -1016,6 +1048,54 @@ export class Renderer {
     }
 
     /** A falling crate's landing ring, or a landed crate with a green beacon (blinking when it's about to go). */
+    /** A piggy bank on the floor, its foot at (sx, sy): it glints, and its slot glows a little. */
+    _drawPiggy(b, sx, sy, t, glows) {
+        const def = SPRITES.piggy_bank;
+        const k = this.k;
+        const y = sy - (def.h / 2 - 2) * k;
+        const frame = Math.floor(t * (def.fps || 6) + b.key * 0.13);
+        this._blit('piggy_bank', sx, y, { frame });
+        if (def.glowFrames) glows.push(['piggy_bank', sx, y, frame, false, 0.8]);
+    }
+
+    /**
+     * A pickup on the floor (PICKUPS): it pops up when dropped, bobs, glows its colour and blinks in its last 5 s.
+     * The boss's chest sits heavier, under a gold beam.
+     */
+    _drawPickup(pk, sx, sy, t, calm) {
+        const id = PICKUPS[pk.kind]?.sprite;
+        const def = id && SPRITES[id];
+        if (!def) return;
+        if (pk.life < 5 && Math.floor(t * 8) % 2) return;
+        const ctx = this.ctx;
+        const s = this.s;
+        const chest = pk.kind === 'chest';
+        const age = pk.maxLife - pk.life;
+        const pop = calm ? 1 : Math.min(1, age / 0.3);
+        const hop = calm ? 0 : (1 - pop) * 26 * s * Math.sin(pop * Math.PI);
+        const bob = chest || calm ? 0 : Math.sin(t * 4 + pk.x) * 2 * s;
+        const rgb = PICKUP_GLOW[pk.kind] || '255,214,150';
+        const pulse = 0.5 + 0.5 * Math.sin(t * 4 + pk.y);
+        ctx.globalCompositeOperation = 'lighter';
+        if (chest) {
+            const beam = ctx.createLinearGradient(0, sy - 190 * s, 0, sy);
+            beam.addColorStop(0, `rgba(${rgb},0)`);
+            beam.addColorStop(1, `rgba(${rgb},${0.28 + 0.14 * pulse})`);
+            ctx.fillStyle = beam;
+            ctx.fillRect(sx - 10 * s, sy - 190 * s, 20 * s, 190 * s);
+        }
+        const r = (chest ? 52 : 26) * s;
+        ctx.globalAlpha = 0.4 + 0.2 * pulse;
+        ctx.drawImage(this._blob(rgb), sx - r, sy - r * 0.6 - 6 * s, r * 2, r * 1.2);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+        this._shadow(sx, sy + 2 * s, def.w * this.k * 0.8 * pop);
+        const frame = Math.floor(t * (def.fps || 6));
+        const y = sy - (def.h * this.k) / 2 + 2 * this.k + bob - hop;
+        this._blit(id, sx, y, { frame, sx: pop, sy: pop });
+        if (def.glowFrames && pop >= 1) this._pickGlows.push([id, sx, y, frame, false, 0.9]);
+    }
+
     _drawCrateGround(c, sx, sy, t) {
         const ctx = this.ctx;
         const s = this.s;
@@ -1517,6 +1597,13 @@ export class Renderer {
         }
         for (const c of sim.crates)
             if (c.landed) L.add(X(c.x), Y(c.y), 120 * s, '255,214,120', 0.55);
+        for (const b of sim.breakables || [])
+            if (b.hp > 0) L.add(X(b.x), Y(b.y) - 10 * s, 70 * s, '255,200,140', 0.38);
+        for (const pk of sim.pickups || []) {
+            const chest = pk.kind === 'chest';
+            const rgb = PICKUP_GLOW[pk.kind] || '255,214,150';
+            L.add(X(pk.x), Y(pk.y) - 8 * s, (chest ? 170 : 80) * s, rgb, chest ? 0.75 : 0.45);
+        }
         for (const h of sim.honey || [])
             if (h.landed) L.add(X(h.x), Y(h.y), h.radius * 1.4 * s, '255,197,61', 0.3);
         // bosses bring a red glow with them
@@ -1857,6 +1944,31 @@ export class Renderer {
                 this._cache[key] = tex;
             }
             ctx.globalAlpha = Math.min(1, v);
+            ctx.drawImage(tex, 0, 0);
+            ctx.globalAlpha = 1;
+        }
+        if (this._halted) {
+            // Trading Halt: the edges of the screen frost over while the bears stand frozen
+            const key = `halt:${W}x${H}`;
+            let tex = this._cache[key];
+            if (!tex) {
+                tex = makeCanvas(W, H);
+                const g = tex.getContext('2d');
+                const gr = g.createRadialGradient(
+                    W / 2,
+                    H / 2,
+                    Math.min(W, H) * 0.35,
+                    W / 2,
+                    H / 2,
+                    Math.max(W, H) * 0.7
+                );
+                gr.addColorStop(0, 'rgba(150,220,255,0)');
+                gr.addColorStop(1, 'rgba(150,220,255,0.32)');
+                g.fillStyle = gr;
+                g.fillRect(0, 0, W, H);
+                this._cache[key] = tex;
+            }
+            ctx.globalAlpha = 0.8 + 0.2 * Math.sin(t * 3);
             ctx.drawImage(tex, 0, 0);
             ctx.globalAlpha = 1;
         }

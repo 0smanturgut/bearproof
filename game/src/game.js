@@ -6,7 +6,7 @@
  */
 
 import { Simulation } from './sim/sim.js';
-import { BOSSES, CRATE_LOOT, ENEMIES, SIM } from './sim/content.js';
+import { BOSSES, CHOICE_REROLL, CRATE_LOOT, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
 import {
@@ -128,6 +128,7 @@ export class Game {
         this.startedAt = performance.now();
         this.submitted = false;
         this._bossIntro = null;
+        this._chestCall = null; // a boss chest dropped: its toast waits for the boss's REKT toast
         this._bountyDone = false;
         this._bountyToastAt = 0;
         // Badges: only a player's own runs count (never the autopilot)
@@ -278,6 +279,7 @@ export class Game {
             this.ui.updateHud(this.sim);
             this._bountyHud();
             this._badgeToasts();
+            this._chestToast();
         }
         requestAnimationFrame((t) => this._frame(t));
     }
@@ -308,15 +310,38 @@ export class Game {
         }
     }
 
+    /**
+     * A boss chest dropped a beat ago: "BOSS TREASURE" once the boss's REKT toast has had its moment, with a
+     * second flare on the chest so the eye finds it.
+     */
+    _chestToast() {
+        const c = this._chestCall;
+        if (!c || this.clock < c.at || this.state !== 'playing') return;
+        this._chestCall = null;
+        this.fx.ring(c.x, c.y, 6, 90, 0.5, '255,197,61', 5, true);
+        this.fx.burst(c.x, c.y - 10, '#FFE08A', 14, 220, 3, 'ember');
+        this.ui.toast('BOSS TREASURE', 'gold', 1600);
+        this._sfx('chestDrop', 0);
+    }
+
     _padButton(b) {
         if (b === 9 || b === 8) this.togglePause();
         else if (this.state === 'levelup' && b <= 2) this.ui.levelKey(String(b + 1));
+        // A B X are the three cards; Y or LB rerolls, RB skips (the buttons sit in that order, left to right)
+        else if (this.state === 'levelup' && (b === 3 || b === 4))
+            this.ui.levelKey('r', { pad: true });
+        else if (this.state === 'levelup' && b === 5) this.ui.levelKey('s', { pad: true });
         else if (this.backdrop) this.onMenuButton?.(b); // the menus (main.js)
     }
 
     // --- Level-up -------------------------------------------------------------
 
-    _openLevelUp() {
+    /**
+     * The level-up cards. REROLL and SKIP go through `_choose` like a card (the run log records them as picks
+     * CHOICE_REROLL / CHOICE_SKIP, so a replay does exactly the same); after a reroll the same screen deals the
+     * new cards (`shuffle`).
+     */
+    _openLevelUp(shuffle = false) {
         const choices = this.sim.choices;
         if (!choices) return;
         if (this.attract) {
@@ -330,23 +355,33 @@ export class Game {
         }
         this.state = 'levelup';
         this.input.reset();
-        this.ui.showLevelUp(this.sim.player.level, choices, (i) => {
-            this._choose(i);
-            if (this.sim.choices) this._openLevelUp();
-            else {
-                this.state = 'playing';
-                this.acc = 0;
-                this.ui.hideAll();
-                if (this._bossIntro) {
-                    this.ui.bossIntro(
-                        this._bossIntro.name,
-                        this._bossIntro.tagline,
-                        this._bossIntro.id
-                    );
-                    this._bossIntro = null;
+        this.ui.showLevelUp(
+            this.sim.player.level,
+            choices,
+            (i) => {
+                this._choose(i);
+                if (this.sim.choices) this._openLevelUp(i === CHOICE_REROLL);
+                else {
+                    this.state = 'playing';
+                    this.acc = 0;
+                    this.ui.hideAll();
+                    if (this._bossIntro) {
+                        this.ui.bossIntro(
+                            this._bossIntro.name,
+                            this._bossIntro.tagline,
+                            this._bossIntro.id
+                        );
+                        this._bossIntro = null;
+                    }
                 }
+            },
+            {
+                rerolls: this.sim.rerolls || 0,
+                skips: this.sim.skips || 0,
+                shuffle,
+                calm: !!this.prefs.reducedMotion
             }
-        });
+        );
     }
 
     _choose(i) {
@@ -388,17 +423,19 @@ export class Game {
 
     // --- Events → juice -------------------------------------------------------
 
-    _sfx(name, gap = 0.05) {
+    _sfx(name, gap = 0.05, ...args) {
         if (this.attract) return;
         const t = this.clock;
         if ((this._sfxAt[name] || -1) > t - gap) return;
         this._sfxAt[name] = t;
-        this.audio[name]?.();
+        this.audio[name]?.(...args);
     }
 
     _events(events) {
         const fx = this.fx;
         const p = this.sim.player;
+        // A chest's evolution is named on its reveal banner, so it skips the EVOLVED toast
+        const chestOpened = events.some((e) => e.t === 'chest');
         for (const e of events) {
             switch (e.t) {
                 case 'dmg':
@@ -463,11 +500,12 @@ export class Game {
                     const name = [...Object.values(WEAPONS), ...Object.values(PASSIVES)].find(
                         (w) => w.id === e.id
                     )?.evolveName;
-                    this.ui.toast(
-                        name ? `EVOLVED: ${name.toUpperCase()}` : 'EVOLVED',
-                        'gold',
-                        1400
-                    );
+                    if (!this.attract && !chestOpened)
+                        this.ui.toast(
+                            name ? `EVOLVED: ${name.toUpperCase()}` : 'EVOLVED',
+                            'gold',
+                            1400
+                        );
                     fx.addFlash('255,197,61', 0.3, 2);
                     break;
                 }
@@ -783,7 +821,136 @@ export class Game {
                     if (!this.attract && this.sim.tick > 60)
                         this.ui.toast(e.label.toUpperCase(), 'gold', 1500);
                     break;
+                case 'smash':
+                    // a piggy bank breaks like a kill: ceramic chunks, pink shards and a spray of coins
+                    fx.shatter(e.x, e.y, 'piggy_bank', { flip: Math.random() < 0.5 });
+                    fx.burst(e.x, e.y, '#F8B496', 8, 190, 3.5);
+                    fx.burst(e.x, e.y - 4, '#FFC53D', 12, 230, 3, 'spark');
+                    fx.burst(e.x, e.y, '#FFE08A', 5, 150, 2.5, 'ember');
+                    fx.ping(e.x, e.y + 4, '255,197,61');
+                    fx.addKick(0.12);
+                    this._sfx('smash', 0.05);
+                    break;
+                case 'pickupGet':
+                    this._pickupFx(e);
+                    break;
+                case 'squeeze':
+                    // Short Squeeze: a green shockwave out to everything it wiped, gold behind it
+                    fx.ring(e.x, e.y, 20, e.r, 0.65, '22,224,138', 12, true);
+                    fx.ring(e.x, e.y, 10, e.r * 0.55, 0.45, '255,224,138', 6);
+                    fx.burst(e.x, e.y, '#7BF5A6', 36, 520, 3.5, 'spark');
+                    fx.burst(e.x, e.y, '#FFE08A', 14, 300, 3, 'ember');
+                    fx.addShake(0.95);
+                    fx.addKick(1);
+                    fx.addFlash('22,224,138', 0.5, 1.6);
+                    break;
+                case 'pickupGone':
+                    // left too long on the floor: a grey puff, no sound (a chest says so)
+                    fx.burst(
+                        e.x,
+                        e.y,
+                        'rgba(127,138,153,',
+                        e.kind === 'chest' ? 10 : 5,
+                        80,
+                        9,
+                        'smoke'
+                    );
+                    if (e.kind === 'chest') fx.number(e.x, e.y - 24, 'TREASURE GONE', 'info');
+                    break;
+                case 'chestDrop':
+                    // a beam of gold where the boss fell: the chest is there
+                    fx.line(e.x, e.y - 420, e.x, e.y, 1.4, '255,197,61', 14);
+                    fx.line(e.x, e.y - 420, e.x, e.y, 1.1, '255,246,214', 4);
+                    fx.ring(e.x, e.y, 8, 70, 0.5, '255,197,61', 5, true);
+                    fx.burst(e.x, e.y, '#FFC53D', 18, 260, 3, 'spark');
+                    fx.burst(e.x, e.y - 30, '#FFE08A', 10, 140, 3, 'ember');
+                    if (!this.attract) this._chestCall = { at: this.clock + 1.9, x: e.x, y: e.y };
+                    break;
+                case 'chest': {
+                    // the chest opens: gold rays out of the bull, the reveal banner names what came out
+                    const n = e.items?.length || 1;
+                    fx.shatter(e.x, e.y, 'chest', { big: true });
+                    fx.ring(p.x, p.y, 10, 200, 0.6, '255,197,61', 8, true);
+                    fx.burst(p.x, p.y, '#FFC53D', 26, 380, 3, 'spark');
+                    fx.burst(p.x, p.y - 10, '#FFE08A', 14, 220, 3.5, 'ember');
+                    fx.addFlash('255,197,61', 0.35, 1.8);
+                    fx.addShake(0.3);
+                    this._sfx('chest', 0, n);
+                    if (!this.attract) {
+                        this.ui.chestReveal(e.items, { calm: !!this.prefs.reducedMotion });
+                        this.haptics.chest?.();
+                    }
+                    break;
+                }
+                case 'reroll':
+                    this._sfx('reroll', 0);
+                    break;
+                case 'skip':
+                    this._sfx('skip', 0);
+                    break;
             }
+        }
+    }
+
+    /** A pickup taken off the floor (sim `pickupGet`): each kind its own number, ring, sound and toast. */
+    _pickupFx(e) {
+        const fx = this.fx;
+        const p = this.sim.player;
+        const loud = !this.attract;
+        switch (e.kind) {
+            case 'ramen':
+                fx.number(p.x, p.y - 40, e.v > 0 ? `+${Math.round(e.v)} HP` : 'FULL HP', 'info');
+                fx.ring(p.x, p.y, 8, 60, 0.35, '22,224,138', 4);
+                fx.burst(p.x, p.y, '#7BF5A6', 10, 160, 3, 'spark');
+                fx.burst(p.x, p.y - 12, 'rgba(240,235,225,', 3, 40, 7, 'smoke'); // steam
+                this._sfx('ramen', 0.1);
+                break;
+            case 'clout':
+                fx.number(p.x, p.y - 46, `+${fmtNum(e.v)} CLOUT`, 'jackpotLabel');
+                fx.ping(p.x, p.y + 4, '255,197,61');
+                fx.burst(p.x, p.y - 8, '#FFC53D', 14, 220, 3, 'spark');
+                fx.burst(p.x, p.y - 8, '#FFF6D6', 6, 160, 2.5, 'ember');
+                this._sfx('cloutGet', 0.08);
+                break;
+            case 'magnet':
+                // Liquidity Sweep: a gold ring closing on the bull, the candles following it in
+                fx.ring(p.x, p.y, 320, 24, 0.55, '255,197,61', 7);
+                fx.ring(p.x, p.y, 10, 120, 0.35, '255,224,138', 4, true);
+                fx.burst(p.x, p.y, '#FFE08A', 16, 260, 3, 'spark');
+                fx.addFlash('255,197,61', 0.2, 2.5);
+                if (e.v) fx.number(p.x, p.y - 44, `${fmtNum(e.v)} CANDLES`, 'info');
+                this._sfx('liquiditySweep', 0.2);
+                if (loud) {
+                    this.ui.toast('LIQUIDITY SWEEP', 'gold', 1500);
+                    this.haptics.levelUp();
+                }
+                break;
+            case 'halt':
+                // Trading Halt: an icy flash and a cyan ring out over the frozen bears (the HUD counts it down)
+                fx.ring(p.x, p.y, 10, 420, 0.6, '70,184,240', 8, true);
+                fx.ring(p.x, p.y, 10, 200, 0.4, '232,250,255', 4);
+                fx.burst(p.x, p.y, '#9BE2FF', 24, 360, 3, 'spark');
+                fx.burst(p.x, p.y, '#E8FAFF', 10, 200, 3);
+                fx.addFlash('155,226,255', 0.45, 1.8);
+                fx.addShake(0.2);
+                this._sfx('halt', 0.2);
+                if (loud) {
+                    this.ui.toast('TRADING HALT', 'ice', 1600);
+                    this.haptics.levelUp();
+                }
+                break;
+            case 'squeeze':
+                // the shockwave itself comes with the sim's `squeeze` event
+                if (e.v) fx.number(p.x, p.y - 56, `${fmtNum(e.v)} SHORTS REKT`, 'jackpotLabel');
+                this._sfx('squeeze', 0.2);
+                if (loud) {
+                    this.ui.toast('SHORT SQUEEZE', 'bull', 1700);
+                    this.haptics.bossSpawn();
+                }
+                break;
+            default:
+                fx.ping(p.x, p.y + 4, '255,197,61');
+                this._sfx('pickup', 0.06);
         }
     }
 

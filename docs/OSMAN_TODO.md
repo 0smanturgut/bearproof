@@ -4,7 +4,7 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Sun 18 Oct 2026, 19:00 UTC. New: step 11, the Irys storage key (1 min)._
+_Last updated: Sun 18 Oct 2026, 20:10 UTC. Step 11 (Irys archive) is done and live._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
 
@@ -184,17 +184,11 @@ the bot at once, remove it from the group in Telegram; it does nothing anywhere 
   labelled right the first time.
 - It never talks price, and it won't confirm or promise features: holders vote, the agent builds.
 
-## 11. Irys archive: the storage key (1 min)
+## 11. Irys archive ✅ live (18 Oct, 20:05 UTC)
 
-The Worker stores every build, devlog and Daily result on Irys (D81). It needs its own signing key. The key holds no
-SOL: everything we store is under the size Irys keeps for free.
-
-```bash
-node scripts/new-wallet.mjs | npx wrangler secret put IRYS_WALLET_KEY
-```
-
-The secret goes straight to Cloudflare; the public address prints on the screen. **Send me that address** (never the
-key). The next 15-minute cron starts the archive, oldest build first; /receipts#irys fills in as it goes.
+`IRYS_WALLET_KEY` is set (uploader address `2FN1T9161HK1ke7ZD87dDUXWVhUuQgurgYL2qCraJa7P`, holds no SOL). The first
+backfill stored all 27 builds, 26 devlogs and 25 Daily results; the cron adds each new one. Nothing to do unless
+/receipts#irys ever says the archive needs funding.
 
 ## Helius API key ✅ done (23 Sep)
 

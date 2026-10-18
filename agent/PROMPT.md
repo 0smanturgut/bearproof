@@ -189,6 +189,12 @@ players or your own process that tomorrow's run should know. Prune the oldest bu
   stage byte, so to let a player pick a map in free play, draw a free-run seed that lands on that map; the server
   then re-simulates the right one. The Daily's map stays whatever its seed gives. A new map goes on
   `STAGE_ROTATION` (that reshuffles which seed lands where; the verifier pins each build's content, so it's safe).
+- Each map is also a place, drawn by the renderer only (`game/src/world.js`, `life.js`, `lighting.js`): its ground,
+  its scenery (standing props and flat ground decals in `game/src/art/biomes/<map>.js`, registered by
+  `art/props.js`), its night light and ambient life. Scenery never touches the simulation (creatures walk through
+  it), so it can't change a run. A new map needs a biome in `BIOMES` and a layout branch in `world.js`, and its own
+  `art/biomes/` file; without one it borrows Chop Zone's forest. Check new props with
+  `node game/scripts/sprite-preview.mjs prefix:<map>_ --bg '<ground hex>'` and `node --test game/test/world.test.js`.
 - The player's save is `game/src/prefs.js` today (one versioned localStorage key, memory fallback). Grow it rather
   than starting a second store, and never lose a player's existing prefs, badges or name when you change its shape.
 

@@ -16,6 +16,7 @@ import {
     TWISTS,
     WEAPONS,
     dailyTwistForSeed,
+    getStage,
     stageForSeed
 } from './sim/content.js';
 import { createBot } from './sim/bot.js';
@@ -42,6 +43,7 @@ import { bountyProgress, bountyText, clearsBounty } from './bounty.js';
 import { createTracker } from './achievements.js';
 import { musicMood } from './music.js';
 import { applyRun, equippedItem, normalizeProfile, skinSprite } from './profile.js';
+import { buildSheet, createDamageReport } from './report.js';
 
 const STEP = SIM.DT;
 const MAX_STEPS_PER_FRAME = 5;
@@ -57,7 +59,7 @@ export class Game {
         this.attract = attract;
         this.baseAttract = attract;
         this.backdrop = false;
-        this.renderer = new Renderer(canvas);
+        this.renderer = new Renderer(canvas, prefs);
         this.fx = new Fx(prefs);
         this.state = 'title';
         this.sim = new Simulation({ seed: 1 });
@@ -133,6 +135,9 @@ export class Game {
         this._badgeQueue = [];
         this._badgesNew = [];
         this._badgeToastAt = 0;
+        // The damage report on the receipt: a player's own runs only (never the autopilot's)
+        this.report = this.attract ? null : createDamageReport();
+        this.report?.observe(this.sim);
         this._runId++;
         this.ui.resetHud();
         if (!keepScreen) this.ui.hideAll();
@@ -145,9 +150,16 @@ export class Game {
             this.ui.moveHint(true);
             clearTimeout(this._hintTimer);
             this._hintTimer = setTimeout(() => this.ui.moveHint(false), 4000);
-            if (twist) this.ui.toast(`TWIST: ${TWISTS[twist].name.toUpperCase()}`, 'gold', 2200);
+            // The map's title card; a Daily's twist is on it too (it used to be a toast).
+            const map = getStage(this.sim.stageId);
+            this.ui.mapIntro({
+                name: map.name,
+                description: map.description,
+                twist: twist ? TWISTS[twist] : null,
+                calm: !!this.prefs.reducedMotion
+            });
             api.startSession(playerId(), this.build.n, this.mode);
-        }
+        } else this.ui.mapIntro(null);
     }
 
     /**
@@ -182,9 +194,14 @@ export class Game {
         this.state = 'paused';
         this.audio.stopMusic();
         this.input.reset();
-        const sub = document.getElementById('pauseSub');
-        sub.textContent = `${this.mode === 'daily' ? `Daily ${this.daily.date}` : 'Free run'} · ${fmtTime(this.sim.timeMs)} · score ${fmtNum(this.sim.stats.score)}`;
-        this.ui.show('screenPause');
+        const s = this.sim;
+        this.ui.showPause(buildSheet(s), {
+            sub: `${this.mode === 'daily' ? `Daily ${this.daily.date}` : 'Free run'} · ${getStage(s.stageId).name}${s.twistId !== 'none' ? ` · ${TWISTS[s.twistId]?.name || ''}` : ''}`,
+            timeMs: s.timeMs,
+            level: s.player.level,
+            kills: s.stats.kills,
+            score: s.stats.score
+        });
     }
 
     resume() {
@@ -342,6 +359,7 @@ export class Game {
     _stepEvents() {
         const events = this.sim.drainEvents();
         this._events(events);
+        this.report?.observe(this.sim, events);
         this.watchBadges(events);
     }
 
@@ -816,6 +834,7 @@ export class Game {
         const bounty = this._bountyResult(summary);
         this.lastRun.bountyCleared = !!bounty?.done;
         const badges = this._badgesNew;
+        const report = this.report ? this.report.rows(this.sim) : null;
         // Bank the run: lifetime stats, bests, CLOUT, the player level and the Eternal Bear (profile.js)
         const banked = applyRun(this.prefs.profile, summary, {
             bountyCleared: this.lastRun.bountyCleared
@@ -826,7 +845,7 @@ export class Game {
         setTimeout(
             () =>
                 this.ui.showOver(
-                    { summary, title, sub, buildLine, bounty, badges, banked },
+                    { summary, title, sub, buildLine, bounty, badges, banked, report },
                     {
                         calm: !!this.prefs.reducedMotion,
                         tick: () => this.audio.cloutTick?.(),

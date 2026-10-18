@@ -126,8 +126,8 @@ export class Fx {
         }
     }
 
-    /** A puff of dust at a footstep. */
-    dust(x, y, dir = 0) {
+    /** A puff of dust at a footstep (`color`: 'rgba(r,g,b,' of the ground it's kicked off). */
+    dust(x, y, dir = 0, color = 'rgba(160,190,200,') {
         if (this.calm && Math.random() < 0.6) return;
         this._push({
             kind: 'dust',
@@ -138,7 +138,7 @@ export class Fx {
             life: 0.38,
             max: 0.38,
             size: 5 + Math.random() * 3,
-            color: 'rgba(160,190,200,',
+            color,
             drag: 3
         });
     }

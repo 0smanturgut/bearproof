@@ -74,6 +74,7 @@ export class UI {
             time: $('hTime'),
             wave: $('hWave'),
             score: $('hScore'),
+            kills: $('hKills'),
             bossbar: $('bossbar'),
             bossName: $('bossName'),
             bossHp: $('bossHp'),
@@ -152,6 +153,7 @@ export class UI {
         );
         set('time', Math.floor(sim.time), () => (this.hud.time.textContent = fmtTime(sim.timeMs)));
         set('score', sim.stats.score, (v) => (this.hud.score.textContent = fmtNum(v)));
+        set('kills', sim.stats.kills, (v) => (this.hud.kills.textContent = fmtNum(v)));
         set('wave', sim.wave.label, (v) => (this.hud.wave.textContent = v));
 
         const boss = sim.enemies.find((e) => e.boss && e.hp > 0);
@@ -237,6 +239,158 @@ export class UI {
 
     moveHint(on) {
         $('hint').hidden = !on;
+    }
+
+    /**
+     * The run's title card: the map's name, its line and, in a Daily, the twist ({ name, description }). It never
+     * takes a tap and is gone in ~2.2 s (a bit longer with a twist to read); `calm` only fades. null hides it.
+     */
+    mapIntro(info) {
+        const card = $('mapCard');
+        clearTimeout(this._mapTimer);
+        card.hidden = true;
+        if (!info) return;
+        $('mapCardName').textContent = info.name;
+        $('mapCardDesc').textContent = info.description || '';
+        $('mapCardTwist').hidden = !info.twist;
+        $('mapCardTwistName').textContent = info.twist?.name || '';
+        $('mapCardTwistDesc').textContent = info.twist?.description || '';
+        const ms = info.twist ? 2800 : 2200;
+        card.style.setProperty('--mc-dur', `${ms}ms`);
+        card.classList.toggle('calm', !!info.calm || reduced());
+        void card.offsetWidth; // from display:none, so every animation in the card starts over
+        card.hidden = false;
+        this._mapTimer = setTimeout(() => (card.hidden = true), ms);
+        this.announce(
+            `${info.name}. ${info.description || ''}${info.twist ? ` Twist: ${info.twist.name}. ${info.twist.description}` : ''}`
+        );
+    }
+
+    /**
+     * The pause screen: the run so far, then the build (report.js buildSheet): every weapon with its level pips,
+     * every passive with its stacks, and the stats as the sim computes them.
+     */
+    showPause(sheet, { sub, timeMs, level, kills, score }) {
+        this.mapIntro(null);
+        $('pauseSub').textContent = sub;
+        $('pauseTime').textContent = fmtTime(timeMs);
+        $('pauseLevel').textContent = level;
+        $('pauseKills').textContent = fmtNum(kills);
+        $('pauseScore').textContent = fmtNum(score);
+        $('bagsSlots').textContent =
+            `${sheet.weapons.length}/${sheet.slots.weapons} WEAPONS · ${sheet.passives.length}/${sheet.slots.passives} PASSIVES`;
+        const pips = (n, max) =>
+            `<span class="pips bag-pips" aria-hidden="true">${Array.from({ length: max }, (_, k) => `<i class="${k < n ? 'on' : ''}"></i>`).join('')}</span>`;
+
+        const wl = $('bagWeapons');
+        wl.innerHTML = '';
+        for (const w of sheet.weapons) {
+            const li = document.createElement('li');
+            li.className = 'bag-w' + (w.evolved ? ' evolved' : '');
+            li.innerHTML = `
+                <span class="bag-ic"><canvas aria-hidden="true"></canvas></span>
+                <span class="bag-txt">
+                    <b class="bag-name">${esc(w.name)}</b>
+                    ${w.evolved ? `<span class="bag-evo">EVOLVED</span><small class="bag-from">${esc(w.base)}</small>` : `<small class="bag-lv">LV ${w.level}</small>`}
+                </span>
+                ${pips(w.level, w.max)}`;
+            paintIcon(li.querySelector('canvas'), w.icon, 2);
+            li.setAttribute(
+                'aria-label',
+                w.evolved
+                    ? `${w.name}, evolved ${w.base}, level ${w.level} of ${w.max}`
+                    : `${w.name}, level ${w.level} of ${w.max}`
+            );
+            wl.appendChild(li);
+        }
+
+        const pl = $('bagPassives');
+        pl.innerHTML = '';
+        pl.hidden = !sheet.passives.length;
+        for (const p of sheet.passives) {
+            const li = document.createElement('li');
+            li.className = 'bag-p' + (p.evolved ? ' evolved' : p.count >= p.max ? ' maxed' : '');
+            li.innerHTML = `
+                <span class="bag-ic"><canvas aria-hidden="true"></canvas></span>
+                <b class="bag-name">${esc(p.name)}</b>
+                <span class="bag-n">${p.evolved ? 'EVO' : `×${p.count}`}</span>`;
+            paintIcon(li.querySelector('canvas'), p.icon, 2);
+            li.setAttribute(
+                'aria-label',
+                p.evolved
+                    ? `${p.name}, evolved ${p.base}, ${p.count} of ${p.max} stacks`
+                    : `${p.name}, ${p.count} of ${p.max} stacks`
+            );
+            pl.appendChild(li);
+        }
+
+        $('pauseStats').innerHTML = sheet.stats
+            .map(
+                (s) =>
+                    `<div class="pstat ${s.tone}"><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd></div>`
+            )
+            .join('');
+        this.show('screenPause');
+        const body = document.querySelector('#screenPause .pause-body');
+        body.scrollTop = 0;
+        const more = () =>
+            body.classList.toggle(
+                'more',
+                body.scrollTop + body.clientHeight < body.scrollHeight - 4
+            );
+        body.onscroll = more;
+        more();
+    }
+
+    /**
+     * The damage report on the receipt (report.js rows): biggest source first, a depth bar for its share, DPS
+     * over the time it was held. Phones with little height see the top 3 and a toggle. null hides it.
+     */
+    overReport(report) {
+        const box = $('overReport');
+        const rows = report?.rows || [];
+        box.hidden = !rows.length;
+        box.closest('.receipt')?.classList.toggle('has-report', !!rows.length);
+        if (!rows.length) return;
+        box.classList.remove('open');
+        $('dmgTotal').textContent = `${fmtNum(report.total)} DMG`;
+        const list = $('dmgRows');
+        list.innerHTML = '';
+        const top = rows[0].damage;
+        rows.forEach((r, i) => {
+            const li = document.createElement('li');
+            li.className = 'dmg-row' + (i === 0 ? ' top' : '') + (r.evolved ? ' evolved' : '');
+            const pct = Math.round(r.share * 100);
+            const tag = r.tag
+                ? `<small class="dmg-tag">${esc(r.tag)}</small>`
+                : r.level
+                  ? `<small class="dmg-lv${r.evolved ? ' evo' : ''}">${r.evolved ? 'EVO' : `LV${r.level}`}</small>`
+                  : '';
+            li.innerHTML = `
+                <i class="dmg-bar" style="width:${Math.max(2, (r.damage / top) * 100).toFixed(1)}%"></i>
+                <span class="dmg-ic"><canvas aria-hidden="true"></canvas></span>
+                <span class="dmg-name"><b>${esc(r.name)}</b>${tag}</span>
+                <span class="dmg-v">${fmtNum(r.damage)}</span>
+                <span class="dmg-pct">${pct < 1 ? '<1' : pct}%</span>
+                <span class="dmg-dps">${r.dps == null ? '—' : fmtNum(r.dps)}</span>`;
+            paintIcon(li.querySelector('canvas'), r.icon, r.tag === 'CRATE' ? 1 : 2);
+            li.setAttribute(
+                'aria-label',
+                `${r.name}: ${fmtNum(r.damage)} damage, ${pct} percent${r.dps == null ? '' : `, ${fmtNum(r.dps)} per second`}`
+            );
+            list.appendChild(li);
+        });
+        const more = $('dmgMore');
+        const extra = rows.length - 3;
+        more.hidden = extra <= 0;
+        const label = (open) => (open ? 'TOP 3 ▴' : `ALL ${rows.length} ▾`);
+        more.textContent = label(false);
+        more.setAttribute('aria-expanded', 'false');
+        more.onclick = () => {
+            const open = box.classList.toggle('open');
+            more.textContent = label(open);
+            more.setAttribute('aria-expanded', String(open));
+        };
     }
 
     // --- Level-up ------------------------------------------------------------
@@ -690,6 +844,7 @@ export class UI {
         $('nameForm').hidden = true;
         $('turnstileHint').hidden = true;
         this.overBounty(info.bounty || null);
+        this.overReport(info.report || null);
         this.cloutReceipt(info.banked || null, sounds);
         const badges = info.badges || [];
         $('overBadges').hidden = !badges.length;
@@ -829,15 +984,36 @@ export class UI {
             ['reducedMotion', 'Reduced motion', prefs.reducedMotion]
         ];
         const list = $('settingsList');
-        list.innerHTML = rows
-            .map(
-                ([k, label, on]) =>
-                    `<label><span>${label}</span><input type="checkbox" data-k="${k}" ${on ? 'checked' : ''}></label>`
-            )
-            .join('');
+        // Graphics: the map's lighting and ambient life (the renderer reads prefs.graphics live).
+        const gfx = ['auto', 'high', 'low'].includes(prefs.graphics) ? prefs.graphics : 'auto';
+        const seg = [
+            ['auto', 'AUTO'],
+            ['high', 'HIGH'],
+            ['low', 'LOW']
+        ];
+        list.innerHTML =
+            `<div class="set-seg"><span id="gfxLab">Graphics<small>Auto drops to low on a slow device</small></span>
+                <span class="seg-pick" role="radiogroup" aria-labelledby="gfxLab">${seg
+                    .map(
+                        ([v, label]) =>
+                            `<button type="button" role="radio" data-v="${v}" aria-checked="${v === gfx}">${label}</button>`
+                    )
+                    .join('')}</span></div>` +
+            rows
+                .map(
+                    ([k, label, on]) =>
+                        `<label><span>${label}</span><input type="checkbox" data-k="${k}" ${on ? 'checked' : ''}></label>`
+                )
+                .join('');
         list.querySelectorAll('input').forEach((el) =>
             el.addEventListener('change', () => onChange(el.dataset.k, el.checked))
         );
+        const opts = [...list.querySelectorAll('.seg-pick button')];
+        for (const b of opts)
+            b.addEventListener('click', () => {
+                for (const o of opts) o.setAttribute('aria-checked', String(o === b));
+                onChange('graphics', b.dataset.v);
+            });
         this.show('screenSettings');
     }
 

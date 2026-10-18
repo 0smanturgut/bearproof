@@ -1,9 +1,10 @@
 /**
  * @module render
  * @description Canvas renderer. Full-viewport, DPR-aware, pixel-perfect sprites (baked once per integer
- * scale by art/sprites.js). The world is a trading terminal at night: a parallax candlestick chart with a
- * moving-average line, a terminal grid, soft contact shadows under everything, and neon bloom on whatever
- * glows (eyes, candles, lasers). Reads simulation state; never mutates it.
+ * scale by art/sprites.js). Each map is a place at night (world.js): a forest logging camp, the ruined
+ * financial district, a frozen mining camp, with scenery sorted in with the creatures, moonlight and cloud
+ * shadows, lamps and fires that light the ground (lighting.js), soft contact shadows under everything, and neon
+ * bloom on whatever glows (eyes, candles, lasers). Reads simulation state; never mutates it.
  */
 
 import {
@@ -14,8 +15,12 @@ import {
     spriteCacheGeneration,
     watchCanvas
 } from './art/sprites.js';
+import { DECAL_DEFS, PROP_DEFS } from './art/props.js';
 import { THEMES } from './art/stages.js';
+import { Life } from './life.js';
+import { Lighting } from './lighting.js';
 import { SIM } from './sim/content.js';
+import { BIOMES, World, warmDecal } from './world.js';
 
 const ART_UNIT = 2; // world units per art pixel
 // Visible world area: ~1100×720 units on a desktop, zooming in to ~520×1100 on a phone so sprites stay
@@ -46,6 +51,39 @@ export const KILL_COLORS = {
 // Things that hover: their shadow sits lower and smaller.
 const FLOATERS = new Set(['fud_cloud', 'liquidation', 'capitulation']);
 
+// What a footstep kicks up on each map: forest dirt, street grit, snow.
+const DUST = {
+    chop: 'rgba(118,104,84,',
+    bear_trap: 'rgba(140,142,152,',
+    winter: 'rgba(232,240,252,'
+};
+
+// How a prop's light moves (art/props.js `light.flicker`), 0..1 of its strength.
+const FLICKER = {
+    fire: (t, ph) => 0.84 + 0.09 * Math.sin(t * 9.3 + ph) + 0.07 * Math.sin(t * 23.7 + ph * 2.1),
+    pulse: (t, ph) => 0.78 + 0.22 * Math.sin(t * 2.1 + ph),
+    blink: (t, ph) => (hash1(Math.floor(t * 7 + ph)) < 0.3 ? 0.12 : 1),
+    siren: (t, ph) => 0.3 + 0.7 * Math.pow(Math.max(0, Math.sin(t * 5.5 + ph)), 2)
+};
+
+/**
+ * The night moves on through a run: dusk at the opening bell, deep night by the middle game, and the first light
+ * of dawn over the last two minutes before the market closes at 20:00. Multiplies into the map's moonlight.
+ */
+function nightAmbient(base, time) {
+    const dusk = Math.max(0, 1 - time / 90) * 0.3;
+    const deep = Math.min(1, Math.max(0, (time - 90) / 510)) * 0.08;
+    const dawn = Math.min(1, Math.max(0, (time - 1080) / 120)) * 0.4;
+    const DUSK = [214, 196, 206];
+    const DAWN = [255, 206, 176];
+    return base.map((v, i) => {
+        let c = v * (1 - deep);
+        c += (DUSK[i] - c) * dusk;
+        c += (DAWN[i] - c) * dawn;
+        return Math.round(c);
+    });
+}
+
 function hash1(i) {
     let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b);
     h ^= h >>> 13;
@@ -62,8 +100,15 @@ function makeCanvas(w, h) {
 }
 
 export class Renderer {
-    constructor(canvas) {
+    constructor(canvas, prefs = null) {
         this.canvas = canvas;
+        this.prefs = prefs;
+        this.world = new World();
+        this.lighting = new Lighting();
+        this.life = new Life();
+        this.frameEma = 1 / 60; // smoothed frame time, for the 'auto' graphics setting
+        this.slowFor = 0;
+        this.autoLow = false;
         this.ctx = canvas.getContext('2d', { alpha: false });
         this.cssW = 1;
         this.cssH = 1;
@@ -112,6 +157,47 @@ export class Renderer {
     _dropCaches() {
         this._cache = {};
         this._gen = spriteCacheGeneration();
+        this.world?.dropCaches();
+        this.lighting?.drop();
+    }
+
+    /**
+     * Make the map's scenery sprites and decals ahead of need, one a frame, so walking into a new kind of prop never stalls
+     * a frame on drawing it the first time (a sprite is generated once, then baked per pixel scale).
+     */
+    _warm(stage) {
+        const key = `${stage}|${this.k}|${this._gen}`;
+        if (this._warmKey !== key) {
+            this._warmKey = key;
+            const prefix =
+                { chop: 'chop_', bear_trap: 'trap_', winter: 'winter_' }[stage] || 'chop_';
+            this._warmList = Object.keys(PROP_DEFS).filter((id) => id.startsWith(prefix));
+            this._warmList.push('crow', 'pigeon', 'rat', 'hare');
+            for (const id of Object.keys(DECAL_DEFS))
+                if (id.startsWith(prefix)) this._warmList.push(`decal:${id}`);
+        }
+        // one a frame: some sprites take tens of ms to generate on a slow phone
+        const id = this._warmList.shift();
+        if (!id) return;
+        if (id.startsWith('decal:')) return warmDecal(id.slice(6));
+        this.sprite(id);
+        this.sprite(id, { flip: true });
+        bakeGlow(id, this.k);
+    }
+
+    /**
+     * 'high' draws the night lighting and the full ambient life; 'low' skips the light buffer. On 'auto' a device
+     * that can't hold ~40 fps for a few seconds drops to low for the rest of the session.
+     */
+    quality(dt) {
+        const want = this.prefs?.graphics || 'auto';
+        if (want !== 'auto') return want;
+        if (dt > 0 && dt < 0.25) {
+            this.frameEma += (dt - this.frameEma) * 0.05;
+            this.slowFor = this.frameEma > 0.025 ? this.slowFor + dt : 0;
+            if (this.slowFor > 4) this.autoLow = true;
+        }
+        return this.autoLow ? 'low' : 'high';
     }
 
     /** Visible world half-extents (for culling and the attract bot). */
@@ -252,12 +338,17 @@ export class Renderer {
             Math.abs(x - cx) < this.halfW + pad && Math.abs(y - cy) < this.halfH + pad;
         this.X = X;
         this.Y = Y;
+        const quality = this.quality(dt);
 
-        // --- backdrop
-        ctx.fillStyle = theme.bg;
-        ctx.fillRect(0, 0, W, H);
-        this._drawChart(cx, cy, W, H, theme, t);
-        this._drawGrid(cx, cy, X, Y, theme);
+        // --- the map: its ground, with every decal baked in
+        const world = this.world;
+        world.sync(sim.stageId, sim.seed);
+        this._warm(world.stageId);
+        world.prepare(cx, cy, this.halfW, this.halfH);
+        world.drawGround(ctx, X, Y, cx, cy, this.halfW, this.halfH);
+        const view = { cx, cy, hw: this.halfW, hh: this.halfH };
+        this.life.update(dt, t, sim, world, fx, view, quality !== 'low', fx.calm);
+        this.life.drawGround(this, X, Y, t);
 
         const p = sim.player;
 
@@ -359,13 +450,31 @@ export class Renderer {
         }
         const bullDef = SPRITES[this._playerSprite(sim)];
         this._shadow(X(p.x), Y(p.y) + (bullDef.h * k) / 2 - 3 * k, bullDef.w * k * 0.8);
+        // the map's standing props: trees, walls, lamps... sorted in with the creatures by their foot
+        const props = [];
+        for (const c of world.visibleChunks(cx, cy, this.halfW, this.halfH))
+            for (const pr of c.props) {
+                const sd = SPRITES[pr.id];
+                if (!sd) continue;
+                const hw = sd.w + 8; // art px ≈ half the width in world units
+                if (Math.abs(pr.x - cx) > this.halfW + hw) continue;
+                if (pr.y < cy - this.halfH - 10 || pr.y - sd.h * 2 > cy + this.halfH + 10) continue;
+                props.push(pr);
+                const sh = PROP_DEFS[pr.id]?.shadow ?? 0.8;
+                if (sh > 0) this._shadow(X(pr.x), Y(pr.y) - k, sd.w * k * sh, 0.9);
+            }
 
+        // what a tall prop must never hide: the bull, and a crate on the ground
+        this._focus = [[p.x, p.y]];
+        for (const c of sim.crates) if (c.landed) this._focus.push([c.x, c.y]);
         const drawList = list.slice();
         drawList.push(p);
+        for (const pr of props) drawList.push(pr);
         drawList.sort((a, b) => a.y - b.y);
         const glows = [];
         for (const e of drawList) {
             if (e === p) this._drawBull(p, X(p.x), Y(p.y), t, dt, fx, glows, sim);
+            else if (e.prop) this._drawProp(e, X, Y, t, dt, p, glows);
             else this._drawEnemy(e, X(e.x), Y(e.y), t, glows);
         }
         // doomposters typing: bubbles over the crowd, so nothing hides the tell
@@ -377,6 +486,8 @@ export class Renderer {
         if (sim.whale && visible(sim.whale.x, sim.whale.y, 120)) {
             this._drawWhale(sim.whale, X(sim.whale.x), Y(sim.whale.y), t, fx.calm, glows);
         }
+        // --- the night: everything above is lit by the moon and the lights; what follows glows on its own
+        if (quality !== 'low') this._light(sim, fx, world, props, X, Y, W, H, cx, cy, t);
         // forget enemies we no longer see
         if (this.seen.size > list.length * 2 + 200) {
             const alive = new Set(list.map((e) => e.uid));
@@ -411,6 +522,7 @@ export class Renderer {
 
         // --- bloom pass: everything that glows, in one additive batch
         ctx.globalCompositeOperation = 'lighter';
+        this._drawHalos(props, X, Y, t);
         for (const [id, x, y, frame, flip, a] of glows) {
             const g = bakeGlow(id, k, { flip });
             if (!g) continue;
@@ -421,6 +533,7 @@ export class Renderer {
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
 
+        this.life.drawAir(this, X, Y, W, H, t, quality !== 'low', fx.calm);
         this._drawFx(fx, X, Y, t);
         this._drawWeather(theme, W, H, t, dt);
 
@@ -429,6 +542,72 @@ export class Renderer {
         this._drawScreenFx(fx, W, H, p, theme, t);
         this._drawWhaleAlert(sim, Y, W, H, t);
         this._drawScamArrows(sim, X, Y, W, H, t, fx.calm);
+        this._drawOffscreen(sim, X, Y, W, H, t, fx.calm);
+    }
+
+    // ---------------------------------------------------------------- off screen
+
+    /**
+     * What matters but is off screen gets an arrow on the screen's edge with its picture: a boss (red) and a
+     * landed airdrop crate (gold), so a run never loses a crate or a boss in the scenery.
+     */
+    _drawOffscreen(sim, X, Y, W, H, t, calm) {
+        const marks = [];
+        for (const e of sim.enemies)
+            if (e.boss && e.hp > 0 && !e.fleeing)
+                marks.push([e.x, e.y, '#FF3B5C', e.def.sprite || e.id]);
+        for (const c of sim.crates) if (c.landed) marks.push([c.x, c.y, '#FFC53D', 'supply_crate']);
+        if (!marks.length) return;
+        const ctx = this.ctx;
+        const k = this.k;
+        const pad = 30 * this.dpr;
+        const top = 70 * this.dpr; // keep clear of the HUD
+        for (const [wx, wy, color, icon] of marks) {
+            const sx = X(wx);
+            const sy = Y(wy);
+            if (sx > 0 && sx < W && sy > 0 && sy < H) continue;
+            const a = Math.atan2(sy - H / 2, sx - W / 2);
+            const c = Math.cos(a);
+            const s = Math.sin(a);
+            const f = Math.min(
+                Math.abs((W / 2 - pad) / (c || 1e-6)),
+                Math.abs((H / 2 - (s < 0 ? top : pad)) / (s || 1e-6))
+            );
+            const ax = W / 2 + c * f;
+            const ay = H / 2 + s * f;
+            const pulse = calm ? 1 : 0.8 + 0.2 * Math.sin(t * 8);
+            const r = 6 * k * pulse;
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#07090C';
+            ctx.lineWidth = Math.max(2, k);
+            ctx.beginPath();
+            ctx.moveTo(ax + c * r, ay + s * r);
+            ctx.lineTo(ax - c * r * 0.6 - s * r * 0.8, ay - s * r * 0.6 + c * r * 0.8);
+            ctx.lineTo(ax - c * r * 0.6 + s * r * 0.8, ay - s * r * 0.6 - c * r * 0.8);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+            // its picture, small, just inside the arrow
+            const sd = SPRITES[icon];
+            if (!sd) continue;
+            const want = (k * 15) / Math.max(sd.w, sd.h); // device px per art px for a ~15-art-px icon
+            const img = bakeSprite(icon, Math.max(1, Math.floor(want)))?.[0];
+            if (!img) continue;
+            const f2 = want < 1 ? want : 1; // a big boss is drawn smaller than one px per art px
+            const w = img.width * f2;
+            const h = img.height * f2;
+            const ix = ax - c * (r + w * 0.6);
+            const iy = ay - s * (r + h * 0.6);
+            ctx.imageSmoothingEnabled = f2 < 1;
+            ctx.drawImage(
+                img,
+                Math.round(ix - w / 2),
+                Math.round(iy - h / 2),
+                Math.round(w),
+                Math.round(h)
+            );
+            ctx.imageSmoothingEnabled = false;
+        }
     }
 
     // ---------------------------------------------------------------- Exit Scam
@@ -660,7 +839,7 @@ export class Renderer {
         // footstep dust
         if (p.moving && !riding && t - this.dustAt > 0.09) {
             this.dustAt = t;
-            fx.dust(p.x - p.facing * 12, p.y + 22, p.facing);
+            fx.dust(p.x - p.facing * 12, p.y + 22, p.facing, DUST[sim.stageId]);
         }
         // a Market trail: a few particles left behind while moving (none with reduced motion)
         const trail = this.look?.trail;
@@ -1253,129 +1432,126 @@ export class Renderer {
         glows.push([id, sx, sy, 0, false, 0.9]);
     }
 
-    // ---------------------------------------------------------------- backdrop
+    // ---------------------------------------------------------------- the map
 
-    _drawChart(cx, cy, W, H, th, t) {
-        // A big candlestick chart behind the arena, scrolling at half speed (parallax), with a glowing
-        // moving-average line. Deterministic from the candle index, so it never flickers.
-        const ctx = this.ctx;
-        const s = this.s * 0.5; // parallax
-        const step = 70;
-        const X = (wx) => (wx - cx * 0.5) * s + W / 2;
-        const Y = (wy) => (wy - cy * 0.5) * s + H / 2;
-        const half = W / s / 2;
-        const i0 = Math.floor((cx * 0.5 - half) / step) - 2;
-        const i1 = Math.floor((cx * 0.5 + half) / step) + 2;
-        const price = (i) =>
-            Math.sin(i * 0.19) * 300 +
-            Math.sin(i * 0.051 + 1.3) * 520 +
-            (hash1(i) - 0.5) * 120 +
-            i * 9;
-        const baseRow = Math.floor((cy * 0.5 - H / s / 2) / 1800) - 1;
-        const bw = Math.max(2, step * 0.56 * s);
-        for (let row = baseRow; row <= baseRow + 2; row++) {
-            const off = row * 1800;
-            for (let i = i0; i <= i1; i++) {
-                const o = price(i);
-                const c = price(i + 1);
-                const hi = Math.min(o, c) - 24 - hash1(i * 7) * 70;
-                const lo = Math.max(o, c) + 24 + hash1(i * 13) * 70;
-                const up = c < o; // screen y grows downward: lower y = higher price
-                const x = X(i * step + step / 2);
-                ctx.fillStyle = up ? th.upWick : th.downWick;
-                ctx.fillRect(
-                    Math.round(x - Math.max(1, s * 1.2)),
-                    Y(hi + off),
-                    Math.max(2, 2.4 * s),
-                    Y(lo + off) - Y(hi + off)
-                );
-                ctx.fillStyle = up ? th.up : th.down;
-                const top = Y(Math.min(o, c) + off);
-                const bot = Y(Math.max(o, c) + off);
-                ctx.fillRect(
-                    Math.round(x - bw / 2),
-                    Math.round(top),
-                    Math.round(bw),
-                    Math.max(2, Math.round(bot - top))
-                );
+    /**
+     * A standing prop (world.js / art/props.js), its foot on the ground at (pr.x, pr.y). A tall one fades while the
+     * bull stands behind it, so it never hides the player.
+     */
+    _drawProp(pr, X, Y, t, dt, p, glows) {
+        const def = SPRITES[pr.id];
+        const meta = PROP_DEFS[pr.id];
+        if (!def || !meta) return;
+        const k = this.k;
+        const foot = meta.foot ?? 2;
+        const sx = X(pr.x);
+        const sy = Y(pr.y) - (def.h / 2 - foot) * k;
+        let target = 1;
+        if (meta.tall) {
+            const hw = def.w * k * 0.42;
+            for (const [fx, fy] of this._focus || [[p.x, p.y]]) {
+                const px = X(fx);
+                const py = Y(fy);
+                if (
+                    Math.abs(px - sx) < hw &&
+                    py < Y(pr.y) - 2 * k &&
+                    py > sy - (def.h * k) / 2 - 8 * k
+                ) {
+                    target = 0.36;
+                    break;
+                }
             }
-            // moving average
-            ctx.strokeStyle = th.ma;
-            ctx.lineWidth = Math.max(1.5, 2.2 * this.dpr);
-            ctx.beginPath();
-            for (let i = i0; i <= i1; i++) {
-                let m = 0;
-                for (let j = 0; j < 6; j++) m += price(i - j);
-                const x = X(i * step + step / 2);
-                const y = Y(m / 6 + off);
-                if (i === i0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
         }
-        void t;
+        pr.fade += (target - pr.fade) * Math.min(1, dt * 9);
+        const n = def.frames.length;
+        const frame = n > 1 ? Math.floor(t * (def.fps || 8) + pr.phase) % n : 0;
+        this._blit(pr.id, sx, sy, { frame, flip: pr.flip, alpha: pr.fade > 0.99 ? 1 : pr.fade });
+        if (def.glowFrames) glows.push([pr.id, sx, sy, frame, pr.flip, 0.85 * pr.fade]);
     }
 
-    _drawGrid(cx, cy, X, Y, th) {
-        const ctx = this.ctx;
-        const minor = 50;
-        const x0 = Math.floor((cx - this.halfW) / minor) * minor;
-        const y0 = Math.floor((cy - this.halfH) / minor) * minor;
-        const W = this.canvas.width;
-        const H = this.canvas.height;
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = th.grid;
-        ctx.beginPath();
-        for (let x = x0; x <= cx + this.halfW + minor; x += minor) {
-            if (x % 250 === 0) continue;
-            const sx = Math.round(X(x)) + 0.5;
-            ctx.moveTo(sx, 0);
-            ctx.lineTo(sx, H);
+    /** Where a prop's light sits on screen, and how bright it is right now (flicker). */
+    _propLight(pr, l, X, Y, t) {
+        const def = SPRITES[pr.id];
+        const k = this.k;
+        const foot = PROP_DEFS[pr.id].foot ?? 2;
+        const sx = X(pr.x) + (pr.flip ? -(l.x || 0) : l.x || 0) * k;
+        const sy = Y(pr.y) - (def.h / 2 - foot) * k + (l.y || 0) * k;
+        const f = FLICKER[l.flicker]?.(t, pr.phase) ?? 1;
+        return [sx, sy, f];
+    }
+
+    /** Light every source on screen and multiply the night over the world (lighting.js). */
+    _light(sim, fx, world, props, X, Y, W, H, cx, cy, t) {
+        const L = this.lighting;
+        const s = this.s;
+        const p = sim.player;
+        L.begin();
+        // the bull carries a soft light of its own
+        L.add(X(p.x), Y(p.y) - 10 * s, 380 * s, '255,238,214', 0.6);
+        L.add(X(p.x), Y(p.y) - 6 * s, 150 * s, '255,246,232', 0.35);
+        for (const pr of props) {
+            const l = PROP_DEFS[pr.id]?.light;
+            if (!l) continue;
+            const [lx, ly, f] = this._propLight(pr, l, X, Y, t);
+            L.add(lx, ly, l.r * s * (0.94 + 0.06 * f), l.rgb, l.a * f);
         }
-        for (let y = y0; y <= cy + this.halfH + minor; y += minor) {
-            if (y % 250 === 0) continue;
-            const sy = Math.round(Y(y)) + 0.5;
-            ctx.moveTo(0, sy);
-            ctx.lineTo(W, sy);
-        }
-        ctx.stroke();
-        ctx.strokeStyle = th.gridMajor;
-        ctx.beginPath();
-        const X0 = Math.floor((cx - this.halfW) / 250) * 250;
-        const Y0 = Math.floor((cy - this.halfH) / 250) * 250;
-        for (let x = X0; x <= cx + this.halfW + 250; x += 250) {
-            const sx = Math.round(X(x)) + 0.5;
-            ctx.moveTo(sx, 0);
-            ctx.lineTo(sx, H);
-        }
-        for (let y = Y0; y <= cy + this.halfH + 250; y += 250) {
-            const sy = Math.round(Y(y)) + 0.5;
-            ctx.moveTo(0, sy);
-            ctx.lineTo(W, sy);
-        }
-        ctx.stroke();
-        // crosshairs at major intersections, and price labels on the right edge
-        ctx.fillStyle = th.cross;
-        const c = Math.max(3, Math.round(4 * this.dpr));
-        for (let x = X0; x <= cx + this.halfW + 250; x += 250)
-            for (let y = Y0; y <= cy + this.halfH + 250; y += 250) {
-                const sx = Math.round(X(x));
-                const sy = Math.round(Y(y));
-                ctx.fillRect(sx - c, sy, c * 2 + 1, 1);
-                ctx.fillRect(sx, sy - c, 1, c * 2 + 1);
+        // lamps just off screen still spill light onto it
+        for (const c of world.visibleChunks(cx, cy, this.halfW + 120, this.halfH + 120))
+            for (const { p: pr, l } of c.lights) {
+                if (props.includes(pr)) continue;
+                const [lx, ly, f] = this._propLight(pr, l, X, Y, t);
+                if (lx < -l.r * s || lx > W + l.r * s || ly < -l.r * s || ly > H + l.r * s)
+                    continue;
+                L.add(lx, ly, l.r * s, l.rgb, l.a * f);
             }
-        ctx.fillStyle = th.label;
-        ctx.font = `${Math.round(10 * this.dpr)}px "JetBrains Mono", ui-monospace, monospace`;
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'bottom';
-        for (let y = Y0; y <= cy + this.halfH + 250; y += 250) {
-            const pct = (-y / 250) * 2.5;
-            ctx.fillText(
-                `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
-                W - 8 * this.dpr,
-                Math.round(Y(y)) - 3 * this.dpr
-            );
+        // XP candles and airdrops glow on the ground around them
+        let n = 0;
+        for (const o of sim.xp) {
+            if (o.fall > 0 || n > 90) continue;
+            const x = X(o.x);
+            const y = Y(o.y);
+            if (x < -60 || y < -60 || x > W + 60 || y > H + 60) continue;
+            n++;
+            if (o.value >= 50) L.add(x, y, 90 * s, '255,197,61', 0.5);
+            else L.add(x, y, 52 * s, '60,230,150', 0.32);
         }
+        for (const c of sim.crates)
+            if (c.landed) L.add(X(c.x), Y(c.y), 120 * s, '255,214,120', 0.55);
+        for (const h of sim.honey || [])
+            if (h.landed) L.add(X(h.x), Y(h.y), h.radius * 1.4 * s, '255,197,61', 0.3);
+        // bosses bring a red glow with them
+        for (const e of sim.enemies)
+            if (e.boss && e.hp > 0) L.add(X(e.x), Y(e.y), (e.size * 4 + 60) * s, '255,70,90', 0.32);
+        // explosions, level-ups, crits: every ring lights the floor for a moment
+        for (const r of fx.rings) {
+            const k = r.t / r.dur;
+            const rad = (r.r0 + (r.r1 - r.r0) * (1 - (1 - k) * (1 - k))) * s;
+            L.add(X(r.x), Y(r.y), rad * 1.5 + 40 * s, r.color, 0.7 * (1 - k));
+        }
+        for (const g of fx.slams) L.add(X(g.x), Y(g.y), 300 * s, '22,224,138', 0.8);
+        L.apply(this.ctx, W, H, {
+            ambient: nightAmbient(BIOMES[world.stageId].ambient, sim.time),
+            cloud: fx.calm ? 0 : BIOMES[world.stageId].cloud,
+            cam: { x: cx, y: cy },
+            s,
+            t,
+            lift: fx.flash.a * 1.5 + this.life.lightning(t) * 0.55
+        });
+    }
+
+    /** Light sources glow in the air too: a soft additive halo around each lit prop (inside the bloom pass). */
+    _drawHalos(props, X, Y, t) {
+        const ctx = this.ctx;
+        const s = this.s;
+        for (const pr of props) {
+            const l = PROP_DEFS[pr.id]?.light;
+            if (!l) continue;
+            const [lx, ly, f] = this._propLight(pr, l, X, Y, t);
+            const r = Math.min(90, l.r * 0.32) * s;
+            ctx.globalAlpha = Math.min(1, l.a * 0.5 * f) * pr.fade;
+            ctx.drawImage(this.lighting.blob(l.rgb), lx - r, ly - r, r * 2, r * 2);
+        }
+        ctx.globalAlpha = 1;
     }
 
     _drawWeather(th, W, H, t, dt) {

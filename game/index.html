@@ -66,7 +66,17 @@
                     <div id="hBounty" class="hud-bounty" hidden></div>
                 </div>
                 <div class="hud-right">
-                    <div class="hud-score"><small>SCORE</small><b id="hScore">0</b></div>
+                    <div class="hud-score">
+                        <small>SCORE</small><b id="hScore">0</b>
+                        <span class="hud-kills" aria-label="Bears rekt"
+                            ><svg viewBox="0 0 8 8" aria-hidden="true">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M2 0h4v1h1v4H6v3H2V5H1V1h1zM2 2v2h1V2zM5 2v2h1V2zM3 7v1h1V7zM5 7v1h1V7z"
+                                /></svg
+                            ><b id="hKills">0</b></span
+                        >
+                    </div>
                     <button id="btnPause" class="icon-btn" aria-label="Pause">
                         <svg viewBox="0 0 8 8" aria-hidden="true">
                             <path d="M1 1h2v6H1zM5 1h2v6H5z" />
@@ -89,6 +99,17 @@
                 >
                     · WASD / ARROWS</span
                 >
+            </div>
+
+            <div id="mapCard" class="map-intro" hidden aria-hidden="true">
+                <div class="mc-rule"></div>
+                <p class="mc-kick"><i class="dot"></i>MARKET OPEN</p>
+                <div class="mc-name" id="mapCardName"></div>
+                <p class="mc-desc" id="mapCardDesc"></p>
+                <p class="mc-twist" id="mapCardTwist" hidden>
+                    <span>TWIST</span><b id="mapCardTwistName"></b><em id="mapCardTwistDesc"></em>
+                </p>
+                <div class="mc-rule"></div>
             </div>
 
             <div id="bossCard" class="boss-card" hidden>
@@ -352,11 +373,46 @@
                 aria-labelledby="pauseTitle"
             >
                 <div class="panel pause-panel">
-                    <h2 id="pauseTitle" class="screen-h">TRADING HALTED</h2>
-                    <p class="pause-sub" id="pauseSub"></p>
-                    <button id="btnResume" class="btn btn-primary">RESUME</button>
-                    <button id="btnRestart" class="btn">RESTART</button>
-                    <button id="btnQuit" class="btn btn-ghost">QUIT TO TITLE</button>
+                    <div class="pause-head">
+                        <h2 id="pauseTitle" class="screen-h">TRADING HALTED</h2>
+                        <p class="pause-sub" id="pauseSub"></p>
+                    </div>
+                    <div class="pause-body">
+                        <dl class="pause-strip">
+                            <div>
+                                <dt>TIME</dt>
+                                <dd id="pauseTime">00:00</dd>
+                            </div>
+                            <div>
+                                <dt>LEVEL</dt>
+                                <dd id="pauseLevel">1</dd>
+                            </div>
+                            <div>
+                                <dt>REKT</dt>
+                                <dd id="pauseKills">0</dd>
+                            </div>
+                            <div>
+                                <dt>SCORE</dt>
+                                <dd id="pauseScore" class="gold">0</dd>
+                            </div>
+                        </dl>
+                        <section class="bags" aria-labelledby="bagsH">
+                            <h3 class="bags-h">
+                                <span id="bagsH">YOUR BAGS</span><small id="bagsSlots"></small>
+                            </h3>
+                            <ul id="bagWeapons" class="bag-weapons"></ul>
+                            <ul id="bagPassives" class="bag-passives"></ul>
+                        </section>
+                        <section class="pstats" aria-labelledby="pstatsH">
+                            <h3 class="bags-h"><span id="pstatsH">STATS</span></h3>
+                            <dl id="pauseStats" class="pstat-grid"></dl>
+                        </section>
+                    </div>
+                    <div class="pause-btns">
+                        <button id="btnResume" class="btn btn-primary">RESUME</button>
+                        <button id="btnRestart" class="btn">RESTART</button>
+                        <button id="btnQuit" class="btn btn-ghost">QUIT TO TITLE</button>
+                    </div>
                 </div>
             </section>
 
@@ -399,6 +455,23 @@
                     </dl>
                     <p id="overBountyNote" class="bounty-note" hidden></p>
                     <p id="overBadges" class="over-badges" hidden></p>
+                    <section id="overReport" class="dmg-report" hidden aria-labelledby="dmgH">
+                        <div class="dmg-head">
+                            <span id="dmgH">DAMAGE REPORT</span
+                            ><button
+                                type="button"
+                                id="dmgMore"
+                                class="dmg-more"
+                                aria-controls="dmgRows"
+                                hidden
+                            ></button
+                            ><b id="dmgTotal"></b>
+                        </div>
+                        <div class="dmg-cols" aria-hidden="true">
+                            <span>SOURCE</span><span>DMG</span><span>SHARE</span><span>DPS</span>
+                        </div>
+                        <ol id="dmgRows" class="dmg-rows"></ol>
+                    </section>
                     <div id="overClout" class="clout-box" hidden>
                         <div class="clout-head">
                             <span>CLOUT EARNED</span><b id="cloutTotal">+0</b>

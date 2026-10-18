@@ -20,6 +20,7 @@ export const DEFAULT_PREFS = Object.freeze({
     screenShake: !reducedMotion,
     reducedMotion,
     damageNumbers: true,
+    graphics: 'auto', // 'auto' | 'high' | 'low': the map's lighting and ambient life (render.js); auto drops to low on a slow device
     vibration: true,
     name: '',
     nameAsked: false, // the board-name box shows after the first ranked run, then stays out of the way

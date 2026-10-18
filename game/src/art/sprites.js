@@ -14,6 +14,8 @@ import * as creatures from './creatures.js';
 import * as bosses from './bosses.js';
 import * as items from './items.js';
 import * as icons from './icons.js';
+import * as critters from './critters.js';
+import { PROP_DEFS, propSpriteGens } from './props.js';
 
 const make =
     (gen, n = 1, extra = {}) =>
@@ -75,7 +77,13 @@ const SPRITE_GENS = {
     rug: make(items.rug, 4, { fps: 12 }),
     god_candle: make(items.godCandle, 4, { fps: 8 }),
     moon_rocket: make(items.moonRocket, 4, { fps: 14 }),
-    honey_jar: make(items.honeyJar, 2, { fps: 4 })
+    honey_jar: make(items.honeyJar, 2, { fps: 4 }),
+    // the maps' small life (life.js) and scenery (props.js): drawn by the renderer, never seen by the simulation
+    crow: make(critters.crow, 4, { fps: 12 }),
+    pigeon: make(critters.pigeon, 4, { fps: 12 }),
+    rat: make(critters.rat, 2, { fps: 14 }),
+    hare: make(critters.hare, 3, { fps: 10 }),
+    ...propSpriteGens()
 };
 
 const ICON_GENS = {
@@ -169,7 +177,9 @@ export const SPRITE_GROUPS = {
         'god_candle',
         'moon_rocket',
         'honey_jar'
-    ]
+    ],
+    critters: ['crow', 'pigeon', 'rat', 'hare'],
+    props: Object.keys(PROP_DEFS)
 };
 
 export const ICON_GROUPS = {

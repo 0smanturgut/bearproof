@@ -8,10 +8,11 @@
  * STAGE_ROTATION (with a THEMES entry) shows up in the picker, and a new menu row only needs its button.
  */
 
-import { bakeGlow, bakeSprite } from './art/sprites.js';
+import { SPRITES, bakeGlow, bakeSprite } from './art/sprites.js';
 import { THEMES } from './art/stages.js';
 import { fmtNum } from './format.js';
 import { paintIcon } from './ui.js';
+import { paintScene } from './world.js';
 import { characterUnlocked, normalizeProfile, skinSprite, unlockItem } from './profile.js';
 import {
     CHARACTERS,
@@ -507,77 +508,19 @@ export function setupMapPicker({ prefs, persist, audio, onPreview, onStart }) {
     };
 }
 
-/** A small seeded random for the previews, so each map always paints the same chart. */
-function rand(seed) {
-    let s = seed >>> 0 || 1;
-    return () => {
-        s ^= s << 13;
-        s ^= s >>> 17;
-        s ^= s << 5;
-        return (s >>> 0) / 4294967296;
-    };
-}
+// Where each map's card looks: a corner of its starting scene (world.js lays it out the same for any seed).
+const PREVIEW_AT = { chop: [-60, 20], bear_trap: [10, -120], winter: [0, -20] };
 
 /**
- * A map's card art: its chart backdrop (grid, candles, moving average, weather), the bears it leans on, its
- * first boss and the bull, from THEMES and the stage's own data.
+ * A map's card art: a still of the map itself at night (world.js: its ground, scenery and lights), with the
+ * bears it leans on closing in on the bull and its first boss waiting on the right, from the stage's own data.
  */
 export function paintMap(canvas, id) {
     const ctx = canvas.getContext('2d');
     const W = canvas.width;
     const H = canvas.height;
-    const th = THEMES[id] || THEMES.chop;
-    const r = rand([...id].reduce((a, c) => a * 31 + c.charCodeAt(0), 7));
     ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = th.bg;
-    ctx.fillRect(0, 0, W, H);
-    const glow = ctx.createRadialGradient(W / 2, H / 2, 4, W / 2, H / 2, W * 0.6);
-    glow.addColorStop(0, th.glow);
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, W, H);
-    for (let x = 0; x <= W; x += 16) {
-        ctx.fillStyle = x % 64 === 0 ? th.gridMajor : th.grid;
-        ctx.fillRect(x, 0, 1, H);
-    }
-    for (let y = 0; y <= H; y += 16) {
-        ctx.fillStyle = y % 64 === 0 ? th.gridMajor : th.grid;
-        ctx.fillRect(0, y, W, 1);
-    }
-    // a falling market: candles drifting down, a moving average over them
-    let p = H * 0.32;
-    const ma = [];
-    for (let x = 6; x < W; x += 14) {
-        const o = p;
-        p += (r() - 0.58) * 22;
-        p = Math.max(H * 0.15, Math.min(H * 0.85, p));
-        const up = p < o;
-        const top = Math.min(o, p);
-        const bot = Math.max(o, p);
-        ctx.fillStyle = up ? th.upWick : th.downWick;
-        ctx.fillRect(x + 4, top - 4 - r() * 8, 2, bot - top + 8 + r() * 10);
-        ctx.fillStyle = up ? th.up : th.down;
-        ctx.fillRect(x, top, 10, Math.max(3, bot - top));
-        ma.push([x + 5, (o + p) / 2]);
-    }
-    ctx.strokeStyle = th.ma;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ma.forEach(([x], i) => {
-        const yy =
-            ma.slice(Math.max(0, i - 3), i + 1).reduce((a, q) => a + q[1], 0) / Math.min(4, i + 1);
-        if (i) ctx.lineTo(x, yy);
-        else ctx.moveTo(x, yy);
-    });
-    ctx.stroke();
-    if (th.weather === 'snow') {
-        ctx.fillStyle = 'rgba(220,240,255,0.65)';
-        for (let i = 0; i < 70; i++) ctx.fillRect(Math.floor(r() * W), Math.floor(r() * H), 2, 2);
-    } else if (th.weather === 'alarm') {
-        ctx.fillStyle = 'rgba(255,59,92,0.10)';
-        ctx.fillRect(0, 0, W, 10);
-        ctx.fillRect(0, H - 10, W, 10);
-    }
+    const [ax, ay] = PREVIEW_AT[id] || [0, 0];
     // the bears this map leans on (its heaviest spawn weights), its first boss, and you
     const st = getStage(id);
     const heavy = Object.entries(st.poolWeights)
@@ -585,28 +528,23 @@ export function paintMap(canvas, id) {
         .map(([e]) => ENEMY_BY_ID[e]?.sprite)
         .filter(Boolean);
     const mobs = (heavy.length ? heavy : ['red_candle', 'paper_hands', 'bag_holder']).slice(0, 3);
-    const put = (sprite, s, fx, fy, flip = false) => {
-        const img = bakeSprite(sprite, s, { flip })?.[0];
-        if (img)
-            ctx.drawImage(
-                img,
-                Math.round(fx * W - img.width / 2),
-                Math.round(fy * H - img.height / 2)
-            );
-    };
-    // bears close in on the bull from all sides, kept off the boss on the right
-    for (let i = 0; i < 4; i++) {
-        const a = (i / 4) * Math.PI * 2 + r() * 0.9;
-        const fx = 0.28 + Math.cos(a) * 0.17;
-        put(mobs[i % mobs.length], 2, fx, 0.52 + Math.sin(a) * 0.3, fx > 0.28);
-    }
-    put('bull', 2, 0.28, 0.52);
+    const extra = [{ id: 'bull', x: ax - 70, y: ay + 22, light: true }];
+    [
+        [-140, -10],
+        [-120, 70],
+        [-10, 64],
+        [-18, -40]
+    ].forEach(([dx, dy], i) =>
+        extra.push({ id: mobs[i % mobs.length], x: ax + dx, y: ay + dy, flip: dx > -70 })
+    );
     const boss = bossesFor(id)[0];
     if (boss?.sprite) {
-        const big = bakeSprite(boss.sprite, 1)?.[0];
-        const s = big ? Math.max(1, Math.min(3, Math.floor((H * 0.62) / big.height))) : 2;
-        put(boss.sprite, s, 0.78, 0.5, true);
+        const big = SPRITES[boss.sprite];
+        const s = big ? Math.max(1, Math.min(2, Math.floor((H * 0.62) / big.h))) : 2;
+        extra.push({ id: boss.sprite, x: ax + 92, y: ay + 40, flip: true, scale: s });
     }
+    paintScene(ctx, W, H, { stage: id, at: [ax, ay], extra });
+    const th = THEMES[id] || THEMES.chop;
     const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.62);
     vig.addColorStop(0, 'rgba(0,0,0,0)');
     vig.addColorStop(1, th.vignette);

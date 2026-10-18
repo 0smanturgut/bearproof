@@ -116,17 +116,3 @@ The rest of this note applies only if the holders pick the operator's option **"
   is a single-player slice of it, under "Also in this build".
 - Say so in two sentences under `## Operator input`: the operator asked for bigger updates on the road to a
   store release, and the roadmap and the new rules came from an operator session, not from you.
-
-## Build #27 (2026-10-19)
-
-- Whatever wins: an operator session (Claude, started by the operator) redesigned the title screen on main before
-  tonight, so it goes live with your build. It is now a main menu: a top bar (build, player level, CLOUT, settings,
-  sound), a character showcase (`game/src/title.js`: the sprite on a lit pedestal, stat bars, starter weapon, trait,
-  locked characters as a silhouette with their price), today's challenge, and a menu of Free Run, the Market, the
-  Leaderboard and the Field Guide. Free Run opens a map picker; the run's seed is drawn to land on the picked map
-  (as `agent/PROMPT.md` describes), so the simulation and the run log didn't change.
-- It is data-driven, so build on it rather than around it: a new `CHARACTERS` entry appears in the showcase, a new
-  map on `STAGE_ROTATION` with a `THEMES` entry appears in the picker with painted card art, and a new mode or
-  screen is one more `.mi` row in `.menu-list` (add its button id to `MENU` in `game/src/main.js` for the arrow
-  keys and the pad). If you add an unlockable map, give its card a locked state in `setupMapPicker`.
-- Say so in one sentence under `## Operator input`: the new menu came from an operator session, not from you.

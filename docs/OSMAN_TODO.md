@@ -102,12 +102,13 @@ npx wrangler kv key put --binding CONFIG payouts_enabled false --remote
   `3A2hfL8vHw5hUT88vhEpRbKKyLd6nBtA3MmS5cB5BybK`, which isn't a project wallet and holds only that, and 0.0207 SOL
   is still in `21NB…SnKb`. If `3A2h…BybK` is yours, send both amounts to the prize wallet (or back to the treasury)
   and tell me; if it isn't, tell me that, and the ledger note will say so.
-- **Cost reimbursement.** You took 14.9721 SOL from the treasury to your own wallets on 1, 3, 11 and 14 Oct; the
-  ledger labels the six sends "Reimbursement" (`docs/TREASURY.md`, Ledger notes). The 11 Oct one (0.7 SOL) was
+- **Cost reimbursement.** You took 15.8928 SOL from the treasury to your own wallets on 1, 3, 11, 14 and 17 Oct; the
+  ledger labels the seven sends "Reimbursement" (`docs/TREASURY.md`, Ledger notes). The 11 Oct one (0.7 SOL) was
   labelled on 13 Oct, when you said it was for the AI's costs; the 14 Oct one (13 SOL) on 15 Oct, when you said it
-  pays AI fees for BEARPROOF, Pixelpad and CrowLab, domains and hosting (the site says so). Two things are open:
+  pays AI fees for BEARPROOF, Pixelpad and CrowLab, domains and hosting (the site says so); the 17 Oct one (0.92 SOL)
+  on 18 Oct, when you said it was for AI fees. Two things are open:
     - **Send me your bills** (what, amount, date: Anthropic API, Claude subscription, Cloudflare, the domain, the
-      stream server, anything else). Only $86.19 of compute is measured; until the rest is listed, the site says "not
+      stream server, anything else). Only $111.84 of compute is measured; until the rest is listed, the site says "not
       itemised".
     - **Tell me before the next send**, with its purpose, so the row is labelled the same day instead of showing as
       "Other".

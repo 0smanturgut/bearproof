@@ -99,7 +99,7 @@ const g = (fn, a) => page.evaluate(fn, a);
 // 1. title screen, the live build behind it (and the character pick, tapped on camera)
 await wait(CHARACTER ? 1200 : 2400);
 if (CHARACTER) {
-    await page.click(`.char-btn[data-char="${CHARACTER}"]`);
+    await page.click(`.char-dot[data-char="${CHARACTER}"]`);
     await wait(1800);
 }
 // 2. play: fast-forward into a busy mid-game, then let the autopilot drive

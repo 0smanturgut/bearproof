@@ -189,6 +189,15 @@ export class AudioEngine {
     click() {
         this.tone({ freq: 900, dur: 0.02, type: 'triangle', volume: 0.07 });
     }
+    /** Moving through a menu: a short tick, a little higher each step so a sweep sounds like one. */
+    menuMove() {
+        this._moveN = ((this._moveN || 0) + 1) % 4;
+        this.tone({ freq: 1180 + this._moveN * 60, dur: 0.018, type: 'square', volume: 0.035 });
+    }
+    /** A new character or map on show: a quick rising blip. */
+    menuSwap() {
+        this.tone({ freq: 520, dur: 0.07, type: 'square', volume: 0.06, sweep: 520 });
+    }
     /** Not enough CLOUT: a low double buzz. */
     deny() {
         this.tone({ freq: 160, dur: 0.06, type: 'square', volume: 0.08 });

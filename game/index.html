@@ -108,82 +108,232 @@
             </div>
 
             <section id="screenTitle" class="screen screen-title" aria-labelledby="logo">
-                <a class="chip" href="/" target="_top"
-                    ><i class="dot"></i>BUILD <span class="buildLabel">#1</span> · BUILT BY AN AI</a
-                >
-                <div class="title-hero">
-                    <canvas
-                        id="titleBull"
-                        class="title-bull"
-                        width="228"
-                        height="168"
-                        aria-hidden="true"
-                    ></canvas>
-                    <h1 id="logo" class="logo" data-text="BEARPROOF">BEARPROOF</h1>
-                    <p id="tagline" class="tagline">You are a bull. The bear market is endless.</p>
-                </div>
-                <div
-                    id="charPick"
-                    class="char-pick"
-                    role="radiogroup"
-                    aria-label="Pick your character"
-                ></div>
-                <button id="btnProfile" class="profile-strip" type="button" hidden>
-                    <span class="ps-lv"><small>LV</small><b id="psLevel">1</b></span>
-                    <span class="ps-mid">
-                        <span class="ps-row"
-                            ><span>PLAYER LEVEL</span><span id="psXp" class="ps-xp"></span
-                        ></span>
-                        <span class="bar bar-plv"><i id="psBar"></i></span>
-                    </span>
-                    <span class="ps-clout"><b id="psClout">0</b><small>CLOUT</small></span>
-                    <span class="ps-go">MARKET ▸</span>
-                </button>
-                <div class="daily-card">
-                    <div class="daily-head">
-                        <span class="daily-lab"><i class="dot"></i>TODAY'S CHALLENGE</span>
-                        <span id="todayTop" class="today-top"></span>
+                <header class="tbar">
+                    <a class="chip" href="/" target="_top"
+                        ><i class="dot"></i><span class="chip-b">BUILD </span
+                        ><span class="buildLabel">#1</span
+                        ><span class="chip-x"> · BUILT BY AN AI</span></a
+                    >
+                    <div class="tbar-r">
+                        <button id="btnProfile" class="profile-pill" type="button" hidden>
+                            <span class="ps-lv"><small>LV</small><b id="psLevel">1</b></span>
+                            <span class="ps-mid">
+                                <span class="ps-row"
+                                    ><span>PLAYER LEVEL</span><span id="psXp" class="ps-xp"></span
+                                ></span>
+                                <span class="bar bar-plv"><i id="psBar"></i></span>
+                            </span>
+                            <span class="ps-clout"
+                                ><i class="coin" aria-hidden="true"></i><b id="psClout">0</b
+                                ><small>CLOUT</small></span
+                            >
+                        </button>
+                        <button id="btnSettings" class="btn btn-ghost btn-sq" aria-label="Settings">
+                            <svg viewBox="0 0 8 8" aria-hidden="true">
+                                <path d="M3 0h2v1h1v1h1v2H6v1H5v1H3V5H2V4H1V2h1V1h1zM3 2v2h2V2z" />
+                            </svg>
+                        </button>
+                        <button id="btnSound" class="btn btn-ghost btn-sq" aria-label="Sound on">
+                            <svg viewBox="0 0 8 8" aria-hidden="true">
+                                <path class="spk" d="M0 3h2l2-2v6L2 5H0z" />
+                                <path class="wave" d="M5 2h1v1H5zM6 3h1v2H6zM5 5h1v1H5z" />
+                                <path
+                                    class="mute"
+                                    d="M5 2h1v1H5zM7 2h1v1H7zM6 3h1v2H6zM5 5h1v1H5zM7 5h1v1H7z"
+                                />
+                            </svg>
+                        </button>
                     </div>
-                    <p id="dailyTwist" class="daily-twist" hidden></p>
-                    <div id="dailyBounty" class="daily-bounty" hidden>
-                        <p class="bounty-head">
-                            <span class="bounty-lab">AI BOUNTY</span>
-                            <b id="bountyName"></b><span id="bountyCond" class="bounty-cond"></span>
-                        </p>
-                        <p class="bounty-money">
-                            Clear it to share today's bounty in $ANSEM.
-                            <span class="bounty-only">Daily Challenge runs only.</span>
-                        </p>
+                </header>
+
+                <div class="tmain">
+                    <div class="brand">
+                        <h1 id="logo" class="logo" data-text="BEARPROOF">BEARPROOF</h1>
+                        <p class="brand-sub">Survive the endless bear market</p>
                     </div>
-                    <button id="btnDaily" class="btn btn-primary btn-big">
-                        <span>PLAY NOW ▸</span>
-                        <small id="dailySub">Same market for everyone</small>
+
+                    <div class="show" role="group" aria-label="Character">
+                        <div class="show-stage">
+                            <canvas
+                                id="titleBull"
+                                class="show-cv"
+                                width="320"
+                                height="240"
+                                aria-hidden="true"
+                            ></canvas>
+                            <button
+                                id="charPrev"
+                                class="show-arrow prev"
+                                type="button"
+                                aria-label="Previous character"
+                            >
+                                <svg viewBox="0 0 6 8" aria-hidden="true">
+                                    <path d="M4 0h2v8H4V7H3V6H2V5H1V3h1V2h1V1h1z" />
+                                </svg>
+                            </button>
+                            <button
+                                id="charNext"
+                                class="show-arrow next"
+                                type="button"
+                                aria-label="Next character"
+                            >
+                                <svg viewBox="0 0 6 8" aria-hidden="true">
+                                    <path d="M0 0h2v1h1v1h1v1h1v2H4v1H3v1H2v1H0z" />
+                                </svg>
+                            </button>
+                            <span id="charLock" class="show-lock" hidden>LOCKED</span>
+                        </div>
+                        <div class="show-card panel">
+                            <p class="show-k">
+                                <span>CHARACTER</span><span id="charIdx" class="show-idx"></span>
+                            </p>
+                            <h2 id="charName" class="show-name">THE BULL</h2>
+                            <p id="tagline" class="tagline">
+                                You are a bull. The bear market is endless.
+                            </p>
+                            <dl class="show-stats">
+                                <div>
+                                    <dt>HP</dt>
+                                    <dd>
+                                        <span id="statHp" class="seg"></span><b id="statHpV"></b>
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt>SPEED</dt>
+                                    <dd>
+                                        <span id="statSpd" class="seg"></span><b id="statSpdV"></b>
+                                    </dd>
+                                </div>
+                            </dl>
+                            <div class="show-weapon">
+                                <canvas
+                                    id="charWeaponIc"
+                                    class="show-wic"
+                                    aria-hidden="true"
+                                ></canvas>
+                                <span class="show-wtext">
+                                    <small>STARTS WITH</small><b id="charWeapon"></b
+                                    ><em id="charWeaponD"></em>
+                                </span>
+                            </div>
+                            <p id="charTrait" class="show-trait" hidden></p>
+                            <div
+                                id="charPick"
+                                class="char-dots"
+                                role="radiogroup"
+                                aria-label="Pick your character"
+                            ></div>
+                            <button
+                                id="charUnlock"
+                                class="btn btn-gold btn-block"
+                                type="button"
+                                hidden
+                            >
+                                <span>UNLOCK</span><small id="charUnlockSub"></small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <nav class="menu" aria-label="Main menu">
+                        <div class="daily-card">
+                            <div class="daily-head">
+                                <span class="daily-lab"><i class="dot"></i>TODAY'S CHALLENGE</span>
+                                <span id="dailyClock" class="daily-clock"></span>
+                            </div>
+                            <p id="dailyMeta" class="daily-meta" hidden>
+                                <span class="dm"><small>MAP</small><b id="dailyMap"></b></span>
+                                <span class="dm"
+                                    ><small>TWIST</small><b id="dailyTwistName"></b
+                                ></span>
+                            </p>
+                            <p id="dailyTwist" class="daily-twist" hidden></p>
+                            <div id="dailyBounty" class="daily-bounty" hidden>
+                                <p class="bounty-head">
+                                    <span class="bounty-lab">AI BOUNTY</span>
+                                    <b id="bountyName"></b
+                                    ><span id="bountyCond" class="bounty-cond"></span>
+                                </p>
+                                <p class="bounty-money">
+                                    Clear it to share today's bounty in $ANSEM.
+                                    <span class="bounty-only">Daily Challenge runs only.</span>
+                                </p>
+                            </div>
+                            <button id="btnDaily" class="btn btn-primary btn-big mi-daily">
+                                <span>PLAY DAILY ▸</span>
+                                <small id="dailySub">Same run for everyone · one board</small>
+                            </button>
+                            <p id="todayTop" class="today-top"></p>
+                        </div>
+                        <ul class="menu-list">
+                            <li>
+                                <button id="btnFree" class="mi" type="button">
+                                    <svg class="mi-ic" viewBox="0 0 8 8" aria-hidden="true">
+                                        <path d="M1 0h1v8H1zM2 1h5v1H6v1h1v1H2z" />
+                                    </svg>
+                                    <span class="mi-t">FREE RUN</span>
+                                    <span id="miFree" class="mi-m">Pick a map</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button id="btnMarket" class="mi" type="button">
+                                    <svg class="mi-ic" viewBox="0 0 8 8" aria-hidden="true">
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M2 0h4v1h1v1h1v4H7v1H6v1H2V7H1V6H0V2h1V1h1zM3 2v4h2V2z"
+                                        />
+                                    </svg>
+                                    <span class="mi-t">THE MARKET</span>
+                                    <span id="miMarket" class="mi-m">Characters & skins</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button id="btnBoard" class="mi" type="button">
+                                    <svg class="mi-ic" viewBox="0 0 8 8" aria-hidden="true">
+                                        <path
+                                            d="M1 0h6v1h1v2H7v1H6v1H5v1h1v2H2V6h1V5H2V4H1V3H0V1h1z"
+                                        />
+                                    </svg>
+                                    <span class="mi-t">LEADERBOARD</span>
+                                    <span id="miBoard" class="mi-m">Today's best runs</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button id="btnGuide" class="mi" type="button">
+                                    <svg class="mi-ic" viewBox="0 0 8 8" aria-hidden="true">
+                                        <path d="M0 1h3v1h2V1h3v6H5v1H3V7H0z" />
+                                    </svg>
+                                    <span class="mi-t">FIELD GUIDE</span>
+                                    <span id="miGuide" class="mi-m">Weapons & bears</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <footer class="tfoot">
+                    <div class="tape" aria-hidden="true">
+                        <div id="tape" class="tape-run"></div>
+                    </div>
+                    <p class="title-foot">
+                        <span>An AI builds this game in public, one build a day.</span>
+                        <a href="/" target="_top">See what it shipped →</a>
+                        <span class="keys-hint">↑↓ menu · ←→ character · Enter play</span>
+                    </p>
+                </footer>
+            </section>
+
+            <section id="screenMaps" class="screen screen-maps" hidden aria-labelledby="mapsTitle">
+                <div class="maps-head">
+                    <p class="maps-k">FREE RUN · NO BOARD, NO PRESSURE</p>
+                    <h2 id="mapsTitle" class="screen-h">PICK A MARKET</h2>
+                </div>
+                <div id="mapList" class="map-list" role="radiogroup" aria-label="Maps"></div>
+                <div class="maps-foot">
+                    <button id="btnMapsBack" class="btn btn-ghost" type="button">BACK</button>
+                    <button id="btnMapGo" class="btn btn-primary" type="button">
+                        <span>START RUN ▸</span><small id="mapGoSub"></small>
                     </button>
                 </div>
-                <div class="title-row">
-                    <button id="btnFree" class="btn btn-ghost">FREE RUN</button>
-                    <button id="btnBoard" class="btn btn-ghost">BOARD</button>
-                    <button id="btnGuide" class="btn btn-ghost">GUIDE</button>
-                    <button id="btnSettings" class="btn btn-ghost btn-sq" aria-label="Settings">
-                        <svg viewBox="0 0 8 8" aria-hidden="true">
-                            <path d="M3 0h2v1h1v1h1v2H6v1H5v1H3V5H2V4H1V2h1V1h1zM3 2v2h2V2z" />
-                        </svg>
-                    </button>
-                    <button id="btnSound" class="btn btn-ghost btn-sq" aria-label="Sound on">
-                        <svg viewBox="0 0 8 8" aria-hidden="true">
-                            <path class="spk" d="M0 3h2l2-2v6L2 5H0z" />
-                            <path class="wave" d="M5 2h1v1H5zM6 3h1v2H6zM5 5h1v1H5z" />
-                            <path
-                                class="mute"
-                                d="M5 2h1v1H5zM7 2h1v1H7zM6 3h1v2H6zM5 5h1v1H5zM7 5h1v1H7z"
-                            />
-                        </svg>
-                    </button>
-                </div>
-                <p class="title-foot">
-                    An AI builds this game in public, one build a day.
-                    <a href="/" target="_top">See what it shipped →</a>
-                </p>
             </section>
 
             <section id="screenLevel" class="screen screen-level" hidden aria-labelledby="lvTitle">

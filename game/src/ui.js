@@ -59,7 +59,8 @@ export class UI {
             'screenSettings',
             'screenShare',
             'screenGuide',
-            'screenMarket'
+            'screenMarket',
+            'screenMaps'
         ];
         this.hud = {
             level: $('hLevel'),
@@ -84,7 +85,8 @@ export class UI {
         this._loadoutKey = '';
     }
 
-    show(id) {
+    show(id, { focus = true } = {}) {
+        this.current = id;
         for (const s of this.screens) $(s).hidden = s !== id;
         document.body.classList.toggle('on-title', id === 'screenTitle');
         if (id === 'screenLevel') $('toast').classList.remove('show');
@@ -92,7 +94,7 @@ export class UI {
         $('hud').hidden = !(inGame || id === 'screenPause');
         document.body.classList.toggle('no-hud', $('hud').hidden);
         this.hud.loadout.hidden = $('hud').hidden;
-        if (id) {
+        if (id && focus) {
             const visible = (sel) =>
                 [...$(id).querySelectorAll(sel)].find((e) => e.offsetParent !== null);
             const first = visible('.btn-primary') || visible('button, [href], input');
@@ -371,6 +373,43 @@ export class UI {
         $('todayTop').textContent = text || '';
     }
 
+    /** Today's map and twist on the Daily card (hidden until today's challenge is known). */
+    setDailyMeta(map, twist) {
+        $('dailyMeta').hidden = !map;
+        $('dailyMap').textContent = map || '';
+        $('dailyTwistName').textContent = twist || '';
+    }
+
+    /** The countdown to the next build in the Daily card's corner ('' hides it). */
+    setDailyClock(text) {
+        $('dailyClock').textContent = text || '';
+    }
+
+    /** The detail line on a main-menu row. */
+    setMenuMeta(id, text) {
+        const el = $(id);
+        if (el) el.textContent = text;
+    }
+
+    /** The ticker tape under the menu: [{label, value, gold}], run twice so the loop is seamless. */
+    setTape(items) {
+        const run = $('tape');
+        run.textContent = '';
+        if (!items.length) return;
+        for (let pass = 0; pass < 2; pass++) {
+            for (const it of items) {
+                const s = document.createElement('span');
+                s.append(`${it.label} `);
+                const b = document.createElement('b');
+                if (it.gold) b.className = 'g';
+                b.textContent = it.value;
+                s.append(b);
+                run.append(s);
+            }
+        }
+        run.style.animationDuration = `${Math.max(30, items.length * 7)}s`;
+    }
+
     /** The title screen's profile strip: player level, its bar and the CLOUT balance; it opens the Market. */
     profileStrip(profile) {
         const lv = levelForXp(profile.xp);
@@ -379,6 +418,7 @@ export class UI {
         $('psXp').textContent = `${fmtNum(lv.into)} / ${fmtNum(lv.need)} XP`;
         $('psBar').style.width = `${Math.round((lv.into / lv.need) * 100)}%`;
         $('psClout').textContent = fmtNum(profile.clout);
+        $('miMarket').textContent = `${fmtNum(profile.clout)} CLOUT to spend`;
         $('btnProfile').setAttribute(
             'aria-label',
             `Player level ${lv.level}, ${profile.clout} CLOUT. Open the Market.`

@@ -9,7 +9,15 @@ import { Simulation } from './sim/sim.js';
 import { BOSSES, CRATE_LOOT, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
-import { CHARACTER_IDS, PASSIVES, TWISTS, WEAPONS, dailyTwistForSeed } from './sim/content.js';
+import {
+    CHARACTER_IDS,
+    PASSIVES,
+    STAGE_ROTATION,
+    TWISTS,
+    WEAPONS,
+    dailyTwistForSeed,
+    stageForSeed
+} from './sim/content.js';
 import { createBot } from './sim/bot.js';
 import { Fx } from './fx.js';
 import { KILL_COLORS, Renderer } from './render.js';
@@ -80,17 +88,25 @@ export class Game {
     // --- Run lifecycle ----------------------------------------------------------
 
     /** Title screen: the autopilot plays a free run behind the menu (no sound, no submit). */
-    startBackdrop() {
-        this.startRun('free', { backdrop: true });
+    /**
+     * The live build behind the menus, played by the autopilot. `stage` puts it on a map (the Free Run picker
+     * previews a map this way); `keepScreen` restarts it under whatever menu screen is open.
+     */
+    startBackdrop({ keepScreen = false, stage = this._backdropStage } = {}) {
+        const keep = keepScreen && !!this.ui.current;
+        this._backdropStage = stage || null;
+        this.startRun('free', { backdrop: true, stage, keepScreen: keep });
+        if (keep) return; // the open menu stays exactly as it is (its scroll, its focus)
         this.ui.show('screenTitle');
         this.ui.profileStrip(normalizeProfile(this.prefs.profile));
     }
 
-    startRun(mode, { backdrop = false } = {}) {
+    startRun(mode, { backdrop = false, stage = null, keepScreen = false } = {}) {
         this.backdrop = backdrop;
         this.attract = this.baseAttract || backdrop;
         this.mode = mode === 'daily' && this.daily ? 'daily' : 'free';
-        const seed = this.mode === 'daily' ? this.daily.seed : randomSeed();
+        // A free run's map comes from its seed like every run's, so picking a map picks a seed for it.
+        const seed = this.mode === 'daily' ? this.daily.seed : seedForStage(stage);
         // The Daily Challenge has one twist, the same for everyone; free runs have none.
         const twist = this.mode === 'daily' ? dailyTwistForSeed(seed) : null;
         // The chosen character is part of the run log, so the server re-simulates it too. The HQ/stream autopilot
@@ -119,7 +135,7 @@ export class Game {
         this._badgeToastAt = 0;
         this._runId++;
         this.ui.resetHud();
-        this.ui.hideAll();
+        if (!keepScreen) this.ui.hideAll();
         this.input.reset();
         this.state = this.attract ? 'attract' : 'playing';
         if (!this.attract) {
@@ -278,6 +294,7 @@ export class Game {
     _padButton(b) {
         if (b === 9 || b === 8) this.togglePause();
         else if (this.state === 'levelup' && b <= 2) this.ui.levelKey(String(b + 1));
+        else if (this.backdrop) this.onMenuButton?.(b); // the menus (main.js)
     }
 
     // --- Level-up -------------------------------------------------------------
@@ -763,7 +780,7 @@ export class Game {
             setTimeout(
                 () => {
                     if (id !== this._attractGen || this.state !== 'attract-over') return;
-                    if (backdrop) this.startBackdrop();
+                    if (backdrop) this.startBackdrop({ keepScreen: true });
                     else this.startRun('free');
                 },
                 backdrop ? 1500 : 2500
@@ -1023,6 +1040,14 @@ export class Game {
 
 function xy(v) {
     return [v.x, v.y];
+}
+
+/** A random seed whose map is `stage` (any map when it's not one of the rotation's). */
+function seedForStage(stage) {
+    let seed = randomSeed();
+    if (!STAGE_ROTATION.includes(stage)) return seed;
+    for (let i = 0; i < 256 && stageForSeed(seed) !== stage; i++) seed = randomSeed();
+    return seed;
 }
 
 function randomSeed() {

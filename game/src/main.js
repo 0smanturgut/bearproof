@@ -15,27 +15,21 @@ import { AudioEngine } from './audio.js';
 import { HapticEngine } from './haptics.js';
 import { loadKeymap } from './keymap.js';
 import { loadPrefs, savePrefs } from './prefs.js';
-import { bakeSprite } from './art/sprites.js';
 import * as api from './api.js';
 import { createBot } from './sim/bot.js';
 import { bountyText, readBounty } from './bounty.js';
 import { guideSections } from './guide.js';
 import { badgeSection } from './achievements.js';
+import { MARKET_BY_ID, buy, characterUnlocked, equip, normalizeProfile } from './profile.js';
+import { moveFocus, setupMapPicker, setupShowcase } from './title.js';
 import {
-    MARKET_BY_ID,
-    buy,
-    characterUnlocked,
-    equip,
-    normalizeProfile,
-    skinSprite,
-    unlockItem
-} from './profile.js';
-import {
-    CHARACTERS,
     CHARACTER_IDS,
+    STAGE_ROTATION,
     TWISTS,
     characterDef,
-    dailyTwistForSeed
+    dailyTwistForSeed,
+    getStage,
+    stageForSeed
 } from './sim/content.js';
 
 const params = new URLSearchParams(location.search);
@@ -90,16 +84,86 @@ async function boot() {
     };
     ui.setSoundLabel(!prefs.muted);
 
+    const startDaily = () => game.startRun(game.daily ? 'daily' : 'free');
+    const startFree = (stage) => game.startRun('free', { stage });
+    // The back button of each sub-screen, for Esc and the pad's B.
+    const BACK = {
+        screenBoard: 'btnBoardBack',
+        screenSettings: 'btnSettingsBack',
+        screenGuide: 'btnGuideBack',
+        screenMarket: 'btnMarketBack',
+        screenMaps: 'btnMapsBack'
+    };
+    // The main menu, top to bottom, for the arrow keys and the pad.
+    const MENU = ['btnDaily', 'btnFree', 'btnMarket', 'btnBoard', 'btnGuide'];
+    const onMenu = () => game.state === 'title' || game.backdrop;
+    const focusedButton = () =>
+        document.activeElement?.closest?.('.screen:not([hidden])') &&
+        /^(BUTTON|A)$/.test(document.activeElement.tagName);
+
+    /** One menu input from the keyboard or a pad: up / down / left / right / ok / back. */
+    const menuInput = (what) => {
+        audio.unlock();
+        const screen = ui.current;
+        if (what === 'back') {
+            if (BACK[screen]) $(BACK[screen]).click();
+            return;
+        }
+        if (screen === 'screenTitle') {
+            if (what === 'up' || what === 'down') {
+                if (moveFocus(MENU, what === 'up' ? -1 : 1)) audio.menuMove();
+            } else if (what === 'left' || what === 'right') {
+                showcase.step(what === 'left' ? -1 : 1);
+            } else if (what === 'ok') {
+                if (focusedButton()) document.activeElement.click();
+                else startDaily();
+            }
+        } else if (screen === 'screenMaps') {
+            if (what === 'ok') {
+                if (focusedButton() && !document.activeElement.classList.contains('map-card'))
+                    document.activeElement.click();
+                else maps.go();
+            } else maps.move(what === 'left' || what === 'up' ? -1 : 1);
+        } else if (what === 'ok' && focusedButton()) {
+            document.activeElement.click();
+        }
+    };
+    const KEYS = {
+        arrowup: 'up',
+        arrowdown: 'down',
+        arrowleft: 'left',
+        arrowright: 'right',
+        w: 'up',
+        s: 'down',
+        a: 'left',
+        d: 'right',
+        escape: 'back',
+        backspace: 'back'
+    };
     input.onPause = () => game.togglePause();
     input.onMute = () => setSound(prefs.muted);
-    input.onKey = (key) => {
-        if (game.state === 'levelup') ui.levelKey(key);
-        else if ((game.state === 'title' || game.backdrop) && key === 'enter') startDaily();
+    input.onKey = (key, e) => {
+        if (game.state === 'levelup') return ui.levelKey(key);
+        if (!onMenu()) return;
+        if (key === 'enter' || key === ' ') {
+            // Enter on a focused button clicks it natively (space is held back by the input layer, so it's
+            // clicked here); Enter anywhere else on the title plays today's challenge.
+            if (focusedButton()) {
+                if (key === ' ') document.activeElement.click();
+                return;
+            }
+            e?.preventDefault();
+            return menuInput('ok');
+        }
+        if (KEYS[key]) menuInput(KEYS[key]);
+    };
+    // The pad on the menus: d-pad to move, A to pick, B to go back, Start to play.
+    game.onMenuButton = (b) => {
+        const what = { 0: 'ok', 1: 'back', 12: 'up', 13: 'down', 14: 'left', 15: 'right' }[b];
+        if (what) menuInput(what);
     };
 
-    const startDaily = () => game.startRun(game.daily ? 'daily' : 'free');
     $('btnDaily').addEventListener('click', startDaily);
-    $('btnFree').addEventListener('click', () => game.startRun('free'));
     $('btnSound').addEventListener('click', () => setSound(prefs.muted));
     $('btnPause').addEventListener('click', () => game.togglePause());
     $('btnResume').addEventListener('click', () => game.resume());
@@ -207,35 +271,56 @@ async function boot() {
     const lookChanged = () => {
         game.applyLook();
         ui.profileStrip(prefs.profile);
-        repaintCharacters();
+        showcase.refresh();
         openMarket();
     };
-    $('btnProfile').addEventListener('click', () => {
+    const marketFromMenu = () => {
         audio.unlock();
         openMarket();
-    });
+    };
+    $('btnProfile').addEventListener('click', marketFromMenu);
+    $('btnMarket').addEventListener('click', marketFromMenu);
     $('btnMarketBack').addEventListener('click', () => {
         ui.show('screenTitle');
         ui.profileStrip(normalizeProfile(prefs.profile));
+        showcase.refresh();
     });
+
+    // The character on show, and the Free Run map picker (its pick previews live behind it).
+    let dailyStage = null; // today's Daily map, marked in the picker
+    const showcase = setupShowcase({
+        prefs,
+        persist,
+        audio,
+        onUnlock: () => {
+            // a locked character opens the Market on the Characters tab
+            audio.unlock();
+            marketTab = 'chars';
+            openMarket();
+        }
+    });
+    const maps = setupMapPicker({
+        prefs,
+        persist,
+        audio,
+        onPreview: (stage) => {
+            if (game.backdrop && game.sim?.stageId !== stage)
+                game.startBackdrop({ keepScreen: true, stage });
+        },
+        onStart: (stage) => startFree(stage)
+    });
+    $('btnFree').addEventListener('click', () => {
+        audio.unlock();
+        ui.show('screenMaps', { focus: false });
+        maps.open(dailyStage);
+    });
+    $('btnMapsBack').addEventListener('click', () => ui.show('screenTitle'));
 
     game.startBackdrop(); // the title screen floats over the live build, played by the autopilot
-    const repaintCharacters = setupCharacterPick(prefs, persist, () => {
-        // a locked character's card opens the Market on the Characters tab
-        audio.unlock();
-        audio.deny();
-        marketTab = 'chars';
-        openMarket();
-    });
-    animateTitleBull(
-        $('titleBull'),
-        () =>
-            skinSprite(normalizeProfile(prefs.profile), prefs.character) ||
-            characterDef(prefs.character).sprite ||
-            'bull'
-    );
+    ui.setMenuMeta('miFree', `${STAGE_ROTATION.length} maps · no board`);
 
     // Today's challenge (or the one in the URL). The game is fully playable without it.
+    const tape = [{ label: 'BUILD', value: `#${build.n} LIVE` }];
     const [d, rawBounty] = await Promise.all([
         api.getDaily(challenge || undefined),
         api.getBounty()
@@ -250,145 +335,65 @@ async function boot() {
     } else if (d.ok && d.data?.seed) {
         game.daily = d.data;
         const tw = TWISTS[dailyTwistForSeed(d.data.seed)];
-        ui.setDailyTwist(`Today's twist: ${tw.name}. ${tw.description}`);
+        dailyStage = stageForSeed(d.data.seed);
+        const map = getStage(dailyStage).name;
+        ui.setDailyMeta(map, tw.name);
+        ui.setDailyTwist(tw.description);
+        tape.push(
+            { label: 'DAILY', value: d.data.date },
+            { label: 'MAP', value: map.toUpperCase() },
+            { label: 'TWIST', value: tw.name.toUpperCase(), gold: true }
+        );
         // The bounty belongs to this build, so it's shown only when today's board runs on it.
         game.bounty = readBounty(rawBounty);
-        if (game.bounty) ui.setDailyBounty(game.bounty.name, bountyText(game.bounty));
+        if (game.bounty) {
+            ui.setDailyBounty(game.bounty.name, bountyText(game.bounty));
+            tape.push({ label: 'AI BOUNTY', value: game.bounty.name.toUpperCase(), gold: true });
+        }
+        const pad = (n) => String(n).padStart(2, '0');
         const tick = () => {
             const left = Date.parse(d.data.endsAt) - Date.now();
-            if (left <= 0)
+            if (left <= 0) {
+                ui.setDailyClock('');
                 return ui.setDailySub('This challenge has ended. Reload for the new build.');
+            }
             const h = Math.floor(left / 3600000);
             const m = Math.floor((left % 3600000) / 60000);
             const s = Math.floor((left % 60000) / 1000);
-            const pad = (n) => String(n).padStart(2, '0');
-            ui.setDailySub(`Same market for everyone · new build in ${pad(h)}:${pad(m)}:${pad(s)}`);
+            ui.setDailyClock(`NEXT BUILD ${pad(h)}:${pad(m)}:${pad(s)}`);
         };
+        ui.setDailySub('Same run for everyone · one board');
         tick();
         setInterval(tick, 1000);
         const lb = await api.getLeaderboard(d.data.date);
-        const top = (lb.data?.rows || lb.data?.entries || [])[0];
-        if (top) ui.setTodayTop(`Today's #1: ${top.name} · ${fmtNum(top.score)}`);
+        const rows = lb.data?.rows || lb.data?.entries || [];
+        const top = rows[0];
+        if (top) {
+            ui.setTodayTop(`Today's #1: ${top.name} · ${fmtNum(top.score)}`);
+            tape.push({
+                label: "TODAY'S #1",
+                value: `${top.name} ${fmtNum(top.score)}`,
+                gold: true
+            });
+        }
+        const total = lb.data?.total || rows.length;
+        if (total > 0) ui.setMenuMeta('miBoard', `${fmtNum(total)} on today's board`);
+        if (total > 0)
+            tape.push({
+                label: 'ON THE BOARD',
+                value: `${fmtNum(total)} PLAYER${total === 1 ? '' : 'S'}`
+            });
     } else {
         document.querySelector('#btnDaily span').textContent = 'PLAY NOW ▸';
         ui.setDailySub('The daily board is offline, so this is a free run');
     }
-}
-
-/**
- * The character select on the title screen: one button per CHARACTERS entry, one tap, saved in prefs. The
- * Simulation reads the character's rules; this only shows them.
- */
-function setupCharacterPick(prefs, persist, onLocked) {
-    const root = $('charPick');
-    const unlocked = (id) => characterUnlocked(normalizeProfile(prefs.profile), id);
-    if (!CHARACTERS[prefs.character] || !unlocked(prefs.character)) prefs.character = 'bull';
-    const buttons = CHARACTER_IDS.map((id) => {
-        const c = CHARACTERS[id];
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'char-btn';
-        b.setAttribute('role', 'radio');
-        b.dataset.char = id;
-        const cv = document.createElement('canvas');
-        cv.className = 'char-face';
-        cv.setAttribute('aria-hidden', 'true');
-        b._face = cv;
-        const text = document.createElement('span');
-        text.className = 'char-text';
-        const name = document.createElement('b');
-        name.textContent = c.name.replace(/^The /, '').toUpperCase();
-        const sub = document.createElement('small');
-        sub.textContent = c.description;
-        b._sub = sub;
-        text.append(name, sub);
-        b.append(cv, text);
-        b.addEventListener('click', () => {
-            if (!unlocked(id)) return onLocked(id);
-            prefs.character = id;
-            persist();
-            sync();
-        });
-        root.append(b);
-        return b;
-    });
-    const sync = () => {
-        for (const b of buttons) {
-            const id = b.dataset.char;
-            const open = unlocked(id);
-            b.classList.toggle('locked', !open);
-            b.setAttribute('aria-checked', String(id === prefs.character));
-            b._sub.textContent = open
-                ? CHARACTERS[id].description
-                : `🔒 ${fmtNum(unlockItem(id).price)} CLOUT`;
-            b.setAttribute(
-                'aria-label',
-                open
-                    ? `${CHARACTERS[id].name}: ${CHARACTERS[id].description}`
-                    : `${CHARACTERS[id].name}: locked, unlock for ${unlockItem(id).price} CLOUT in the Market`
-            );
-        }
-        const c = characterDef(prefs.character);
-        $('tagline').textContent = c.trait ? `${c.tagline} ${c.trait}` : c.tagline;
-    };
-    // each card wears the skin bought for that character in the Market
-    const paint = () => {
-        const profile = normalizeProfile(prefs.profile);
-        for (const b of buttons) {
-            const id = b.dataset.char;
-            const frames = bakeSprite(
-                skinSprite(profile, id) || CHARACTERS[id].sprite || 'bull',
-                2
-            );
-            if (!frames?.[0]) continue;
-            b._face.width = frames[0].width;
-            b._face.height = frames[0].height;
-            const ctx = b._face.getContext('2d');
-            ctx.clearRect(0, 0, b._face.width, b._face.height);
-            ctx.drawImage(frames[0], 0, 0);
-        }
-    };
-    sync();
-    paint();
-    return () => {
-        sync();
-        paint();
-    };
-}
-
-function animateTitleBull(canvas, spriteId) {
-    const ctx = canvas.getContext('2d');
-    if (!bakeSprite('bull', 5)) return;
-    const t0 = performance.now();
-    const draw = (now) => {
-        if (canvas.offsetParent === null) return requestAnimationFrame(draw);
-        const t = Math.max(0, now - t0) / 1000;
-        const frames = bakeSprite(spriteId(), 5) || bakeSprite('bull', 5);
-        const img = frames[Math.floor(t * 10) % frames.length];
-        ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // contact shadow
-        const g = ctx.createRadialGradient(
-            canvas.width / 2,
-            canvas.height - 16,
-            2,
-            canvas.width / 2,
-            canvas.height - 16,
-            90
-        );
-        g.addColorStop(0, 'rgba(0,0,0,0.55)');
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, canvas.height - 34, canvas.width, 34);
-        const bob = Math.round(Math.sin(t * 7) * 2);
-        ctx.drawImage(
-            img,
-            Math.round((canvas.width - img.width) / 2),
-            canvas.height - img.height - 10 + bob
-        );
-        requestAnimationFrame(draw);
-    };
-    requestAnimationFrame(draw);
+    tape.push(
+        { label: 'CHARACTERS', value: String(CHARACTER_IDS.length) },
+        { label: 'MAPS', value: String(STAGE_ROTATION.length) },
+        { label: 'NEW BUILD', value: 'EVERY NIGHT 00:00 UTC' },
+        { label: 'BUILT BY', value: 'AN AI, IN PUBLIC' }
+    );
+    ui.setTape(tape);
 }
 
 /**

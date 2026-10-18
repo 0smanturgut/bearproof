@@ -54,6 +54,7 @@ const SPRITE_GENS = {
     sybil: make(creatures.sybil, 4, { fps: 6 }),
     pump_dump: make(creatures.pumpDump, 4, { fps: 4 }), // frames are swell stages; render.js picks by e.pump
     exit_scam: make(creatures.exitScam, 4, { fps: 10 }),
+    flash_loan: make(creatures.flashLoan, 4, { fps: 12 }),
     // bosses
     rug_lord: make(bosses.rugLord, 4, { fps: 5 }),
     capitulation: make(bosses.capitulation, 4, { fps: 8 }),
@@ -61,6 +62,10 @@ const SPRITE_GENS = {
     bear_market: make(bosses.bearMarket, 4, { fps: 4 }),
     long_winter: make(bosses.longWinter, 4, { fps: 4 }),
     withdrawal_freeze: make(bosses.withdrawalFreeze, 4, { fps: 5 }),
+    // Market Eras' bosses, standing in for Rug Lord, Capitulation and Liquidation on that map
+    hacked_exchange: make(bosses.hackedExchange, 4, { fps: 5 }),
+    yield_farm: make(bosses.yieldFarm, 4, { fps: 5 }),
+    peak_euphoria: make(bosses.peakEuphoria, 4, { fps: 8 }),
     // pickups and projectiles
     xp_candle: make(items.xpCandle, 2, { fps: 3 }),
     xp_candle_big: make(items.xpCandleBig, 2, { fps: 3 }),
@@ -158,7 +163,8 @@ export const SPRITE_GROUPS = {
         'margin_call',
         'sybil',
         'pump_dump',
-        'exit_scam'
+        'exit_scam',
+        'flash_loan'
     ],
     bosses: [
         'rug_lord',
@@ -166,7 +172,10 @@ export const SPRITE_GROUPS = {
         'liquidation',
         'bear_market',
         'long_winter',
-        'withdrawal_freeze'
+        'withdrawal_freeze',
+        'hacked_exchange',
+        'yield_farm',
+        'peak_euphoria'
     ],
     pickups: [
         'xp_candle',

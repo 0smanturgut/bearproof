@@ -1172,6 +1172,32 @@ body {
     font: 400 14px/1.35 var(--mono);
     color: var(--text);
 }
+/* Market Eras: the same card announces a new era, in green */
+.boss-card.era::before {
+    background: radial-gradient(ellipse at center, rgba(10, 90, 50, 0.32), rgba(6, 8, 11, 0.6));
+}
+.boss-card.era .boss-band {
+    background: repeating-linear-gradient(-45deg, #16e08a 0 14px, #03170d 14px 28px);
+    box-shadow: 0 0 22px rgba(22, 224, 138, 0.5);
+}
+.boss-card.era .boss-ticker {
+    background: #03170d;
+}
+.boss-card.era .boss-ticker span,
+.boss-card.era .boss-warn {
+    color: #7bf5a6;
+}
+.boss-card.era .boss-text {
+    /* no portrait beside it: centre the era's name and keep it to as few lines as fit */
+    text-align: center;
+    max-width: none;
+}
+.boss-card.era .boss-title {
+    color: #16e08a;
+    text-shadow:
+        0 5px 0 #075a35,
+        0 0 30px rgba(22, 224, 138, 0.6);
+}
 @keyframes boss-slam {
     0% {
         transform: scale(1.8);

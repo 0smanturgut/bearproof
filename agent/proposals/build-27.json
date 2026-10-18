@@ -1,0 +1,17 @@
+[
+    {
+        "id": "missions",
+        "title": "Missions: goals that pay CLOUT",
+        "description": "A list of goals per character and per map (reach DeFi Summer on Market Eras, survive 10:00 as the Whale) that pay CLOUT once, with progress on the title screen and a toast when one lands."
+    },
+    {
+        "id": "boss-rush",
+        "title": "Boss Rush: every boss, back to back",
+        "description": "A new mode next to free play and the Daily: the bosses of all four maps one after another with a short breather between, and a boss-kill count on the game-over screen."
+    },
+    {
+        "id": "the-miner",
+        "title": "Play as The Miner",
+        "description": "A fourth character, unlocked in the Market: a hard-hat bear-hunter whose pickaxe cracks shields, built for the grizzlies that end a quarter of all runs."
+    }
+]

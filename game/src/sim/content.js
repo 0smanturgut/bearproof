@@ -804,6 +804,26 @@ export const ENEMIES = {
         damage: 8,
         exp: 30,
         size: 15
+    },
+    // Market Eras, DeFi Summer only (the era's `extra`). Every `blinkInterval` s, within `blinkRange` of the bull, it
+    // marks where the bull stands now (at most `blinkDistance` away) and `blinkWarn` s later it's there.
+    FLASH_LOAN: {
+        id: 'flash_loan',
+        name: 'Flash Loan',
+        sprite: 'flash_loan',
+        description:
+            'Market Eras, DeFi Summer. Every 3.5 s a violet ring marks where you stand; 0.6 s later it blinks onto it.',
+        tip: 'It lands where you were, not where you are. Step off the ring.',
+        blinker: true,
+        blinkInterval: 3.5,
+        blinkWarn: 0.6,
+        blinkRange: 420,
+        blinkDistance: 220,
+        hp: 32,
+        speed: 85,
+        damage: 16,
+        exp: 24,
+        size: 14
     }
 };
 
@@ -940,6 +960,67 @@ export const BOSSES = {
         thawRadius: 360,
         thawSlow: 0.5,
         thawTime: 3
+    },
+    // Market Eras' three era bosses: each takes a slot (STAGES.ERAS.bossOverrides), and its death turns the era.
+    HACKED_EXCHANGE: {
+        id: 'hacked_exchange',
+        name: 'The Hacked Exchange',
+        sprite: 'hacked_exchange',
+        tagline: 'Not your keys.',
+        description:
+            'Market Eras, end of the Genesis Era, at 4:00. Calls in 4 paper hands every 5 s. Take it down and DeFi Summer begins.',
+        hp: 2300,
+        speed: 75,
+        damage: 40,
+        exp: 500,
+        size: 44,
+        boss: true,
+        ability: 'summon',
+        summon: 'paper_hands',
+        summonCount: 4,
+        abilityCooldown: 5,
+        spawnAt: 240,
+        stageOnly: true
+    },
+    YIELD_FARM: {
+        id: 'yield_farm',
+        name: 'The Yield Farm',
+        sprite: 'yield_farm',
+        tagline: '1,000,000% APY. Paid in its own token.',
+        description:
+            'Market Eras, end of DeFi Summer, at 7:00. Plants 2 ponzis every 6 s, and every ponzi pays out downlines. Take it down and Altcoin Season begins.',
+        hp: 4000,
+        speed: 65,
+        damage: 50,
+        exp: 850,
+        size: 46,
+        boss: true,
+        ability: 'summon',
+        summon: 'ponzi',
+        summonCount: 2,
+        abilityCooldown: 6,
+        spawnAt: 420,
+        stageOnly: true
+    },
+    PEAK_EUPHORIA: {
+        id: 'peak_euphoria',
+        name: 'Peak Euphoria',
+        sprite: 'peak_euphoria',
+        tagline: 'This time it’s different.',
+        description:
+            'Market Eras, end of Altcoin Season, at 9:30. Every 4 s a red ring marks where it lands, up to 140 toward you, and 1 s later it leaps. Take it down and the Bear Market begins.',
+        hp: 5600,
+        speed: 60,
+        damage: 60,
+        exp: 1200,
+        size: 56,
+        boss: true,
+        ability: 'charge',
+        chargeDistance: 140,
+        chargeWarn: 1,
+        abilityCooldown: 4,
+        spawnAt: 570,
+        stageOnly: true
     }
 };
 
@@ -1099,10 +1180,90 @@ export const STAGES = {
             coldTickInterval: 10,
             coldTickDamage: 1
         }
+    },
+    // Crypto history on fast-forward. `eras` run in order: each has its own spawn weights (over the waves' pools)
+    // and `extra` bears. An era turns when the boss in its `boss` slot dies, or at `until` s if it's still alive;
+    // the turn delists every bear but the bosses (they pop and drop their candles). The last era runs to the end.
+    ERAS: {
+        id: 'eras',
+        name: 'Market Eras',
+        description:
+            'Crypto history on fast-forward: four eras, each with its own bears and boss. Kill the boss to turn the era.',
+        palette: { bg: '#05080A', grid: '#0E1A14', gridMajor: '#15261C', terrain: '#0A120E' },
+        poolWeights: {},
+        extraEnemies: [],
+        bossOffsets: { rug_lord: -60, capitulation: -30, liquidation: -30 },
+        bossOverrides: {
+            rug_lord: 'hacked_exchange',
+            capitulation: 'yield_farm',
+            liquidation: 'peak_euphoria'
+        },
+        modifiers: {},
+        eras: [
+            {
+                id: 'genesis',
+                name: 'Genesis Era',
+                year: '2009',
+                boss: 'rug_lord',
+                until: 330,
+                poolWeights: {
+                    red_candle: 1.6,
+                    bag_holder: 1.5,
+                    paper_hands: 1.4,
+                    rug_puller: 0.6,
+                    doomposter: 0.7
+                },
+                extra: []
+            },
+            {
+                id: 'defi',
+                name: 'DeFi Summer',
+                year: '2020',
+                boss: 'capitulation',
+                until: 510,
+                poolWeights: {
+                    ponzi: 2,
+                    sybil: 1.5,
+                    margin_call: 1.4,
+                    flash_loan: 1.6,
+                    grizzly: 0.6,
+                    rug_puller: 0.8
+                },
+                extra: ['flash_loan']
+            },
+            {
+                id: 'altseason',
+                name: 'Altcoin Season',
+                year: '2021',
+                boss: 'liquidation',
+                until: 660,
+                poolWeights: {
+                    pump_dump: 1.6,
+                    sybil: 1.4,
+                    fud_cloud: 1.4,
+                    paper_hands: 1.3,
+                    ponzi: 0.6,
+                    grizzly: 0.7
+                },
+                extra: ['paper_hands']
+            },
+            {
+                id: 'bear',
+                name: 'The Bear Market',
+                year: '2022',
+                boss: null,
+                until: Infinity,
+                poolWeights: { grizzly: 1.5, rug_puller: 1.3, doomposter: 1.2, pump_dump: 0.3 },
+                extra: []
+            }
+        ]
     }
 };
 
-export const STAGE_ROTATION = ['chop', 'bear_trap', 'winter'];
+// Market Eras is second, not last: on four maps, seed 123 must still land on one of the first three.
+export const STAGE_ROTATION = ['chop', 'eras', 'bear_trap', 'winter'];
+// The rotation before Market Eras: runs under the legacy rules (sim.js LEGACY_SIM_VERSION) keep it.
+export const LEGACY_STAGE_ROTATION = ['chop', 'bear_trap', 'winter'];
 export const DEFAULT_STAGE = 'chop';
 
 // ---------------------------------------------------------------- daily twists
@@ -1192,10 +1353,14 @@ export function twistDef(id) {
     return { ...TWIST_DEFAULTS, ...(TWISTS[id] || TWISTS.none) };
 }
 
-/** The Daily Challenge twist: uses different bits of the seed than the stage, so pairings vary. */
-export function dailyTwistForSeed(seed) {
+/**
+ * The Daily Challenge twist: uses different bits of the seed than the stage, so pairings vary. `legacy`: a Daily
+ * played under the legacy rules (its twist came from the three-map rotation).
+ */
+export function dailyTwistForSeed(seed, legacy = false) {
     const rotation = TWIST_IDS.slice(1);
-    return rotation[Math.floor((seed >>> 0) / STAGE_ROTATION.length) % rotation.length];
+    const maps = (legacy ? LEGACY_STAGE_ROTATION : STAGE_ROTATION).length;
+    return rotation[Math.floor((seed >>> 0) / maps) % rotation.length];
 }
 
 // ---------------------------------------------------------------- characters
@@ -1261,9 +1426,23 @@ export function getStage(id) {
     return Object.values(STAGES).find((s) => s.id === id) || STAGES.CHOP;
 }
 
-/** The Daily Challenge stage is a pure function of the seed, so the verifier needs nothing else. */
-export function stageForSeed(seed) {
-    return STAGE_ROTATION[(seed >>> 0) % STAGE_ROTATION.length];
+/**
+ * The Daily Challenge stage is a pure function of the seed, so the verifier needs nothing else. `legacy`: a run
+ * under the legacy rules, which had three maps.
+ */
+export function stageForSeed(seed, legacy = false) {
+    const rotation = legacy ? LEGACY_STAGE_ROTATION : STAGE_ROTATION;
+    return rotation[(seed >>> 0) % rotation.length];
+}
+
+/** A stage's eras (Market Eras), or null for a map that stays one place all run. */
+export function erasFor(id) {
+    return getStage(id).eras || null;
+}
+
+/** pickWeighted's weights during an era: the era's own over the stage's. */
+export function eraWeights(stageId, era) {
+    return era ? { ...getStage(stageId).poolWeights, ...era.poolWeights } : null;
 }
 
 export function stageModifiers(id) {
@@ -1302,8 +1481,8 @@ export function bossesFor(id) {
     return out.sort((a, b) => a.spawnAt - b.spawnAt);
 }
 
-export function pickWeighted(pool, stageId, rnd) {
-    const weights = getStage(stageId).poolWeights;
+/** One bear from `pool`, by the stage's weights (or `weights`, an era's). */
+export function pickWeighted(pool, stageId, rnd, weights = getStage(stageId).poolWeights) {
     let total = 0;
     const cum = pool.map(
         (id) => (total += Math.max(0, weights[id] ?? ENEMY_BY_ID[id]?.spawnWeight ?? 1))

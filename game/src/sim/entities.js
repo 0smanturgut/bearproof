@@ -233,6 +233,11 @@ export class Enemy {
         this.dashTimer = def.dashInterval ? def.dashInterval * (0.3 + rng.next() * 0.7) : 0;
         this.dashActive = 0;
         this.dashAngle = 0;
+        // Flash Loan: seconds to the next blink, seconds of warning left, and the marked landing spot
+        this.blinkTimer = def.blinkInterval ? def.blinkInterval * (0.4 + rng.next() * 0.6) : 0;
+        this.blinkWarn = 0;
+        this.blinkX = 0;
+        this.blinkY = 0;
         this.fuseTimer = 0;
         this.fuseArmed = false;
         this.cloneTimer = def.cloneCooldown ? def.cloneCooldown * (0.6 + rng.next() * 0.8) : 0;
@@ -312,6 +317,50 @@ export class Enemy {
         }
         const v = def.fleeSpeed * slow;
         return [-tx * v, -ty * v];
+    }
+
+    /**
+     * Flash Loan: walks in; every `blinkInterval` s within `blinkRange` it marks where the bull stands (at most
+     * `blinkDistance` away), holds still for `blinkWarn` s, then is there. Returns the velocity.
+     */
+    _blink(dt, sim, tx, ty, d, slow) {
+        const def = this.def;
+        if (this.blinkWarn > 0) {
+            this.blinkWarn -= dt;
+            if (this.blinkWarn > 0) return [0, 0];
+            this.blinkWarn = 0;
+            const fx = this.x;
+            const fy = this.y;
+            this.x = this.blinkX;
+            this.y = this.blinkY;
+            sim.stats.blinks++;
+            sim.emit({ t: 'blink', x: this.x, y: this.y, fx, fy, uid: this.uid });
+            return [0, 0];
+        }
+        this.blinkTimer -= dt;
+        if (this.blinkTimer <= 0 && d < def.blinkRange && d > this.size) {
+            this.blinkTimer = def.blinkInterval;
+            this.blinkWarn = def.blinkWarn;
+            const p = sim.player;
+            const step = Math.min(def.blinkDistance, d);
+            let bx = this.x + tx * step;
+            let by = this.y + ty * step;
+            // never inside a wall: the nearest free spot (the ring shows where that is)
+            if (sim.solid) [bx, by] = sim.terrain.free(bx, by + this.size * 0.5, this.size * 0.6);
+            if (sim.solid) by -= this.size * 0.5;
+            this.blinkX = bx;
+            this.blinkY = by;
+            sim.emit({
+                t: 'blinkWarn',
+                x: bx,
+                y: by,
+                r: this.size + p.size,
+                in: def.blinkWarn,
+                uid: this.uid
+            });
+            return [0, 0];
+        }
+        return [tx * this.speed * slow, ty * this.speed * slow];
     }
 
     _run(sim) {
@@ -439,6 +488,8 @@ export class Enemy {
                 const v = this._scam(dt, sim, tx, ty, d, slow);
                 if (!v) return;
                 [vx, vy] = v;
+            } else if (def.blinker) {
+                [vx, vy] = this._blink(dt, sim, tx, ty, d, slow);
             } else if (def.dasher) {
                 this.dashTimer -= dt;
                 if (this.dashActive > 0) {

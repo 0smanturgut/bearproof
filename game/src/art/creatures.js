@@ -2,7 +2,7 @@
 // Every generator takes a frame index and returns one rendered frame. Side-view sprites face RIGHT;
 // the renderer mirrors them.
 
-import { PixelSprite } from './pixel.js';
+import { PixelSprite, mat } from './pixel.js';
 import { C, M } from './materials.js';
 
 const TAU = Math.PI * 2;
@@ -1201,6 +1201,112 @@ export function pumpDump(f) {
             s.px(Math.round(cx + r) + 2, Math.round(cy - r * 0.6) - 1, '#9BE2FF');
         }
     }
+    return s.render();
+}
+
+// Flash Loan's electric violet, and the cyan of the charge it teleports on
+const VOLT = mat(['#12052A', '#2C0D5E', '#4C1FA0', '#7A3EE6', '#AE7CFF', '#E4D4FF'], {
+    line: '#08021A'
+});
+const VOLT_PALE = mat(['#2A1A4E', '#4E3A86', '#7A66B8', '#A898DE', '#D2C8F6', '#F4F0FF'], {
+    line: '#100A22'
+});
+const ARC = '#7DF9FF';
+const ARC_HOT = '#E8FEFF';
+
+/**
+ * 24×20 Flash Loan: a lean violet bear sprinting right with a lightning bolt on its chest and a borrowed gold
+ * coin in its fist. Its back edge fizzes cyan and a dotted after-image trails it: it is never quite all here.
+ * Frames 0-3: a run cycle (sparks crackle on alternate frames).
+ */
+export function flashLoan(f) {
+    const s = new PixelSprite(24, 20);
+    const run = (f / 4) * TAU;
+    const b = [0, -1, 0, -1][f % 4];
+    s.auto('body', { R: 2.2, grad: 0.3 });
+    s.auto('head', { R: 1.9, grad: 0.3 });
+    // the after-image: a dotted ghost of the body one blink behind, no outline
+    for (let y = 3; y < 17; y++)
+        for (let x = 1; x < 11; x++) {
+            const u = (x - 7) / 3.6;
+            const v = (y - 10 - b) / 4.6;
+            const hu = (x - 9.5) / 3;
+            const hv = (y - 5.5 - b) / 3;
+            const inside = u * u + v * v <= 1 || hu * hu + hv * hv <= 1;
+            if (inside && y % 2 === 0 && (x + y / 2 + f) % 2 === 0)
+                s.px(x, y, x < 5 ? '#2C1460' : '#4A2A96', { bare: true });
+        }
+    // speed streaks behind it
+    for (const [y, x0, len] of [
+        [7, 1, 3],
+        [11, 0, 4],
+        [14, 2, 2]
+    ]) {
+        const o = (f + y) % 3;
+        for (let k = 0; k < len; k++)
+            s.px(x0 + o + k, y + b, k === len - 1 ? ARC_HOT : ARC, { glow: ARC, bare: true });
+    }
+    // legs mid-stride, the far one darker
+    const fx = Math.sin(run) * 3.4;
+    s.capsule(12, 13 + b, 12 + fx, 18.4, 1.2, 1, VOLT, { g: 'legB', bias: -0.18 });
+    s.capsule(13.5, 13 + b, 13.5 - fx, 18.4, 1.2, 1, VOLT, { g: 'legF' });
+    s.auto('legB', { R: 1, grad: 0.1 });
+    s.auto('legF', { R: 1, grad: 0.1 });
+    // far arm swinging back
+    s.capsule(12, 8.5 + b, 9 - fx * 0.4, 11.5 + b, 1, 0.9, VOLT, { g: 'armB', bias: -0.2 });
+    s.auto('armB', { R: 0.8, grad: 0.1 });
+    // lean body, leaning into the dash
+    s.ellipse(13, 10.6 + b, 4.2, 4.6, VOLT, { g: 'body' });
+    // head pushed forward: round ears, a pale snout
+    s.circle(14.4, 2.2 + b, 1.7, VOLT, { g: 'head' });
+    s.circle(19.4, 1.9 + b, 1.7, VOLT, { g: 'head' });
+    s.circle(17.4, 5.6 + b, 3.8, VOLT, { g: 'head' });
+    s.ellipse(21, 7 + b, 2.1, 1.6, VOLT_PALE, { g: 'snout', bias: 0.2 });
+    s.auto('snout', { R: 1, grad: 0.15 });
+    s.px(22, 6 + b, C.ink); // nose
+    s.px(19, 9 + b, '#08021A').px(20, 9 + b, '#08021A'); // a thin grin
+    // the eye: electric, with a hard brow
+    const ey = Math.round(5 + b);
+    s.px(18, ey, ARC_HOT, { glow: ARC }).px(19, ey, ARC, { glow: ARC });
+    s.px(17, ey - 1, '#08021A')
+        .px(18, ey - 1, '#08021A')
+        .px(19, ey - 2, '#08021A');
+    // the lightning bolt on its chest
+    s.patch(
+        12,
+        Math.round(8 + b),
+        ['..Y', '.Y.', 'YYY', '.Y.', 'Y..'],
+        { Y: '#FFE08A' },
+        { glow: C.gold }
+    );
+    // near arm reaching forward, a borrowed gold coin in the fist (with a glint)
+    s.capsule(15, 10 + b, 18.5 + fx * 0.3, 12 + b, 1, 0.9, VOLT, { g: 'arm' });
+    s.auto('arm', { R: 0.8, grad: 0.2 });
+    const cx = Math.round(19.5 + fx * 0.3);
+    const cy = Math.round(12.5 + b);
+    s.circle(cx + 0.5, cy + 0.5, 1.6, M.gold, { g: 'coin' });
+    s.auto('coin', { R: 1, grad: 0.3 });
+    s.px(cx, cy - 1, C.white, { glow: C.goldLight });
+    // the teleport fizz: cyan rim pixels down the trailing (left) edge and along the back
+    for (let y = 0; y < s.h; y++) {
+        let x = 0;
+        while (x < 12 && !(s.mat[y * s.w + x] && s.group[y * s.w + x] >= 0)) x++;
+        if (x < 12 && (y + f) % 3 !== 0) s.px(x, y, (y + f) % 3 === 1 ? ARC : '#B8FBFF');
+    }
+    // sparks crackling off the ears and the heels
+    const sparks = [
+        [
+            [15, 0],
+            [12, 1],
+            [9, 17]
+        ],
+        [
+            [20, 0],
+            [11, 16],
+            [22, 13]
+        ]
+    ][f % 2];
+    for (const [x, y] of sparks) s.px(x, y + (y < 10 ? b : 0), ARC_HOT, { glow: ARC, bare: true });
     return s.render();
 }
 

@@ -29,6 +29,8 @@ import {
     WEAPONS,
     bossesFor,
     enemyDef,
+    eraWeights,
+    erasFor,
     pickWeighted,
     stageForSeed,
     stageModifiers,
@@ -72,8 +74,10 @@ import { Weapon } from './weapons.js';
  * 21: The Whale (a third character: Buy Wall, a bigger body, and Sweep the Book once a minute).
  * 22: The map is solid (sim/terrain.js: trees, walls, wrecks stop the bull and the bears; bosses and FUD clouds go
  * over), piggy banks to smash for pickups (ramen, a gold candle, CLOUT, Liquidity Sweep, Trading Halt, Short
- * Squeeze), a treasure chest from every boss (free level-ups), and two rerolls and two skips of level-up cards. */
-export const SIM_VERSION = 22;
+ * Squeeze), a treasure chest from every boss (free level-ups), and two rerolls and two skips of level-up cards.
+ * 23: Market Eras (a fourth map, second in the rotation: four eras, each with its own bears and boss, the Flash
+ * Loan bear; an era turns when its boss dies and delists the bears on the field). */
+export const SIM_VERSION = 23;
 
 /**
  * The rules before 22, still played (and replayed) where they're owed: a run log written with sim version 21 replays
@@ -97,7 +101,7 @@ export class Simulation {
         this.rules = rules === LEGACY_SIM_VERSION ? LEGACY_SIM_VERSION : SIM_VERSION;
         this.solid = this.rules >= 22;
         this.seed = seed >>> 0;
-        this.stageId = stage || stageForSeed(this.seed);
+        this.stageId = stage || stageForSeed(this.seed, this.rules === LEGACY_SIM_VERSION);
         this.twist = twistDef(twist);
         this.twistId = this.twist.id;
         this.character = characterDef(character);
@@ -109,6 +113,13 @@ export class Simulation {
         this.bossPlan = bossesFor(this.stageId);
         this.bossWarned = new Set();
         this.bossSpawned = new Set();
+        // Market Eras: the era the run is in, its spawn weights, and whether its boss is down
+        this.eras = erasFor(this.stageId);
+        this.eraIndex = 0;
+        this.era = this.eras ? this.eras[0] : null;
+        this.eraWeights = eraWeights(this.stageId, this.era);
+        this.eraBossDown = false;
+        this._pools = new Map();
 
         this.tick = 0;
         this.time = 0;
@@ -185,7 +196,9 @@ export class Simulation {
             chests: 0, // boss treasure chests opened
             clout: 0, // CLOUT picked up (the profile banks it with the run)
             rerolls: 0,
-            skips: 0
+            skips: 0,
+            delisted: 0, // Market Eras: bears popped by an era turning
+            blinks: 0 // Flash Loan: blinks that landed
         };
         this.rocketHit = new Set(); // bears rammed on the current ride
         this.events = [];
@@ -240,6 +253,7 @@ export class Simulation {
         this._updateList(this.walls, dt);
         this._runDelayed(dt);
         this._cullDead();
+        if (this.eras) this._eraTick();
         this._sweep();
         this._updateList(this.xp, dt);
         this._updateList(this.crates, dt);
@@ -389,11 +403,24 @@ export class Simulation {
                 this.stats.score += e.exp;
                 this.xp.push(new XpOrb(e.x, e.y, e.exp));
             }
-            if (this.time < this.dipUntil) this._dipHeal(e);
+            if (this.time < this.dipUntil && !e.delisted) this._dipHeal(e);
         }
-        this.emit({ t: 'kill', x: e.x, y: e.y, id: e.id, boss: e.boss, self: !!e.selfDestructed });
+        this.emit({
+            t: 'kill',
+            x: e.x,
+            y: e.y,
+            id: e.id,
+            boss: e.boss,
+            self: !!e.selfDestructed,
+            delisted: !!e.delisted
+        });
+        if (e.delisted) {
+            if (e.def.thief && e.bagCount > 0) this._spillBag(e);
+            return; // delisted bears leave nothing behind but their candles: no downlines, no dump
+        }
         if (e.boss) {
             this.stats.bossKills++;
+            if (this.era && e.def.slot && e.def.slot === this.era.boss) this.eraBossDown = true;
             this.emit({ t: 'bossDown', id: e.id, name: e.def.name, x: e.x, y: e.y, jackpot });
             if (e.def.final) this.won = true;
             else if (this.solid && !e.selfDestructed) {
@@ -551,6 +578,53 @@ export class Simulation {
         this.emit({ t: 'dump', x: e.x, y: e.y, n, r, self: !!e.selfDestructed });
     }
 
+    /** One bear for the current wave: from its pool (plus the era's extras), by the stage's or the era's weights. */
+    _pickBear(wave) {
+        const rnd = () => this.rng.next();
+        if (!this.era) return pickWeighted(wave.pool, this.stageId, rnd);
+        const key = `${wave.from}|${this.eraIndex}`;
+        let pool = this._pools.get(key);
+        if (!pool) {
+            pool = [...new Set(wave.pool.concat(this.era.extra))];
+            this._pools.set(key, pool);
+        }
+        return pickWeighted(pool, this.stageId, rnd, this.eraWeights);
+    }
+
+    // --- Market Eras ------------------------------------------------------------
+
+    /** The era turns when its boss is down, or at its `until` if the boss still lives. */
+    _eraTick() {
+        const era = this.era;
+        if (this.eraIndex >= this.eras.length - 1) return;
+        if (!this.eraBossDown && this.time < era.until) return;
+        this.eraIndex++;
+        this.era = this.eras[this.eraIndex];
+        this.eraWeights = eraWeights(this.stageId, this.era);
+        this.eraBossDown = false;
+        // the old era's bears are delisted: every one but the bosses pops and drops its candles
+        let n = 0;
+        for (const e of this.enemies) {
+            if (e.boss || e.hp <= 0 || e.despawned) continue;
+            e.hp = 0;
+            e.delisted = true;
+            n++;
+        }
+        this.stats.delisted += n;
+        const p = this.player;
+        this.emit({
+            t: 'era',
+            i: this.eraIndex,
+            id: this.era.id,
+            name: this.era.name,
+            year: this.era.year,
+            n,
+            x: p.x,
+            y: p.y
+        });
+        this._cullDead();
+    }
+
     _spawn(dt) {
         const wave = this.wave;
         if (this.tick === SIM.OPENING_TICK) {
@@ -558,7 +632,7 @@ export class Simulation {
             const a0 = this.rng.angle();
             for (let i = 0; i < SIM.OPENING_RING; i++) {
                 const a = a0 + (i * 2 * Math.PI) / SIM.OPENING_RING;
-                const id = pickWeighted(wave.pool, this.stageId, () => this.rng.next());
+                const id = this._pickBear(wave);
                 this.enemies.push(
                     new Enemy(
                         this.player.x + cos(a) * SIM.OPENING_RADIUS,
@@ -578,7 +652,7 @@ export class Simulation {
         this.spawnAcc = this.time < this.calmUntil ? 0 : this.spawnAcc + dt;
         while (this.spawnAcc >= interval && this.enemies.length < max) {
             this.spawnAcc -= interval;
-            const id = pickWeighted(wave.pool, this.stageId, () => this.rng.next());
+            const id = this._pickBear(wave);
             const a = this.rng.angle();
             const dist = SIM.SPAWN_RADIUS + this.rng.next() * 120;
             this.enemies.push(

@@ -85,7 +85,7 @@ test('doomposter: never starts typing from beyond its firing range', () => {
 
 test('doomposter: Bear Trap runs replay bit for bit through the run log', () => {
     let typed = 0;
-    for (const seed of [4, 7, 10]) {
+    for (const seed of [2, 6, 10]) {
         const sim = new Simulation({ seed, twist: 'flash_crash' });
         assert.equal(sim.stageId, 'bear_trap');
         const rec = new RunRecorder(seed, 'flash_crash', sim.characterId);

@@ -53,11 +53,30 @@ export function stepMs(mood) {
     return Math.round(MUSIC.BOSS_MS - (MUSIC.BOSS_MS - MUSIC.BOSS_FAST_MS) * mood.heat);
 }
 
-export function calmStep(i) {
+/**
+ * Market Eras: each era plays the calm track in its own voice. `up`: semitones over A, `lead`: the arpeggio's
+ * wave, `vol`: its level (a square is louder than a triangle at the same gain).
+ */
+export const ERA_VOICES = {
+    genesis: { up: 0, lead: 'square', vol: 0.035 }, // 2009: chiptune
+    defi: { up: 5, lead: 'triangle', vol: 0.065 }, // a warm summer fourth up
+    altseason: { up: 7, lead: 'sawtooth', vol: 0.03 }, // bright and buzzy, a fifth up
+    bear: { up: -3, lead: 'sine', vol: 0.07 } // low and hollow
+};
+
+/** Notes on step i of the calm track; `era` (a Market Eras era id) changes its key and voice. */
+export function calmStep(i, era = null) {
     const step = i % MUSIC.CALM_STEPS;
-    const root = CALM_ROOTS[Math.floor(i / MUSIC.CALM_STEPS) % CALM_ROOTS.length];
+    const v = ERA_VOICES[era];
+    const root = CALM_ROOTS[Math.floor(i / MUSIC.CALM_STEPS) % CALM_ROOTS.length] + (v?.up || 0);
     const notes = [
-        { freq: hz(root + CALM_ARP[step]), type: 'triangle', vol: 0.06, attack: 0.02, dur: 0.32 }
+        {
+            freq: hz(root + CALM_ARP[step]),
+            type: v?.lead || 'triangle',
+            vol: v?.vol ?? 0.06,
+            attack: 0.02,
+            dur: 0.32
+        }
     ];
     if (step % 4 === 0)
         notes.push({ freq: hz(root - 12), type: 'sine', vol: 0.04, attack: 0.03, dur: 0.6 });

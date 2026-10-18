@@ -25,9 +25,10 @@ import { toDef } from './pixel.js';
 import * as chop from './biomes/chop.js';
 import * as trap from './biomes/trap.js';
 import * as winter from './biomes/winter.js';
+import * as eras from './biomes/eras.js';
 
-export const PROP_DEFS = { ...chop.PROPS, ...trap.PROPS, ...winter.PROPS };
-export const DECAL_DEFS = { ...chop.DECALS, ...trap.DECALS, ...winter.DECALS };
+export const PROP_DEFS = { ...chop.PROPS, ...trap.PROPS, ...winter.PROPS, ...eras.PROPS };
+export const DECAL_DEFS = { ...chop.DECALS, ...trap.DECALS, ...winter.DECALS, ...eras.DECALS };
 
 /** SPRITE_GENS entries for every standing prop (sprites.js spreads these into its table). */
 export function propSpriteGens() {

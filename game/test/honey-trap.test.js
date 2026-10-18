@@ -233,7 +233,8 @@ test('runlog: runs that take honey trap replay exactly', () => {
             sim.step(code);
             sim.drainEvents();
         }
-        if (!sim.stats.honeyEaten) continue;
+        // a run the cap cut short isn't a whole log: only runs that ended count
+        if (!sim.stats.honeyEaten || !sim.over) continue;
         checked++;
         const r = replay(rec.toBytes());
         assert.ok(r.ok, r.error);

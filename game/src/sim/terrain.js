@@ -17,7 +17,7 @@ export const CHUNK = 256; // world units per chunk side
 const CELL = 64; // collision grid
 const PAD = 40; // a collider is filed in every cell it reaches, plus this margin (the widest body that asks)
 const BREAK_CELL = 360; // at most one piggy bank per square this size (about two on a screen)
-const TERRAINS = new Set(['chop', 'bear_trap', 'winter']);
+const TERRAINS = new Set(['chop', 'bear_trap', 'winter', 'eras']);
 
 /**
  * Every prop a map places. `w`: its sprite's width in art px (spacing between props); `tall`: tall enough to hide
@@ -89,7 +89,16 @@ export const PROPS = {
     winter_sled: { w: 32, solid: { box: [-30, -12, 30, 2] } },
     winter_cabin_ruin: { w: 52, solid: { box: [-50, -22, 50, 2] } },
     winter_drift: { w: 40 },
-    winter_flag: { w: 16, tall: true, solid: [0, -2, 4] }
+    winter_flag: { w: 16, tall: true, solid: [0, -2, 4] },
+    // Market Eras: relics of every cycle, the same all run while the ground under them changes era
+    eras_rig: { w: 36, solid: { box: [-30, -16, 30, 2] } },
+    eras_server: { w: 22, tall: true, solid: { box: [-18, -14, 18, 2] } },
+    eras_silo: { w: 30, tall: true, solid: [0, -8, 16] },
+    eras_rocket: { w: 26, tall: true, solid: [0, -8, 14] },
+    eras_lambo: { w: 60, solid: { box: [-56, -24, 56, 2] } },
+    eras_block: { w: 44, tall: true, solid: { box: [-40, -30, 40, 2] } },
+    eras_pizza: { w: 18 },
+    eras_floppy: { w: 16 }
 };
 
 /** Each prop's footprint as a list of shapes: circles { x, y, r } and boxes { x0, y0, x1, y1 }, from its foot. */
@@ -177,7 +186,9 @@ const NO_FLIP = new Set([
     'winter_flag',
     'chop_monolith',
     'trap_graffiti_rekt',
-    'trap_graffiti_ngmi'
+    'trap_graffiti_ngmi',
+    'eras_block',
+    'eras_silo'
 ]);
 
 /** One standing prop instance. */
@@ -252,6 +263,10 @@ export class Terrain {
                 if (h < 0.55) set = { kind: 'mine', x, y, r: 250 };
                 else if (h < 0.75) set = { kind: 'atm', x, y, r: 120 };
                 else if (h < 0.9) set = { kind: 'crystals', x, y, r: 160 };
+            } else if (st === 'eras') {
+                if (h < 0.35) set = { kind: 'farm', x, y, r: 200 };
+                else if (h < 0.65) set = { kind: 'launch', x, y, r: 220 };
+                else if (h < 0.9) set = { kind: 'datacenter', x, y, r: 200 };
             }
             // the city's set pieces are its blocks
         }
@@ -308,6 +323,16 @@ export class Terrain {
                     P('trap_boxes', 196, 120),
                     P('trap_beartrap', 64, 62)
                 ];
+            else if (st === 'eras')
+                // the Genesis Block, where every run on this map starts
+                list = [
+                    P('eras_block', 0, -150),
+                    P('eras_rig', -180, -60),
+                    P('eras_server', 176, -90),
+                    P('eras_pizza', -96, 70),
+                    P('eras_floppy', 120, 60),
+                    P('eras_floppy', -40, -200, true)
+                ];
             else
                 list = [
                     P('winter_campfire', -140, 50),
@@ -352,6 +377,32 @@ export class Terrain {
                 P('winter_atm', 0, 0),
                 P('winter_drift', 44, 26),
                 P('winter_rock_small', -40, 20)
+            ];
+        } else if (set.kind === 'farm') {
+            // a yield farm: a row of silos and the pizza someone paid too much for
+            list = [
+                P('eras_silo', -70, -30),
+                P('eras_silo', 0, -50),
+                P('eras_silo', 70, -30),
+                P('eras_pizza', 30, 60),
+                P('eras_floppy', -50, 70)
+            ];
+        } else if (set.kind === 'launch') {
+            // a launch pad, and what the last pump bought
+            list = [
+                P('eras_rocket', 0, 0),
+                P('eras_lambo', -120, 70),
+                P('eras_lambo', 120, 90, true),
+                P('eras_pizza', -30, 110)
+            ];
+        } else if (set.kind === 'datacenter') {
+            list = [
+                P('eras_server', -66, -40),
+                P('eras_server', -22, -40),
+                P('eras_server', 22, -40),
+                P('eras_server', 66, -40),
+                P('eras_rig', -40, 60),
+                P('eras_floppy', 50, 50)
             ];
         } else if (set.kind === 'crystals') {
             list = [
@@ -410,6 +461,19 @@ export class Terrain {
                           : q < 0.75
                             ? 'chop_dead_tree'
                             : 'chop_oak';
+        } else if (st === 'eras') {
+            if (this.trail(x, y) < 60) return null; // the chain: an open lane through the relics
+            const g = this.grove(x, y);
+            if (g > 0.6 && r < 0.5)
+                id =
+                    q < 0.35
+                        ? 'eras_server'
+                        : q < 0.6
+                          ? 'eras_silo'
+                          : q < 0.82
+                            ? 'eras_rig'
+                            : 'eras_rocket';
+            else if (r < 0.08) id = q < 0.4 ? 'eras_lambo' : q < 0.7 ? 'eras_rig' : 'eras_silo';
         } else {
             if (this.trail(x, y) < 86) return null; // the frozen river
             const g = this.grove(x, y);
@@ -519,6 +583,8 @@ export class Terrain {
                                   ? 'chop_stump_axe'
                                   : 'chop_lantern';
             }
+        } else if (st === 'eras') {
+            if (this.trail(x, y) > 40 && r < 0.05) id = q < 0.5 ? 'eras_pizza' : 'eras_floppy';
         } else {
             const g = this.grove(x, y);
             if (this.trail(x, y) < 70) {

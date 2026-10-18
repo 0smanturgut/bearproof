@@ -732,7 +732,8 @@ function renderLatest(live, d) {
     if (d) $('#latestLog').href = `${REPO}/blob/main/devlog/build-${live.n}.md`;
 }
 
-function patchRow(b, d, live) {
+/** `irys`: the gateway link of this build's permanent copy (GET /api/archive), when it is stored. */
+function patchRow(b, d, live, irys) {
     const at = b ? toMs(b.activatesAt) : d ? toMs(d.date) : null;
     const failed = d && d.status && d.status !== 'shipped';
     const mode = b ? b.mode : d && d.mode;
@@ -753,7 +754,20 @@ function patchRow(b, d, live) {
                     ? h('small', null, 'revoked')
                     : mode && mode !== 'agent'
                       ? h('small', null, WHO[mode] || mode)
-                      : null
+                      : null,
+            irys
+                ? h(
+                      'a',
+                      {
+                          class: 'pir',
+                          href: irys,
+                          rel: 'noopener',
+                          target: '_blank',
+                          title: `Build #${b.n}, stored permanently on Irys: it plays from there too`
+                      },
+                      'on Irys ↗'
+                  )
+                : null
         ),
         h('span', { class: 'pc' }, costText(b, d)),
         b
@@ -789,12 +803,20 @@ function nextRow(n, scheduled, vote) {
 }
 
 async function loadBuilds() {
-    const [data, dl, s, vote] = await Promise.all([
+    const [data, dl, s, vote, archive] = await Promise.all([
         getJSON('/api/builds'),
         getJSON('/devlog.json'),
         firstStats,
-        getJSON('/api/vote')
+        getJSON('/api/vote'),
+        getJSON('/api/archive')
     ]);
+    // Each build's newest permanent copy on Irys (D81), by build number.
+    const irys = new Map(
+        (archive && Array.isArray(archive.builds) ? archive.builds : [])
+            .filter((x) => x && isNum(x.n) && Array.isArray(x.revisions) && x.revisions.length)
+            .map((x) => [x.n, x.revisions[x.revisions.length - 1].play])
+    );
+    irysStrip(archive);
     const tl = $('#timeline');
     if (!data || !Array.isArray(data.builds)) {
         $('#latestTitle').textContent = 'The build log is offline right now';
@@ -817,6 +839,8 @@ async function loadBuilds() {
             .pop() ||
         null;
     renderLatest(live, live ? byBuild.get(live.n) : null);
+    const kept = live && irys.get(live.n);
+    if (kept) Object.assign($('#latestIrys'), { href: kept, hidden: false });
 
     const items = shipped.map((b) => ({
         at: toMs(b.activatesAt) || 0,
@@ -836,7 +860,7 @@ async function loadBuilds() {
     // The live build has the big card above; the list is everything before it.
     const rest = items.filter((it) => !(live && it.b && it.b.n === live.n));
     rest.forEach((it, i) => {
-        const row = patchRow(it.b, it.d, false);
+        const row = patchRow(it.b, it.d, false, it.b ? irys.get(it.b.n) : null);
         if (i >= PATCHES_SHOWN) row.hidden = true;
         tl.append(row);
     });
@@ -1281,6 +1305,21 @@ function renderReceiptTiles(s) {
             `measured over ${fmtInt(c.meteredRuns)} nightly runs${isNum(c.chat) && c.chat > 0 ? ' and the Telegram chat' : ''}`
         );
     }
+}
+
+/** The Irys strip above the build list: what is stored permanently so far. Hidden until the archive runs. */
+function irysStrip(d) {
+    const box = $('#irysStrip');
+    if (!box || !d || !d.totals || d.status === 'off') return;
+    const t = d.totals;
+    if (!t.builds) return;
+    const devlogs = (d.builds || []).filter((x) =>
+        (x.revisions || []).some((r) => r.devlog)
+    ).length;
+    $('#irysText').textContent =
+        `Kept forever on Irys: ${fmtInt(t.builds)} build${t.builds === 1 ? '' : 's'}, ${fmtInt(devlogs)} devlog${devlogs === 1 ? '' : 's'}` +
+        ` and ${fmtInt(t.days || 0)} Daily result${t.days === 1 ? '' : 's'} so far. Every build still plays from there, with no server of ours.`;
+    box.hidden = false;
 }
 
 /** The receipts strip: what SQD Network saw of the two wallets in the last 24 hours, against our ledger. */

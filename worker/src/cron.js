@@ -4,7 +4,8 @@
  *   2. settle yesterday's Daily Challenge: pick the verified winner and pay the capped $ANSEM prize,
  *   3. resume a payout that stopped half-way (swap done, transfer not yet),
  *   4. read the treasury's balance and new transactions from chain into the public ledger (lib/treasury.js),
- *   5. the Telegram group: the nightly chat digest and the announcements (community.js), beside the steps above.
+ *   5. the Telegram group: the nightly chat digest and the announcements (community.js), beside the steps above,
+ *   6. the permanent archive on Irys (archive.js, D81): every build, devlog and settled Daily, also beside them.
  *
  * Guards: `payouts_enabled` must be "true" in CONFIG (kill switch), the coin and the prize wallet must exist,
  * and each day is claimed once in `daily_winners` before any money moves, so a prize can never be paid twice.
@@ -296,6 +297,12 @@ export async function scheduled(event, env, ctx) {
         import('./lib/sqd.js')
             .then((m) => m.syncSqd(env, { now }))
             .catch((err) => console.warn('[cron] sqd', err?.message || err))
+    );
+    // The permanent archive on Irys (D81): builds, devlogs and settled Dailies; beside the money steps too.
+    ctx.waitUntil(
+        import('./archive.js')
+            .then((m) => m.archiveTick(env, { now }))
+            .catch((err) => console.warn('[cron] archive', err?.message || err))
     );
     try {
         await snapshotFees(env, today);

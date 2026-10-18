@@ -12,6 +12,7 @@
 
 import { BUILDS } from './manifest.js';
 import {
+    authorized,
     payoutSelftest,
     pendingRuns,
     requestReply,
@@ -41,6 +42,7 @@ import { winners } from './routes/winners.js';
 import { pot } from './routes/pot.js';
 import { dailyPotFrom } from './dailypot.js';
 import { scheduled } from './cron.js';
+import { archiveTick, archiveView } from './archive.js';
 import { feedback } from './community.js';
 import { withGroup } from './lib/telegram.js';
 import { telegramWebhook } from './routes/telegram.js';
@@ -237,6 +239,8 @@ export default {
                         return edgeCached(request, ctx, 30, () => ledger(env));
                     case '/api/onchain':
                         return edgeCached(request, ctx, 60, () => onchain(env));
+                    case '/api/archive':
+                        return edgeCached(request, ctx, 60, () => archiveView(env));
                     case '/api/vote':
                         return getVote(request, env);
                     case '/api/vote/result':
@@ -276,6 +280,18 @@ export default {
                     return payoutSelftest(request, env);
                 if (pathname === '/api/internal/agent/events') return postAgentEvents(request, env);
                 if (pathname === '/api/internal/agent/cost') return postComputeCost(request, env);
+                if (pathname === '/api/internal/archive/tick') {
+                    // The Irys archive (D81) on demand, e.g. for the first backfill: one bounded run per call.
+                    if (!authorized(request, env))
+                        return error(401, 'unauthorized', 'Bearer token required.');
+                    const body = await request.json().catch(() => ({}));
+                    const maxUploads = Math.min(Math.max(Number(body.maxUploads) || 60, 1), 400);
+                    const budgetMs = Math.min(
+                        Math.max(Number(body.budgetMs) || 90000, 5000),
+                        240000
+                    );
+                    return json(await archiveTick(env, { maxUploads, budgetMs }));
+                }
                 const m = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/verdict$/);
                 if (m) return verdict(request, env, m[1]);
                 const st = pathname.match(/^\/api\/internal\/runs\/([0-9a-z]+)\/stats$/);

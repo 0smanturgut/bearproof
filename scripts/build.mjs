@@ -7,6 +7,7 @@
  *   dist/b/<n>/build-info.json
  *   dist/builds.json      public manifest
  *   dist/devlog.json      devlog/build-<n>.md compiled by scripts/devlog.mjs (the HQ fetches it directly)
+ *   dist/archive.json     every live build's files with their SHA-256, for the Irys archive (worker/src/archive.js)
  *   dist/_headers         cache + security headers
  *
  * Flags:
@@ -15,6 +16,7 @@
  * Every build's ref must resolve to the commit recorded in the manifest. A moved tag fails the build.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -190,6 +192,44 @@ fs.writeFileSync(
 const devlog = compileDevlog(ROOT);
 fs.writeFileSync(path.join(DIST, 'devlog.json'), JSON.stringify(devlog, null, 2));
 console.log(`devlog: ${devlog.entries.length} entr${devlog.entries.length === 1 ? 'y' : 'ies'}`);
+
+// The Irys archive (D81): the Worker can't list its own assets, so each build's files are listed here with their
+// SHA-256. The cron stores every file once, then one manifest per build that makes it playable from Irys.
+function listFiles(dir, rel = '') {
+    return fs
+        .readdirSync(path.join(dir, rel), { withFileTypes: true })
+        .flatMap((e) =>
+            e.isDirectory()
+                ? listFiles(dir, path.posix.join(rel, e.name))
+                : [path.posix.join(rel, e.name)]
+        )
+        .sort();
+}
+fs.writeFileSync(
+    path.join(DIST, 'archive.json'),
+    JSON.stringify({
+        builds: builds
+            .filter((b) => !b.revoked)
+            .map((b) => {
+                const dir = path.join(DIST, 'b', String(b.n));
+                return {
+                    n: b.n,
+                    title: b.title,
+                    mode: b.mode,
+                    commit: b.commit,
+                    activatesAt: b.activatesAt,
+                    files: listFiles(dir).map((p) => {
+                        const bytes = fs.readFileSync(path.join(dir, p));
+                        return {
+                            p,
+                            sha256: createHash('sha256').update(bytes).digest('hex'),
+                            bytes: bytes.length
+                        };
+                    })
+                };
+            })
+    })
+);
 
 // Builds don't change, but a rare labelled hotfix can (D47), so browsers keep them for an hour, not forever.
 // Every file of a build shares one lifetime, so a page and its modules can't drift apart. The HQ revalidates.

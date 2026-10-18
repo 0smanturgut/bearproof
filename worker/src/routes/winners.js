@@ -114,13 +114,16 @@ function potDay(note, names) {
     };
 }
 
-export async function winners(env) {
+/** `date`: only that day's rows (its prize and any top-up), as the Irys archive stores them (archive.js). */
+export async function winners(env, { date = null } = {}) {
     const rows = await all(
         env,
         `SELECT w.date, w.score, w.payout_status, w.payout_token, w.payout_amount, w.payout_tx, w.note,
                 w.player_id, p.name
            FROM daily_winners w LEFT JOIN players p ON p.id = w.player_id
-          ORDER BY w.date DESC LIMIT 14`
+          ${date ? 'WHERE substr(w.date, 1, 10) = ?1' : ''}
+          ORDER BY w.date DESC LIMIT 14`,
+        ...(date ? [date] : [])
     );
     if (!rows) return error(503, 'db_unavailable', 'Storage is unavailable.');
     const live =

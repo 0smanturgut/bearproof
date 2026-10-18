@@ -295,8 +295,153 @@ async function sqd() {
         );
 }
 
+/** The permanent archive on Irys (GET /api/archive): every build with its gateway link, and every settled Daily. */
+async function irys() {
+    const [d, b] = await Promise.all([getJSON('/api/archive'), getJSON('/api/builds')]);
+    const sum = $('#irysSum');
+    const body = $('#irysRows');
+    sum.textContent = '';
+    body.textContent = '';
+    if (!d || !Array.isArray(d.builds)) {
+        sum.append(h('p', { class: 'fine' }, 'The archive view is offline right now.'));
+        return;
+    }
+    const titles = new Map(((b && b.builds) || []).map((x) => [x.n, x.title]));
+    const t = d.totals || {};
+    const devlogs = d.builds.filter((x) => x.revisions.some((r) => r.devlog)).length;
+    const chip = (k, v, note) =>
+        h(
+            'div',
+            { class: 'sqd-chip' },
+            h('span', null, k),
+            h('b', null, v),
+            note ? h('span', { class: 'fine' }, note) : null
+        );
+    if (d.status === 'off')
+        sum.append(
+            h(
+                'p',
+                { class: 'fine' },
+                "The archive hasn't started yet. This section fills in as it does."
+            )
+        );
+    else {
+        sum.append(
+            chip(
+                'Builds',
+                String(t.builds || 0),
+                t.revisions > t.builds
+                    ? `${t.revisions} versions, updates included`
+                    : 'each one playable'
+            ),
+            chip('Devlogs', String(devlogs), 'as written the night each build shipped'),
+            chip('Daily results', String(t.days || 0), 'leaderboard, payouts, replay hashes'),
+            chip(
+                'Stored',
+                `${((t.bytes || 0) / 1048576).toFixed(1)} MB`,
+                `${(t.items || 0).toLocaleString('en-US')} items, ${(t.files || 0).toLocaleString('en-US')} unique files`
+            )
+        );
+        if (d.status === 'needs_funding')
+            sum.append(
+                h(
+                    'p',
+                    { class: 'fine' },
+                    'Paused: the next item is over the size Irys stores for free, so the storage wallet needs a little SOL first.'
+                )
+            );
+    }
+    for (const x of d.builds) {
+        const last = x.revisions[x.revisions.length - 1];
+        const older = x.revisions.slice(0, -1);
+        body.append(
+            h(
+                'tr',
+                null,
+                h('td', null, h('b', null, `#${x.n}`), ' ', titles.get(x.n) || ''),
+                h(
+                    'td',
+                    null,
+                    h('a', { href: last.play, rel: 'noopener', target: '_blank' }, 'Play ↗'),
+                    older.length
+                        ? h(
+                              'span',
+                              { class: 'fine' },
+                              ` · v${last.revision}; earlier: `,
+                              ...older.flatMap((r, i) => [
+                                  i ? ', ' : '',
+                                  h(
+                                      'a',
+                                      { href: r.play, rel: 'noopener', target: '_blank' },
+                                      `v${r.revision}`
+                                  )
+                              ])
+                          )
+                        : null
+                ),
+                h(
+                    'td',
+                    null,
+                    last.devlog
+                        ? h('a', { href: last.devlog, rel: 'noopener', target: '_blank' }, 'Read ↗')
+                        : h('span', { class: 'fine' }, '—')
+                ),
+                h(
+                    'td',
+                    { class: 'tm' },
+                    String(last.at || '')
+                        .slice(0, 16)
+                        .replace('T', ' ')
+                ),
+                h('td', { class: 'num-c' }, String(last.files))
+            )
+        );
+    }
+    if (!d.builds.length)
+        body.append(
+            h(
+                'tr',
+                null,
+                h(
+                    'td',
+                    { colspan: '5', class: 'fine' },
+                    'No build stored yet. The oldest goes first.'
+                )
+            )
+        );
+    const days = $('#irysDays');
+    days.textContent = '';
+    if ((d.days || []).length) {
+        days.append(h('span', { class: 'fine' }, 'Daily Challenge results: '));
+        d.days.forEach((x, i) =>
+            days.append(
+                i ? ' · ' : '',
+                h(
+                    'a',
+                    {
+                        href: x.url,
+                        rel: 'noopener',
+                        target: '_blank',
+                        title: `The ${x.date} Daily on Build #${x.build}`
+                    },
+                    x.date.slice(5)
+                )
+            )
+        );
+    }
+    $('#irysMeta').textContent = [
+        d.runAt ? `last run ${ago(d.runAt)}` : null,
+        d.wallet ? `uploader ${short(d.wallet)}` : null,
+        'replays stay private (anyone holding one could resubmit it); each Daily record carries the SHA-256 of its top replays',
+        'via uploader.irys.xyz to the Irys L1 (mainnet beta); read at gateway.irys.xyz'
+    ]
+        .filter(Boolean)
+        .join(' · ');
+}
+
 async function boot() {
     sqd();
+    irys();
     const [s, ledger, pot] = await Promise.all([
         getJSON('/api/stats'),
         getJSON('/api/ledger'),

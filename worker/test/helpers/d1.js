@@ -46,6 +46,7 @@ export function fakeKV(init = {}) {
     return {
         map,
         get: async (k) => (map.has(k) ? map.get(k) : null),
-        put: async (k, v) => void map.set(k, String(v))
+        put: async (k, v) => void map.set(k, String(v)),
+        delete: async (k) => void map.delete(k)
     };
 }

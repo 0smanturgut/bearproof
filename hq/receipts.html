@@ -138,6 +138,47 @@
                 </div>
             </section>
 
+            <section class="sec-s" id="irys" aria-labelledby="irysH">
+                <div class="sqd irys panel gold">
+                    <div class="sqd-top">
+                        <div>
+                            <h2 class="h2s" id="irysH">Kept forever on <span>Irys</span></h2>
+                            <p class="lede">
+                                Every build the AI ships is stored permanently onchain on Irys: the
+                                game's files, the devlog of the night it shipped, and every settled
+                                Daily Challenge with its leaderboard and payouts. Each build opens
+                                and plays straight from Irys, with no server of ours in between.
+                            </p>
+                        </div>
+                        <a class="sqd-badge" href="https://irys.xyz" rel="noopener" target="_blank"
+                            ><span>Permanent storage on</span><b>IRYS</b></a
+                        >
+                    </div>
+                    <div class="sqd-sum" id="irysSum">
+                        <p class="fine">Loading the archive…</p>
+                    </div>
+                    <div class="lg-wrap">
+                        <table class="lg irys-lg">
+                            <caption class="sr-only">
+                                Every build stored on Irys, with its permanent links
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Build</th>
+                                    <th scope="col">Play it from Irys</th>
+                                    <th scope="col">Devlog</th>
+                                    <th scope="col">Stored (UTC)</th>
+                                    <th scope="col" class="num-c">Files</th>
+                                </tr>
+                            </thead>
+                            <tbody id="irysRows"></tbody>
+                        </table>
+                    </div>
+                    <p class="irys-days" id="irysDays"></p>
+                    <p class="fine" id="irysMeta"></p>
+                </div>
+            </section>
+
             <section class="sec-s" id="ledger" aria-labelledby="ledgerH">
                 <div class="feed panel">
                     <div class="feed-h">
@@ -385,6 +426,7 @@
                         <a href="/bears">The enemies</a>
                         <a href="/api/ledger">Ledger JSON</a>
                         <a href="/api/onchain">SQD view JSON</a>
+                        <a href="/api/archive">Irys archive JSON</a>
                         <a href="https://x.com/Bearproofapp_" rel="noopener">X</a>
                         <a href="https://github.com/0smanturgut/bearproof" rel="noopener">GitHub</a>
                     </nav>
@@ -393,8 +435,10 @@
                     A <a href="https://crowlab.ai" rel="noopener">CrowLab</a> project: BEARPROOF is
                     product 001 of Osman Turgut's lab, where AI agents build and run the products.
                     The independent on-chain check is powered by
-                    <a href="https://sqd.dev" rel="noopener">SQD Network</a>. $BPROOF is not an
-                    investment and is never required to play, vote or win.
+                    <a href="https://sqd.dev" rel="noopener">SQD Network</a>; every build, devlog
+                    and Daily result is stored permanently on
+                    <a href="https://irys.xyz" rel="noopener">Irys</a>. $BPROOF is not an investment
+                    and is never required to play, vote or win.
                 </p>
             </div>
         </footer>

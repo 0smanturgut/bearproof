@@ -59,6 +59,7 @@ Live URL: **https://bearproof.app**
 | `HELIUS_API_KEY`     | treasury balance + ledger reads           | `npx wrangler secret put HELIUS_API_KEY`                                   |
 | `INGEST_TOKEN`       | Build Agent → devlog/cost ingest          | `openssl rand -hex 32 \| npx wrangler secret put INGEST_TOKEN`             |
 | `PRIZE_WALLET_KEY`   | daily prize payouts (M3, hot wallet only) | `npx wrangler secret put PRIZE_WALLET_KEY`                                 |
+| `IRYS_WALLET_KEY`    | signs the Irys archive uploads (D81)      | `node scripts/new-wallet.mjs \| npx wrangler secret put IRYS_WALLET_KEY`   |
 | `TELEGRAM_BOT_TOKEN` | the Telegram bot (from @BotFather)        | `npx wrangler secret put TELEGRAM_BOT_TOKEN`                               |
 | `ANTHROPIC_API_KEY`  | the bot's replies and the chat digest     | `npx wrangler secret put ANTHROPIC_API_KEY` (its own key, not the agent's) |
 

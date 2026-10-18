@@ -48,6 +48,11 @@ tests, ships and writes a devlog. Every step and every cost is public.
 - **Independent on-chain check, powered by [SQD Network](https://sqd.dev).** Every 15 minutes the Worker reads the
   treasury's and prize wallet's moves from the SQD Portal, separately from the ledger code, and
   [/receipts](https://bearproof.app/receipts#sqd) shows each one next to the ledger (`/api/onchain`).
+- **Kept forever on [Irys](https://irys.xyz).** Every build, the devlog of the night it shipped and every settled Daily
+  Challenge (its public leaderboard and payouts, plus the SHA-256 of the top replays) are stored permanently on Irys.
+  Each build has its own Irys manifest, so it opens and plays from `gateway.irys.xyz` with no server of ours
+  ([/receipts](https://bearproof.app/receipts#irys), `/api/archive`). The Worker signs the uploads itself
+  (`worker/src/lib/irys.js`, D81).
 - **A Telegram group the AI listens to.** BEARPROOF is in the group as a bot (it runs in the Worker): it posts every
   build, vote, prize and ledger row, answers mentions from live data, and at 20:30 UTC turns the day's chat into a
   short public digest (`/api/feedback`) that the Build Agent reads before it builds. Its instructions are in

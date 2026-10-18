@@ -155,6 +155,18 @@ places, bounty: { name, text, cleared } | null, rule: { text, details } }`. `pla
 the pot pays at its current size; `bounty.cleared` = players whose verified run cleared it so far. Fees are
 measured on-chain and err low; the final pot is worked out after the day closes. Edge 60 s.
 
+### `GET /api/archive`
+
+The permanent archive on Irys (D81, `worker/src/archive.js`). `status`: `off` (no storage key), `paused` (CONFIG
+`irys:enabled` = "false"), `starting`, `live`, `needs_funding` (the bundler answered 402) or `error`. `builds`
+(newest first): `{ n, revisions: [{ revision, id, play, devlog, commit, files, newFiles, bytes, at }] }`, where
+`play` is `https://gateway.irys.xyz/<manifest>/` (the build runs from there) and `devlog` the devlog item. `days`:
+`{ date, build, id, url, at }`, one JSON record per settled Daily (public board + payouts + replay SHA-256s).
+`totals`, `wallet` (the uploader address), `runAt`. Cached 60 s.
+
+`POST /api/internal/archive/tick` (Bearer `INGEST_TOKEN`, body `{ maxUploads?, budgetMs? }`) runs one bounded
+archive step on demand, e.g. for the first backfill.
+
 ### `GET /api/feedback`
 
 What the Telegram group told the AI: `{ telegram, digest: { day, writtenAt, messages, people, items: [{ kind,

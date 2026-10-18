@@ -29,7 +29,6 @@ import {
     upload
 } from './lib/irys.js';
 import { signerFromSecret } from './lib/solana.js';
-import { leaderboard } from './routes/runs.js';
 import { winners } from './routes/winners.js';
 
 const STATE_KEY = 'irys:state';
@@ -124,12 +123,17 @@ export function buildManifest(paths) {
     };
 }
 
-/** One settled day, from the public endpoints, plus the hashes of its best verified replays. */
-async function dayRecord(env, day, now) {
+/** A day's board exactly as GET /api/leaderboard serves it. Loaded lazily: routes/runs.js needs the built manifest. */
+async function publicBoard(env, date) {
+    const { leaderboard } = await import('./routes/runs.js');
     const site = env.SITE_URL || 'https://bearproof.app';
-    const board = await (
-        await leaderboard(new Request(`${site}/api/leaderboard?date=${day.date}`), env)
-    ).json();
+    return (await leaderboard(new Request(`${site}/api/leaderboard?date=${date}`), env)).json();
+}
+
+/** One settled day, from the public endpoints, plus the hashes of its best verified replays. */
+async function dayRecord(env, day, now, readBoard = publicBoard) {
+    const site = env.SITE_URL || 'https://bearproof.app';
+    const board = await readBoard(env, day.date);
     if (board.error) throw new Error(`leaderboard ${day.date}: ${board.error.code || 'error'}`);
     const paid = await (await winners(env, { date: day.date })).json();
     const top = (board.rows || []).filter((r) => r.status === 'verified').slice(0, REPLAY_HASHES);
@@ -248,7 +252,7 @@ async function archiveBuilds(env, state, put, now) {
     }
 }
 
-async function archiveDays(env, state, put, now) {
+async function archiveDays(env, state, put, now, board) {
     const today = utcDate(now);
     const rows = await all(
         env,
@@ -263,7 +267,7 @@ async function archiveDays(env, state, put, now) {
         const age = (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${d.date}T00:00:00Z`)) / DAY;
         // Final once settled: a payout still moving waits (up to a week), a day nobody settled waits two days.
         if ((d.st === 'pending' && age < 7) || (d.st == null && age < 2)) continue;
-        const id = await put(await dayRecord(env, d, now), [
+        const id = await put(await dayRecord(env, d, now, board), [
             { name: 'Content-Type', value: 'application/json' },
             { name: 'Type', value: 'daily-result' },
             { name: 'Date', value: d.date },
@@ -275,11 +279,12 @@ async function archiveDays(env, state, put, now) {
 
 /**
  * One archive step. `maxUploads` and `budgetMs` bound a run so the cron's other work keeps its share of the
- * invocation; an internal call (POST /api/internal/archive/tick) can pass larger numbers for a backfill.
+ * invocation; an internal call (POST /api/internal/archive/tick) can pass larger numbers for a backfill. `board`
+ * reads a day's public leaderboard (tests pass their own).
  */
 export async function archiveTick(
     env,
-    { now = Date.now(), maxUploads = 60, budgetMs = 90000 } = {}
+    { now = Date.now(), maxUploads = 60, budgetMs = 90000, board = publicBoard } = {}
 ) {
     if (!env.IRYS_WALLET_KEY) return { status: 'off' };
     if ((await env.CONFIG.get('irys:enabled')) === 'false') return { status: 'paused' };
@@ -305,7 +310,7 @@ export async function archiveTick(
             return id;
         };
         await archiveBuilds(env, state, put, now);
-        await archiveDays(env, state, put, now);
+        await archiveDays(env, state, put, now, board);
         finished = true;
         state.status = 'live';
         state.lastError = null;

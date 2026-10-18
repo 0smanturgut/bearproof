@@ -304,8 +304,31 @@ test('a settled Daily is stored from the public board, with replay hashes and ne
             `INSERT INTO daily_winners (date, run_id, player_id, score, payout_status, note, created_at)
              VALUES ('2026-10-17', 'run1', 'p1', 9000, 'pending', '{}', 1)`
         );
-        const r = await archiveTick(t.env, { now: NOW });
+        // The board as GET /api/leaderboard serves it (routes/runs.js needs the built manifest, so it isn't loaded here).
+        const asked = [];
+        const board = async (_env, date) => {
+            asked.push(date);
+            return {
+                board: 'daily',
+                date,
+                build: 5,
+                total: 1,
+                rows: [
+                    {
+                        rank: 1,
+                        name: 'anon-p1',
+                        score: 9000,
+                        status: 'verified',
+                        build: 5,
+                        runId: 'run1'
+                    }
+                ],
+                generatedAt: 'x'
+            };
+        };
+        const r = await archiveTick(t.env, { now: NOW, board });
         assert.equal(r.uploads, 1);
+        assert.deepEqual(asked, ['2026-10-16']);
         const s = await loadState(t.env);
         assert.deepEqual(Object.keys(s.days), ['2026-10-16']);
         const rec = JSON.parse(t.uploaded[0].data);
@@ -316,6 +339,7 @@ test('a settled Daily is stored from the public board, with replay hashes and ne
         assert.equal(rec.replays[0].sha256, await hex(log));
         assert.ok(!t.uploaded[0].data.includes('input_log'));
         assert.ok(!t.uploaded[0].data.includes('"p1"')); // no player id, only the board name
+        assert.ok(!t.uploaded[0].data.includes('generatedAt'));
     } finally {
         t.restore();
     }

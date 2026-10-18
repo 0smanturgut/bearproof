@@ -166,7 +166,9 @@ const NO_FLIP = new Set([
     'trap_newsbox',
     'winter_atm',
     'winter_flag',
-    'chop_monolith'
+    'chop_monolith',
+    'trap_graffiti_rekt',
+    'trap_graffiti_ngmi'
 ]);
 
 /** One standing prop instance. */
@@ -807,7 +809,9 @@ export class Layout {
                                     ? 'winter_boots'
                                     : 'winter_buried_gpu';
         }
-        return id && DECAL_DEFS[id] ? { id, x, y, flip: hash3(gx, gy, s + 45) < 0.5 } : null;
+        return id && DECAL_DEFS[id]
+            ? { id, x, y, flip: !NO_FLIP.has(id) && hash3(gx, gy, s + 45) < 0.5 }
+            : null;
     }
 
     _puddle(gx, gy) {

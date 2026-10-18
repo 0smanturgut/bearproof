@@ -308,11 +308,16 @@ function pedestal(canvas, spriteFor) {
         ctx.closePath();
         ctx.fill();
         // floor glow
-        const floor = ctx.createRadialGradient(cx, baseY, 2, cx, baseY, w * 0.42);
+        // floor glow: a flat ellipse, painted over the whole canvas so it has no edge
+        ctx.save();
+        ctx.translate(cx, baseY);
+        ctx.scale(1, 0.34);
+        const floor = ctx.createRadialGradient(0, 0, 2, 0, 0, w * 0.45);
         floor.addColorStop(0, gold ? 'rgba(255,197,61,0.3)' : 'rgba(22,224,138,0.32)');
         floor.addColorStop(1, 'rgba(22,224,138,0)');
         ctx.fillStyle = floor;
-        ctx.fillRect(0, baseY - w * 0.2, w, w * 0.4);
+        ctx.fillRect(-w, -h * 3, w * 2, h * 6);
+        ctx.restore();
 
         // the plinth: a stepped top face with a lit rim, a darker front with a ticker stripe
         const pw = Math.round(Math.min(w * 0.62, h * 0.9) / u) * u;

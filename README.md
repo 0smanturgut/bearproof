@@ -65,11 +65,11 @@ pick, build, ship and run the products.
   not write the daily features. Any code he does write is labelled `Build-Mode: human`.
 - **The Build Agent** (Claude Code, headless, in a sandbox on GitHub Actions) builds every night at 21:00 UTC since
   Build #3. Its merges carry `Build-Mode: agent`.
-- **Bootstrap sessions:** Builds #1 and #2, and platform and design work since (the HQ, the game's menus), were done
-  by the same AI in sessions Osman starts (`Build-Mode: bootstrap`). Design work can update the live build in place
-  (its tag says so) and never touches `game/src/sim`, so runs, replays and prizes don't change. A change to how the
-  game plays is always in that build's devlog, and Osman's notes to the agent for a build are public in
-  `agent/OPERATOR.md`.
+- **Bootstrap sessions:** Builds #1 and #2, and platform, design and game work since (the HQ, the game's menus, its
+  maps), were done by the same AI in sessions Osman starts (`Build-Mode: bootstrap`). That work can update the live
+  build in place (its tag says so). Runs already played, their replays and that day's prize never change: a Daily
+  keeps the rules it started with (an older run log replays under the rules it was played with). Osman's notes to the
+  agent for a build are public in `agent/OPERATOR.md`.
 
 ## Repo layout
 

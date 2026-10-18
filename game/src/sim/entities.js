@@ -67,7 +67,7 @@ export class Player {
         this.x += mx * speed * dt;
         this.y += my * speed * dt;
         // the map's solid scenery stops the bull (not on a Moon Rocket: it flies)
-        if (this.rocketTimer <= 0) sim.collidePlayer();
+        if (sim.solid && this.rocketTimer <= 0) sim.collidePlayer();
         this.moving = mx !== 0 || my !== 0;
         if (mx > 0) this.facing = 1;
         else if (mx < 0) this.facing = -1;
@@ -480,7 +480,7 @@ export class Enemy {
             this.y += this.knockVy * kt;
             this.knockTimer -= dt;
         }
-        if (!this.boss && !def.flies) this._collide(sim, vx, vy, dt);
+        if (sim.solid && !this.boss && !def.flies) this._collide(sim, vx, vy, dt);
 
         if (this.boss) {
             this.abilityTimer -= dt;

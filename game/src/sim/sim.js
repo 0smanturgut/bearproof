@@ -75,9 +75,27 @@ import { Weapon } from './weapons.js';
  * Squeeze), a treasure chest from every boss (free level-ups), and two rerolls and two skips of level-up cards. */
 export const SIM_VERSION = 22;
 
+/**
+ * The rules before 22, still played (and replayed) where they're owed: a run log written with sim version 21 replays
+ * under them, and the Daily Challenges dated before RULES_22_FROM keep them all day (game.js), so one day's board is
+ * never split between two rule sets. Under them the scenery is only looked at, there are no piggy banks, chests,
+ * rerolls or skips, and the simulation is bit for bit Build #26's (test/legacy-rules.test.js checks that).
+ */
+export const LEGACY_SIM_VERSION = 21;
+export const RULES_22_FROM = '2026-10-19';
+
 export class Simulation {
-    constructor({ seed = 1, stage = null, twist = null, character = null } = {}) {
+    constructor({
+        seed = 1,
+        stage = null,
+        twist = null,
+        character = null,
+        rules = SIM_VERSION
+    } = {}) {
         resetEntityIds();
+        // which rules this run plays: SIM_VERSION, or LEGACY_SIM_VERSION (no solid map, no loot, no rerolls)
+        this.rules = rules === LEGACY_SIM_VERSION ? LEGACY_SIM_VERSION : SIM_VERSION;
+        this.solid = this.rules >= 22;
         this.seed = seed >>> 0;
         this.stageId = stage || stageForSeed(this.seed);
         this.twist = twistDef(twist);
@@ -117,8 +135,8 @@ export class Simulation {
         this.breakables = []; // the piggy banks near the bull (sim/terrain.js places them)
         this.broken = new Set(); // keys of the ones smashed this run
         this.haltUntil = 0; // Trading Halt: bears stand frozen while time < haltUntil
-        this.rerolls = SIM.REROLLS;
-        this.skips = SIM.SKIPS;
+        this.rerolls = this.solid ? SIM.REROLLS : 0;
+        this.skips = this.solid ? SIM.SKIPS : 0;
         this.nextCrateAt = SIM.CRATE_FIRST;
         this.lastLoot = null;
         this.whale = null;
@@ -202,7 +220,7 @@ export class Simulation {
         this.enemyDmgMult = timeDiff * this.twist.enemyDmgMult;
         this._selectWave();
 
-        if (this.tick % SIM.BREAK_EVERY === 1) this._activateBreakables();
+        if (this.solid && this.tick % SIM.BREAK_EVERY === 1) this._activateBreakables();
         this.spatial.rebuild(this.enemies);
         for (const b of this.breakables) this.spatial.insert(b);
         const p = this.player;
@@ -214,7 +232,7 @@ export class Simulation {
         this._coldTick(dt);
         this._updateEnemies(dt);
         if (p.dead) return this._end('liquidated');
-        if (p.rocketTimer <= 0) this.collidePlayer(); // a rug pull can drag the bull into a wall
+        if (this.solid && p.rocketTimer <= 0) this.collidePlayer(); // a rug pull can drag the bull into a wall
         this._updateProjectiles(dt);
         this._updateList(this.enemyProjectiles, dt);
         this._updateList(this.mines, dt);
@@ -378,7 +396,7 @@ export class Simulation {
             this.stats.bossKills++;
             this.emit({ t: 'bossDown', id: e.id, name: e.def.name, x: e.x, y: e.y, jackpot });
             if (e.def.final) this.won = true;
-            else if (!e.selfDestructed) {
+            else if (this.solid && !e.selfDestructed) {
                 // the boss leaves its treasure where it fell (or the nearest free spot)
                 const [cx, cy] = this.terrain.free(e.x, e.y, 22);
                 this.pickups.push(new Pickup(cx, cy, 'chest', SIM.CHEST_LIFE));
@@ -611,11 +629,9 @@ export class Simulation {
         const pool = CRATE_LOOT_IDS.filter((id) => id !== this.lastLoot);
         const loot = pool[this.rng.int(pool.length)];
         this.lastLoot = loot;
-        const [cx, cy] = this.terrain.free(
-            this.player.x + cos(a) * dist,
-            this.player.y + sin(a) * dist,
-            24
-        );
+        let cx = this.player.x + cos(a) * dist;
+        let cy = this.player.y + sin(a) * dist;
+        if (this.solid) [cx, cy] = this.terrain.free(cx, cy, 24);
         const crate = new SupplyCrate(cx, cy, loot);
         this.crates.push(crate);
         this.emit({ t: 'crateDrop', x: crate.x, y: crate.y });

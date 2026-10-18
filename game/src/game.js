@@ -5,7 +5,7 @@
  * Also runs "attract mode" (an autopilot playing the live build), used by the HQ preview.
  */
 
-import { Simulation } from './sim/sim.js';
+import { LEGACY_SIM_VERSION, RULES_22_FROM, SIM_VERSION, Simulation } from './sim/sim.js';
 import { BOSSES, CHOICE_REROLL, CRATE_LOOT, ENEMIES, SIM } from './sim/content.js';
 import { encodeMove } from './sim/input-codes.js';
 import { RunRecorder, toBase64Url } from './sim/runlog.js';
@@ -117,8 +117,13 @@ export class Game {
         const character = this.baseAttract
             ? CHARACTER_IDS[CHARACTER_IDS.length - 1 - (this._attractRuns++ % CHARACTER_IDS.length)]
             : this.prefs.character || null;
-        this.sim = new Simulation({ seed, twist, character });
-        this.rec = new RunRecorder(seed, twist, this.sim.characterId);
+        // A Daily keeps the rules its day started with (sim.js RULES_22_FROM): one board, one rule set.
+        const rules =
+            this.mode === 'daily' && this.daily.date < RULES_22_FROM
+                ? LEGACY_SIM_VERSION
+                : SIM_VERSION;
+        this.sim = new Simulation({ seed, twist, character, rules });
+        this.rec = new RunRecorder(seed, twist, this.sim.characterId, this.sim.rules);
         this.applyLook();
         this.bot = this.attract ? createBot({ phase: Math.floor(Math.random() * 1000) }) : null;
         this.fx.clear();

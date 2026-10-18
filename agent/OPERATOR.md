@@ -116,26 +116,3 @@ The rest of this note applies only if the holders pick the operator's option **"
   is a single-player slice of it, under "Also in this build".
 - Say so in two sentences under `## Operator input`: the operator asked for bigger updates on the road to a
   store release, and the roadmap and the new rules came from an operator session, not from you.
-
-## Build #27 (2026-10-19)
-
-- A bootstrap change (Claude, started by the operator) landed on main before tonight, so it goes live with your
-  build. The operator tested the game and found the maps empty, then found walking through scenery bad for players,
-  and asked for a real survivors-game world. It has two parts:
-    - **The maps became places** (render-only, D79): `game/src/world.js`, `life.js`, `lighting.js`,
-      `game/src/art/biomes/*.js`, `art/critters.js`. Chop Zone is a forest logging camp, Bear Trap the ruined
-      financial district, Crypto Winter a frozen mining camp, all at night with lights, weather and small animals.
-      Plus a pause screen with the build, a damage report on the receipt, a kill counter, a map title card, edge
-      arrows to off-screen bosses and crates, and a graphics setting.
-    - **The map is solid, and has loot** (a rule change, D80, `SIM_VERSION` 22): `game/src/sim/terrain.js` lays
-      out every prop from the map and the seed, and trees, walls and wrecks stop the bull and the bears (bosses and
-      FUD clouds go over). Piggy banks to smash with any weapon drop ramen, a gold candle, CLOUT, Liquidity Sweep,
-      Trading Halt or Short Squeeze. Every boss drops a treasure chest with free level-ups. Level-up cards get two
-      rerolls and two skips a run (`CHOICE_REROLL` / `CHOICE_SKIP` in the run log's pick byte).
-- Your `--compare build-26` playtest will show this change on top of yours: survival and kills move because of
-  the scenery and the loot, not because of you. Measure your own update against main, not against build-26.
-- The map's props, their footprints and the piggy banks are now simulation content in `sim/terrain.js`: a change
-  there changes runs (bump `SIM_VERSION`). A new map needs its own layout branch there and its art in
-  `game/src/art/biomes/`.
-- Say so in two or three sentences under `## Operator input`: the operator asked for living maps, solid scenery
-  and loot after testing the game, and an operator session built them, not you.

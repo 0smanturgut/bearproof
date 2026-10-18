@@ -5,7 +5,7 @@
  * Binary layout (little-endian):
  *   0   'B' 'R'                magic
  *   2   u8   format version (3; version 1 had no twist byte, version 2 no character byte)
- *   3   u8   sim version (SIM_VERSION)
+ *   3   u8   sim version: the rules the run played (SIM_VERSION, or LEGACY_SIM_VERSION)
  *   4   u32  seed
  *   8   u8   twist (index into TWIST_IDS, 0 = none)
  *   9   u8   character (index into CHARACTER_IDS, 0 = the bull)
@@ -18,7 +18,7 @@
  * the server uses it to verify scores, and tests use it to prove determinism.
  */
 
-import { Simulation, SIM_VERSION } from './sim.js';
+import { LEGACY_SIM_VERSION, Simulation, SIM_VERSION } from './sim.js';
 import { CHARACTER_IDS, CHOICE_REROLL, CHOICE_SKIP, SIM, TWIST_IDS } from './content.js';
 import { isValidCode } from './input-codes.js';
 
@@ -26,8 +26,10 @@ export const RUNLOG_VERSION = 3;
 const MAX_TICKS = SIM.MAX_TICKS;
 
 export class RunRecorder {
-    constructor(seed, twist = null, character = null) {
+    /** `rules`: the Simulation's `rules` (its sim version), written into the log so the replay plays the same. */
+    constructor(seed, twist = null, character = null, rules = SIM_VERSION) {
         this.seed = seed >>> 0;
+        this.rules = rules === LEGACY_SIM_VERSION ? LEGACY_SIM_VERSION : SIM_VERSION;
         this.twist = Math.max(0, TWIST_IDS.indexOf(twist || 'none'));
         this.character = Math.max(0, CHARACTER_IDS.indexOf(character || 'bull'));
         this.codes = [];
@@ -57,7 +59,7 @@ export class RunRecorder {
         out.u8(0x42);
         out.u8(0x52);
         out.u8(RUNLOG_VERSION);
-        out.u8(SIM_VERSION);
+        out.u8(this.rules);
         out.u32(this.seed);
         out.u8(this.twist);
         out.u8(this.character);
@@ -114,8 +116,8 @@ export function decodeRunLog(bytes) {
     for (let i = 0; i < nPicks; i++) {
         t += r.varint();
         const idx = r.u8();
-        if ((idx > 2 && idx !== CHOICE_REROLL && idx !== CHOICE_SKIP) || t > ticks)
-            throw new Error('bad pick');
+        const special = idx === CHOICE_REROLL || idx === CHOICE_SKIP;
+        if ((idx > 2 && !(special && simVersion >= 22)) || t > ticks) throw new Error('bad pick');
         picks.push([t, idx]);
     }
     if (!r.done()) throw new Error('trailing bytes');
@@ -133,14 +135,15 @@ export function replay(bytes, { stage = null, onTick = null } = {}) {
     } catch (err) {
         return { ok: false, error: `decode: ${err.message}` };
     }
-    if (log.simVersion !== SIM_VERSION) {
+    if (log.simVersion !== SIM_VERSION && log.simVersion !== LEGACY_SIM_VERSION) {
         return { ok: false, error: `sim version ${log.simVersion} != ${SIM_VERSION}` };
     }
     const sim = new Simulation({
         seed: log.seed,
         stage,
         twist: log.twist,
-        character: log.character
+        character: log.character,
+        rules: log.simVersion
     });
     let pi = 0;
     for (const [code, count] of log.runs) {

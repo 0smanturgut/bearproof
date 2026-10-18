@@ -481,59 +481,249 @@ b {
 .hero-game iframe.on {
     opacity: 1;
 }
+/* The live game's camera follows its player, so the frame is shifted to put that player under the stage,
+   where the stage's own shade hides it: the bears close in around the pedestal instead of the headline. */
+.hero-game:has(iframe.on) .hero-poster {
+    visibility: hidden;
+}
+@media (min-width: 901px) {
+    .hero-game iframe {
+        left: 24%;
+    }
+}
+@media (max-width: 900px) {
+    .hero-game iframe {
+        top: -27%;
+        /* fades out before the frame's bottom edge (and the game's own LIVE badge) reaches the buttons */
+        -webkit-mask-image: linear-gradient(180deg, #000 66%, transparent 86%);
+        mask-image: linear-gradient(180deg, #000 66%, transparent 86%);
+    }
+}
 .hero-shade {
     position: absolute;
     inset: 0;
     z-index: -1;
     background:
-        radial-gradient(
-            ellipse 60% 55% at 50% 50%,
-            rgba(6, 8, 11, 0.86),
-            rgba(6, 8, 11, 0.45) 100%
+        linear-gradient(
+            90deg,
+            rgba(6, 8, 11, 0.94) 0%,
+            rgba(6, 8, 11, 0.84) 44%,
+            rgba(6, 8, 11, 0.62) 64%,
+            rgba(6, 8, 11, 0.62) 100%
         ),
-        linear-gradient(180deg, rgba(6, 8, 11, 0.5), transparent 30%, transparent 70%, var(--ink));
+        linear-gradient(180deg, rgba(6, 8, 11, 0.55), transparent 26%, transparent 74%, var(--ink));
 }
 .hero-in {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    align-items: center;
+    gap: 24px;
+    margin: auto;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+.hero-copy {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin: auto;
-    padding-top: 48px;
-    padding-bottom: 48px;
-    text-align: center;
+    align-items: flex-start;
+    min-width: 0;
 }
-.hero-bull {
-    height: 96px;
-    width: auto;
-    margin-bottom: 6px;
+.kicker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    font: 700 12px/1 var(--mono);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--text-2);
+}
+.kicker::before {
+    content: '';
+    width: 26px;
+    height: 2px;
+    background: var(--bear);
+    box-shadow: 0 0 8px rgba(255, 59, 92, 0.6);
 }
 .logo {
-    font: 400 clamp(76px, 13vw, 164px) / 0.8 var(--display);
-    letter-spacing: 0.02em;
+    position: relative;
+    font: 400 clamp(76px, 10.4vw, 150px) / 0.8 var(--display);
+    letter-spacing: 0.01em;
     color: var(--bull);
     text-shadow:
-        0 6px 0 var(--bull-deep),
-        0 0 48px rgba(22, 224, 138, 0.25);
+        0 5px 0 var(--bull-deep),
+        0 10px 0 #06261f,
+        0 0 48px rgba(22, 224, 138, 0.3);
+}
+.logo::after {
+    /* the same shine that sweeps the game's title */
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    background: linear-gradient(
+            100deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.85) 50%,
+            transparent 60%
+        )
+        no-repeat;
+    background-size: 250% 100%;
+    background-position: 150% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: none;
+    animation: shine 5s ease-in-out infinite 1.4s;
+}
+@keyframes shine {
+    0%,
+    60% {
+        background-position: 150% 0;
+    }
+    100% {
+        background-position: -50% 0;
+    }
 }
 .hero h1 {
-    max-width: 22ch;
-    margin-top: 26px;
-    font: 400 clamp(30px, 3.6vw, 46px) / 1 var(--display);
+    max-width: 13.5em;
+    margin-top: 34px;
+    font: 400 clamp(32px, 3.5vw, 48px) / 1 var(--display);
     letter-spacing: 0.01em;
     text-wrap: balance;
 }
 .hero-sub {
-    max-width: 34em;
+    max-width: 30em;
     margin-top: 14px;
     color: var(--text-2);
-    font-size: clamp(16px, 1.5vw, 19px);
+    font-size: clamp(16px, 1.4vw, 19px);
 }
 .hero-cta {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: 14px;
     margin-top: 30px;
+}
+/* the stage: the playable characters on the game's own pedestal */
+.hero-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    min-width: 0;
+}
+#stage {
+    width: 100%;
+    height: min(50vh, 430px);
+    min-height: 300px;
+    image-rendering: pixelated;
+}
+.stage-cap {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    margin-top: -4px;
+    text-align: center;
+}
+.stage-k {
+    font: 700 10px/1 var(--mono);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+#stageName {
+    font: 400 44px/0.9 var(--display);
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    text-shadow: 0 4px 0 #1b2530;
+}
+#stageInfo {
+    font: 400 13px/1.3 var(--mono);
+    color: var(--text-2);
+}
+.hero-stage.swap #stageName,
+.hero-stage.swap #stageInfo {
+    animation: wipe 380ms steps(6) both;
+}
+@keyframes wipe {
+    from {
+        clip-path: inset(0 100% 0 0);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}
+.stage-dots {
+    display: flex;
+    gap: 2px;
+    margin-top: 6px;
+}
+.stage-dots button {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.stage-dots button::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: var(--line-2);
+    transition:
+        width 200ms ease,
+        background 200ms ease;
+}
+.stage-dots button[aria-current='true']::before {
+    width: 24px;
+    background: var(--bull);
+    box-shadow: 0 0 8px rgba(22, 224, 138, 0.6);
+}
+.hero-copy > *,
+.hero-stage {
+    animation: rise 640ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.hero-copy > :nth-child(2) {
+    animation-name: stamp;
+    animation-delay: 80ms;
+}
+.hero-copy > :nth-child(3) {
+    animation-delay: 200ms;
+}
+.hero-copy > :nth-child(4) {
+    animation-delay: 260ms;
+}
+.hero-copy > :nth-child(5) {
+    animation-delay: 330ms;
+}
+.hero-copy > :nth-child(6) {
+    animation-delay: 400ms;
+}
+.hero-stage {
+    animation-delay: 260ms;
+}
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+}
+@keyframes stamp {
+    0% {
+        opacity: 0;
+        transform: scale(1.12);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(0.98);
+    }
+    100% {
+        transform: none;
+    }
 }
 .ca {
     --fill: rgba(10, 14, 19, 0.92);
@@ -652,6 +842,7 @@ b {
 .sec h2 {
     font: 400 clamp(40px, 5vw, 60px) / 0.95 var(--display);
     letter-spacing: 0.01em;
+    text-shadow: 0 4px 0 #1b2530;
 }
 .sec-head {
     display: flex;
@@ -674,25 +865,139 @@ b {
     font-weight: 600;
 }
 
-/* how it works */
+/* how it works: the money loop and the day */
 .how {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 40px;
-    align-items: start;
+    gap: 20px;
+    align-items: stretch;
+    margin-top: 32px;
+}
+.panel-k {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    font: 700 10px/1.2 var(--mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.panel-k span:last-child {
+    color: var(--bull);
+    letter-spacing: 0.08em;
+}
+.loop {
+    position: relative;
+    padding: 18px 22px 10px;
+}
+.loop-steps {
+    position: relative;
+}
+.loop-steps::before {
+    /* the track the coin runs along */
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 36px;
+    bottom: 36px;
+    width: 2px;
+    background: repeating-linear-gradient(180deg, var(--line-2) 0 6px, transparent 6px 12px);
+    animation: track 1.2s linear infinite;
+}
+@keyframes track {
+    to {
+        background-position: 0 12px;
+    }
+}
+.loop-steps li {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+}
+.loop-steps li + li {
+    border-top: 1px dashed var(--line);
+}
+.loop-steps canvas {
+    position: relative;
+    z-index: 1;
+    width: 48px;
+    height: 48px;
+    padding: 6px;
+    background: var(--ink-2);
+    box-shadow: inset 0 0 0 2px var(--line-2);
+    transition: box-shadow 200ms ease;
+}
+.loop-steps b {
+    display: block;
+    font-size: 15px;
+    transition: color 200ms ease;
+}
+.loop-steps span {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-2);
+    font-size: 13.5px;
+    line-height: 1.45;
+}
+.loop-steps em {
+    font: 700 12px/1.3 var(--mono);
+    font-style: normal;
+    color: var(--gold);
+    text-align: right;
+    white-space: nowrap;
+}
+.loop-steps li.on canvas {
+    box-shadow:
+        inset 0 0 0 2px var(--bull),
+        0 0 18px rgba(22, 224, 138, 0.4);
+}
+.loop-steps li.on b {
+    color: var(--bull-2);
+}
+.loop-coin {
+    position: absolute;
+    z-index: 2;
+    left: 39px;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    background: var(--gold);
+    box-shadow:
+        inset -3px -3px 0 var(--gold-deep),
+        inset 3px 3px 0 #ffe08a,
+        0 0 12px rgba(255, 197, 61, 0.7);
+    clip-path: polygon(4px 0, 10px 0, 14px 4px, 14px 10px, 10px 14px, 4px 14px, 0 10px, 0 4px);
+    opacity: 0;
+    transform: translateY(var(--y, 0));
+    transition:
+        transform 720ms cubic-bezier(0.55, 0, 0.3, 1),
+        opacity 160ms linear;
+}
+.loop-coin.go {
+    opacity: 1;
+}
+.loop-coin.jump {
+    transition: none;
 }
 .day {
-    padding: 8px 24px;
+    padding: 18px 22px 8px;
 }
 .day li {
+    position: relative;
     display: grid;
     grid-template-columns: 84px minmax(0, 1fr);
     gap: 16px;
-    padding: 16px 0;
+    padding: 16px 10px;
+    margin: 0 -10px;
     border-bottom: 1px solid var(--line);
     color: var(--text-2);
     font-size: 15px;
     line-height: 1.5;
+    overflow: hidden;
 }
 .day li:last-child {
     border-bottom: 0;
@@ -701,8 +1006,35 @@ b {
     font: 400 26px/1 var(--display);
     color: var(--bull);
 }
-.day li.now time {
+.day li:last-child time {
     color: var(--bear-2);
+}
+.day li.now {
+    background: linear-gradient(90deg, rgba(22, 224, 138, 0.1), rgba(22, 224, 138, 0) 80%);
+    box-shadow: inset 3px 0 0 var(--bull);
+}
+.day li.now time::after {
+    content: 'NOW';
+    display: block;
+    width: max-content;
+    margin-top: 8px;
+    padding: 3px 6px 2px;
+    font: 700 9px/1 var(--mono);
+    letter-spacing: 0.16em;
+    color: var(--ink);
+    background: var(--bull);
+    animation: blink 1.4s steps(2, start) infinite;
+}
+.day li.now::after {
+    /* how far into this part of the day we are; it never leaves its row */
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: var(--p, 0%);
+    max-width: 100%;
+    background: var(--bull);
 }
 
 /* vote */
@@ -1522,23 +1854,70 @@ a.stat:hover {
     line-height: 1.6;
 }
 .foot-cta-row {
+    position: relative;
+    overflow: hidden;
+    overflow: clip;
     border-bottom: 1px solid var(--line);
+    background:
+        radial-gradient(ellipse 50% 70% at 50% 100%, rgba(22, 224, 138, 0.14), transparent 70%),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 40px),
+        var(--ink);
 }
 .foot-cta {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
-    padding-top: 34px;
-    padding-bottom: 34px;
+    gap: 14px;
+    padding-top: clamp(56px, 8vw, 96px);
+    padding-bottom: clamp(56px, 8vw, 96px);
+    text-align: center;
 }
-.foot-cta canvas {
+.trio {
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(10px, 3vw, 36px);
+    margin-bottom: 10px;
+}
+.trio span {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.trio span::after {
+    /* a small plinth under each character */
+    content: '';
+    width: 120%;
+    height: 10px;
+    margin-top: 2px;
+    background: #121923;
+    box-shadow:
+        inset 0 2px 0 var(--bull),
+        0 6px 0 #0a0e13;
+}
+.trio canvas {
     height: 64px;
     width: auto;
 }
-.foot-cta p {
-    flex: 1;
-    font: 400 clamp(32px, 4vw, 48px) / 1 var(--display);
+.trio .lead canvas {
+    height: 96px;
+}
+.foot-q {
+    position: relative;
+    font: 400 clamp(48px, 7vw, 96px) / 0.9 var(--display);
     color: var(--text);
+    text-shadow:
+        0 5px 0 #1b2530,
+        0 10px 0 #0d1219;
+}
+.foot-s {
+    color: var(--text-2);
+    font-size: 16px;
+}
+.foot-cta .btn {
+    margin-top: 10px;
+    min-width: 260px;
 }
 .foot-in {
     padding-top: 28px;
@@ -1996,6 +2375,266 @@ body.page main {
     font: 400 clamp(28px, 3vw, 38px) / 1 var(--display);
 }
 
+/* ------------------------------------------------------------------ the tape: real numbers, scrolling */
+
+.tape {
+    position: relative;
+    overflow: hidden;
+    height: 34px;
+    background: rgba(6, 8, 11, 0.94);
+    border-top: 1px solid var(--line);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.tape-run {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    align-items: center;
+    animation: tape 70s linear infinite;
+}
+.tape-run:empty {
+    animation: none;
+}
+.tape:hover .tape-run {
+    animation-play-state: paused;
+}
+.tape-run span {
+    padding: 0 20px;
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--text-2);
+}
+.tape-run span::before {
+    content: '◆';
+    margin-right: 20px;
+    color: var(--line-2);
+}
+.tape-run b {
+    color: var(--bull);
+}
+.tape-run b.g {
+    color: var(--gold);
+}
+@keyframes tape {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* ------------------------------------------------------------------ today's podium */
+
+.podium {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    gap: 10px;
+    margin: 14px 0 18px;
+}
+.podium li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    text-align: center;
+}
+.podium li.r1 {
+    order: 2;
+}
+.podium li.r2 {
+    order: 1;
+}
+.podium li.r3 {
+    order: 3;
+}
+.pod-char {
+    height: 56px;
+    width: auto;
+    margin-bottom: -4px;
+    image-rendering: pixelated;
+}
+.r1 .pod-char {
+    height: 76px;
+}
+.pod-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+.pod-score {
+    font: 400 24px/1 var(--display);
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+}
+.r1 .pod-score {
+    font-size: 30px;
+    color: var(--gold);
+}
+.pod-block {
+    --medal: #9aa6b2;
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 54px;
+    margin-top: 4px;
+    font: 400 34px/1 var(--display);
+    color: var(--medal);
+    background: linear-gradient(180deg, var(--panel-2), var(--ink-2));
+    box-shadow: inset 0 3px 0 var(--medal);
+    clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%, 0 8px);
+    transform-origin: bottom;
+}
+.r1 .pod-block {
+    --medal: var(--gold);
+    height: 78px;
+    font-size: 44px;
+}
+.r3 .pod-block {
+    --medal: #d08a4a;
+    height: 40px;
+}
+.pod-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: 400 11px/1 var(--mono);
+    color: var(--muted);
+}
+.podium.go .pod-block {
+    animation: grow 620ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.podium.go .pod-char,
+.podium.go .pod-name,
+.podium.go .pod-score {
+    animation: drop 520ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.podium.go .r2 * {
+    animation-delay: 120ms;
+}
+.podium.go .r1 * {
+    animation-delay: 240ms;
+}
+.podium.go .r1 .pod-char {
+    animation-delay: 520ms;
+}
+@keyframes grow {
+    from {
+        transform: scaleY(0);
+    }
+}
+@keyframes drop {
+    from {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+}
+
+/* ------------------------------------------------------------------ the build wall: one tile per night */
+
+.wall {
+    margin-top: 28px;
+}
+.wall-k {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 20px;
+    font: 400 clamp(26px, 3vw, 34px) / 1 var(--display);
+    color: var(--text);
+}
+.wall-k b {
+    font-weight: 400;
+    color: var(--bull);
+}
+.wall-k small {
+    display: flex;
+    gap: 16px;
+    font: 400 12px/1.4 var(--mono);
+    color: var(--muted);
+}
+.wall-k small i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    background: var(--bull);
+    vertical-align: -1px;
+}
+.wall-k small i.b {
+    background: var(--info);
+}
+.wall-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 5px;
+    margin-top: 14px;
+}
+.wall-tiles a,
+.wall-tiles span {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    font: 400 18px/1 var(--display);
+    color: #04130d;
+    text-decoration: none;
+    background: var(--bull);
+    box-shadow:
+        inset 0 -4px 0 var(--bull-deep),
+        inset 0 2px 0 rgba(255, 255, 255, 0.25);
+    transition: transform 120ms ease;
+}
+.wall-tiles a:hover,
+.wall-tiles a:focus-visible {
+    transform: translateY(-3px);
+    color: #04130d;
+}
+.wall-tiles .boot {
+    background: var(--info);
+    box-shadow:
+        inset 0 -4px 0 #1467a0,
+        inset 0 2px 0 rgba(255, 255, 255, 0.25);
+}
+.wall-tiles .tonight {
+    color: var(--bull);
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--bull);
+    animation: blink 1.4s steps(2, start) infinite;
+}
+.wall.go .wall-tiles li {
+    animation: tile 360ms cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+    animation-delay: calc(var(--i) * 28ms);
+}
+@keyframes tile {
+    from {
+        opacity: 0;
+        transform: scale(0.4);
+    }
+}
+
+/* ------------------------------------------------------------------ things settle in as you scroll */
+
+.rv {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+        opacity 520ms ease,
+        transform 640ms cubic-bezier(0.2, 0.9, 0.3, 1);
+    transition-delay: var(--d, 0ms);
+}
+.rv.in {
+    opacity: 1;
+    transform: none;
+}
+
 /* ------------------------------------------------------------------ responsive */
 
 @media (max-width: 1060px) {
@@ -2030,9 +2669,89 @@ body.page main {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+@media (max-width: 900px) {
+    .hero-in {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+        padding-top: 20px;
+    }
+    .hero-stage {
+        order: -1;
+    }
+    #stage {
+        height: 210px;
+        min-height: 0;
+    }
+    .stage-cap {
+        grid-template-columns: auto auto;
+        align-items: baseline;
+        gap: 2px 12px;
+        margin-top: -10px;
+    }
+    .stage-k,
+    .stage-dots {
+        grid-column: 1 / -1;
+    }
+    .stage-k {
+        display: none;
+    }
+    #stageName {
+        font-size: 30px;
+    }
+    .stage-dots {
+        justify-content: center;
+        margin-top: 0;
+    }
+    .hero-copy {
+        align-items: center;
+        text-align: center;
+    }
+    .kicker {
+        margin-top: 14px;
+        margin-bottom: 16px;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+    }
+    .kicker::after {
+        content: '';
+        width: 26px;
+        height: 2px;
+        background: var(--bear);
+        box-shadow: 0 0 8px rgba(255, 59, 92, 0.6);
+    }
+    .hero h1 {
+        margin-top: 26px;
+    }
+    .hero-cta {
+        justify-content: center;
+    }
+    .hero-shade {
+        background:
+            radial-gradient(ellipse 80% 50% at 50% 30%, rgba(6, 8, 11, 0.7), rgba(6, 8, 11, 0.8)),
+            linear-gradient(
+                180deg,
+                rgba(6, 8, 11, 0.4),
+                transparent 30%,
+                transparent 70%,
+                var(--ink)
+            );
+    }
+}
 @media (max-width: 760px) {
     :root {
         --nav-h: 56px;
+    }
+    .kicker {
+        display: none;
+    }
+    #stage {
+        height: 190px;
+    }
+    .hero-in {
+        padding-top: 6px;
+    }
+    .hero h1 {
+        margin-top: 22px;
     }
     body {
         font-size: 15px;
@@ -2046,9 +2765,6 @@ body.page main {
     .hero-in {
         padding-top: 32px;
         padding-bottom: 28px;
-    }
-    .hero-bull {
-        height: 72px;
     }
     .hero-cta {
         width: 100%;
@@ -2080,9 +2796,6 @@ body.page main {
     }
     .hud-stats dd {
         font-size: 24px;
-    }
-    .day {
-        padding: 4px 16px;
     }
     .day li {
         grid-template-columns: 64px minmax(0, 1fr);
@@ -2144,11 +2857,49 @@ body.page main {
     .sqd-badge {
         align-items: flex-start;
     }
-    .foot-cta {
-        flex-wrap: wrap;
-    }
     .foot-cta .btn {
         width: 100%;
+        min-width: 0;
+    }
+    .trio canvas {
+        height: 48px;
+    }
+    .trio .lead canvas {
+        height: 72px;
+    }
+    .loop {
+        padding: 16px 16px 6px;
+    }
+    .loop-steps li {
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: 4px 14px;
+    }
+    .loop-steps canvas {
+        grid-row: span 2;
+        width: 44px;
+        height: 44px;
+    }
+    .loop-steps em {
+        text-align: left;
+    }
+    .loop-steps::before {
+        left: 21px;
+    }
+    .loop-coin {
+        left: 31px;
+    }
+    .day {
+        padding: 16px 16px 6px;
+    }
+    .pod-score {
+        font-size: 20px;
+    }
+    .r1 .pod-score {
+        font-size: 24px;
+    }
+    .wall-tiles {
+        grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+        gap: 5px;
     }
 }
 

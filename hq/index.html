@@ -105,41 +105,47 @@
                 </div>
                 <div class="hero-shade" aria-hidden="true"></div>
                 <div class="hero-in wrap">
-                    <canvas
-                        class="hero-bull"
-                        data-sprite="bull"
-                        data-scale="5"
-                        data-anim
-                        aria-hidden="true"
-                    ></canvas>
-                    <p class="logo" aria-hidden="true">BEARPROOF</p>
-                    <h1 id="heroTitle">An AI is building a game on its own budget.</h1>
-                    <p class="hero-sub">
-                        It ships a new version every day. You fund it, you steer it, you play it.
-                    </p>
-                    <div class="hero-cta">
-                        <a class="btn btn-primary btn-xl" href="/play" id="heroPlay">
-                            <span>Play now</span>
-                            <small>Free · no wallet · in your browser</small>
-                        </a>
-                        <a class="btn btn-ghost btn-xl" href="#vote">
-                            <span>Vote</span>
-                            <small>Pick tomorrow's build</small>
-                        </a>
+                    <div class="hero-copy">
+                        <p class="kicker">A game built by an AI, in public</p>
+                        <p class="logo" data-text="BEARPROOF" aria-hidden="true">BEARPROOF</p>
+                        <h1 id="heroTitle">An AI is building a game on its own budget.</h1>
+                        <p class="hero-sub">
+                            It ships a new version every day. You fund it, you steer it, you play
+                            it.
+                        </p>
+                        <div class="hero-cta">
+                            <a class="btn btn-primary btn-xl" href="/play" id="heroPlay">
+                                <span>Play now</span>
+                                <small>Free · no wallet · in your browser</small>
+                            </a>
+                            <a class="btn btn-ghost btn-xl" href="#vote">
+                                <span>Vote</span>
+                                <small>Pick tomorrow's build</small>
+                            </a>
+                        </div>
+                        <div class="ca panel" data-ca>
+                            <span class="ca-k">CA</span>
+                            <code class="ca-v" data-ca-v>loading…</code>
+                            <button
+                                class="ca-copy"
+                                type="button"
+                                data-ca-copy
+                                disabled
+                                aria-label="Copy the contract address"
+                            >
+                                Copy
+                            </button>
+                        </div>
                     </div>
-                    <div class="ca panel" data-ca>
-                        <span class="ca-k">CA</span>
-                        <code class="ca-v" data-ca-v>loading…</code>
-                        <button
-                            class="ca-copy"
-                            type="button"
-                            data-ca-copy
-                            disabled
-                            aria-label="Copy the contract address"
-                        >
-                            Copy
-                        </button>
-                    </div>
+                    <figure class="hero-stage" aria-label="The playable characters">
+                        <canvas id="stage" aria-hidden="true"></canvas>
+                        <figcaption class="stage-cap">
+                            <span class="stage-k">Playable now</span>
+                            <b id="stageName">THE BULL</b>
+                            <span id="stageInfo">Horns · 100 HP</span>
+                            <span class="stage-dots" id="stageDots"></span>
+                        </figcaption>
+                    </figure>
                 </div>
                 <div class="hud" aria-label="Right now">
                     <div class="hud-in wrap">
@@ -166,55 +172,108 @@
                         </dl>
                     </div>
                 </div>
+                <div class="tape" aria-hidden="true"><div class="tape-run" id="tape"></div></div>
             </section>
 
-            <!-- How it works: the actual daily schedule, in UTC -->
+            <!-- How it works: the money loop, and the actual daily schedule in UTC -->
             <section class="sec wrap" id="how" aria-labelledby="howH">
+                <h2 id="howH">How it works</h2>
+                <p class="lede">
+                    BEARPROOF is a free survivors-like you play in the browser: you're a bull, and
+                    the bear market never ends. An AI developer writes it, one new version every
+                    night, and pays for itself with the fees from <b>$BPROOF</b> trades.
+                </p>
                 <div class="how">
-                    <div class="how-l">
-                        <h2 id="howH">How it works</h2>
-                        <p class="lede">
-                            BEARPROOF is a free survivors-like you play in the browser. You're a
-                            bull, the bear market never ends. The game is written by an AI
-                            developer, one new version every night.
-                        </p>
-                        <p class="lede">
-                            Every trade of <b>$BPROOF</b> pays a small fee into the AI's wallet, and
-                            that wallet pays for its compute and for the players' prizes. Anyone can
-                            vote on what it builds next.
-                        </p>
+                    <div class="loop panel" id="loop" aria-label="Where the money goes">
+                        <p class="panel-k"><span>The loop</span><span>live numbers</span></p>
+                        <ol class="loop-steps">
+                            <li>
+                                <canvas
+                                    data-icon="buyback"
+                                    data-scale="3"
+                                    aria-hidden="true"
+                                ></canvas>
+                                <div>
+                                    <b>People trade $BPROOF</b>
+                                    <span>Every trade pays a small fee.</span>
+                                </div>
+                                <em id="loopA">on pump.fun</em>
+                            </li>
+                            <li>
+                                <canvas
+                                    data-icon="cold_wallet"
+                                    data-scale="3"
+                                    aria-hidden="true"
+                                ></canvas>
+                                <div>
+                                    <b>The fees fill the AI's wallet</b>
+                                    <span>Its treasury, public on-chain.</span>
+                                </div>
+                                <em id="loopB">—</em>
+                            </li>
+                            <li>
+                                <canvas
+                                    data-icon="airdrop"
+                                    data-scale="3"
+                                    aria-hidden="true"
+                                ></canvas>
+                                <div>
+                                    <b>It pays its own way</b>
+                                    <span>Its compute, and the players' prizes.</span>
+                                </div>
+                                <em id="loopC">—</em>
+                            </li>
+                            <li>
+                                <canvas
+                                    data-icon="green_candle"
+                                    data-scale="3"
+                                    aria-hidden="true"
+                                ></canvas>
+                                <div>
+                                    <b>A new build ships</b>
+                                    <span
+                                        >Every night at 00:00 UTC. More players, more trades.</span
+                                    >
+                                </div>
+                                <em id="loopD">—</em>
+                            </li>
+                        </ol>
+                        <i class="loop-coin" aria-hidden="true"></i>
                     </div>
-                    <ol class="day panel" aria-label="A day of BEARPROOF, in UTC">
-                        <li>
-                            <time>00:00</time>
-                            <div>
-                                <b>A new build goes live.</b> A new Daily Challenge starts on it,
-                                the same map and seed for everyone.
-                            </div>
-                        </li>
-                        <li>
-                            <time>All day</time>
-                            <div>
-                                <b>Play and vote.</b> Free, no wallet. The AI's three ideas for
-                                tomorrow are on the ballot.
-                            </div>
-                        </li>
-                        <li>
-                            <time>00:10</time>
-                            <div>
-                                <b>Yesterday's best runs get paid</b> in $ANSEM, after the server
-                                replays every run.
-                            </div>
-                        </li>
-                        <li class="now">
-                            <time>21:00</time>
-                            <div>
-                                <b>The vote closes and the AI starts coding.</b> You can
-                                <a href="/live">watch it work</a>. If its tests pass, it ships at
-                                midnight.
-                            </div>
-                        </li>
-                    </ol>
+                    <div class="day panel" id="day">
+                        <p class="panel-k"><span>A day, in UTC</span><span id="dayNow"></span></p>
+                        <ol aria-label="A day of BEARPROOF, in UTC">
+                            <li data-from="0" data-to="10">
+                                <time>00:00</time>
+                                <div>
+                                    <b>A new build goes live.</b> A new Daily Challenge starts on
+                                    it, the same map and seed for everyone.
+                                </div>
+                            </li>
+                            <li data-from="10" data-to="20">
+                                <time>00:10</time>
+                                <div>
+                                    <b>Yesterday's best runs get paid</b> in $ANSEM, after the
+                                    server replays every run.
+                                </div>
+                            </li>
+                            <li data-from="20" data-to="1260">
+                                <time>All day</time>
+                                <div>
+                                    <b>Play and vote.</b> Free, no wallet. The AI's three ideas for
+                                    tomorrow are on the ballot.
+                                </div>
+                            </li>
+                            <li data-from="1260" data-to="1440">
+                                <time>21:00</time>
+                                <div>
+                                    <b>The vote closes and the AI starts coding.</b> You can
+                                    <a href="/live">watch it work</a>. If its tests pass, it ships
+                                    at midnight.
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
                 </div>
             </section>
 
@@ -341,6 +400,7 @@
                             <h3>High scores</h3>
                             <span id="lbMeta"></span>
                         </div>
+                        <ol class="podium" id="podium" aria-label="Today's top three" hidden></ol>
                         <div id="lb" aria-live="polite">
                             <p class="board-empty">Loading today's board…</p>
                         </div>
@@ -374,6 +434,10 @@
                     Every build is still playable. Last night's session is replayed below; tonight's
                     streams live at <a href="/live">/live</a> from 21:00 UTC.
                 </p>
+                <div class="wall" id="wall" hidden>
+                    <p class="wall-k" id="wallK"></p>
+                    <ol class="wall-tiles" id="wallTiles" aria-label="Every night so far"></ol>
+                </div>
                 <div class="patch">
                     <article class="latest panel green" id="latest">
                         <p class="latest-k">
@@ -604,9 +668,18 @@
         <footer class="foot">
             <div class="foot-cta-row">
                 <div class="foot-cta wrap">
-                    <canvas data-sprite="bull" data-scale="4" data-anim aria-hidden="true"></canvas>
-                    <p>Are you bearproof?</p>
-                    <a class="btn btn-primary" href="/play">Play now</a>
+                    <div class="trio" aria-hidden="true">
+                        <span><canvas data-sprite="pepe" data-scale="4" data-anim></canvas></span>
+                        <span class="lead"
+                            ><canvas data-sprite="bull" data-scale="5" data-anim></canvas
+                        ></span>
+                        <span
+                            ><canvas data-sprite="whale_hero" data-scale="4" data-anim></canvas
+                        ></span>
+                    </div>
+                    <p class="foot-q" data-text="Are you bearproof?">Are you bearproof?</p>
+                    <p class="foot-s">Today's map is waiting. Free, in your browser, no wallet.</p>
+                    <a class="btn btn-primary btn-xl" href="/play"><span>Play now</span></a>
                 </div>
             </div>
             <div class="wrap foot-in">

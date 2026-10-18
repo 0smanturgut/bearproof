@@ -240,11 +240,13 @@ async function loadStats() {
 }
 
 function renderStats(s) {
-    setText('#nDay', fmtInt(s.day));
-    setText('#nBuilds', fmtInt(s.buildsShipped));
-    setText('#nPlayers', fmtInt(s.playersToday));
+    countTo($('#nDay'), s.day);
+    countTo($('#nBuilds'), s.buildsShipped);
+    countTo($('#nPlayers'), s.playersToday);
     const top = s.topScoreToday;
-    setText('#nTop', top && isNum(top.score) ? fmtInt(top.score) : '—');
+    if (top && isNum(top.score)) countTo($('#nTop'), top.score, fmtInt, 1300);
+    else setText('#nTop', '—');
+    renderLoop(s);
     if (s.token && B58.test(s.token.mint || '')) renderCa(s.token.mint);
     renderScreen(s);
     renderPill();
@@ -299,7 +301,200 @@ function tick() {
     }
     const left = hms(state.nextBuildAt - now);
     for (const el of $$('[data-countdown]')) el.textContent = left;
+    dayNow(now);
     setTimeout(tick, 1000 - (Date.now() % 1000) + 5);
+}
+
+/** The day panel: which part of the UTC day we're in, and how far into it. */
+function dayNow(now) {
+    const box = $('#day');
+    if (!box) return;
+    const d = new Date(now);
+    const min = d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60;
+    for (const li of $$('li[data-from]', box)) {
+        const a = Number(li.dataset.from);
+        const b = Number(li.dataset.to);
+        const on = min >= a && min < b;
+        li.classList.toggle('now', on);
+        if (on) li.style.setProperty('--p', `${(((min - a) / (b - a)) * 100).toFixed(2)}%`);
+    }
+    setText('#dayNow', `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC now`);
+}
+
+// ------------------------------------------------------------------------------------------- motion
+
+/** A number counts up to its value the first time it's shown; after that (and with reduced motion) it just is. */
+function countTo(el, value, fmt = fmtInt, ms = 900) {
+    if (!el) return;
+    if (!isNum(value)) {
+        el.textContent = '—';
+        return;
+    }
+    if (reduced.matches || el.dataset.counted) {
+        el.textContent = fmt(value);
+        return;
+    }
+    el.dataset.counted = '1';
+    const t0 = performance.now();
+    const step = (now) => {
+        const k = Math.min(1, Math.max(0, now - t0) / ms);
+        el.textContent = fmt(value * (1 - (1 - k) ** 3));
+        if (k < 1) requestAnimationFrame(step);
+        else el.textContent = fmt(value);
+    };
+    requestAnimationFrame(step);
+}
+
+/** Panels settle in as they scroll into view, a beat apart within a group. Nothing hides without this script. */
+function reveal() {
+    if (reduced.matches || !('IntersectionObserver' in window)) return;
+    const groups = [
+        '.sec > h2, .sec-head',
+        '.sec > .lede',
+        '.how > *',
+        '.daily > *',
+        '.patch > *',
+        '.stats > *',
+        '.coin, .sqd-strip, .paid, .faq, .patches, .idea',
+        '.foot-cta > *'
+    ];
+    const io = new IntersectionObserver(
+        (entries) => {
+            for (const e of entries) {
+                if (!e.isIntersecting) continue;
+                e.target.classList.add('in');
+                io.unobserve(e.target);
+            }
+        },
+        { rootMargin: '0px 0px -8% 0px' }
+    );
+    for (const sel of groups) {
+        const seen = new Map();
+        for (const el of $$(sel)) {
+            if (el.closest('.hero') || el.classList.contains('rv')) continue;
+            const i = seen.get(el.parentElement) || 0;
+            seen.set(el.parentElement, i + 1);
+            el.style.setProperty('--d', `${Math.min(i, 5) * 80}ms`);
+            el.classList.add('rv');
+            io.observe(el);
+        }
+    }
+}
+
+/** Run `fn` once, the first time `el` is on screen. */
+function onSeen(el, fn) {
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) return fn();
+    const io = new IntersectionObserver((entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        fn();
+    });
+    io.observe(el);
+}
+
+// ------------------------------------------------------------------------------------------- the loop: where the money goes
+
+function renderLoop(s) {
+    const t = s && s.treasury;
+    if (t && isNum(t.balance)) setText('#loopB', `${t.balance.toFixed(3)} SOL now`);
+    const c = s && s.computeSpentUsd;
+    if (c && isNum(c.measured)) setText('#loopC', `${usd(c.measured)} of compute`);
+    if (isNum(s && s.buildsShipped)) setText('#loopD', `${fmtInt(s.buildsShipped)} so far`);
+}
+
+/** A coin runs down the track: each step lights up as it lands, then the loop starts over. */
+function runLoop() {
+    const box = $('#loop');
+    const coin = box && $('.loop-coin', box);
+    const steps = box ? $$('.loop-steps li', box) : [];
+    if (!coin || !steps.length) return;
+    const light = (k) => steps.forEach((li, j) => li.classList.toggle('on', j === k));
+    light(0);
+    if (reduced.matches) return;
+    let visible = false;
+    new IntersectionObserver((e) => (visible = e[0].isIntersecting)).observe(box);
+    const place = (k) => {
+        const icon = $('canvas', steps[k]);
+        const b = box.getBoundingClientRect();
+        const r = icon.getBoundingClientRect();
+        coin.style.setProperty('--x', `${Math.round(r.left - b.left + r.width / 2 - 7)}px`);
+        coin.style.setProperty('--y', `${Math.round(r.top - b.top + r.height / 2 - 7)}px`);
+    };
+    let k = 0;
+    coin.classList.add('jump');
+    place(0);
+    const cycle = () => {
+        if (!visible || document.hidden) return setTimeout(cycle, 700);
+        const next = (k + 1) % steps.length;
+        if (next === 0) {
+            // back to the top: more players, more trades
+            coin.classList.add('jump');
+            coin.classList.remove('go');
+            place(0);
+            k = 0;
+            light(0);
+            return setTimeout(cycle, 1700);
+        }
+        coin.classList.remove('jump');
+        place(k);
+        requestAnimationFrame(() => {
+            coin.classList.add('go');
+            place(next);
+        });
+        setTimeout(() => {
+            k = next;
+            light(k);
+            coin.classList.remove('go');
+            setTimeout(cycle, 1300);
+        }, 760);
+    };
+    setTimeout(cycle, 1200);
+}
+
+// ------------------------------------------------------------------------------------------- the tape under the hero
+
+async function loadTape() {
+    const [s, daily, pot, lb] = await Promise.all([
+        firstStats,
+        getJSON('/api/daily'),
+        getJSON('/api/pot'),
+        getJSON('/api/leaderboard')
+    ]);
+    const items = [];
+    const add = (k, v, gold = false) => v && items.push({ k, v, gold });
+    if (s && s.liveBuild) add('Build', `#${s.liveBuild.n} is live`);
+    if (s && isNum(s.day)) add('Day', fmtInt(s.day));
+    if (daily) add("Today's map", daily.stageName || daily.stage);
+    if (daily && daily.twist) add('Twist', daily.twist.name, true);
+    if (pot && pot.bounty && pot.bounty.text) add('AI bounty', pot.bounty.text, true);
+    if (pot && pot.status === 'on' && isNum(pot.potSol))
+        add("Today's pot", `${pot.potSol.toFixed(3)} SOL`, true);
+    const top = lb && Array.isArray(lb.rows) ? lb.rows[0] : null;
+    if (top && isNum(top.score))
+        add("Today's #1", `${top.name || 'anon'} · ${fmtInt(top.score)}`, true);
+    if (s && isNum(s.playersToday) && s.playersToday > 0)
+        add('Players today', fmtInt(s.playersToday));
+    if (s && s.treasury && isNum(s.treasury.balance))
+        add("The AI's wallet", `${s.treasury.balance.toFixed(3)} SOL`);
+    if (s && s.computeSpentUsd && isNum(s.computeSpentUsd.measured))
+        add('AI compute so far', usd(s.computeSpentUsd.measured));
+    const run = $('#tape');
+    if (!run || items.length < 3) return;
+    run.textContent = '';
+    for (let pass = 0; pass < 2; pass++) {
+        for (const it of items)
+            run.append(h('span', null, `${it.k} `, h('b', { class: it.gold ? 'g' : null }, it.v)));
+        run.append(
+            h(
+                'span',
+                null,
+                'Next build in ',
+                h('b', { 'data-countdown': '' }, hms(state.nextBuildAt - Date.now()))
+            )
+        );
+    }
+    run.style.animationDuration = `${Math.max(40, items.length * 8)}s`;
 }
 
 // ------------------------------------------------------------------------------------------- the live build behind the hero
@@ -646,6 +841,7 @@ async function loadBuilds() {
         tl.append(row);
     });
     $('#tlCount').textContent = String(shipped.filter((b) => b.n > 0).length);
+    renderWall(shipped, byBuild, maxN);
     const more = $('#tlMore');
     more.hidden = rest.length <= PATCHES_SHOWN;
     more.textContent = `Show all ${rest.length} earlier builds`;
@@ -653,6 +849,76 @@ async function loadBuilds() {
         for (const li of $$('li[hidden]', tl)) li.hidden = false;
         more.hidden = true;
     };
+}
+
+/** One tile per build since day 1, the tonight tile last: the proof of work, at a glance. */
+function renderWall(shipped, byBuild, maxN) {
+    const list = shipped.filter((b) => b.n > 0 && !b.revoked).sort((a, b) => a.n - b.n);
+    const box = $('#wall');
+    if (!box || !list.length) return;
+    // calendar days (UTC) from the first build to today, and how many of them got a build
+    const first = toMs(`${dayOf(toMs(list[0].activatesAt) || Date.now())}T00:00:00Z`);
+    const today = toMs(`${dayOf(Date.now())}T00:00:00Z`);
+    const span = Math.round((today - first) / 864e5) + 1;
+    const days = new Set(list.map((b) => dayOf(toMs(b.activatesAt) || 0))).size;
+    const k = $('#wallK');
+    k.textContent = '';
+    k.append(
+        h(
+            'span',
+            null,
+            `${fmtInt(span)} days. `,
+            h('b', null, `${fmtInt(list.length)} builds.`),
+            days === span ? ' Not one day missed.' : ''
+        ),
+        h(
+            'small',
+            null,
+            h('span', null, h('i'), "the AI's nightly build"),
+            list.some((b) => b.mode !== 'agent')
+                ? h('span', null, h('i', { class: 'b' }), 'bootstrap')
+                : null
+        )
+    );
+    const ol = $('#wallTiles');
+    ol.textContent = '';
+    list.forEach((b, i) => {
+        const d = byBuild.get(b.n);
+        const at = toMs(b.activatesAt);
+        const li = h(
+            'li',
+            null,
+            h(
+                'a',
+                {
+                    href: `/b/${b.n}/`,
+                    class: b.mode === 'agent' ? null : 'boot',
+                    title: `Build #${b.n}: ${buildTitle(b, d)}${at ? ` (${niceDay(at)})` : ''}. Play it.`,
+                    'aria-label': `Play Build #${b.n}, ${buildTitle(b, d)}`
+                },
+                String(b.n)
+            )
+        );
+        li.style.setProperty('--i', String(i));
+        ol.append(li);
+    });
+    const tonight = h(
+        'li',
+        null,
+        h(
+            'a',
+            {
+                href: '/live',
+                class: 'tonight',
+                title: "Tonight's build. Watch the AI code it from 21:00 UTC."
+            },
+            String(maxN + 1)
+        )
+    );
+    tonight.style.setProperty('--i', String(list.length));
+    ol.append(tonight);
+    box.hidden = false;
+    if (!reduced.matches) onSeen(box, () => box.classList.add('go'));
 }
 
 // ------------------------------------------------------------------------------------------- daily challenge
@@ -673,10 +939,11 @@ function statusChip(st, runId) {
 
 let boardRows = [];
 let boardOpen = false;
+let podiumRows = 0;
 function renderBoard() {
     const box = $('#lb');
     box.textContent = '';
-    const rows = boardOpen ? boardRows : boardRows.slice(0, 10);
+    const rows = (boardOpen ? boardRows : boardRows.slice(0, 10)).slice(podiumRows);
     box.append(
         h(
             'table',
@@ -760,7 +1027,56 @@ async function loadBoard(date, pinned) {
         return;
     }
     boardRows = rows;
+    podiumRows = rows.length >= 3 ? 3 : 0;
     renderBoard();
+    if (podiumRows) renderPodium(rows.slice(0, 3));
+}
+
+/** Today's top three on a podium, each standing as the character they played (read from their run). */
+async function renderPodium(top) {
+    const ol = $('#podium');
+    const live = state.stats && state.stats.liveBuild;
+    const [runs, content] = await Promise.all([
+        Promise.all(
+            top.map((r) =>
+                r.runId && /^[0-9a-z]{8,40}$/.test(r.runId) ? getJSON(`/api/run/${r.runId}`) : null
+            )
+        ),
+        live ? import(`/b/${Number(live.n)}/src/sim/content.js`).catch(() => null) : null
+    ]);
+    const chars = (content && content.CHARACTERS) || {};
+    ol.textContent = '';
+    top.forEach((r, i) => {
+        const run = runs[i];
+        const c = (run && chars[run.character]) ||
+            chars.bull || { sprite: 'bull', name: 'The Bull' };
+        const name = r.name ? String(r.name) : 'anon';
+        ol.append(
+            h(
+                'li',
+                { class: `r${i + 1}` },
+                h('canvas', {
+                    class: 'pod-char',
+                    'data-sprite': c.sprite || 'bull',
+                    'data-scale': i === 0 ? '4' : '3',
+                    'data-anim': '',
+                    'aria-hidden': 'true'
+                }),
+                h('span', { class: 'pod-name', title: name }, name),
+                h('span', { class: 'pod-score' }, fmtInt(r.score)),
+                h(
+                    'span',
+                    { class: 'pod-meta' },
+                    run && c.name ? `as ${c.name.replace(/^The /, '')}` : mss(r.timeMs),
+                    statusChip(r.status, r.runId)
+                ),
+                h('span', { class: 'pod-block', 'aria-label': `Rank ${i + 1}` }, String(i + 1))
+            )
+        );
+    });
+    ol.hidden = false;
+    ol.dispatchEvent(new Event('bp:paint', { bubbles: true }));
+    if (!reduced.matches) onSeen(ol, () => ol.classList.add('go'));
 }
 
 function renderPot(pot, daily) {
@@ -984,6 +1300,17 @@ async function loadSqdStrip() {
 function boot() {
     initNav();
     loadStats();
+    loadTape();
+    reveal();
+    runLoop();
+    firstStats.then((s) => {
+        const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+        idle(() =>
+            import('/stage.js')
+                .then((m) => m.mountStage(s && s.liveBuild ? s.liveBuild.n : null))
+                .catch(() => {})
+        );
+    });
     setInterval(() => !document.hidden && loadStats(), STATS_POLL_MS);
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden && Date.now() - state.statsAt > STATS_POLL_MS) loadStats();

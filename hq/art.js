@@ -5,6 +5,8 @@
  *   <canvas data-sprite="bull" data-scale="3" data-anim>   a game sprite (animated with data-anim)
  *   <canvas data-icon="buyback" data-scale="4">             a weapon / passive icon
  *   <canvas id="poster">                                    the hero's still frame until the live game loads
+ *
+ * Canvases added later (the podium, the build wall) are painted when their container fires `bp:paint`.
  */
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16,16 +18,21 @@ try {
     art = null;
 }
 if (art) {
-    paintSlots(art);
+    paintSlots(art, document);
+    document.addEventListener('bp:paint', (e) => paintSlots(art, e.target));
+    window.bpArt = art;
+    document.dispatchEvent(new Event('bp:art'));
     const poster = document.getElementById('poster');
     if (poster) runPoster(poster, art);
 }
 
 // ---------------------------------------------------------------- sprite slots
 
-function paintSlots({ SPRITES, bakeSprite, bakeIcon }) {
+function paintSlots({ SPRITES, bakeSprite, bakeIcon }, root) {
     const animated = [];
-    for (const c of document.querySelectorAll('canvas[data-sprite], canvas[data-icon]')) {
+    for (const c of root.querySelectorAll('canvas[data-sprite], canvas[data-icon]')) {
+        if (c.dataset.painted) continue;
+        c.dataset.painted = '1';
         const scale = Number(c.dataset.scale || 3);
         const id = c.dataset.sprite || c.dataset.icon;
         const frames = c.dataset.sprite ? bakeSprite(id, scale) : bakeIcon(id, scale);

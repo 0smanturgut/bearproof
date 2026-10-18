@@ -320,6 +320,26 @@ export class AudioEngine {
         this.tone({ freq: 660, dur: 0.12, type: 'square', volume: 0.08 });
         setTimeout(() => this.tone({ freq: 880, dur: 0.16, type: 'square', volume: 0.08 }), 180);
     }
+    /** A Flash Loan marks its spot: a quick electric chirp that rises. */
+    blinkWarn() {
+        this.tone({ freq: 500, dur: 0.14, type: 'square', volume: 0.05, sweep: 1400 });
+    }
+    /** It blinks: a zap that drops out, borrowed and repaid in one block. */
+    blink() {
+        this.tone({ freq: 1800, dur: 0.08, type: 'sawtooth', volume: 0.06, sweep: -1500 });
+        this.tone({ noise: true, dur: 0.04, volume: 0.07, release: 0.03 });
+    }
+    /** Market Eras: a new era. A low swell, then a rising four-note fanfare, like a chart breaking out. */
+    era() {
+        this.tone({ freq: 110, dur: 0.9, type: 'sine', volume: 0.22, sweep: 110 });
+        this.tone({ noise: true, dur: 0.3, volume: 0.12, release: 0.25 });
+        [330, 440, 554, 660].forEach((f, i) =>
+            setTimeout(
+                () => this.tone({ freq: f, dur: 0.18, type: 'triangle', volume: 0.14 }),
+                120 + i * 110
+            )
+        );
+    }
     /** It lands: a deep thud with a crunch of noise on top. */
     leapLand() {
         this.tone({ freq: 90, dur: 0.35, type: 'sine', volume: 0.3, sweep: -50 });
@@ -543,12 +563,13 @@ export class AudioEngine {
         const boss = !!mood?.boss;
         if (boss !== this.mood.boss) this.musicStepIndex = 0;
         this.mood = { boss, heat: boss ? mood.heat : 0 };
+        if (mood?.era) this.mood.era = mood.era; // Market Eras: the calm track's voice
     }
 
     /** Play one step of the current track and move on. */
     _musicStep() {
         const i = this.musicStepIndex++;
-        const notes = this.mood.boss ? bossStep(i, this.mood.heat) : calmStep(i);
+        const notes = this.mood.boss ? bossStep(i, this.mood.heat) : calmStep(i, this.mood.era);
         for (const n of notes) this._note(n);
     }
 

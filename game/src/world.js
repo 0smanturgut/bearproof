@@ -92,6 +92,43 @@ const SNOW = ramp([
 ]);
 const ICE = ramp(['#4F7C9E', '#5A89AB', '#6696B8', '#73A4C4', '#82B2D0']);
 
+// Market Eras: one floor per era, laid on the same 64-unit blocks. [base, block lines, the chain (its trail)]
+const ERA_GROUND = {
+    // 2009: a black terminal, a dim phosphor grid, scanlines
+    genesis: [
+        ramp(['#050E08', '#07120A', '#09160D', '#0C1B10', '#0F2013']),
+        ramp(['#113320', '#17462A']),
+        ramp(['#0E2716', '#12301B', '#163A21', '#1A4426', '#1F4F2C'])
+    ],
+    // DeFi Summer: warm soil in crop rows, a dusty farm road
+    defi: [
+        ramp(['#1A120B', '#21170E', '#281C12', '#2F2215', '#37281A']),
+        ramp(['#26341A', '#2E3F1F']),
+        ramp(['#3A2B1B', '#433221', '#4C3A27', '#56422C', '#604A31'])
+    ],
+    // Altcoin Season: deep violet, a magenta grid, a cyan lane
+    altseason: [
+        ramp(['#0C0513', '#100718', '#14091E', '#190C25', '#1E0F2C']),
+        ramp(['#4A1650', '#6C1F70']),
+        ramp(['#0B2731', '#0F323D', '#143D49', '#194955', '#1E5561'])
+    ],
+    // The Bear Market: cracked dark stone, a red seam down the chain
+    bear: [
+        ramp(['#120A0B', '#170D0E', '#1D1112', '#231516', '#29191A']),
+        ramp(['#0A0505', '#0E0707']),
+        ramp(['#260C10', '#2F1015', '#38141A', '#41181F', '#4A1C24'])
+    ]
+};
+const ERA_IDS = ['genesis', 'defi', 'altseason', 'bear'];
+// each era's night light (a multiply), and the flat colour under a chunk not baked yet
+const ERA_AMBIENT = {
+    genesis: [112, 152, 128],
+    defi: [176, 146, 116],
+    altseason: [150, 112, 176],
+    bear: [166, 108, 112]
+};
+const ERA_BASE = { genesis: '#0A170E', defi: '#2A1E13', altseason: '#160A20', bear: '#1D1112' };
+
 export const BIOMES = {
     chop: {
         ambient: [128, 146, 186],
@@ -110,6 +147,13 @@ export const BIOMES = {
         ambientLow: [212, 220, 238],
         cloud: 0.12,
         base: '#8FA3BC'
+    },
+    // the Genesis Era's; World.setEra swaps in each later era's light and base
+    eras: {
+        ambient: ERA_AMBIENT.genesis,
+        ambientLow: [206, 226, 212],
+        cloud: 0.08,
+        base: ERA_BASE.genesis
     }
 };
 
@@ -118,6 +162,9 @@ export const BIOMES = {
  * looked at: the ground's colours, the decals and puddles baked into it.
  */
 export class Layout extends Terrain {
+    /** Market Eras: which era's floor and decals to paint (an ERA_IDS id). */
+    era = 'genesis';
+
     // --- decals: one candidate per 32-unit cell, plus puddles on a 128-unit grid
 
     _decal(gx, gy) {
@@ -200,6 +247,10 @@ export class Layout extends Terrain {
                                   ? 'trap_stain'
                                   : 'trap_tape';
             else if (r < 0.17 && dx > WALK_TO && dy > WALK_TO) id = 'trap_grate';
+        } else if (st === 'eras') {
+            // the era's own marks: glyphs, sprouts, confetti, cracks
+            const tag = this.era === 'altseason' ? 'alt' : this.era; // the art calls it eras_alt_*
+            if (r < 0.11) id = `eras_${tag}_${q < 0.55 ? 'a' : 'b'}`;
         } else {
             if (this.trail(x, y) < 56) id = r < 0.12 ? 'winter_crack' : null;
             else if (r < 0.2)
@@ -232,7 +283,7 @@ export class Layout extends Terrain {
         const y = gy * G + 64 + (hash3(gx, gy, s + 52) - 0.5) * 80;
         const r = hash3(gx, gy, s + 53);
         const st = this.stage;
-        if (this.nearSpawn(x, y, 90)) return null;
+        if (this.nearSpawn(x, y, 90) || st === 'eras') return null;
         let id = null;
         if (st === 'chop') {
             const w = this.wet(x, y);
@@ -268,12 +319,64 @@ export class Layout extends Terrain {
             this.grove(wx, wy),
             this.trail(wx, wy),
             fbm(wx, wy, st === 'chop' ? 150 : 170, this.seed + 61),
-            st === 'chop' ? fbm(wx, wy, 70, this.seed + 63) : 0
+            st === 'chop' || st === 'eras' ? fbm(wx, wy, 70, this.seed + 63) : 0
         ];
+    }
+
+    /** Market Eras: the current era's floor on 64-unit blocks, with the chain (the trail) running through it. */
+    _erasGround(wx, wy, px, py, F) {
+        const [g, t, n, m] = F;
+        const era = this.era;
+        const [BASE, LINE, CHAIN] = ERA_GROUND[era] || ERA_GROUND.genesis;
+        const grain = hash3(wx >> 1, wy >> 1, this.seed + 62);
+        const lx = mod(wx, 64);
+        const ly = mod(wy, 64);
+        const block = hash3(Math.floor(wx / 64), Math.floor(wy / 64), this.seed + 66);
+        const T = 34 + (grain - 0.5) * 4;
+        if (t < T) {
+            // the chain: a lane of linked blocks, lighter down its middle
+            const k = 1 - t / T;
+            const link = mod(wx + wy, 48) < 3 && era !== 'defi';
+            if (era === 'bear' && Math.abs(k - 0.9) < 0.06 && grain > 0.2) return LINE[0];
+            if (link) return tone(CHAIN, 0.15 + (n - 0.5) * 0.4, px, py);
+            return tone(CHAIN, 0.3 + k * 0.5 + (n - 0.5) * 0.5, px, py);
+        }
+        if (t < T + 4) return tone(LINE, 0.2 + grain * 0.3, px, py, 1.2);
+        if (era === 'genesis') {
+            // a phosphor grid on black, and every other pixel row a shade darker, like a CRT
+            if ((lx < 1.5 || ly < 1.5) && grain > 0.15) return tone(LINE, n, px, py);
+            const scan = py & 1 ? -0.12 : 0;
+            return tone(BASE, 0.45 + (n - 0.5) * 0.9 + scan + (block - 0.5) * 0.25, px, py);
+        }
+        if (era === 'defi') {
+            // crop rows across the fields, field borders every block
+            if (lx < 2 || ly < 2) return tone(BASE, 0.05, px, py);
+            const row = mod(wy, 12) < 5;
+            if (row && m > 0.38)
+                return tone(LINE, 0.3 + (m - 0.5) * 2 + (grain - 0.5) * 0.4, px, py);
+            return tone(BASE, 0.5 + (n - 0.5) * 0.9 + (block - 0.5) * 0.3, px, py);
+        }
+        if (era === 'altseason') {
+            // a neon grid, brighter where the blocks meet
+            const cross = lx < 3 && ly < 3;
+            if (cross) return LINE[1];
+            if (lx < 1.2 || ly < 1.2) return tone(LINE, 0.3 + n * 0.4, px, py);
+            return tone(BASE, 0.45 + (n - 0.5) * 1.0 + (block - 0.5) * 0.2, px, py);
+        }
+        // the Bear Market: dark slabs, cracked where the noise runs thin
+        if (lx < 1.5 || ly < 1.5) return LINE[0];
+        if (Math.abs(fbm(wx, wy, 50, this.seed + 64) - 0.5) < 0.01) return tone(CHAIN, 0.6, px, py);
+        return tone(
+            BASE,
+            0.5 + (n - 0.5) * 1.0 + (block - 0.5) * 0.4 - Math.max(0, g - 0.6),
+            px,
+            py
+        );
     }
 
     ground(wx, wy, px, py, F = this.fields(wx, wy)) {
         const st = this.stage;
+        if (st === 'eras') return this._erasGround(wx, wy, px, py, F);
         if (st === 'chop') {
             const [g, t, n, m0] = F;
             const grain = hash3(wx >> 1, wy >> 1, this.seed + 62);
@@ -488,20 +591,31 @@ export class World {
         this.quality = 'high';
     }
 
-    /** Follow the run: a new map or seed means a new world. */
-    sync(stageId, seed) {
+    /** Follow the run: a new map or seed means a new world; on Market Eras, a new era means a new floor. */
+    sync(stageId, seed, era = null) {
         const key = `${stageId}|${seed}`;
-        if (key === this.key) return;
-        this.key = key;
-        this.stageId = BIOMES[stageId] ? stageId : 'chop';
-        this.biome = BIOMES[this.stageId];
-        this.layout = new Layout(this.stageId, seed);
+        if (key !== this.key) {
+            this.key = key;
+            this.stageId = BIOMES[stageId] ? stageId : 'chop';
+            this.biome = BIOMES[this.stageId];
+            this.layout = new Layout(this.stageId, seed);
+            this.chunks.clear();
+            this.life.length = 0;
+            this.prints.length = 0;
+            this.stains.length = 0;
+            this.ripples.length = 0;
+            this.steamPuffs.length = 0;
+        }
+        if (this.stageId === 'eras') this.setEra(era || 'genesis');
+    }
+
+    /** Market Eras: paint the floor, decals and night of era `id`. The props stay where they are. */
+    setEra(id) {
+        if (!ERA_GROUND[id] || this.layout.era === id) return;
+        this.layout.era = id;
+        this.biome = { ...BIOMES.eras, ambient: ERA_AMBIENT[id], base: ERA_BASE[id] };
         this.chunks.clear();
-        this.life.length = 0;
-        this.prints.length = 0;
         this.stains.length = 0;
-        this.ripples.length = 0;
-        this.steamPuffs.length = 0;
     }
 
     /** After a lost canvas context every baked ground canvas may be blank: bake them again. */
@@ -758,6 +872,8 @@ export function paintScene(ctx, W, H, { stage, seed = 7, at = [0, 0], scale = 2,
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
 }
+
+export { ERA_IDS };
 
 /** Build a decal's pixels ahead of need (the renderer warms a map's decals a few a frame). */
 export function warmDecal(id) {

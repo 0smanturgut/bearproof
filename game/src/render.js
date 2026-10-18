@@ -16,11 +16,11 @@ import {
     watchCanvas
 } from './art/sprites.js';
 import { DECAL_DEFS, PROP_DEFS } from './art/props.js';
-import { THEMES } from './art/stages.js';
+import { themeFor } from './art/stages.js';
 import { Life } from './life.js';
 import { Lighting } from './lighting.js';
 import { PICKUPS, SIM } from './sim/content.js';
-import { BIOMES, World, warmDecal } from './world.js';
+import { World, warmDecal } from './world.js';
 
 const ART_UNIT = 2; // world units per art pixel
 // Visible world area: ~1100×720 units on a desktop, zooming in to ~520×1100 on a phone so sprites stay
@@ -180,7 +180,8 @@ export class Renderer {
         if (this._warmKey !== key) {
             this._warmKey = key;
             const prefix =
-                { chop: 'chop_', bear_trap: 'trap_', winter: 'winter_' }[stage] || 'chop_';
+                { chop: 'chop_', bear_trap: 'trap_', winter: 'winter_', eras: 'eras_' }[stage] ||
+                'chop_';
             this._warmList = Object.keys(PROP_DEFS).filter((id) => id.startsWith(prefix));
             this._warmList.push('crow', 'pigeon', 'rat', 'hare');
             for (const id of Object.keys(DECAL_DEFS))
@@ -335,7 +336,7 @@ export class Renderer {
         const H = this.canvas.height;
         const s = this.s;
         const k = this.k;
-        const theme = THEMES[sim.stageId] || THEMES.chop;
+        const theme = themeFor(sim.stageId, sim.era);
         const dt = Math.min(0.05, Math.max(0, t - this.lastT));
         this.lastT = t;
         const [shx, shy] = fx.shakeOffset();
@@ -354,7 +355,7 @@ export class Renderer {
 
         // --- the map: its ground, with every decal baked in
         const world = this.world;
-        world.sync(sim.stageId, sim.seed);
+        world.sync(sim.stageId, sim.seed, sim.era?.id);
         this._warm(world.stageId);
         world.prepare(cx, cy, this.halfW, this.halfH);
         world.drawGround(ctx, X, Y, cx, cy, this.halfW, this.halfH);
@@ -448,6 +449,7 @@ export class Renderer {
         for (const e of sim.enemies) {
             if (e.leapWarn > 0 && e.hp > 0)
                 this._drawLeapWarn(e, X(e.leapX), Y(e.leapY), t, fx.calm);
+            if (e.blinkWarn > 0 && e.hp > 0) this._drawBlinkWarn(e, p, X, Y, t, fx.calm);
         }
 
         // --- creatures: shadows first, then back-to-front by y (the bull sorts in with the bears)
@@ -1214,6 +1216,41 @@ export class Renderer {
         ctx.fillRect(Math.round(sx - w / 2), Math.round(sy - w / 2), w, w);
     }
 
+    /** Flash Loan: a violet ring where it will be (the hit zone), a ring closing in on it, and a dotted line back to
+     * the bear, so you see where it comes from and where it lands. */
+    _drawBlinkWarn(e, p, X, Y, t, calm) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const sx = X(e.blinkX);
+        const sy = Y(e.blinkY);
+        const r = (e.size + p.size) * s;
+        const k = 1 - e.blinkWarn / (e.def.blinkWarn || 0.6);
+        const blink = calm ? 1 : Math.floor(t * (8 + 16 * k)) % 2 ? 0.6 : 1;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(150,90,255,${(0.1 + 0.2 * k) * blink})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.lineWidth = Math.max(2, s * 2.5);
+        ctx.strokeStyle = `rgba(185,140,255,${0.6 + 0.4 * blink * k})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, TAU);
+        ctx.stroke();
+        ctx.lineWidth = Math.max(1, s * 1.5);
+        ctx.strokeStyle = `rgba(127,240,255,${0.3 + 0.5 * k})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r * (2 - k), 0, TAU);
+        ctx.stroke();
+        ctx.setLineDash([4 * s, 5 * s]);
+        ctx.strokeStyle = 'rgba(185,140,255,0.45)';
+        ctx.beginPath();
+        ctx.moveTo(X(e.x), Y(e.y));
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
     /** Enraged Rug Lord: a pulsing red glow under him; during a warning the rug blinks under the bull, during a
      * pull it scrolls toward him and kicks up dust. */
     _drawRug(lord, p, X, Y, t, fx) {
@@ -1617,8 +1654,8 @@ export class Renderer {
         }
         for (const g of fx.slams) L.add(X(g.x), Y(g.y), 300 * s, '22,224,138', 0.8);
         L.apply(this.ctx, W, H, {
-            ambient: nightAmbient(BIOMES[world.stageId].ambient, sim.time),
-            cloud: fx.calm ? 0 : BIOMES[world.stageId].cloud,
+            ambient: nightAmbient(world.biome.ambient, sim.time),
+            cloud: fx.calm ? 0 : world.biome.cloud,
             cam: { x: cx, y: cy },
             s,
             t,

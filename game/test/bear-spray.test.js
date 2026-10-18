@@ -159,8 +159,9 @@ test('bear spray: runs that take it break shields and replay bit for bit', () =>
     for (const [seed, character] of [
         // SIM_VERSION 20 added Honey Trap to the card pool: seed 1's bull and seed 9's Pepe never see it now.
         // SIM_VERSION 22 (the solid map, piggy banks) moved them again: seed 1 takes it with both, and breaks shields
-        [1, 'bull'],
-        [1, 'pepe']
+        // SIM_VERSION 23 (Market Eras joined the rotation) reshuffled the maps: seed 5, on Market Eras, takes it
+        [5, 'bull'],
+        [5, 'pepe']
     ]) {
         const sim = new Simulation({ seed, character });
         const rec = new RunRecorder(seed, null, sim.characterId);

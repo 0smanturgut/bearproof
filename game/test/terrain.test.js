@@ -248,7 +248,7 @@ test('replay: an autopilot run on every map, with rerolls, skips, piggy banks an
     let rerolled = 0;
     let skipped = 0;
     for (const stage of STAGE_ROTATION) {
-        const seed = stage === 'chop' ? 3 : stage === 'bear_trap' ? 4 : 5; // stageForSeed(seed) === stage
+        const seed = 4 + STAGE_ROTATION.indexOf(stage); // stageForSeed(seed) === stage
         const sim = new Simulation({ seed });
         assert.equal(sim.stageId, stage);
         const rec = new RunRecorder(seed);

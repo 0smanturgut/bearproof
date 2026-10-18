@@ -234,7 +234,7 @@ test('every Market item has its art and a free default in every slot', () => {
 
 test('bossDamage counts the damage bosses took and leaves the simulation alone', () => {
     const play = () => {
-        const sim = new Simulation({ seed: 5 }); // seed 1 until SIM_VERSION 22: it no longer reaches a boss
+        const sim = new Simulation({ seed: 1 }); // 5 under SIM_VERSION 22; 1 is Market Eras now, and kills two
         const bot = createBot();
         let dmg = 0;
         while (!sim.over && sim.tick < 60 * 60 * 12) {
@@ -249,7 +249,7 @@ test('bossDamage counts the damage bosses took and leaves the simulation alone',
         return { sim, dmg };
     };
     const { sim, dmg } = play();
-    assert.ok(sim.stats.bossKills >= 1, 'seed 5 kills a boss');
+    assert.ok(sim.stats.bossKills >= 1, 'seed 1 kills a boss');
     assert.ok(sim.summary().bossDamage > 0);
     // at least what the bosses' HP bars lost (a killing blow's overkill counts too), never more than all damage
     assert.ok(sim.stats.bossDamage >= dmg - 1, `${sim.stats.bossDamage} vs ${dmg}`);

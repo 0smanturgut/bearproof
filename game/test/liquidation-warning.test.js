@@ -37,6 +37,7 @@ test('liquidation warning: every charge boss warns for 1 s', () => {
         'bear_market',
         'liquidation',
         'long_winter',
+        'peak_euphoria',
         'withdrawal_freeze'
     ]);
     for (const b of chargers) {

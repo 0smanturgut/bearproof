@@ -272,7 +272,19 @@ export class UI {
         card.style.animation = '';
         clearTimeout(this._bossTimer);
         this._bossTimer = setTimeout(() => (card.hidden = true), 2400);
+        card.classList.remove('era');
+        $('bossWarn').textContent = '⚠ BOSS HAS ENTERED THE CHAT';
         this.announce(`Boss incoming: ${name}`);
+    }
+
+    /** Market Eras: a new era begins. The boss card in the era's colours, with its year and how many bears went. */
+    eraIntro(name, year, delisted) {
+        this.bossIntro(name, `${year} · ${delisted} bears delisted`, null);
+        $('bossCard').classList.add('era');
+        $('bossWarn').textContent = '▲ A NEW ERA BEGINS';
+        const item = `NEW ERA: ${name.toUpperCase()}  ▲  THE OLD BEARS ARE DELISTED  ▲  NEW BEARS INCOMING`;
+        $('bossTicker').textContent = `${item}  ·  ${item}`;
+        this.announce(`New era: ${name}`);
     }
 
     moveHint(on) {

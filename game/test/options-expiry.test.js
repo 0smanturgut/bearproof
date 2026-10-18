@@ -100,7 +100,7 @@ test('options expiry: a candle you do take is worth +50%', () => {
 });
 
 test('options expiry: a full run replays bit for bit, and differs from the plain run', () => {
-    const seed = 2024;
+    const seed = 2026; // 2024 until SIM_VERSION 23 moved it to a map where the bot outlives the 4:00 cap
     const twist = 'options_expiry';
     const sim = new Simulation({ seed, twist });
     const rec = new RunRecorder(seed, twist, sim.characterId);

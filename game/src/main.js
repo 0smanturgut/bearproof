@@ -31,6 +31,7 @@ import {
     getStage,
     stageForSeed
 } from './sim/content.js';
+import { RULES_22_FROM } from './sim/sim.js';
 
 const params = new URLSearchParams(location.search);
 const attract = params.has('attract');
@@ -334,8 +335,10 @@ async function boot() {
         );
     } else if (d.ok && d.data?.seed) {
         game.daily = d.data;
-        const tw = TWISTS[dailyTwistForSeed(d.data.seed)];
-        dailyStage = stageForSeed(d.data.seed);
+        // a Daily under the legacy rules had three maps (game.js plays it under them)
+        const legacy = d.data.date < RULES_22_FROM;
+        const tw = TWISTS[dailyTwistForSeed(d.data.seed, legacy)];
+        dailyStage = stageForSeed(d.data.seed, legacy);
         const map = getStage(dailyStage).name;
         ui.setDailyMeta(map, tw.name);
         ui.setDailyTwist(tw.description);

@@ -45,6 +45,13 @@ import { musicMood } from './music.js';
 import { applyRun, equippedItem, normalizeProfile, skinSprite } from './profile.js';
 import { buildSheet, createDamageReport } from './report.js';
 
+// Market Eras: the colour each new era flashes in
+const ERA_FLASH = {
+    defi: '255,180,70',
+    altseason: '255,70,220',
+    bear: '255,59,92'
+};
+
 const STEP = SIM.DT;
 const MAX_STEPS_PER_FRAME = 5;
 
@@ -109,8 +116,9 @@ export class Game {
         this.mode = mode === 'daily' && this.daily ? 'daily' : 'free';
         // A free run's map comes from its seed like every run's, so picking a map picks a seed for it.
         const seed = this.mode === 'daily' ? this.daily.seed : seedForStage(stage);
+        const legacy = this.mode === 'daily' && this.daily.date < RULES_22_FROM;
         // The Daily Challenge has one twist, the same for everyone; free runs have none.
-        const twist = this.mode === 'daily' ? dailyTwistForSeed(seed) : null;
+        const twist = this.mode === 'daily' ? dailyTwistForSeed(seed, legacy) : null;
         // The chosen character is part of the run log, so the server re-simulates it too. The HQ/stream autopilot
         // takes turns through the characters, newest first, so the preview shows what's new; the title backdrop
         // plays the player's pick.
@@ -118,10 +126,7 @@ export class Game {
             ? CHARACTER_IDS[CHARACTER_IDS.length - 1 - (this._attractRuns++ % CHARACTER_IDS.length)]
             : this.prefs.character || null;
         // A Daily keeps the rules its day started with (sim.js RULES_22_FROM): one board, one rule set.
-        const rules =
-            this.mode === 'daily' && this.daily.date < RULES_22_FROM
-                ? LEGACY_SIM_VERSION
-                : SIM_VERSION;
+        const rules = legacy ? LEGACY_SIM_VERSION : SIM_VERSION;
         this.sim = new Simulation({ seed, twist, character, rules });
         this.rec = new RunRecorder(seed, twist, this.sim.characterId, this.sim.rules);
         this.applyLook();
@@ -133,6 +138,7 @@ export class Game {
         this.startedAt = performance.now();
         this.submitted = false;
         this._bossIntro = null;
+        this._eraIntro = null; // Market Eras: a new era's card waits for a level-up to close, like a boss's
         this._chestCall = null; // a boss chest dropped: its toast waits for the boss's REKT toast
         this._bountyDone = false;
         this._bountyToastAt = 0;
@@ -257,7 +263,8 @@ export class Game {
             }
             if (steps === MAX_STEPS_PER_FRAME) this.acc = 0;
             // The boss track while a boss lives, faster as it loses HP.
-            if (this.state === 'playing') this.audio.setMood(musicMood(this.sim.enemies));
+            if (this.state === 'playing')
+                this.audio.setMood({ ...musicMood(this.sim.enemies), era: this.sim.era?.id });
             if (this.sim.choices) this._openLevelUp();
             if (this.sim.over && (this.state === 'playing' || this.state === 'attract'))
                 this._endRun();
@@ -377,7 +384,11 @@ export class Game {
                             this._bossIntro.id
                         );
                         this._bossIntro = null;
+                    } else if (this._eraIntro) {
+                        const er = this._eraIntro;
+                        this.ui.eraIntro(er.name, er.year, er.n);
                     }
+                    this._eraIntro = null;
                 }
             },
             {
@@ -821,6 +832,28 @@ export class Game {
                 case 'crateGone':
                     fx.burst(e.x, e.y, 'rgba(255,59,92,', 6, 70, 10, 'smoke');
                     fx.number(e.x, e.y - 20, 'LOOTED BY BEARS', 'info');
+                    break;
+                case 'era':
+                    // Market Eras: the floor turns over (world.js re-paints it) under a flash, the old bears pop
+                    fx.addFlash(ERA_FLASH[e.id] || '22,224,138', 0.7, 1.2);
+                    fx.ring(e.x, e.y, 20, 520, 0.8, ERA_FLASH[e.id] || '22,224,138', 10, true);
+                    fx.addShake(0.9);
+                    this._sfx('era', 0);
+                    if (!this.attract) {
+                        if (this.sim.choices) this._eraIntro = e;
+                        else this.ui.eraIntro(e.name, e.year, e.n);
+                        this.haptics.bossSpawn();
+                    }
+                    break;
+                case 'blinkWarn':
+                    // the ring is drawn from the Flash Loan's own state (render.js), so replays show it too
+                    this._sfx('blinkWarn', 0.15);
+                    break;
+                case 'blink':
+                    fx.burst(e.fx, e.fy, '#B98CFF', 8, 140, 3, 'spark');
+                    fx.burst(e.x, e.y, '#7FF0FF', 10, 180, 3, 'spark');
+                    fx.ring(e.x, e.y, 6, 44, 0.25, '160,110,255', 4);
+                    this._sfx('blink', 0.08);
                     break;
                 case 'wave':
                     if (!this.attract && this.sim.tick > 60)

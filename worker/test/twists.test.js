@@ -14,3 +14,22 @@ test("twists: named with the pinned build's own code", () => {
     assert.equal(twistFor({ 4: { TWISTS: {} } }, 4, seed), null);
     assert.equal(twistFor(undefined, 3, seed), null);
 });
+
+test("the Daily map: picked and named with the pinned build's own code, so a new map counts", async () => {
+    const { stageFor, stageNameFor } = await import('../src/lib/twists.js');
+    const { STAGE_NAMES, stageForSeed } = await import('../src/lib/daily.js');
+    const seed = 111545178; // 19 Oct 2026: 3 maps say Chop Zone, Build #27's 4 say Bear Trap
+    const builds = { 27: content };
+    assert.equal(stageForSeed(seed), 'chop', 'the old fixed list');
+    assert.equal(stageFor(builds, 27, seed, stageForSeed), content.stageForSeed(seed));
+    assert.equal(stageFor(builds, 27, seed, stageForSeed), 'bear_trap');
+    assert.equal(
+        stageFor(builds, 5, seed, stageForSeed),
+        'chop',
+        'a build without its own: the list'
+    );
+    assert.equal(stageNameFor(builds, 27, 'eras', STAGE_NAMES), 'Market Eras');
+    assert.equal(stageNameFor(builds, 27, 'bear_trap', STAGE_NAMES), 'Bear Trap');
+    assert.equal(stageNameFor({}, 3, 'winter', STAGE_NAMES), 'Crypto Winter');
+    assert.equal(stageNameFor({}, 3, 'mystery', STAGE_NAMES), 'mystery');
+});

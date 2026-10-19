@@ -35,7 +35,7 @@ import { ledger } from './routes/ledger.js';
 import { onchain } from './routes/onchain.js';
 import { getRun, leaderboard, session, setPlayerName, submitRun } from './routes/runs.js';
 import { runCard, runPage } from './routes/share.js';
-import { twistFor } from './lib/twists.js';
+import { stageNameFor, twistFor } from './lib/twists.js';
 import { TWIST_BUILDS } from './generated/twists.js';
 import { setPayoutAddress } from './routes/payout.js';
 import { winners } from './routes/winners.js';
@@ -78,7 +78,7 @@ async function daily(request, env) {
     const date = isDateKey(url.searchParams.get('date'))
         ? url.searchParams.get('date')
         : utcDate(now);
-    const { row, error: failed } = await getOrCreateDaily(env, date, BUILDS);
+    const { row, error: failed } = await getOrCreateDaily(env, date, BUILDS, TWIST_BUILDS);
     if (failed) return failed;
     // The prize is live only when the coin, the prize wallet and the operator's switch are all on.
     const prizeLive =
@@ -93,7 +93,7 @@ async function daily(request, env) {
             build: row.build,
             seed: row.seed,
             stage: row.stage,
-            stageName: STAGE_NAMES[row.stage] || row.stage,
+            stageName: stageNameFor(TWIST_BUILDS, row.build, row.stage, STAGE_NAMES),
             twist: twistFor(TWIST_BUILDS, row.build, row.seed),
             startsAt: new Date(Date.parse(`${date}T00:00:00Z`)).toISOString(),
             endsAt: new Date(endsAt).toISOString(),

@@ -6,6 +6,7 @@
  */
 
 import { BUILDS } from '../manifest.js';
+import { TWIST_BUILDS } from '../generated/twists.js';
 import { characterOf } from '../lib/character.js';
 import { all, first, getOrCreateDaily } from '../lib/db.js';
 import { isDateKey, utcDate } from '../lib/daily.js';
@@ -145,7 +146,7 @@ export async function submitRun(request, env) {
         return error(503, 'bot_check_unavailable', 'Bot check is unreachable. Try again shortly.');
 
     if (run.mode === 'daily') {
-        const daily = await getOrCreateDaily(env, run.challengeDate, BUILDS);
+        const daily = await getOrCreateDaily(env, run.challengeDate, BUILDS, TWIST_BUILDS);
         if (daily.error) return daily.error;
         if (daily.row.seed !== run.seed || daily.row.build !== run.build)
             return error(

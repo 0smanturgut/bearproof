@@ -2,6 +2,7 @@
 
 import { buildForDate } from './builds.js';
 import { dailySeed, stageForSeed, utcDate } from './daily.js';
+import { stageFor } from './twists.js';
 import { error } from './http.js';
 
 export async function buildOverride(env) {
@@ -44,7 +45,7 @@ const SELECT_DAILY = 'SELECT date, build, seed, stage FROM daily_challenges WHER
  * row always wins, so a build that lands later that day never changes a running challenge.
  * @returns {Promise<{row: {date:string, build:number, seed:number, stage:string}} | {error: Response}>}
  */
-export async function getOrCreateDaily(env, date, builds) {
+export async function getOrCreateDaily(env, date, builds, contents = null) {
     const now = Date.now();
     if (date > utcDate(now))
         return { error: error(403, 'not_yet', 'That challenge has not started.') };
@@ -56,7 +57,12 @@ export async function getOrCreateDaily(env, date, builds) {
     const build = buildForDate(builds, date, await buildOverride(env));
     if (!build) return { error: error(503, 'no_build', 'No build is live yet.') };
     const seed = await dailySeed(date, env.DAILY_SEED_SALT);
-    const row = { date, build: build.n, seed, stage: stageForSeed(seed) };
+    const row = {
+        date,
+        build: build.n,
+        seed,
+        stage: stageFor(contents, build.n, seed, stageForSeed)
+    };
     try {
         await env.DB.prepare(
             'INSERT OR IGNORE INTO daily_challenges (date, build, seed, stage, created_at) VALUES (?, ?, ?, ?, ?)'

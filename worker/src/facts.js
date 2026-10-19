@@ -16,7 +16,7 @@ import { latestDigest } from './community.js';
 import { buildOverride, first, getOrCreateDaily } from './lib/db.js';
 import { CHAT_MODEL } from './lib/claude.js';
 import { site } from './lib/telegram.js';
-import { twistFor } from './lib/twists.js';
+import { stageNameFor, twistFor } from './lib/twists.js';
 import { insights } from './routes/insights.js';
 import { pot } from './routes/pot.js';
 import { leaderboard } from './routes/runs.js';
@@ -114,7 +114,7 @@ async function readFacts(env, now) {
                 .then((s) => JSON.parse(s || 'null'))
                 .catch(() => null),
             latestDigest(env),
-            getOrCreateDaily(env, today, BUILDS).catch(() => ({})),
+            getOrCreateDaily(env, today, BUILDS, TWIST_BUILDS).catch(() => ({})),
             env.CONFIG.get('payouts_enabled').catch(() => null)
         ]);
     const content = live ? TWIST_BUILDS[live.n] : null;
@@ -148,7 +148,7 @@ async function readFacts(env, now) {
         daily: row
             ? {
                   build: row.build,
-                  stage: STAGE_NAMES[row.stage] || row.stage,
+                  stage: stageNameFor(TWIST_BUILDS, row.build, row.stage, STAGE_NAMES),
                   twist: twistFor(TWIST_BUILDS, row.build, row.seed)
               }
             : null,

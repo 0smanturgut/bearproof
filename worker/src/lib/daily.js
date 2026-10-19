@@ -6,7 +6,12 @@
 // Same order as the game's STAGE_ROTATION (game/src/sim/content.js). The game derives the stage from the seed
 // itself; the server only reports it.
 export const STAGES = ['chop', 'bear_trap', 'winter'];
-export const STAGE_NAMES = { chop: 'Chop Zone', bear_trap: 'Bear Trap', winter: 'Crypto Winter' };
+export const STAGE_NAMES = {
+    chop: 'Chop Zone',
+    bear_trap: 'Bear Trap',
+    winter: 'Crypto Winter',
+    eras: 'Market Eras'
+};
 
 /** 'YYYY-MM-DD' for a UTC timestamp. */
 export function utcDate(ms) {

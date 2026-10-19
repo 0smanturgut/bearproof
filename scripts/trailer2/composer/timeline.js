@@ -29,14 +29,14 @@ export const AGENT_BEATS = [
 
 /** The feature clips (real play on the live build, recorded for the posts of 15 to 17 Oct): night, label, line. */
 export const FEATURES = [
-    { n: 6, name: 'THE RUG LORD', line: 'The first big boss walks in.', from: 0.1 },
-    { n: 9, name: 'BOSS JACKPOT', line: 'Kill a boss, score triple.', from: 0.38 },
-    { n: 12, name: 'GOD CANDLE', line: 'One pickup clears the screen.', from: 0.32 },
-    { n: 15, name: 'EXIT SCAM', line: 'A thief steals your XP. Catch it.', from: 0.85 },
-    { n: 16, name: 'BEAR SPRAY', line: 'Breaks a grizzly shield in one hit.', from: 0.36 },
-    { n: 20, name: 'WITHDRAWAL FREEZE', line: 'An ice boss that freezes your XP.', from: 0.02 },
-    { n: 23, name: 'MOON ROCKET', line: 'Four seconds. Ram everything.', from: 4.36 },
-    { n: 24, name: 'HONEY TRAP', line: 'Grizzlies sit down and eat.', from: 0.73 }
+    { n: 6, name: 'THE RUG LORD', line: 'The first big boss walks in.', from: 0.7 },
+    { n: 12, name: 'GOD CANDLE', line: 'One pickup clears the screen.', from: 1.0 },
+    { n: 16, name: 'BEAR SPRAY', line: 'Breaks a grizzly shield in one hit.', from: 0.8 },
+    { n: 20, name: 'WITHDRAWAL FREEZE', line: 'An ice boss that freezes your XP.', from: 0.7 },
+    { n: 23, name: 'MOON ROCKET', line: 'Four seconds. Ram everything.', from: 0.9 },
+    { n: 24, name: 'HONEY TRAP', line: 'Grizzlies sit down and eat.', from: 0.1 },
+    { n: 26, name: 'THE WHALE', line: 'A third character. Slow, huge, hungry.', from: 0.3 },
+    { n: 27, name: 'MARKET ERAS', line: 'A fourth map through crypto history.', from: 0.3 }
 ];
 
 const shortTx = (tx) => (tx ? `${tx.slice(0, 4)}…${tx.slice(-4)}` : '');

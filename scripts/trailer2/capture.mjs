@@ -105,7 +105,9 @@ async function recordShot({ browser, srv, shot, A, aspect, dir, vclock, director
     // Hide the HUD for clean shots; keep it for the "this is the real game" ones.
     const css = [
         '#hint{display:none!important}',
-        shot.hud === false ? '#hud,#loadout,#bossbar,#vignette{display:none!important}' : '',
+        // The live build's map title card and badge toasts would sit under the trailer's own titles.
+        '#mapCard{display:none!important}',
+        shot.hud === false ? '#hud,#loadout,#bossbar,#vignette,#toast{display:none!important}' : '',
         shot.css || ''
     ].join('\n');
     await page.addStyleTag({ content: css });

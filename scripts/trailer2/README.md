@@ -40,3 +40,10 @@ Differences from v1:
 Rules the trailer keeps, like the rest of the project: no number that isn't in the snapshot, no price talk, the
 costs wallet is only ever "the costs wallet", and the fine print says the footage is autopilot play with the bull kept
 alive for the camera. Build #0 is credited to ricardo-foundry/canvas-vampire-survivors (MIT).
+
+## 19 Oct: the living maps
+
+The feature clips are now filmed on the live build (`featcap.mjs`, shot list in `featshots.mjs`, 4:5 at 1080x1350):
+`node scripts/trailer2/featcap.mjs <work>` writes `<work>/footage/16x9/f<n>/`, plus `w<n>` stills for the wall's newest
+nights (copy their frame into `wall/` as the next index). `FEATURES` swaps Boss Jackpot and Exit Scam for The Whale
+(#26) and Market Eras (#27). The recorder hides the live build's map title card and, on clean shots, its toasts.

@@ -9,6 +9,8 @@
  * CLOUT is earned only by playing. It is never bought, sold, withdrawn or traded, and it is not a coin.
  */
 
+import { MISSION_BY_ID, defaultMissions, mergeBest, normalizeMissions } from './missions.js';
+
 export const CURRENCY = 'CLOUT';
 
 /** What a finished run pays, per unit. */
@@ -206,7 +208,8 @@ export function defaultProfile() {
         best: { character: {}, stage: {} }, // id -> { score, timeMs }
         owned: [...FREE],
         equipped: { ...DEFAULTS },
-        bear: { tier: 1, damage: 0, felled: 0 }
+        bear: { tier: 1, damage: 0, felled: 0 },
+        missions: defaultMissions() // missions.js: done, best progress, done but not paid yet
     };
 }
 
@@ -255,6 +258,7 @@ export function normalizeProfile(raw) {
         felled: Math.floor(num(bear.felled))
     };
     p.bear.damage = Math.min(p.bear.damage, bearHp(p.bear.tier) - 1);
+    p.missions = normalizeMissions(raw.missions);
     return p;
 }
 
@@ -311,14 +315,25 @@ export function runPayout(summary, { bountyCleared = false } = {}) {
 }
 
 /**
- * Bank a finished run into the profile. Returns a new profile and what happened, for the receipt.
+ * Bank a finished run into the profile. Returns a new profile and what happened, for the receipt. `missionBest` is
+ * the run's mission progress (missions.js tracker `best`); missions already marked done are paid here.
  * @returns {{profile: object, payout: object, before: object, after: object, levelUps: number[],
  *           levelReward: number, bear: {damage:number, hp:number, before:number, after:number, tier:number,
  *           felled:number, reward:number}}}
  */
-export function applyRun(profile, summary, { bountyCleared = false } = {}) {
+export function applyRun(profile, summary, { bountyCleared = false, missionBest = null } = {}) {
     const p = normalizeProfile(profile);
     const payout = runPayout(summary, { bountyCleared });
+    // Missions done (this run, or one whose tab closed before its receipt) pay once, a line each
+    const missions = [];
+    for (const id of p.missions.unpaid) {
+        const m = MISSION_BY_ID[id];
+        missions.push(m);
+        payout.lines.push({ id: 'mission', label: 'MISSION', detail: m.name, v: m.reward });
+        payout.total += m.reward;
+    }
+    p.missions = mergeBest({ ...p.missions, unpaid: [] }, missionBest || {});
+    payout.missions = missions;
     const before = levelForXp(p.xp);
     p.runs++;
     p.timeMs += Math.max(0, summary.timeMs || 0);

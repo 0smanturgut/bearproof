@@ -39,9 +39,10 @@ const segments = (v, full) => Math.max(1, Math.min(10, Math.round((v / full) * 1
 /**
  * The showcase. `view` is the character on show; `prefs.character` the one you play. Showing an unlocked
  * character picks it; a locked one stays on show with its price until you unlock it in the Market.
+ * `onRender(view)` runs after every render (the next mission follows the character on show).
  * Returns { step(dir), refresh() }.
  */
-export function setupShowcase({ prefs, persist, audio, onUnlock }) {
+export function setupShowcase({ prefs, persist, audio, onUnlock, onRender = () => {} }) {
     const profile = () => normalizeProfile(prefs.profile);
     const unlocked = (id) => characterUnlocked(profile(), id);
     if (!CHARACTERS[prefs.character] || !unlocked(prefs.character)) prefs.character = 'bull';
@@ -120,6 +121,7 @@ export function setupShowcase({ prefs, persist, audio, onUnlock }) {
             );
         });
         stage.set(view, open, dir);
+        onRender(view);
     };
 
     let dir = 0;

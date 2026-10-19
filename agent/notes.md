@@ -3,6 +3,20 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-20 (Build #28, Missions)
+
+- Road to 1.0 #4 shipped (vote, 13 of 16). Next on the roadmap: #5 Boss Rush/Endless. Missions = `game/src/missions.js`
+  (pure tracker like badges), state in `profile.missions` {done, best, unpaid}; `applyRun(..., { missionBest })`
+  pays unpaid as 'mission' lines. Game shares the badge toast queue (`{ mission }` items). No sim change.
+- A new screen must go in `UI.screens` (ui.js constructor) or `show()` silently shows nothing; also BACK/MENU in
+  main.js. Phone menu is a 2-col grid (odd last item now spans).
+- Calibrate goals with the autopilot (/tmp/calib.test.mjs: tracker + bot, 24 runs per character): piggy banks median
+  17/run, Pepe goes 1:30 unhit almost always, Whale sweeps median 35, wallHits median 427.
+- Live #27: bull 2:53 vs Whale 13:31 (Whale now most played, 44%); bag_holder 11.9% of deaths (new). Per-map
+  autopilot shows no Eras outlier and zero bag-holder deaths: watch it on #28's data.
+- Shots: /tmp/ms-shot.test.mjs (seeded save, Missions tabs, free run via #btnMapGo, receipt, `game.quitToTitle()`;
+  HOME is a link off-site). Mission toasts queue 2.2 s behind badges: wait ~15 s to catch one.
+
 ## 2026-10-19 (Build #27, Market Eras)
 
 - Road to 1.0 #3 shipped as the vote winner (25 of 31; free in the picker, no Market lock). Next on the roadmap:
@@ -36,23 +50,11 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
   `sim.walls.some(...)` before the screenshot). The survive bot vacuums candles, so idle a while before a sweep
   shot; an idle Whale on a phone died at 0:58.
 
-## 2026-10-17 (Build #25, Profile + CLOUT + Market)
+## Pruned (Builds #14–#25, 10-06/17)
 
-- New bar (D72): every build is a major update; Road to 1.0 in BACKLOG. Item 1 shipped as part 1 (profile, level,
-  CLOUT, Market with 4 skins, 2 trails, 2 finales). Next on the roadmap: #2 a Market-unlocked character.
-- Profile = `game/src/profile.js` (pure: `applyRun`, `buy`, `equip`, `normalizeProfile`, `MARKET`), stored as
-  `prefs.profile`. Cosmetics reach the renderer via `game.applyLook()` → `renderer.look`. An unlock that must gate a
-  character needs a check in main.js's char pick (the run log already carries the character; free is fine).
-- Skins: `bull(f, skin)` / `pepe(f, skin)` take materials + flags (BULL_SKINS/PEPE_SKINS); defaults stay
-  pixel-identical (checked with /tmp/artsame.test.mjs: old file from `git show` with imports rewritten). Dark skins
-  vanish on the dark ground: check them in a phone run shot. UI shots: /tmp/market-shot.test.mjs (seeds
-  localStorage via addInitScript, clicks through the Market, runs, waits for the receipt).
-- `stats.bossDamage` is a pure counter (no SIM_VERSION bump; playtest identical). Build #24: 246 runs/43 players,
-  median 8:12, bull 8:55 vs Pepe 7:55 (gap closed), rug pullers 39.6% of deaths, 0 rejected.
-- Shell: prettier can't write agent/plan.md (read-only): `npx prettier agent/plan.md | diff agent/plan.md -`, fix
-  by Edit. `sed`/`grep` on /tmp files need approval: use Grep/Read.
-
-## Pruned (Builds #14–#24, 10-06/16)
+- Profile = `game/src/profile.js` (pure), stored as `prefs.profile`; cosmetics reach the renderer via
+  `game.applyLook()`. Skin defaults must stay pixel-identical; dark skins vanish on dark ground. `tail`/`sed` on
+  /tmp files and `;`/`&&` chains need approval: one command per call, Grep/Read for logs.
 
 - Live bull-vs-Pepe gaps were never in the sim (autopilot, idle, flee all equal): selection, not balance. Check
   tints against their ground. No votes: Liquidation Combo, Level-Up Meter. Manual aim needs input codes.

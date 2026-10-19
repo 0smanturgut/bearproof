@@ -247,6 +247,17 @@
                                 </span>
                             </div>
                             <p id="charTrait" class="show-trait" hidden></p>
+                            <button id="charMission" class="show-mission" type="button" hidden>
+                                <span class="cm-row"
+                                    ><small>NEXT MISSION</small><b id="cmReward"></b
+                                    ><small class="cm-c">CLOUT</small></span
+                                >
+                                <span id="cmName" class="cm-name"></span>
+                                <span class="cm-row">
+                                    <span class="bar bar-ms"><i id="cmBar"></i></span
+                                    ><small id="cmProg" class="cm-prog"></small>
+                                </span>
+                            </button>
                             <div
                                 id="charPick"
                                 class="char-dots"
@@ -302,6 +313,18 @@
                                     </svg>
                                     <span class="mi-t">FREE RUN</span>
                                     <span id="miFree" class="mi-m">Pick a map</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button id="btnMissions" class="mi" type="button">
+                                    <svg class="mi-ic" viewBox="0 0 8 8" aria-hidden="true">
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M2 0h4v1h1v1h1v4H7v1H6v1H2V7H1V6H0V2h1V1h1zM3 2v1H2v2h1v1h2V5h1V3H5V2zM3 3h2v2H3z"
+                                        />
+                                    </svg>
+                                    <span class="mi-t">MISSIONS</span>
+                                    <span id="miMissions" class="mi-m">Goals that pay CLOUT</span>
                                 </button>
                             </li>
                             <li>
@@ -635,6 +658,34 @@
                     <p id="guideIntro" class="guide-intro"></p>
                     <ul id="guideList" class="guide-list" role="tabpanel"></ul>
                     <button id="btnGuideBack" class="btn">BACK</button>
+                </div>
+            </section>
+
+            <section
+                id="screenMissions"
+                class="screen screen-guide screen-missions"
+                hidden
+                aria-labelledby="missionsTitle"
+            >
+                <div class="panel guide-panel missions-panel">
+                    <h2 id="missionsTitle" class="screen-h">MISSIONS</h2>
+                    <p class="market-bal">
+                        <span>DONE</span><b id="missionsCount">0 / 0</b><span>LEFT</span
+                        ><b id="missionsLeft">0</b><small>CLOUT</small>
+                    </p>
+                    <div
+                        id="missionsTabs"
+                        class="guide-tabs"
+                        role="tablist"
+                        aria-label="Mission groups"
+                    ></div>
+                    <p id="missionsIntro" class="guide-intro"></p>
+                    <ul id="missionsList" class="guide-list missions-list" role="tabpanel"></ul>
+                    <p class="market-fine">
+                        Each mission pays its CLOUT once, on the receipt of the run that clears it.
+                        Missions only watch your runs: they never change the game or the Daily.
+                    </p>
+                    <button id="btnMissionsBack" class="btn">BACK</button>
                 </div>
             </section>
 

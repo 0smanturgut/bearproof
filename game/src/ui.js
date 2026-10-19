@@ -15,6 +15,16 @@ import {
 } from './sim/content.js';
 import { fmtNum, fmtTime } from './format.js';
 import { ETERNAL_BEAR, MARKET, bearHp, characterUnlocked, levelForXp } from './profile.js';
+import {
+    MISSIONS,
+    MISSION_TABS,
+    missionProgress,
+    missionRatio,
+    missionScope,
+    missionTab,
+    missionTotals,
+    nextMission
+} from './missions.js';
 
 const STAGE_NAME = Object.fromEntries(Object.values(STAGES).map((s) => [s.id, s.name]));
 const reduced = () => !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -67,6 +77,7 @@ export class UI {
             'screenShare',
             'screenGuide',
             'screenMarket',
+            'screenMissions',
             'screenMaps'
         ];
         this.hud = {
@@ -772,6 +783,7 @@ export class UI {
         list.innerHTML = '';
         const rows = payout.lines.map((l) => {
             const li = document.createElement('li');
+            if (l.id === 'mission') li.className = 'ms';
             li.innerHTML = `<span>${esc(l.label)}${l.detail ? ` <small>${esc(l.detail)}</small>` : ''}</span><b>+0</b>`;
             list.appendChild(li);
             return { li, b: li.querySelector('b'), v: l.v };
@@ -1241,6 +1253,95 @@ export class UI {
         }
         list.scrollTop = 0;
         if ($('screenGuide').hidden) this.show('screenGuide');
+    }
+
+    /**
+     * The Missions screen: a tab per MISSION_TABS entry, each mission with its art, goal, best progress and reward.
+     * `profile` is a normalized profile; `onTab(id)` re-opens it on another tab.
+     */
+    showMissions(profile, tab, onTab) {
+        const st = profile.missions;
+        const tot = missionTotals(st);
+        const current = MISSION_TABS.find((t) => t.id === tab) || MISSION_TABS[0];
+        $('missionsCount').textContent = `${tot.done} / ${tot.total}`;
+        $('missionsLeft').textContent = fmtNum(tot.left);
+        const tabs = $('missionsTabs');
+        tabs.innerHTML = '';
+        for (const t of MISSION_TABS) {
+            const list = MISSIONS.filter((m) => missionTab(m) === t.id);
+            const done = list.filter((m) => m.id in st.done).length;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'guide-tab';
+            b.setAttribute('role', 'tab');
+            b.setAttribute('aria-selected', String(t.id === current.id));
+            b.innerHTML = `<span>${esc(t.label.toUpperCase())}</span><small>${done}/${list.length}</small>`;
+            b.setAttribute('aria-label', `${t.label}, ${done} of ${list.length} done`);
+            b.addEventListener('click', () => {
+                onTab(t.id);
+                $('missionsTabs').querySelector('[aria-selected="true"]')?.focus();
+            });
+            tabs.appendChild(b);
+        }
+        const locked = CHARACTERS[current.id] && !characterUnlocked(profile, current.id);
+        $('missionsIntro').textContent = locked
+            ? `Unlock ${CHARACTERS[current.id].name} in the Market to play for these.`
+            : current.id === 'any'
+              ? 'Any character, any map, free run or Daily. Each pays once.'
+              : current.id === 'maps'
+                ? 'Free Run lets you pick the map. The Daily counts too.'
+                : `Play as ${CHARACTERS[current.id]?.name || current.label} to work on these.`;
+        const list = $('missionsList');
+        list.innerHTML = '';
+        for (const m of MISSIONS.filter((x) => missionTab(x) === current.id)) {
+            const done = m.id in st.done;
+            const ratio = missionRatio(st, m);
+            const scope = current.id === 'maps' ? missionScope(m) : null;
+            const prog = done ? '' : missionProgress(m, st.best[m.id] || 0);
+            const li = document.createElement('li');
+            li.className =
+                'guide-entry mission' + (done ? ' done' : '') + (locked ? ' locked' : '');
+            li.innerHTML = `
+                <div class="guide-art"><canvas aria-hidden="true"></canvas></div>
+                <div class="guide-body">
+                    <b class="guide-name">${esc(m.name)}</b>
+                    ${scope ? `<span class="guide-tag">${esc(scope.toUpperCase())}</span>` : ''}
+                    ${done ? `<span class="guide-tag ms-tag">DONE${st.done[m.id] ? ` ${esc(st.done[m.id])}` : ''}</span>` : ''}
+                    <p class="guide-text">${esc(m.text)}</p>
+                    ${done || m.unit === 'once' ? '' : `<div class="ms-prog"><span class="bar bar-ms"><i style="width:${Math.round(ratio * 100)}%"></i></span><small>${esc(prog)}</small></div>`}
+                </div>
+                <span class="ms-reward"><b>${done ? '✓' : `+${fmtNum(m.reward)}`}</b><small>${done ? (st.unpaid.includes(m.id) ? 'NEXT RECEIPT' : 'PAID') : 'CLOUT'}</small></span>`;
+            li.setAttribute(
+                'aria-label',
+                `${m.name}: ${m.text} ${done ? 'Done.' : `${prog ? `${prog}. ` : ''}Pays ${m.reward} CLOUT.`}`
+            );
+            paintIcon(li.querySelector('canvas'), m.art, m.scale || (ICONS[m.art] ? 2 : 1));
+            list.appendChild(li);
+        }
+        if ($('screenMissions').hidden) {
+            list.scrollTop = 0;
+            this.show('screenMissions');
+        }
+    }
+
+    /** The title's Missions menu line and the next mission for the character on show (or nothing when all done). */
+    missionStrip(profile, character) {
+        const st = profile.missions;
+        const tot = missionTotals(st);
+        $('miMissions').textContent =
+            tot.done === tot.total
+                ? 'Every mission done'
+                : `${tot.done} of ${tot.total} done · ${fmtNum(tot.left)} CLOUT left`;
+        const m = nextMission(st, character);
+        const box = $('charMission');
+        box.hidden = !m;
+        if (!m) return;
+        const ratio = missionRatio(st, m);
+        $('cmName').textContent = m.text;
+        $('cmReward').textContent = `+${fmtNum(m.reward)}`;
+        $('cmBar').style.width = `${Math.round(ratio * 100)}%`;
+        $('cmProg').textContent =
+            m.unit === 'once' ? 'One run, one go' : missionProgress(m, st.best[m.id] || 0);
     }
 
     setSoundLabel(on) {

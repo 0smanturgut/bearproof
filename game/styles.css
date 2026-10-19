@@ -3398,6 +3398,70 @@ body.on-title .title-veil {
     letter-spacing: 0.04em;
     color: var(--gold);
 }
+/* Missions: the next one for the character on show (a tap opens the Missions screen) */
+.show-mission {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+    margin: 0;
+    padding: 6px 9px 7px;
+    border: 0;
+    text-align: left;
+    font: inherit;
+    color: var(--text-2);
+    background: rgba(22, 224, 138, 0.06);
+    box-shadow: inset 3px 0 0 var(--bull);
+    cursor: pointer;
+}
+.show-mission[hidden] {
+    display: none;
+}
+.show-mission:hover,
+.show-mission:focus-visible {
+    background: rgba(22, 224, 138, 0.12);
+}
+.cm-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.cm-row small {
+    font: 700 9.5px/1 var(--mono);
+    letter-spacing: 0.16em;
+    color: var(--bull);
+}
+.cm-row b {
+    margin-left: auto;
+    font: 400 18px/0.8 var(--display);
+    color: var(--gold);
+}
+.cm-row .cm-c {
+    color: var(--gold-2);
+    letter-spacing: 0.08em;
+}
+.cm-name {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text);
+}
+.cm-row .bar-ms {
+    flex: 1;
+}
+.cm-row .cm-prog {
+    flex: none;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+}
+.bar-ms {
+    display: block;
+    height: 6px;
+}
+.bar-ms i {
+    background: linear-gradient(90deg, #0b7a4b, var(--bull) 70%, #7bf5a6);
+    box-shadow: 0 0 6px rgba(22, 224, 138, 0.5);
+}
 .char-dots {
     display: flex;
     gap: 4px;
@@ -3597,6 +3661,10 @@ body.on-title .title-veil {
     padding: 0;
     list-style: none;
 }
+/* an odd one out on the phone's two columns takes the whole row */
+.menu-list li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
 .mi {
     font: inherit;
     position: relative;
@@ -3748,6 +3816,9 @@ body.on-title .title-veil {
 }
 .screen-title:not([hidden]) .menu-list li:nth-child(4) {
     animation-delay: 250ms;
+}
+.screen-title:not([hidden]) .menu-list li:nth-child(5) {
+    animation-delay: 280ms;
 }
 @keyframes menu-in {
     from {
@@ -4403,8 +4474,78 @@ body.on-title .title-veil {
     font-variant-numeric: tabular-nums;
 }
 .clout-lines li.lv b,
-.clout-lines li.bear b {
+.clout-lines li.bear b,
+.clout-lines li.ms span {
     color: var(--bull);
+}
+.clout-lines li.ms {
+    grid-column: 1 / -1;
+}
+.clout-lines li.ms small {
+    color: var(--text);
+}
+
+/* the Missions screen */
+.missions-panel {
+    gap: 8px;
+}
+.missions-panel .market-bal b {
+    font-size: 30px;
+}
+.mission {
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+}
+.mission.done {
+    box-shadow: inset 3px 0 0 var(--bull);
+}
+.mission.done .guide-text {
+    color: var(--muted);
+}
+.ms-tag {
+    color: var(--bull) !important;
+    border-color: rgba(22, 224, 138, 0.5) !important;
+}
+.ms-prog {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+.ms-prog .bar-ms {
+    flex: 1;
+    max-width: 220px;
+}
+.ms-prog small {
+    font: 700 10px/1 var(--mono);
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+}
+.ms-reward {
+    display: grid;
+    justify-items: center;
+    min-width: 64px;
+    gap: 2px;
+}
+.ms-reward b {
+    font: 400 24px/0.85 var(--display);
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(255, 197, 61, 0.3);
+}
+.ms-reward small {
+    font: 700 9px/1 var(--mono);
+    letter-spacing: 0.14em;
+    color: var(--gold-2);
+}
+.mission.done .ms-reward b {
+    color: var(--bull);
+    text-shadow: 0 0 12px rgba(22, 224, 138, 0.4);
+}
+.mission.done .ms-reward small {
+    color: var(--bull);
+}
+.mission.locked {
+    opacity: 0.6;
 }
 .clout-level {
     display: grid;

@@ -1,0 +1,17 @@
+[
+    {
+        "id": "boss-rush",
+        "title": "Boss Rush: every boss, back to back",
+        "description": "A new mode next to Free Run and the Daily: the bosses of all four maps in a row with a short breather and a level-up between each, its own board label and its own missions."
+    },
+    {
+        "id": "evolutions-collection",
+        "title": "Evolve everything + a Collection",
+        "description": "Part 1 of a full evolution table: every base weapon gets an evolution with its own art and effect, the level-up card says what it will become, and a Collection screen shows everything you've seen."
+    },
+    {
+        "id": "the-miner",
+        "title": "Play as The Miner",
+        "description": "A fourth character, unlocked in the Market: a hard-hat bear-buster whose pickaxe cracks grizzly shields, built for the grizzlies and rug pullers that ended 44% of yesterday's runs."
+    }
+]

@@ -185,6 +185,14 @@ export class AudioEngine {
         this.tone({ freq: 1760, dur: 0.06, type: 'triangle', volume: 0.14 });
         setTimeout(() => this.tone({ freq: 2640, dur: 0.16, type: 'sine', volume: 0.16 }), 70);
     }
+    /** A mission done: a rising square arpeggio (the "objective" sting), then the register's bell. */
+    mission() {
+        [784, 988, 1175, 1568].forEach((freq, i) =>
+            setTimeout(() => this.tone({ freq, dur: 0.07, type: 'square', volume: 0.08 }), i * 55)
+        );
+        setTimeout(() => this.tone({ freq: 140, dur: 0.06, type: 'triangle', volume: 0.12 }), 230);
+        setTimeout(() => this.tone({ freq: 2640, dur: 0.22, type: 'sine', volume: 0.16 }), 240);
+    }
     /** Equip, or a tab in the Market: a soft click. */
     click() {
         this.tone({ freq: 900, dur: 0.02, type: 'triangle', volume: 0.07 });

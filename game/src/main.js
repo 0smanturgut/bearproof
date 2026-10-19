@@ -21,6 +21,7 @@ import { bountyText, readBounty } from './bounty.js';
 import { guideSections } from './guide.js';
 import { badgeSection } from './achievements.js';
 import { MARKET_BY_ID, buy, characterUnlocked, equip, normalizeProfile } from './profile.js';
+import { missionTab, nextMission } from './missions.js';
 import { moveFocus, setupMapPicker, setupShowcase } from './title.js';
 import {
     CHARACTER_IDS,
@@ -93,10 +94,11 @@ async function boot() {
         screenSettings: 'btnSettingsBack',
         screenGuide: 'btnGuideBack',
         screenMarket: 'btnMarketBack',
+        screenMissions: 'btnMissionsBack',
         screenMaps: 'btnMapsBack'
     };
     // The main menu, top to bottom, for the arrow keys and the pad.
-    const MENU = ['btnDaily', 'btnFree', 'btnMarket', 'btnBoard', 'btnGuide'];
+    const MENU = ['btnDaily', 'btnFree', 'btnMissions', 'btnMarket', 'btnBoard', 'btnGuide'];
     const onMenu = () => game.state === 'title' || game.backdrop;
     const focusedButton = () =>
         document.activeElement?.closest?.('.screen:not([hidden])') &&
@@ -287,6 +289,27 @@ async function boot() {
         showcase.refresh();
     });
 
+    // Missions: goals that pay CLOUT once. A screen of tabs; it opens on the tab of the character on show.
+    let shownChar = prefs.character || 'bull';
+    let missionsTab = null;
+    const openMissions = (tab) => {
+        audio.unlock();
+        missionsTab = tab;
+        ui.showMissions(normalizeProfile(prefs.profile), tab, (id) => {
+            audio.click();
+            openMissions(id);
+        });
+    };
+    $('btnMissions').addEventListener('click', () => openMissions(missionsTab || shownChar));
+    $('charMission').addEventListener('click', () => {
+        const m = nextMission(normalizeProfile(prefs.profile).missions, shownChar);
+        openMissions(m ? missionTab(m) : shownChar);
+    });
+    $('btnMissionsBack').addEventListener('click', () => {
+        ui.show('screenTitle');
+        $('btnMissions').focus({ preventScroll: true });
+    });
+
     // The character on show, and the Free Run map picker (its pick previews live behind it).
     let dailyStage = null; // today's Daily map, marked in the picker
     const showcase = setupShowcase({
@@ -298,8 +321,14 @@ async function boot() {
             audio.unlock();
             marketTab = 'chars';
             openMarket();
+        },
+        onRender: (id) => {
+            shownChar = id;
+            ui.missionStrip(normalizeProfile(prefs.profile), id);
         }
     });
+    // Back on the title after a run: the missions it moved show at once
+    game.onTitle = () => showcase.refresh();
     const maps = setupMapPicker({
         prefs,
         persist,
@@ -414,18 +443,22 @@ function installDebugHooks(game) {
          */
         advance(seconds, { style = null, stopAtLevelUp = false } = {}) {
             const bot = style ? createBot({ style }) : null;
+            const watch = (events) => {
+                game.watchBadges(events);
+                game.watchMissions(events);
+            };
             for (let i = 0; i < seconds * 60 && !game.sim.over; i++) {
                 if (game.sim.choices) {
                     if (stopAtLevelUp) return 'levelup';
                     game.rec.pick(game.sim.tick, 0);
                     game.sim.choose(0);
-                    game.watchBadges(game.sim.drainEvents());
+                    watch(game.sim.drainEvents());
                     continue;
                 }
                 const code = bot ? bot.move(game.sim) : 0;
                 game.rec.tick(code);
                 game.sim.step(code);
-                game.watchBadges(game.sim.drainEvents()); // badges, without the effects
+                watch(game.sim.drainEvents()); // badges and missions, without the effects
             }
             return game.sim.over ? 'over' : 'running';
         }

@@ -41,6 +41,7 @@ import { cleanName, playerId, savePrefs } from './prefs.js';
 import { turnstileToken } from './turnstile.js';
 import { bountyProgress, bountyText, clearsBounty } from './bounty.js';
 import { createTracker } from './achievements.js';
+import { completeMissions, createMissionTracker, mergeBest } from './missions.js';
 import { musicMood } from './music.js';
 import { applyRun, equippedItem, normalizeProfile, skinSprite } from './profile.js';
 import { buildSheet, createDamageReport } from './report.js';
@@ -108,9 +109,11 @@ export class Game {
         if (keep) return; // the open menu stays exactly as it is (its scroll, its focus)
         this.ui.show('screenTitle');
         this.ui.profileStrip(normalizeProfile(this.prefs.profile));
+        this.onTitle?.(); // main.js: the character card and its next mission
     }
 
     startRun(mode, { backdrop = false, stage = null, keepScreen = false } = {}) {
+        this._keepMissionProgress(); // a restart or a quit still keeps the run's best progress
         this.backdrop = backdrop;
         this.attract = this.baseAttract || backdrop;
         this.mode = mode === 'daily' && this.daily ? 'daily' : 'free';
@@ -147,6 +150,15 @@ export class Game {
         this._badgeQueue = [];
         this._badgesNew = [];
         this._badgeToastAt = 0;
+        // Missions: the same, scoped to this run's character and map; they share the badges' toast queue
+        this.missions = this.attract
+            ? null
+            : createMissionTracker(
+                  normalizeProfile(this.prefs.profile).missions,
+                  this.sim.characterId,
+                  this.sim.stageId
+              );
+        this._missionsNew = [];
         // The damage report on the receipt: a player's own runs only (never the autopilot's)
         this.report = this.attract ? null : createDamageReport();
         this.report?.observe(this.sim);
@@ -412,6 +424,7 @@ export class Game {
         this._events(events);
         this.report?.observe(this.sim, events);
         this.watchBadges(events);
+        this.watchMissions(events);
     }
 
     /** Feed a step's events to the badge watcher; a new badge is saved at once and queued for a toast. */
@@ -426,13 +439,52 @@ export class Game {
         }
     }
 
+    /** Save the run's best mission progress (idempotent: it keeps the max, and applyRun already did at the end). */
+    _keepMissionProgress() {
+        if (!this.missions) return;
+        const profile = normalizeProfile(this.prefs.profile);
+        profile.missions = mergeBest(profile.missions, this.missions.best);
+        this.prefs.profile = profile;
+        savePrefs(this.prefs);
+        this.missions = null;
+    }
+
+    /** Feed a step to the mission watcher; a finished mission is saved at once (paid on the receipt) and toasted. */
+    watchMissions(events) {
+        if (!this.missions) return;
+        const fresh = this.missions.observe(this.sim, events);
+        if (!fresh.length) return;
+        const day = new Date().toISOString().slice(0, 10);
+        const profile = normalizeProfile(this.prefs.profile);
+        profile.missions = completeMissions(
+            profile.missions,
+            fresh.map((m) => m.id),
+            day
+        );
+        this.prefs.profile = profile;
+        savePrefs(this.prefs);
+        for (const m of fresh) {
+            this._missionsNew.push(m);
+            this._badgeQueue.push({ mission: m });
+        }
+    }
+
     /** One badge toast at a time, a beat apart, only while the run is on screen. */
     _badgeToasts() {
         if (!this._badgeQueue?.length || this.state !== 'playing') return;
         if (this.clock < this._badgeToastAt) return;
         const a = this._badgeQueue.shift();
-        this.ui.toast(`BADGE: ${a.name.toUpperCase()}`, 'gold', 1800);
-        this._sfx('achievement', 0);
+        if (a.mission) {
+            this.ui.toast(
+                `MISSION: ${a.mission.name.toUpperCase()} +${fmtNum(a.mission.reward)} CLOUT`,
+                'bull',
+                2000
+            );
+            this._sfx('mission', 0);
+        } else {
+            this.ui.toast(`BADGE: ${a.name.toUpperCase()}`, 'gold', 1800);
+            this._sfx('achievement', 0);
+        }
         this.haptics.levelUp();
         this._badgeToastAt = this.clock + 2.2;
     }
@@ -1042,7 +1094,8 @@ export class Game {
         const report = this.report ? this.report.rows(this.sim) : null;
         // Bank the run: lifetime stats, bests, CLOUT, the player level and the Eternal Bear (profile.js)
         const banked = applyRun(this.prefs.profile, summary, {
-            bountyCleared: this.lastRun.bountyCleared
+            bountyCleared: this.lastRun.bountyCleared,
+            missionBest: this.missions?.best
         });
         this.prefs.profile = banked.profile;
         savePrefs(this.prefs);

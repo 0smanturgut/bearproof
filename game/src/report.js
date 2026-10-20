@@ -26,7 +26,9 @@ export const OTHER_SOURCES = Object.freeze({
         tag: 'CRATE',
         crate: true
     },
-    squeeze: { name: PICKUPS.squeeze.name, icon: 'pk_squeeze', tag: 'LOOT', crate: true }
+    squeeze: { name: PICKUPS.squeeze.name, icon: 'pk_squeeze', tag: 'LOOT', crate: true },
+    // the Miner's Block Reward quakes: bursts, so no DPS
+    block: { name: 'Block Reward', icon: 'block_reward', tag: 'TRAIT', crate: true }
 });
 
 const titleCase = (id) =>

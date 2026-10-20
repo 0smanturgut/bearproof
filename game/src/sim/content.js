@@ -479,6 +479,28 @@ export const WEAPONS = {
         evolveDelay: 0.3,
         evolveRangeMult: 1.35,
         evolveDamage: 0.7
+    },
+    // The Miner's signature weapon. Thrown at the nearest bear: it spins out `range` at `speed` units/s, then flies
+    // back to the Miner. Every bear it touches is hit once on the way out and once on the way back, and a hit on a
+    // shielded bear cracks the whole shield first (`breaksShield`). Evolved: `evolveFan` picks in a fan.
+    PICKAXE: {
+        id: 'pickaxe',
+        name: 'Pickaxe',
+        icon: 'pickaxe',
+        description:
+            "A spinning pickaxe out to the nearest bear and back. Hits on both legs and cracks a grizzly's shield.",
+        type: 'pickaxe',
+        character: 'miner',
+        baseDamage: 15,
+        baseCooldown: 1.3,
+        baseRange: 170,
+        speed: 420,
+        evolveLevel: 5,
+        evolveName: 'Diamond Pickaxe',
+        evolveDescription: 'Throws two diamond picks in a fan, each 20% harder.',
+        evolveFan: 2,
+        evolveSpread: 16,
+        evolveDamageMult: 1.2
     }
 };
 
@@ -1374,7 +1396,7 @@ export function dailyTwistForSeed(seed, legacy = false) {
  * `sweepRadius` flies to the player (the Whale's Sweep the Book). Add more fields here as characters need them,
  * and read them in the Simulation, never in the UI (`sprite`, `tagline` and `trait` are display only).
  */
-export const CHARACTER_IDS = ['bull', 'pepe', 'whale'];
+export const CHARACTER_IDS = ['bull', 'pepe', 'whale', 'miner'];
 
 export const CHARACTERS = {
     bull: {
@@ -1412,6 +1434,27 @@ export const CHARACTERS = {
         size: 24,
         sweepEvery: 60,
         sweepRadius: 640
+    },
+    // Unlocked with CLOUT in the Market. Block Reward: every `blockKills` kills (delisted bears don't count) mine a
+    // block: a quake hits every bear within `blockRadius` (scaled by Liquidity) for `blockDamage` (scaled by
+    // the damage passives), cracks every shield and shoves the bears `blockKnock` away. Then the difficulty
+    // adjusts: the next block needs `blockGrowth` times as many kills, rounded.
+    miner: {
+        id: 'miner',
+        name: 'The Miner',
+        sprite: 'miner_hero',
+        tagline: 'You are a miner. The bear market is endless. You keep hashing.',
+        emoji: '⛏️',
+        description: 'Pickaxe · 110 HP',
+        trait: 'Block Reward: kills mine blocks, and every block sets off a quake that cracks shields.',
+        starterWeapon: 'pickaxe',
+        maxHp: 110,
+        speedMult: 0.95,
+        blockKills: 40,
+        blockGrowth: 1.2,
+        blockRadius: 190,
+        blockDamage: 35,
+        blockKnock: 40
     }
 };
 

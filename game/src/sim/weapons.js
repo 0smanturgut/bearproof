@@ -1,14 +1,15 @@
 /**
  * @module sim/weapons
  * @description One Weapon class driven by a content definition. `type` picks the firing strategy:
- * melee | projectile | instant | aura | mine | nova | drain | orbit | tongue | spray | honey | wall. Scaling:
+ * melee | projectile | instant | aura | mine | nova | drain | orbit | tongue | spray | honey | wall | pickaxe.
+ * Scaling:
  *   damage   = base * (1 + 0.2 * (lvl - 1)) * player.damageMult (* evolveDamageMult)
  *   cooldown = base * 0.92^(lvl - 1) * player.cooldownMult (* evolveCooldownMult)
  *   range    = base * (1 + 0.1 * (lvl - 1)) * player.areaMult
  * Evolution (level >= evolveLevel) is driven by data flags, never by weapon id.
  */
 
-import { BuyWall, HoneyJar, Mine, OrbitShard, Projectile } from './entities.js';
+import { BuyWall, HoneyJar, Mine, OrbitShard, Projectile, ThrownPick } from './entities.js';
 import { atan2, cos, hypot, ipow, sin } from './dmath.js';
 
 export class Weapon {
@@ -116,7 +117,33 @@ export class Weapon {
                 return this._honey(player, sim);
             case 'wall':
                 return this._wall(player, sim);
+            case 'pickaxe':
+                return this._pickaxe(player, sim);
         }
+    }
+
+    /** Pickaxe: thrown at the nearest bear, out and back. Evolved: `evolveFan` picks, `evolveSpread`° apart. */
+    _pickaxe(player, sim) {
+        const range = this.getRange(player);
+        const target = sim.spatial.findNearest(player.x, player.y, range);
+        if (!target) return;
+        const def = this.def;
+        const evolved = this.isEvolved();
+        const fan = evolved ? def.evolveFan : 1;
+        const aim = atan2(target.y - player.y, target.x - player.x);
+        const opts = {
+            range,
+            speed: def.speed,
+            damage: this.getDamage(player),
+            crit: this.critChance(player),
+            weaponId: this.id,
+            diamond: evolved
+        };
+        for (let i = 0; i < fan; i++) {
+            const a = aim + ((i - (fan - 1) / 2) * def.evolveSpread * Math.PI) / 180;
+            sim.pickaxes.push(new ThrownPick(player.x, player.y, a, opts));
+        }
+        sim.emit({ t: 'fire', w: this.id, x: player.x, y: player.y });
     }
 
     /** Buy Wall: a ring rolls out from the Whale. Evolved: a wider, weaker one follows. Fires with no bear near. */

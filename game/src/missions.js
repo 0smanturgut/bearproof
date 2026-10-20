@@ -15,6 +15,7 @@ export const MISSION_TABS = Object.freeze([
     { id: 'bull', label: 'Bull' },
     { id: 'pepe', label: 'Pepe' },
     { id: 'whale', label: 'Whale' },
+    { id: 'miner', label: 'Miner' },
     { id: 'maps', label: 'Maps' }
 ]);
 
@@ -234,6 +235,51 @@ export const MISSIONS = Object.freeze([
         character: 'whale',
         unit: 'time',
         target: 720,
+        value: time
+    },
+    // --- the Miner
+    {
+        id: 'miner_5min',
+        name: 'Proof of Work',
+        text: 'Survive 5:00 as the Miner.',
+        art: 'pickaxe',
+        reward: 100,
+        character: 'miner',
+        unit: 'time',
+        target: 300,
+        value: time
+    },
+    {
+        id: 'miner_blocks',
+        name: 'Hash Rate',
+        text: 'Mine 12 blocks in one run as the Miner.',
+        art: 'block_reward',
+        reward: 150,
+        character: 'miner',
+        unit: 'count',
+        target: 12,
+        value: (s) => s.stats.blocks
+    },
+    {
+        id: 'miner_shields',
+        name: 'Shield Breaker',
+        text: 'Crack 60 grizzly shields in one run as the Miner.',
+        art: 'diamond_pickaxe',
+        reward: 200,
+        character: 'miner',
+        unit: 'count',
+        target: 60,
+        value: (s) => s.stats.shieldsBroken
+    },
+    {
+        id: 'miner_10min',
+        name: 'Halving Survivor',
+        text: 'Survive 10:00 as the Miner.',
+        art: 'miner_hero',
+        reward: 300,
+        character: 'miner',
+        unit: 'time',
+        target: 600,
         value: time
     },
     // --- the maps

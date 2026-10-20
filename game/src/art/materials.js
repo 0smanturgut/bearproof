@@ -65,6 +65,23 @@ export const M = {
     whaleBelly: mat(['#3C4A60', '#66788E', '#98A8BC', '#C6D2E0', '#E6EEF6', '#FFFFFF'], {
         line: '#1A2232'
     }),
+    // The Miner (playable): dark brown-grey velvet fur with a pale top tone (so he holds up on dark ground),
+    // a pink snout and paws, a safety-yellow hard hat, and his pickaxe (cool steel on a warm ash handle)
+    moleFur: mat(['#16121A', '#2B2430', '#463B45', '#665858', '#8F807C', '#C4B6AC'], {
+        line: '#0B080D'
+    }),
+    moleNose: mat(['#4A1426', '#8E2C4A', '#CC5272', '#FF88A8', '#FFB9CB', '#FFE6EE'], {
+        line: '#2A0814'
+    }),
+    hardHat: mat(['#3A2400', '#8A5600', '#D99400', '#FFC21A', '#FFE066', '#FFF7C8'], {
+        line: '#241500'
+    }),
+    pickIron: mat(['#121820', '#26303C', '#3E4C5C', '#62748A', '#9AACC0', '#E6F0FA'], {
+        line: '#080B10'
+    }),
+    pickHandle: mat(['#2A160A', '#55301A', '#82502A', '#AE7340', '#D29A60', '#F0C890'], {
+        line: '#160A04'
+    }),
 
     // Bears, candles and everything bearish
     bear: mat(['#2B0714', '#6E0F2A', '#B81E40', '#FF3B5C', '#FF7E86', '#FFC9BF'], {

@@ -350,6 +350,66 @@ export function deadCat() {
     return s.render();
 }
 
+/**
+ * 20×20 pickaxe in flight: the handle runs down-left from the centre, the curved head crosses it there, both
+ * arms bending back towards the handle (mirrored across the line x + y = 20). The handle-head junction sits on
+ * the canvas centre, so the renderer can spin it about that point.
+ */
+function flyingPick(head, tip, glow) {
+    const s = new PixelSprite(20, 20);
+    s.capsule(10, 10, 2.5, 17.5, 1.3, 1.1, M.pickHandle);
+    s.pxs(
+        [
+            [3, 15],
+            [4, 14],
+            [5, 13]
+        ],
+        '#2A160A'
+    );
+    s.px(2, 17, M.pickHandle.ramp[5]);
+    s.auto('h', { R: 1.4, grad: 0.3 });
+    s.capsule(10, 10, 6, 5.5, 2, 1.5, head, { g: 'h' });
+    s.capsule(6, 5.5, 2.5, 6, 1.5, 0.6, head, { g: 'h' });
+    s.capsule(10, 10, 14.5, 14, 2, 1.5, head, { g: 'h', bias: -0.08 });
+    s.capsule(14.5, 14, 14, 17.5, 1.5, 0.6, head, { g: 'h', bias: -0.08 });
+    s.circle(10, 10, 1.6, head, { bias: 0.15 });
+    const o = glow ? { glow } : undefined;
+    // the bright cutting edges along the outer curve, and the tips
+    s.pxs(
+        [
+            [2, 6],
+            [3, 5],
+            [5, 4],
+            [6, 4],
+            [7, 4]
+        ],
+        tip,
+        o
+    );
+    s.pxs(
+        [
+            [14, 17],
+            [15, 16]
+        ],
+        tip,
+        o
+    );
+    s.px(9, 9, head.ramp[5]);
+    return s;
+}
+
+/** Pickaxe in flight (the Miner's weapon): an iron head with bright edges on an ash handle. */
+export function pickThrown() {
+    return flyingPick(M.pickIron, '#FFFFFF').render();
+}
+
+/** Diamond Pickaxe in flight (evolved): a cyan diamond head, its tips and edges glowing. */
+export function pickDiamond() {
+    const s = flyingPick(M.diamond, '#E8FAFF', '#6FD8FF');
+    s.px(10, 10, '#FFFFFF', { glow: '#6FD8FF' });
+    return s.render();
+}
+
 /** 8×8 FUD bolt: a crackling purple-red orb. */
 export function fudBolt(f) {
     const s = new PixelSprite(8, 8);

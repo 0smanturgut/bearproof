@@ -76,8 +76,9 @@ import { Weapon } from './weapons.js';
  * over), piggy banks to smash for pickups (ramen, a gold candle, CLOUT, Liquidity Sweep, Trading Halt, Short
  * Squeeze), a treasure chest from every boss (free level-ups), and two rerolls and two skips of level-up cards.
  * 23: Market Eras (a fourth map, second in the rotation: four eras, each with its own bears and boss, the Flash
- * Loan bear; an era turns when its boss dies and delists the bears on the field). */
-export const SIM_VERSION = 23;
+ * Loan bear; an era turns when its boss dies and delists the bears on the field).
+ * 24: The Miner (a fourth character: the Pickaxe flies out and back and cracks shields; Block Reward quakes). */
+export const SIM_VERSION = 24;
 
 /**
  * The rules before 22, still played (and replayed) where they're owed: a run log written with sim version 21 replays
@@ -140,6 +141,11 @@ export class Simulation {
         this.mines = [];
         this.honey = []; // Honey Trap: jars in flight and puddles on the floor
         this.walls = []; // Buy Wall: rings rolling out from the Whale
+        this.pickaxes = []; // Pickaxe: picks in flight (the Miner)
+        // Block Reward (the Miner): kills toward the next block, the kills it needs, and blocks waiting to go off
+        this.blockKills = 0;
+        this.blockNeed = this.character.blockKills || 0;
+        this.blockPending = 0;
         this.xp = [];
         this.crates = [];
         this.pickups = []; // what piggy banks and bosses dropped (PICKUPS)
@@ -198,7 +204,10 @@ export class Simulation {
             rerolls: 0,
             skips: 0,
             delisted: 0, // Market Eras: bears popped by an era turning
-            blinks: 0 // Flash Loan: blinks that landed
+            blinks: 0, // Flash Loan: blinks that landed
+            pickHits: 0, // Pickaxe: hits (each leg counts)
+            blocks: 0, // Block Reward: blocks mined
+            quakeHits: 0 // and the bears their quakes hit
         };
         this.rocketHit = new Set(); // bears rammed on the current ride
         this.events = [];
@@ -251,10 +260,12 @@ export class Simulation {
         this._updateList(this.mines, dt);
         this._updateList(this.honey, dt);
         this._updateList(this.walls, dt);
+        this._updateList(this.pickaxes, dt);
         this._runDelayed(dt);
         this._cullDead();
         if (this.eras) this._eraTick();
         this._sweep();
+        if (this.blockPending) this._mineBlock();
         this._updateList(this.xp, dt);
         this._updateList(this.crates, dt);
         this._updateList(this.pickups, dt);
@@ -404,6 +415,11 @@ export class Simulation {
                 this.xp.push(new XpOrb(e.x, e.y, e.exp));
             }
             if (this.time < this.dipUntil && !e.delisted) this._dipHeal(e);
+            if (this.blockNeed && !e.delisted && ++this.blockKills >= this.blockNeed) {
+                this.blockKills = 0;
+                this.blockNeed = Math.round(this.blockNeed * this.character.blockGrowth);
+                this.blockPending++;
+            }
         }
         this.emit({
             t: 'kill',
@@ -736,6 +752,52 @@ export class Simulation {
         if (n) this.stats.sweeps++;
         this.stats.swept += n;
         this.emit({ t: 'sweep', x: p.x, y: p.y, r: c.sweepRadius, n });
+    }
+
+    // --- Block Reward (the Miner) ------------------------------------------------
+
+    /** How far the hash meter is toward the next block, 0..1 (null for a character without one). */
+    get blockProgress() {
+        return this.blockNeed ? this.blockKills / this.blockNeed : null;
+    }
+
+    /**
+     * A block was mined (kills counted in _onKilled): a quake around the player hits every bear within the
+     * radius, cracks its shield and shoves it back (bosses don't move). Blocks mined on the same tick go off as one.
+     */
+    _mineBlock() {
+        const c = this.character;
+        const p = this.player;
+        const mined = this.blockPending;
+        this.blockPending = 0;
+        this.stats.blocks += mined;
+        const r = c.blockRadius * p.getAreaMult();
+        const dmg = c.blockDamage * p.getDamageMult();
+        let n = 0;
+        for (const e of this.enemies) {
+            if (e.hp <= 0 || e.despawned) continue;
+            const dx = e.x - p.x;
+            const dy = e.y - p.y;
+            const d = hypot(dx, dy);
+            if (d > r + e.size) continue;
+            if (e.shielded && e.shieldHp > 0) this.breakShield(e);
+            this.damageEnemy(e, dmg, false, 'block');
+            if (!e.boss && e.hp > 0) {
+                const k = d > 0.01 ? 1 / d : 0;
+                e.knock(k ? dx * k : p.facing, k ? dy * k : 0, c.blockKnock);
+            }
+            n++;
+        }
+        this.stats.quakeHits += n;
+        this.emit({
+            t: 'block',
+            x: p.x,
+            y: p.y,
+            r,
+            n,
+            count: this.stats.blocks,
+            next: this.blockNeed
+        });
     }
 
     // --- Whale Alert ------------------------------------------------------------

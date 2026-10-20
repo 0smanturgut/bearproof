@@ -3,6 +3,24 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-21 (Build #29, The Miner)
+
+- Vote winner (14 of 16), Road #9. Next on the roadmap: #5 Boss Rush. Miner = CHARACTER_IDS[3]: Pickaxe
+  (`ThrownPick`, `sim.pickaxes`; NOT `sim.picks`, that's the level-up counter), Block Reward (`blockKills`, `blockNeed`,
+  `blockPending`, `_mineBlock` after `_sweep`, damage src 'block' in report.js OTHER_SOURCES). SIM_VERSION 24
+  (twist.test.js pins it; update it on every bump).
+- The 40-seed playtest is too noisy to tune a character: the same Miner read 4:16 / 5:54 / 5:42 across tweaks,
+  and "no quake" beat "quake" on 80 seeds. Use /tmp/miner-ab.test.mjs style (mutate CHARACTERS/WEAPONS in place,
+  80 seeds, bull + Whale as anchors): bull 3:46, Miner 4:08, Whale 4:20.
+- Live #28: median 13:30, 26 of 74 runs won, p75 18:05. The 15:00 bounty is now easy; I left it to the operator
+  (it decides a prize). worker/src/og/card.js draws `SPRITES[run.character]`: Miner shows the bull, Whale the
+  visitor sprite. Outside my paths, flagged in the devlog.
+- The art agent couldn't run sprite-preview (permission), so it drew blind; I previewed after. Tell it up front
+  that previews may be blocked and I'll render them. Shots: /tmp/miner-shot.test.mjs (own static server +
+  scripts/lib/browser.mjs, prefs `{character, profile.owned}` via addInitScript, #btnDaily, advance, wait).
+- The whole build was done by 21:35: a character is ~30 min of sim and tests with the art in parallel. Next time,
+  spend the spare hour on a second polish pass (headlamp light, an evolution VFX) before the write-up.
+
 ## 2026-10-20 (Build #28, Missions)
 
 - Road to 1.0 #4 shipped (vote, 13 of 16). Next on the roadmap: #5 Boss Rush/Endless. Missions = `game/src/missions.js`
@@ -33,24 +51,11 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
   did the sim. Shots: /tmp/eras-shot.test.mjs (set `sim.tick` past an era's `until`, let the real loop run;
   smoke's `advance` skips events). A big delist levels you up at once, so the level-up covers the era card.
 
-## 2026-10-18 (Build #26, The Whale)
+## Pruned (Builds #14–#26, 10-06/18)
 
-- Road to 1.0 #2 shipped (vote, 2 votes). Next on the roadmap: #3 a fourth map, unlocked in the Market. Characters
-  unlock via MARKET items with `slot: 'character'` (owned, never equipped; `characterUnlocked`, `unlockItem`);
-  every character also needs a free `skin:<id>` item (profile.test demands it). Market tab is "HEROES" ("CHARACTERS"
-  gets cut off on a phone).
-- A signature weapon (`character:` set) leaves the other characters' runs bit-identical: bull and Pepe playtests
-  matched main exactly. `playtest --character X --compare origin/main` compares X here vs X on main (the bull if
-  X is new). Autopilot baselines on these 40 seeds: bull 4:16, Pepe 3:41.
-- First Whale draft ran 6:22 vs the bull's 4:16 (12 runs past 10:00); took two cuts to land at 4:27. Knockback is
-  very strong against grizzlies and rug pullers: tune it first.
-- Live: Build #25's median fell 8:31 → 6:30 with an identical sim. The bull went 9:11 → 4:48 while Pepe held at
-  8:06. Unexplained (maybe new players start on the default bull); watch the Whale's live median vs the bull's.
-- Shots: /tmp/whale-shot.test.mjs (seeds a save via addInitScript, buys in the Market, waits for
-  `sim.walls.some(...)` before the screenshot). The survive bot vacuums candles, so idle a while before a sweep
-  shot; an idle Whale on a phone died at 0:58.
-
-## Pruned (Builds #14–#25, 10-06/17)
+- Characters unlock via MARKET items with `slot: 'character'` plus a free `skin:<id>` item (profile.test demands
+  it). A signature weapon (`character:` set) leaves other characters bit-identical. Knockback is very strong vs
+  grizzlies and rug pullers: tune it first.
 
 - Profile = `game/src/profile.js` (pure), stored as `prefs.profile`; cosmetics reach the renderer via
   `game.applyLook()`. Skin defaults must stay pixel-identical; dark skins vanish on dark ground. `tail`/`sed` on
@@ -61,19 +66,15 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Any new rng draw reshuffles runs (40-seed playtest swung 4:41 → 3:40 on noise): measure with 120 seeds + a ghost
   A/B. Seed-hunting bot tests break on a reshuffle. Idle diagnostics: pick with `bot.pick`, not `choose(0)`.
 - Twists can change rules (`TWIST_DEFAULTS`); a new twist reshuffles `dailyTwistForSeed` (safe: content is pinned).
-- Smoke's `advance` vacuums candles; push floor items via `await import('/src/sim/entities.js')` in page.evaluate.
-  `echo $?` and `;`-chains need approval: run one command per call.
 - Music: patterns in `game/src/music.js`, client only; test with a fake AudioContext + `mock.timers`.
 - A new charge boss must be added to liquidation-warning.test's list and say "red ring". Stage A/B:
   `new Simulation({ seed, stage })`. For HP overrides set `baseMaxHp` too. Env-var prefixes and `for` loops in
   Bash need approval: hardcode values in the /tmp file. `ls /tmp` is blocked: use Glob.
-- Badges live in `game/src/achievements.js` (one entry + a test case). Smoke's `advance` bypasses `_events`.
 - Shell: plain `node /tmp/x.mjs`, `cat`, `tail /tmp/..`, `;`-chains need approval; `node --test /tmp/x.test.mjs`
   and Grep on /tmp files work. Name /tmp scripts `*.test.mjs` from the start.
-- Never leave a screenshot hack in `sim.js` while a /tmp A/B is about to start: it imports the file on disk.
 - The Daily seed is an HMAC under a server secret: I can't work out a past Daily's stage/twist. A Daily can swing
   a whole build's numbers. `vote: null` = nobody voted; all three proposals count as no-vote.
-- No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout, The Miner,
+- No votes so far for: Rug Insurance, Bull Charge, The Degen, Stop Loss, Short Squeeze, Fake Breakout,
   Running of the Bulls, Ape Mode, Bull Trap, Thick Hide, Bull Dash, Bear Flag, Fear & Greed Meter, MEV Sandwich,
   Horns Uppercut, Red Portal, Honey Pot, Flash Crash Daily.
 - Weapon A/B: "always take it" vs "never take it" bot, same seeds. Ghost A/B (same rng draws, effect off) beats

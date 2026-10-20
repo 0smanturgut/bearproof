@@ -378,6 +378,7 @@ export class Renderer {
         }
         for (const w of sim.walls || []) this._drawBuyWall(w, X(w.x), Y(w.y));
         if (sim.sweepIn != null) this._drawSweepMeter(sim, X(p.x), Y(p.y), t, fx.calm);
+        if (sim.blockProgress != null) this._drawHashMeter(sim, X(p.x), Y(p.y), t, fx.calm);
 
         // --- XP candles (with a soft light under each)
         ctx.globalCompositeOperation = 'lighter';
@@ -534,6 +535,10 @@ export class Renderer {
         for (const h of sim.honey || []) {
             if (h.landed || !visible(h.x, h.y, 120)) continue;
             this._drawHoneyJar(h, X, Y, t, glows);
+        }
+        for (const pk of sim.pickaxes || []) {
+            if (!visible(pk.x, pk.y, 40)) continue;
+            this._drawPick(pk, X(pk.x), Y(pk.y), glows);
         }
         for (const b of sim.enemyProjectiles) {
             if (!visible(b.x, b.y, 30)) continue;
@@ -771,6 +776,53 @@ export class Renderer {
         ctx.stroke();
         const pulse = soon && !calm ? 0.65 + 0.35 * Math.sin(t * 14) : 1;
         ctx.strokeStyle = soon ? `rgba(255,197,61,${pulse})` : 'rgba(22,224,138,0.8)';
+        ctx.beginPath();
+        ctx.ellipse(sx, y, rx, ry, 0, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
+        ctx.stroke();
+    }
+
+    // ---------------------------------------------------------------- The Miner
+
+    /**
+     * Pickaxe: the pick spins in flight (its spin comes from its own flight time, so a replay draws it the same),
+     * with a faint arc trail behind the head. Diamond Pickaxe's picks are cyan and glow.
+     */
+    _drawPick(pk, sx, sy, glows) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const rot = pk.life * 18 * (pk.back ? -1 : 1);
+        const rgb = pk.diamond ? '120,232,255' : '255,214,120';
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = `rgba(${rgb},0.35)`;
+        ctx.lineWidth = Math.max(2, 3 * s);
+        ctx.beginPath();
+        ctx.arc(sx, sy, 11 * s, rot - 1.6, rot);
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+        const id = pk.diamond ? 'pick_diamond' : 'pick_thrown';
+        this._blit(id, sx, sy, { rot });
+        if (pk.diamond) glows.push([id, sx, sy, 0, false, 0.8]);
+    }
+
+    /**
+     * Block Reward: an amber arc under the Miner fills with every kill toward the next block; in the last 15% it
+     * pulses white-gold, so the player knows a quake is a kill or two away and can wade into the crowd for it.
+     */
+    _drawHashMeter(sim, sx, sy, t, calm) {
+        const frac = sim.blockProgress;
+        const ctx = this.ctx;
+        const k = this.k;
+        const soon = frac >= 0.85;
+        const rx = 18 * k;
+        const ry = 6 * k;
+        const y = sy + 15 * k;
+        ctx.lineWidth = Math.max(2, 1.6 * k);
+        ctx.strokeStyle = 'rgba(7,9,12,0.55)';
+        ctx.beginPath();
+        ctx.ellipse(sx, y, rx, ry, 0, 0, TAU);
+        ctx.stroke();
+        const pulse = soon && !calm ? 0.65 + 0.35 * Math.sin(t * 14) : 1;
+        ctx.strokeStyle = soon ? `rgba(255,236,170,${pulse})` : 'rgba(255,170,40,0.85)';
         ctx.beginPath();
         ctx.ellipse(sx, y, rx, ry, 0, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
         ctx.stroke();
@@ -1606,6 +1658,14 @@ export class Renderer {
         // the bull carries a soft light of its own
         L.add(X(p.x), Y(p.y) - 10 * s, 380 * s, '255,238,214', 0.6);
         L.add(X(p.x), Y(p.y) - 6 * s, 150 * s, '255,246,232', 0.35);
+        if (sim.characterId === 'miner') {
+            // the Miner's headlamp: a warm pool on the ground ahead of him, the way he faces
+            const f = p.facing < 0 ? -1 : 1;
+            L.add(X(p.x + f * 70), Y(p.y) + 2 * s, 130 * s, '255,236,170', 0.5);
+            L.add(X(p.x + f * 150), Y(p.y) + 4 * s, 110 * s, '255,236,170', 0.3);
+        }
+        for (const pk of sim.pickaxes || [])
+            L.add(X(pk.x), Y(pk.y), 46 * s, pk.diamond ? '120,232,255' : '255,214,120', 0.35);
         for (const pr of props) {
             const l = PROP_DEFS[pr.id]?.light;
             if (!l) continue;

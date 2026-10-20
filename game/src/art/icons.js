@@ -253,6 +253,97 @@ export function buyWall() {
     return s.render();
 }
 
+/** A pickaxe on the diagonal: handle from the bottom left, the curved head across the top right. */
+function drawPick(s, head, edge, glow) {
+    s.capsule(1.5, 13, 9.5, 5, 1, 0.9, M.pickHandle);
+    s.pxs(
+        [
+            [2, 11],
+            [3, 10]
+        ],
+        '#2A160A'
+    );
+    s.auto('h', { R: 1.2, grad: 0.3 });
+    // both arms curve down towards the handle, mirrored across it (the line x + y = 14.5)
+    s.capsule(9.5, 5, 6.5, 2, 1.5, 1.1, head, { g: 'h' });
+    s.capsule(6.5, 2, 3.5, 2.2, 1.1, 0.5, head, { g: 'h' });
+    s.capsule(9.5, 5, 12.5, 8, 1.5, 1.1, head, { g: 'h', bias: -0.08 });
+    s.capsule(12.5, 8, 12.3, 11, 1.1, 0.5, head, { g: 'h', bias: -0.08 });
+    const o = glow ? { glow } : undefined;
+    s.pxs(
+        [
+            [3, 2],
+            [6, 1],
+            [7, 1]
+        ],
+        edge,
+        o
+    );
+    s.px(12, 11, edge, o);
+    s.px(9, 4, head.ramp[5]);
+}
+
+/** Pickaxe: the Miner's swing, an iron head with bright tips on an ash handle. */
+export function pickaxe() {
+    const s = S();
+    drawPick(s, M.pickIron, '#FFFFFF');
+    return s.render();
+}
+
+/** Diamond Pickaxe (evolved): the same pick with a cyan diamond head that sparkles. */
+export function diamondPickaxe() {
+    const s = S();
+    drawPick(s, M.diamond, '#FFFFFF', '#6FD8FF');
+    s.patch(11, 0, ['.W.', 'WWW', '.W.'], { W: '#E8FAFF' }, { glow: '#6FD8FF' });
+    s.px(1, 6, '#C4F2FF', { glow: '#6FD8FF' });
+    return s.render();
+}
+
+/** Block Reward: a gold block, its shaded face stamped with a glowing hash, a sparkle off the corner. */
+export function blockReward() {
+    const s = S();
+    s.poly(
+        [
+            [7, 1.5],
+            [12.5, 4.5],
+            [7, 7.5],
+            [1.5, 4.5]
+        ],
+        M.gold,
+        { lum: 0.8 }
+    );
+    s.poly(
+        [
+            [1.5, 4.5],
+            [7, 7.5],
+            [7, 13.5],
+            [1.5, 10.5]
+        ],
+        M.gold,
+        { lum: 0.45 }
+    );
+    s.poly(
+        [
+            [7, 7.5],
+            [12.5, 4.5],
+            [12.5, 10.5],
+            [7, 13.5]
+        ],
+        M.pepper,
+        { lum: 0.55 }
+    );
+    for (let y = 8; y <= 12; y++) s.px(7, y, '#FFE08A');
+    s.patch(
+        2,
+        7,
+        ['.X.X.', 'XXXXX', '.X.X.', 'XXXXX', '.X.X.'],
+        { X: '#FFF6D6' },
+        { glow: '#FFC53D' }
+    );
+    s.patch(11, 0, ['.W.', 'WWW', '.W.'], { W: '#FFFFFF' }, { glow: '#FFC53D' });
+    return s.render();
+}
+
 export function buyback() {
     const s = S();
     s.auto('a', { R: 1.2, grad: 0.2 });

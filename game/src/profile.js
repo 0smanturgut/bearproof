@@ -73,6 +73,15 @@ export const MARKET = Object.freeze([
         text: 'Buy Wall shoves bears back. 120 HP, slow and big. Once a minute it sweeps every candle on screen.'
     },
     {
+        id: 'char_miner',
+        slot: 'character',
+        character: 'miner',
+        name: 'The Miner',
+        price: 900,
+        sprite: 'miner_hero',
+        text: 'Pickaxe out and back, cracks shields. 110 HP. Kills mine blocks; blocks quake.'
+    },
+    {
         id: 'bull_default',
         slot: 'skin:bull',
         name: 'The Bull',
@@ -127,6 +136,14 @@ export const MARKET = Object.freeze([
         price: 0,
         sprite: 'whale_hero',
         text: 'Deep blue, gold chain. The original.'
+    },
+    {
+        id: 'miner_default',
+        slot: 'skin:miner',
+        name: 'The Miner',
+        price: 0,
+        sprite: 'miner_hero',
+        text: 'Hard hat, headlamp on. The original.'
     },
     {
         id: 'trail_none',

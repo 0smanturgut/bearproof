@@ -31,6 +31,7 @@ const SPRITE_GENS = {
     bull: make(creatures.bull, 4, { fps: 11 }),
     pepe: make(creatures.pepe, 4, { fps: 9 }),
     whale_hero: make(creatures.whaleHero, 4, { fps: 7 }),
+    miner_hero: make(creatures.minerHero, 4, { fps: 8 }),
     // Market skins (profile.js): same size and animation as their character
     bull_gold: make(creatures.bullGold, 4, { fps: 11 }),
     bull_midnight: make(creatures.bullMidnight, 4, { fps: 11 }),
@@ -84,6 +85,8 @@ const SPRITE_GENS = {
     god_candle: make(items.godCandle, 4, { fps: 8 }),
     moon_rocket: make(items.moonRocket, 4, { fps: 14 }),
     honey_jar: make(items.honeyJar, 2, { fps: 4 }),
+    pick_thrown: make(items.pickThrown),
+    pick_diamond: make(items.pickDiamond),
     // the maps' small life (life.js) and scenery (props.js): drawn by the renderer, never seen by the simulation
     // breakables, what they drop, and the boss's treasure chest (loot.js)
     piggy_bank: make(loot.piggyBank, 4, { fps: 6 }),
@@ -115,6 +118,9 @@ const ICON_GENS = {
     bear_spray: make(icons.bearSpray),
     honey_trap: make(icons.honeyTrap),
     buy_wall: make(icons.buyWall),
+    pickaxe: make(icons.pickaxe),
+    diamond_pickaxe: make(icons.diamondPickaxe),
+    block_reward: make(icons.blockReward),
     thick_skin: make(icons.thickSkin),
     dca: make(icons.dca),
     cold_wallet: make(icons.coldWallet),
@@ -146,7 +152,7 @@ export const SPRITES = lazyTable(SPRITE_GENS);
 export const ICONS = lazyTable(ICON_GENS);
 
 export const SPRITE_GROUPS = {
-    player: ['bull', 'pepe', 'whale_hero'],
+    player: ['bull', 'pepe', 'whale_hero', 'miner_hero'],
     skins: ['bull_gold', 'bull_midnight', 'pepe_frost', 'pepe_night'],
     brand: ['emblem', 'emblem_large'],
     visitors: ['whale'],
@@ -194,7 +200,9 @@ export const SPRITE_GROUPS = {
         'rug',
         'god_candle',
         'moon_rocket',
-        'honey_jar'
+        'honey_jar',
+        'pick_thrown',
+        'pick_diamond'
     ],
     loot: ['piggy_bank', 'pk_ramen', 'pk_clout', 'pk_magnet', 'pk_halt', 'pk_squeeze', 'chest'],
     critters: ['crow', 'pigeon', 'rat', 'hare'],
@@ -216,7 +224,9 @@ export const ICON_GROUPS = {
         'tongue',
         'bear_spray',
         'honey_trap',
-        'buy_wall'
+        'buy_wall',
+        'pickaxe',
+        'diamond_pickaxe'
     ],
     passives: [
         'thick_skin',
@@ -227,6 +237,7 @@ export const ICON_GROUPS = {
         'liquidity',
         'high_frequency',
         'whale_gravity',
+        'block_reward',
         'compounding',
         'alpha',
         'slippage',

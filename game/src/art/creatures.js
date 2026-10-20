@@ -623,6 +623,115 @@ export function whaleHero(f) {
     return s.render();
 }
 
+// ---------------------------------------------------------------- the miner (playable)
+
+/** The hard hat's dome, above the brim (rows 6-7). */
+const MINER_HAT = [
+    [0, 16, 21],
+    [1, 15, 22],
+    [2, 13, 24],
+    [3, 13, 24],
+    [4, 12, 25],
+    [5, 12, 25]
+];
+
+/**
+ * 34×30 The Miner, the fourth playable character: our own cartoon mole, upright and plump, facing right.
+ * Dark velvet fur with a pale top tone, a long pink-nosed snout with one buck tooth, tiny bright eyes under a
+ * safety-yellow hard hat with a glowing headlamp, big pink digging paws with ivory claws held up at the chest,
+ * and a pickaxe slung across his back on a leather strap.
+ * Frames 0-3: a waddle (stride, pass, stride, pass), the body bobbing up on the passing frames, paws pumping.
+ */
+export function minerHero(f) {
+    const s = new PixelSprite(34, 30, { dither: 0.25 });
+    const F = M.moleFur;
+    const P = M.moleNose;
+    const H = M.hardHat;
+    const i = f % 4;
+    const b = [0, -1, 0, -1][i]; // body bob
+    const lg = [2, 0, -2, 0][i]; // near-leg stride (the far leg goes the other way)
+    const sw = [-1, 0, 1, 0][i]; // near-paw swing, against the near leg
+    s.auto('body', { R: 3.6, grad: 0.3 });
+    s.auto('head', { R: 2.8, grad: 0.26 });
+    s.auto('hat', { R: 2, grad: 0.3 });
+    s.auto('legs', { R: 1.3, grad: 0.15 });
+    s.auto('far', { R: 1.3, grad: 0.1 });
+    s.auto('arm', { R: 1.4, grad: 0.18 });
+    s.auto('paw', { R: 1.2, grad: 0.25 });
+    s.auto('pick', { R: 1.2, grad: 0.3 });
+    // the pickaxe slung on his back: the handle pokes out below, the head above the shoulder
+    s.capsule(6.5, 27 + b, 13, 5 + b, 0.9, 0.9, M.pickHandle);
+    s.capsule(13, 5 + b, 8, 3.8 + b, 1.5, 1.2, M.pickIron, { g: 'pick' });
+    s.capsule(8, 3.8 + b, 4.5, 6.5 + b, 1.2, 0.5, M.pickIron, { g: 'pick' });
+    s.capsule(13, 5 + b, 17.5, 6.5 + b, 1.5, 1, M.pickIron, { g: 'pick' });
+    s.px(4, 6 + b, '#E6F0FA')
+        .px(8, 2 + b, '#E6F0FA')
+        .px(9, 2 + b, '#9AACC0');
+    // far leg and far paw, darker, behind the body
+    s.capsule(13, 24 + b, 13 - lg * 0.8, 27.6, 1.9, 1.5, F, { g: 'far', bias: -0.12 });
+    s.ellipse(14 - lg * 0.8, 28.3, 2.2, 1.1, P, { shade: 'flat', lum: 0.3 });
+    s.capsule(19, 17 + b, 25 - sw, 17.5 + b, 1.7, 1.4, F, { g: 'far', bias: -0.15 });
+    s.ellipse(26 - sw, 17.5 + b, 1.9, 1.6, P, { shade: 'flat', lum: 0.35 });
+    s.px(28 - sw, 16 + b, '#B8A890').px(28 - sw, 18 + b, '#B8A890');
+    // a stubby pink tail
+    s.capsule(8.5, 23 + b, 6, 24 + b, 1.1, 0.7, P, { shade: 'flat', lum: 0.45 });
+    // the body: a plump pear with a paler velvet belly
+    s.ellipse(16, 20 + b, 8.5, 7.5, F, { g: 'body', bias: 0.02 });
+    s.ellipse(19.5, 22 + b, 5, 4.6, F, { g: 'body', clip: true, bias: 0.1 });
+    // the pickaxe's leather strap across the chest, with a gold buckle
+    s.line(11, 14 + b, 19.5, 27 + b, M.pickHandle, { lum: 0.2, w: 1.3, clip: true });
+    s.px(15, 20 + b, C.gold).px(15, 21 + b, '#B07A00');
+    // head and long snout, the pink nose on the tip
+    s.ellipse(20, 11.5 + b, 7, 6, F, { g: 'head' });
+    s.capsule(25, 13 + b, 29.5, 13.5 + b, 3, 2, F, { g: 'head', bias: 0.04 });
+    s.circle(31, 13 + b, 1.8, P, { spec: 0.5 });
+    s.px(30, 12 + b, '#FFE6EE').px(32, 14 + b, '#8E2C4A');
+    // tiny bright eye with a catchlight, a pink cheek, a smile and one buck tooth
+    s.px(24, 10 + b, '#FFFFFF')
+        .px(25, 10 + b, C.pupil)
+        .px(24, 11 + b, C.pupil)
+        .px(25, 11 + b, C.pupil);
+    s.px(23, 13 + b, '#E0607E').px(24, 13 + b, '#E0607E');
+    for (const [x, y] of [
+        [25, 14],
+        [26, 15],
+        [27, 15],
+        [28, 15]
+    ])
+        s.px(x, y + b, '#1A0A10');
+    s.px(27, 16 + b, '#FFFFFF');
+    // the hard hat: a domed shell with a raised ridge, a brim that juts out over the eyes
+    s.spans(MINER_HAT, H, { g: 'hat', dy: b });
+    for (let y = 0; y <= 5; y++) {
+        s.px(18, y + b, y < 3 ? H.ramp[5] : H.ramp[4]);
+        if (y) s.px(19, y + b, H.ramp[2]);
+    }
+    s.box(10.5, 6 + b, 18, 1, H, { shade: 'flat', lum: 0.8 });
+    s.box(10.5, 7 + b, 18, 1, H, { shade: 'flat', lum: 0.42 });
+    // the headlamp: a steel housing on the front of the hat, a lens that glows, a flicker of beam
+    const lamp = { glow: '#FFE08A' };
+    s.box(24.5, 1.5 + b, 3, 3.5, M.metal, { r: 0.6, bevel: 1 });
+    s.px(27, 2 + b, '#FFFFFF', lamp)
+        .px(27, 3 + b, '#FFF3B0', lamp)
+        .px(28, 2 + b, '#FFE066', lamp)
+        .px(28, 3 + b, '#FFE066', lamp);
+    const beam = { glow: '#FFE08A', bare: true };
+    if (i % 2 === 0) s.px(30, 2 + b, '#FFE9A0', beam).px(30, 3 + b, '#FFE9A0', beam);
+    else
+        s.px(30, 1 + b, '#FFE9A0', beam)
+            .px(30, 4 + b, '#FFE9A0', beam)
+            .px(31, 2 + b, '#FFF6D6', beam)
+            .px(31, 3 + b, '#FFF6D6', beam);
+    // near leg and foot
+    s.capsule(18.5, 24 + b, 18.5 + lg * 0.8, 27.6, 2, 1.6, F, { g: 'legs' });
+    s.ellipse(20 + lg * 0.8, 28.3, 2.4, 1.1, P, { shade: 'flat', lum: 0.6 });
+    // near arm and the big digging paw, held up at the chest, ivory claws out front
+    s.capsule(20.5, 17 + b, 24 + sw, 20.5 + b, 2, 1.6, F, { g: 'arm' });
+    s.ellipse(25.5 + sw, 21.5 + b, 2.4, 2, P, { g: 'paw' });
+    s.patch(27 + sw, 19 + b, ['.CW', '...', 'CCW', '...', '.CW'], { C: '#EDE2CC', W: '#FFFFFF' });
+    return s.render();
+}
+
 // ---------------------------------------------------------------- enemies
 
 /** 14×22 hopping red candle with an angry face. */

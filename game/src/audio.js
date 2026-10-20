@@ -405,6 +405,18 @@ export class AudioEngine {
             );
         }
     }
+    /** Pickaxe throw: a short airy whoosh, then a bright clink of iron. */
+    pick() {
+        this.tone({ noise: true, dur: 0.07, volume: 0.05, attack: 0.01, release: 0.05 });
+        this.tone({ freq: 1900, dur: 0.05, type: 'triangle', volume: 0.06, sweep: -600 });
+    }
+    /** Block Reward: a deep thud of rock, a crack of noise, then two coin chimes for the block reward. */
+    block() {
+        this.tone({ freq: 90, dur: 0.4, type: 'sine', volume: 0.28, sweep: -45 });
+        this.tone({ noise: true, dur: 0.2, volume: 0.16, release: 0.12 });
+        setTimeout(() => this.tone({ freq: 1320, dur: 0.1, type: 'triangle', volume: 0.08 }), 140);
+        setTimeout(() => this.tone({ freq: 1760, dur: 0.16, type: 'triangle', volume: 0.08 }), 230);
+    }
     /** Exit Scam pockets a candle: a quick sly "swish" down. */
     scamGrab() {
         this.tone({ freq: 1600, dur: 0.06, type: 'triangle', volume: 0.07, sweep: -900 });

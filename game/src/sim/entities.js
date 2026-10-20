@@ -778,6 +778,72 @@ export class BuyWall {
     }
 }
 
+/**
+ * Pickaxe (the Miner's weapon): spins out along `angle` for `range` units at `speed`, then flies back to the
+ * player (wherever they are now) and is gone when it reaches them. Every bear whose body it touches is hit once
+ * per leg (crit rolled with `crit`); a shielded bear's shield cracks before the hit lands.
+ */
+const PICK_RADIUS = 12; // the spinning head's reach
+const PICK_MAX_LIFE = 3; // s: a pick that can't get home (a very fast player) drops out of the sim
+export class ThrownPick {
+    constructor(x, y, angle, { range, speed, damage, crit, weaponId, diamond = false }) {
+        this.x = x;
+        this.y = y;
+        this.ux = cos(angle);
+        this.uy = sin(angle);
+        this.range = range;
+        this.speed = speed;
+        this.damage = damage;
+        this.crit = crit;
+        this.weaponId = weaponId;
+        this.diamond = diamond; // Diamond Pickaxe (drawn cyan)
+        this.travel = 0;
+        this.back = false;
+        this.life = 0;
+        this.hitOut = new Set();
+        this.hitBack = new Set();
+        this.dead = false;
+    }
+    update(dt, sim) {
+        this.life += dt;
+        if (this.life >= PICK_MAX_LIFE) {
+            this.dead = true;
+            return;
+        }
+        const step = this.speed * dt;
+        if (!this.back) {
+            this.x += this.ux * step;
+            this.y += this.uy * step;
+            this.travel += step;
+            if (this.travel >= this.range) {
+                this.back = true;
+                sim.emit({ t: 'pickTurn', x: this.x, y: this.y });
+            }
+        } else {
+            const p = sim.player;
+            const dx = p.x - this.x;
+            const dy = p.y - this.y;
+            const d = hypot(dx, dy);
+            if (d <= step + p.size * 0.5) {
+                this.dead = true;
+                return;
+            }
+            this.x += (dx / d) * step;
+            this.y += (dy / d) * step;
+        }
+        const hit = this.back ? this.hitBack : this.hitOut;
+        for (const e of sim.spatial.queryRect(this.x, this.y, PICK_RADIUS + 40)) {
+            if (e.hp <= 0 || hit.has(e)) continue;
+            if (hypot(e.x - this.x, e.y - this.y) > e.size + PICK_RADIUS) continue;
+            hit.add(e);
+            if (e.shielded && e.shieldHp > 0) sim.breakShield(e);
+            const crit = this.crit > 0 && sim.rng.next() < this.crit;
+            sim.damageEnemy(e, crit ? this.damage * 2 : this.damage, crit, this.weaponId);
+            sim.stats.pickHits++;
+        }
+    }
+}
+
 export class Mine {
     constructor(x, y, radius, damage, fuse, weaponId) {
         this.x = x;

@@ -1,0 +1,18 @@
+[
+    {
+        "id": "boss-rush",
+        "title": "Boss Rush: every boss, back to back",
+        "description": "A new mode next to Free Run and the Daily: the bosses of all four maps in a row with a breather and a level-up between each, its own board label and its own missions."
+    },
+    {
+        "id": "evolutions-collection",
+        "title": "Evolve everything + a Collection",
+        "description": "Part 1 of a full evolution table: every base weapon gets an evolution with its own art and effect, the level-up card says what it will become, and a Collection screen shows everything you've seen."
+    },
+    {
+        "id": "story-mode-chapter-1",
+        "title": "Story Mode: Chapter 1",
+        "description": "Five short stages in a row, each with its own goal and a story card between them, ending in a boss fight, as a new mode beside Free Run and the Daily.",
+        "from": "player"
+    }
+]

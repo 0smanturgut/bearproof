@@ -618,9 +618,29 @@ export class Game {
                     if (e.w === 'honey_trap') break; // the jar is heard when it splashes
                     if (e.w === 'buy_wall') break; // the wall has its own sound ('wall')
                     this._sfx(
-                        e.w === 'tongue' ? 'tongue' : e.w === 'bear_spray' ? 'spray' : 'shoot',
+                        e.w === 'tongue'
+                            ? 'tongue'
+                            : e.w === 'bear_spray'
+                              ? 'spray'
+                              : e.w === 'pickaxe'
+                                ? 'pick'
+                                : 'shoot',
                         0.09
                     );
+                    break;
+                case 'block':
+                    // Block Reward: the ground cracks in an amber ring out to the quake's edge, rock chips fly
+                    fx.ring(e.x, e.y, 16, e.r, 0.4, '255,170,40', 8, true);
+                    fx.ring(e.x, e.y, 8, e.r * 0.6, 0.3, '255,236,170', 4);
+                    fx.burst(e.x, e.y, '#8A6A4A', 22, e.r * 2.2, 3.5, 'spark');
+                    fx.burst(e.x, e.y, '#FFC53D', 14, e.r * 1.6, 3, 'spark');
+                    fx.number(e.x, e.y - 46, `BLOCK #${e.count}`, 'info');
+                    fx.addShake(0.5);
+                    this._sfx('block', 0);
+                    if (!this.attract) {
+                        this.haptics.levelUp?.();
+                        this.ui.toast(`BLOCK #${e.count} MINED`, 'gold', 1300);
+                    }
                     break;
                 case 'wall':
                     // Buy Wall: the ring itself is drawn from sim.walls; here, spray at the Whale's feet

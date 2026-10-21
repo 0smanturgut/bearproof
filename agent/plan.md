@@ -1,49 +1,40 @@
-# Build #29 plan: Play as The Miner
-
-## The update
-
-**The Miner, a fourth playable character.** Chosen in the vote (14 of 16 votes). An original mole in a hard hat
-with a headlamp. He opens a run with the **Pickaxe**, which he throws at the nearest bear. It spins out, comes
-back to him, hits every bear once on the way out and once on the way back, and cracks a grizzly's shield in one
-hit. His trait is **Block Reward**: kills fill a hash meter, and every full block sets off a quake around him that
-hits every bear in reach and cracks every shield. Then the difficulty adjusts: each block needs 15% more kills
-than the last. 110 HP, a little slower than the bull. He's unlocked in the Market for CLOUT.
+# Build #30 plan: Evolve everything + a Collection
 
 ## Why today
 
-He won the vote, and Road to 1.0 #9 (more characters) lists him by name. Grizzlies cause 29.2% of verified deaths
-on the live build (14 of 48), the top killer, and 54% of autopilot deaths. Their shield halves damage until it has
-soaked 60, so a character built around cracking shields answers the game's biggest killer.
+Vote winner (12 voters, 9 of them), Road to 1.0 #6. Every weapon already "evolves" at Lv 5 on its own, so there's no
+choice in it. Tonight evolutions become the build's goal: each weapon needs its own catalyst passive, the card tells
+you, and a Collection screen shows what you've found.
 
 ## Parts
 
-1. **Sim** (`content.js`, `weapons.js`, `entities.js`, `sim.js`): `CHARACTER_IDS` gets 'miner' (index 3). PICKAXE
-   weapon (`type: 'pickaxe'`, `character: 'miner'`, evolves at level 5 into Diamond Pickaxe: two picks fanned out).
-   A `ThrownPick` entity (out to range, back to the player, a hit set per leg). Block Reward: `blockKills`,
-   `blockGrowth`, `blockRadius`, `blockDamage` on the character. Kills are counted at the kill site. A block
-   waiting to go off resolves after `_cullDead`, like the Whale's sweep. Stats: `pickHits`, `blocks`. Bump
-   SIM_VERSION to 26 (or one above whatever it is now).
-2. **Art**: `miner_hero` (4-frame walk, a mole with a hard hat and a glowing headlamp, the pickaxe on his back),
-   the `pickaxe` icon (also drawn spinning in flight), the `block_reward` icon. Materials for mole fur and the hat.
-3. **Render/juice**: the spinning pick in flight, the hash meter arc under the Miner (like the sweep meter), the
-   quake ring with debris, a "BLOCK MINED" toast, shield-crack bursts, screen shake (respects reduced motion).
-4. **Sound**: a pick "whoosh-clink" on the throw, a deep thud plus a coin chime for a block.
-5. **Product**: Market item `char_miner` (CLOUT), the `miner_default` skin, four Miner missions plus a Missions
-   tab, and the HQ autopilot picks him up through CHARACTER_IDS.
-6. **Tests**: `game/test/the-miner.test.js`: the pick goes out and comes back, it hits once per leg, it cracks
-   shields, evolution throws two, blocks fire at the right kill counts with growing difficulty, the quake cracks
-   shields, other characters' runs stay the same, the run log round-trips the miner. Plus the
-   profile/missions/art tests.
-7. **Balance**: `playtest --character miner --compare origin/main` against the bull (4:09 baseline). Aim for the
-   bull to the Whale's band, not far above it.
-
-## Order (so a cut still leaves a complete character)
-
-Sim plus tests, then art (an agent works in parallel), then render/sound, then Market/missions, then balance,
-gates, smoke shots, devlog.
+1. **Catalysts (sim).** Each weapon gets an `evolveWith` passive id. A weapon evolves at Lv 5 only if the bull owns
+   that passive (any stack). Order doesn't matter: Lv 5 first, then the passive, evolves it on that pick (or chest).
+   One `_checkEvolutions()` pass after every card or chest emits `evolve` for each newly evolved weapon. Weapons get
+   an `owner` so `isEvolved()` can check. Weak evolutions get a real effect (Double Bounce: two cats).
+   SIM_VERSION 25. Autopilot learns catalysts.
+   Pairs: horns+momentum, green_candle+leverage, laser_eyes+alpha, diamond_hands+conviction, airdrop+compounding,
+   limit_order+cold_wallet, hopium+dca, circuit_breaker+high_frequency, buyback+thick_skin, dead_cat+slippage,
+   bear_spray+hedge, honey_trap+whale_gravity; signatures: tongue+liquidity, buy_wall+whale_gravity,
+   pickaxe+high_frequency.
+2. **Cards (UI).** Weapon card at Lv 4→5: "EVOLVES → X" if you own the catalyst, else "NEEDS <passive>". Passive
+   card: "EVOLVES <weapon> → X" when it would, or "CATALYST: <weapon>" when it helps an owned weapon.
+3. **Evolution moment.** A banner with the evolved icon, a ring and sparks, a new rising synth chord.
+4. **Art.** 15 evolved icons `evo_<weaponId>` (icons.js style, 16×16), used on cards, the banner, HUD slots and the
+   Collection.
+5. **Collection.** The Field Guide becomes the Collection: weapons, evolutions (recipe shown, art and name locked
+   until you evolve it), passives, bears, bosses lock until seen; counters per tab and a total. Seen ids live in
+   `profile.seen` (pure `collection.js`, saved during the run). Loot and badges tabs stay.
+6. **Tests.** catalyst rules (both orders, chest, no catalyst = no evolution), card fields, collection tracker and
+   normalize, existing evolution tests updated to own the catalyst.
 
 ## Files
 
-game/src/sim/{content,weapons,entities,sim}.js, game/src/art/{creatures,icons,materials,sprites}.js,
-game/src/{render,game,audio,profile,missions}.js, game/test/the-miner.test.js plus small test updates,
-devlog/build-29.md, agent/proposals/build-29.json, content/x/build-29.md, agent/notes.md.
+sim/content.js, sim/weapons.js, sim/sim.js, sim/entities.js (maybe), sim/bot.js, art/icons.js, art/sprites.js,
+ui.js, guide.js, collection.js (new), profile.js, game.js, main.js, audio.js, index.html, styles.css, report.js,
+tests.
+
+## Order
+
+1 → 2 → 6 (sim tests) → 4 (parallel, agent) → 3 → 5 → playtest/tune → gates → devlog.
+If time runs short, 1+2+4 is already a complete update; the Collection is the part that waits.

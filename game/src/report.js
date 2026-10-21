@@ -37,7 +37,11 @@ const titleCase = (id) =>
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ');
 
-const evolvedWeapon = (def, level) => !!def?.evolveLevel && level >= def.evolveLevel;
+// a live Weapon knows (Lv 5 and its catalyst); a plain { id, level } falls back to the level
+const evolvedWeapon = (def, w) =>
+    typeof w?.isEvolved === 'function'
+        ? w.isEvolved()
+        : !!def?.evolveLevel && !!w && w.level >= def.evolveLevel;
 
 /**
  * Accumulates one run's damage by source. Call `observe(sim)` once when the run starts, then
@@ -92,7 +96,7 @@ export function createDamageReport() {
                     const def = WEAPON_BY_ID[id];
                     const other = OTHER_SOURCES[id];
                     const level = w ? w.level : null;
-                    const evolved = def ? evolvedWeapon(def, level) : id === 'liquidation';
+                    const evolved = def ? evolvedWeapon(def, w) : id === 'liquidation';
                     const held = Math.max(1, end - (since[id] ?? 0));
                     return {
                         id,
@@ -135,7 +139,7 @@ export function buildSheet(sim) {
     const p = sim.player;
     const weapons = p.weapons.map((w) => {
         const def = WEAPON_BY_ID[w.id] || w.def || {};
-        const evolved = evolvedWeapon(def, w.level);
+        const evolved = evolvedWeapon(def, w);
         return {
             id: w.id,
             name: evolved ? def.evolveName : def.name || titleCase(w.id),

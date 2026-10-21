@@ -77,8 +77,9 @@ import { Weapon } from './weapons.js';
  * Squeeze), a treasure chest from every boss (free level-ups), and two rerolls and two skips of level-up cards.
  * 23: Market Eras (a fourth map, second in the rotation: four eras, each with its own bears and boss, the Flash
  * Loan bear; an era turns when its boss dies and delists the bears on the field).
- * 24: The Miner (a fourth character: the Pickaxe flies out and back and cracks shields; Block Reward quakes). */
-export const SIM_VERSION = 24;
+ * 24: The Miner (a fourth character: the Pickaxe flies out and back and cracks shields; Block Reward quakes).
+ * 25: Catalysts (a weapon evolves at Lv 5 only with its `evolveWith` passive; Double Bounce throws one more cat). */
+export const SIM_VERSION = 25;
 
 /**
  * The rules before 22, still played (and replayed) where they're owed: a run log written with sim version 21 replays
@@ -133,7 +134,7 @@ export class Simulation {
         this.player.twistDamageMult = this.twist.playerDamageMult;
         this.player.twistExpMult = this.twist.xpMult;
         this.player.weapons.push(
-            new Weapon(weaponDef(this.character.starterWeapon || STARTER_WEAPON))
+            new Weapon(weaponDef(this.character.starterWeapon || STARTER_WEAPON), this._owner())
         );
         this.enemies = [];
         this.projectiles = [];
@@ -1022,10 +1023,10 @@ export class Simulation {
             const pick = pool[this.rng.int(pool.length)];
             if (pick.levelUp) {
                 pick.levelUp();
-                const evolves = pick.level === pick.def.evolveLevel;
+                const evolves = this._checkEvolutions().includes(pick.id);
                 items.push({ kind: 'weapon', id: pick.id, level: pick.level, evolves });
-                if (evolves) this.emit({ t: 'evolve', id: pick.id });
             } else {
+                // a chest only stacks a passive the bull holds, so it's never a weapon's missing catalyst
                 p.addPassive(pick.def);
                 const level = pick.count;
                 const evolves = !!pick.def.evolveName && level === SIM.PASSIVE_MAX_STACK;
@@ -1153,12 +1154,12 @@ export class Simulation {
             const w = p.weapons.find((x) => x.id === def.id);
             if (w) {
                 if (w.level < SIM.WEAPON_MAX_LEVEL) {
-                    live.push({
-                        kind: 'weapon',
-                        id: def.id,
-                        level: w.level + 1,
-                        evolves: w.level + 1 === def.evolveLevel
-                    });
+                    const card = { kind: 'weapon', id: def.id, level: w.level + 1, evolves: false };
+                    if (card.level === def.evolveLevel) {
+                        if (this._hasCatalyst(def)) card.evolves = true;
+                        else card.needs = def.evolveWith;
+                    }
+                    live.push(card);
                 } else {
                     maxed.push(def.id);
                 }
@@ -1169,8 +1170,18 @@ export class Simulation {
         for (const def of Object.values(PASSIVES)) {
             const owned = p.passives[def.id];
             if (!owned) {
-                if (p.passiveOrder.length < SIM.MAX_PASSIVES)
-                    live.push({ kind: 'passive', id: def.id, level: 1, isNew: true });
+                const card = { kind: 'passive', id: def.id, level: 1, isNew: true };
+                // the catalyst of a weapon the bull holds: it evolves one waiting at Lv 5, else it's the hint
+                if (this.rules !== LEGACY_SIM_VERSION) {
+                    for (const w of p.weapons) {
+                        if (w.def.evolveWith !== def.id) continue;
+                        if (w.awaitsCatalyst()) card.evolvesWeapon ||= w.id;
+                        else card.catalystFor ||= w.id;
+                    }
+                    if (card.evolvesWeapon) delete card.catalystFor;
+                }
+                // a catalyst for a weapon waiting at Lv 5 is offered even with every passive slot full
+                if (p.passiveOrder.length < SIM.MAX_PASSIVES || card.evolvesWeapon) live.push(card);
             } else if (owned.count < SIM.PASSIVE_MAX_STACK) {
                 const card = { kind: 'passive', id: def.id, level: owned.count + 1 };
                 if (def.evolveName && card.level === SIM.PASSIVE_MAX_STACK) card.evolves = true;
@@ -1180,6 +1191,32 @@ export class Simulation {
             }
         }
         return { live, maxed };
+    }
+
+    /** Who a new weapon answers to for its catalyst. The legacy rules had none: Lv 5 alone evolved a weapon. */
+    _owner() {
+        return this.rules === LEGACY_SIM_VERSION ? null : this.player;
+    }
+
+    /** Does the bull hold `def`'s catalyst (or does it need none)? */
+    _hasCatalyst(def) {
+        return (
+            !def.evolveWith ||
+            this.rules === LEGACY_SIM_VERSION ||
+            !!this.player.passives[def.evolveWith]
+        );
+    }
+
+    /** Emit `evolve` once for every weapon that has just evolved. Returns their ids. */
+    _checkEvolutions() {
+        const fresh = [];
+        for (const w of this.player.weapons) {
+            if (w.evolvedAnnounced || !w.isEvolved()) continue;
+            w.evolvedAnnounced = true;
+            fresh.push(w.id);
+            this.emit({ t: 'evolve', id: w.id });
+        }
+        return fresh;
     }
 
     _rollChoices(event = 'levelup') {
@@ -1219,11 +1256,12 @@ export class Simulation {
         if (c.kind === 'weapon') {
             const w = p.weapons.find((x) => x.id === c.id);
             if (w) w.levelUp();
-            else p.weapons.push(new Weapon(weaponDef(c.id)));
-            if (c.evolves) this.emit({ t: 'evolve', id: c.id });
+            else p.weapons.push(new Weapon(weaponDef(c.id), this._owner()));
+            this._checkEvolutions();
         } else if (c.kind === 'passive') {
             p.addPassive(Object.values(PASSIVES).find((d) => d.id === c.id));
             if (c.evolves) this.emit({ t: 'evolve', id: c.id });
+            this._checkEvolutions();
         } else {
             p.heal(c.amount);
         }

@@ -6,27 +6,37 @@
  *   damage   = base * (1 + 0.2 * (lvl - 1)) * player.damageMult (* evolveDamageMult)
  *   cooldown = base * 0.92^(lvl - 1) * player.cooldownMult (* evolveCooldownMult)
  *   range    = base * (1 + 0.1 * (lvl - 1)) * player.areaMult
- * Evolution (level >= evolveLevel) is driven by data flags, never by weapon id.
+ * Evolution (level >= evolveLevel, and the owner holds the `evolveWith` passive) is driven by data flags, never by
+ * weapon id.
  */
 
 import { BuyWall, HoneyJar, Mine, OrbitShard, Projectile, ThrownPick } from './entities.js';
 import { atan2, cos, hypot, ipow, sin } from './dmath.js';
 
 export class Weapon {
-    constructor(def) {
+    /** `owner`: the Player holding it, whose passives decide the catalyst. Without one, Lv alone evolves it. */
+    constructor(def, owner = null) {
         this.def = def;
         this.id = def.id;
         this.level = 1;
         this.cooldown = 0;
         this.shards = null;
+        this.owner = owner;
     }
 
     levelUp() {
         this.level++;
     }
 
+    /** At `evolveLevel`, and the owner holds the catalyst passive `evolveWith`. */
     isEvolved() {
-        return !!this.def.evolveLevel && this.level >= this.def.evolveLevel;
+        if (!this.def.evolveLevel || this.level < this.def.evolveLevel) return false;
+        return !this.def.evolveWith || !this.owner || !!this.owner.passives[this.def.evolveWith];
+    }
+
+    /** At `evolveLevel` but still missing its catalyst. */
+    awaitsCatalyst() {
+        return !!this.def.evolveLevel && this.level >= this.def.evolveLevel && !this.isEvolved();
     }
 
     getDamage(player) {
@@ -305,6 +315,7 @@ export class Weapon {
         if (this.isEvolved()) {
             if (this.def.evolveMinCount) count = Math.max(count, this.def.evolveMinCount);
             if (this.def.evolveExtraCount) count += this.def.evolveExtraCount;
+            if (this.def.evolveCatalystExtra && this.owner) count += this.def.evolveCatalystExtra;
         }
         const target = sim.spatial.findNearest(player.x, player.y, this.getRange(player));
         if (!target) return;

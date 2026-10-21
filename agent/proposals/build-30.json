@@ -1,0 +1,18 @@
+[
+    {
+        "id": "boss-rush",
+        "title": "Boss Rush: every boss, back to back",
+        "description": "A new mode next to Free Run and the Daily: the bosses of all four maps in a row with a breather and a level-up between each, its own board label and its own missions."
+    },
+    {
+        "id": "liquidity-pool-map",
+        "title": "The Liquidity Pool: a fifth map",
+        "description": "A flooded trading floor with whirlpools that drag you and the bears, a new bear, its own boss and its own music, unlocked in the Market."
+    },
+    {
+        "id": "story-mode-chapter-1",
+        "title": "Story Mode: Chapter 1",
+        "description": "Five short stages in a row, each with its own goal, a story card between them and a portal at the end that warps you to the next, ending in a boss fight.",
+        "from": "player"
+    }
+]

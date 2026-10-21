@@ -219,7 +219,8 @@ export const CRATE_LOOT = {
 
 // ---------------------------------------------------------------------------
 // Weapons. Scaling is uniform: damage +20%/level, cooldown x0.92/level, range +10%/level.
-// Reaching WEAPON_MAX_LEVEL (5) evolves the weapon.
+// A weapon evolves at `evolveLevel` (WEAPON_MAX_LEVEL, 5) once the bull also holds its catalyst, the passive
+// `evolveWith` (any stack). Either order works: the second piece evolves it on that pick.
 // ---------------------------------------------------------------------------
 export const WEAPONS = {
     HORNS: {
@@ -233,6 +234,7 @@ export const WEAPONS = {
         baseRange: 90,
         projectileCount: 1,
         evolveLevel: 5,
+        evolveWith: 'momentum',
         evolveName: 'Stampede',
         evolveDescription: 'A full-circle sweep.'
     },
@@ -250,6 +252,7 @@ export const WEAPONS = {
         speed: 420,
         homing: true,
         evolveLevel: 5,
+        evolveWith: 'leverage',
         evolveName: 'God Candle',
         evolveDescription: 'Two extra candles per volley.',
         evolveExtraCount: 2
@@ -268,6 +271,7 @@ export const WEAPONS = {
         speed: 620,
         piercing: true,
         evolveLevel: 5,
+        evolveWith: 'alpha',
         evolveName: 'Full Send',
         evolveDescription: 'A five-beam fan with +10% crit.',
         evolveMinCount: 5,
@@ -286,6 +290,7 @@ export const WEAPONS = {
         projectileCount: 2,
         piercing: true,
         evolveLevel: 5,
+        evolveWith: 'conviction',
         evolveName: 'Unbreakable',
         evolveDescription: 'Twice the diamonds, +10% damage.',
         evolveDamageMult: 1.1
@@ -305,6 +310,7 @@ export const WEAPONS = {
         chainCount: 3,
         chainRange: 180,
         evolveLevel: 5,
+        evolveWith: 'compounding',
         evolveName: 'Carpet Drop',
         evolveDescription: 'Three crates per drop, +15% crit.',
         evolveBonusCrit: 0.15
@@ -321,6 +327,7 @@ export const WEAPONS = {
         baseRange: 100,
         fuse: 1.2,
         evolveLevel: 5,
+        evolveWith: 'cold_wallet',
         evolveName: 'Iceberg Order',
         evolveDescription: 'Places a second, hidden order nearby.'
     },
@@ -334,6 +341,7 @@ export const WEAPONS = {
         baseCooldown: 0.2,
         baseRange: 110,
         evolveLevel: 5,
+        evolveWith: 'dca',
         evolveName: 'Copium',
         evolveDescription: 'Bears in the cloud move 35% slower.',
         // Refreshed on every tick of the aura; wears off this long after a bear leaves the cloud.
@@ -352,6 +360,7 @@ export const WEAPONS = {
         slowPct: 0.5,
         slowDuration: 1.2,
         evolveLevel: 5,
+        evolveWith: 'high_frequency',
         evolveName: 'Market Halt',
         evolveDescription: 'A second shockwave follows the first.'
     },
@@ -366,6 +375,7 @@ export const WEAPONS = {
         baseRange: 260,
         lifestealPct: 0.25,
         evolveLevel: 5,
+        evolveWith: 'thick_skin',
         evolveName: 'Treasury Buyback',
         evolveDescription: 'Drains two bears at once.'
     },
@@ -384,8 +394,10 @@ export const WEAPONS = {
         piercing: true,
         boomerang: true,
         evolveLevel: 5,
+        evolveWith: 'slippage',
         evolveName: 'Double Bounce',
-        evolveDescription: 'Throws faster.',
+        evolveDescription: 'One more cat per throw, and 5% faster.',
+        evolveCatalystExtra: 1, // the catalyst rules only (25): the legacy rules keep one cat
         evolveCooldownMult: 0.95
     },
     // Pepe's signature weapon. `character` limits a weapon to that character's level-up cards.
@@ -401,6 +413,7 @@ export const WEAPONS = {
         baseRange: 230,
         width: 16,
         evolveLevel: 5,
+        evolveWith: 'liquidity',
         evolveName: 'Liquidity Grab',
         evolveDescription: 'Three tongues in a fan.',
         evolveFan: 3
@@ -421,6 +434,7 @@ export const WEAPONS = {
         knockback: 70,
         breaksShield: true,
         evolveLevel: 5,
+        evolveWith: 'hedge',
         evolveName: 'Max Pain',
         evolveDescription: 'A 100° cone, and sprayed bears move 40% slower for 1.5 s.',
         evolveConeAngle: 100,
@@ -450,6 +464,7 @@ export const WEAPONS = {
         eatenBy: ['grizzly'],
         burnEvery: 0.5,
         evolveLevel: 5,
+        evolveWith: 'whale_gravity',
         evolveName: 'Honeypot',
         evolveDescription:
             "Bigger puddles that last 6 s and burn. Bears can buy in, they can't sell.",
@@ -474,6 +489,7 @@ export const WEAPONS = {
         speed: 360,
         knockback: 32,
         evolveLevel: 5,
+        evolveWith: 'whale_gravity',
         evolveName: 'Tsunami Bid',
         evolveDescription: 'A second, wider wall rolls out right behind the first.',
         evolveDelay: 0.3,
@@ -496,6 +512,7 @@ export const WEAPONS = {
         baseRange: 170,
         speed: 420,
         evolveLevel: 5,
+        evolveWith: 'high_frequency',
         evolveName: 'Diamond Pickaxe',
         evolveDescription: 'Throws two diamond picks in a fan, each 20% harder.',
         evolveFan: 2,

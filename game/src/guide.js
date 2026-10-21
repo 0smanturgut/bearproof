@@ -70,11 +70,64 @@ function weaponEntry(w) {
         text: w.description,
         stats: `${num(w.baseDamage)} dmg · every ${num(w.baseCooldown)} s · reach ${num(w.baseRange)}`,
         extra: w.evolveName
-            ? `Lv ${w.evolveLevel || SIM.WEAPON_MAX_LEVEL} → ${w.evolveName}: ${w.evolveDescription || ''}`.trim()
+            ? `Lv ${w.evolveLevel || SIM.WEAPON_MAX_LEVEL}${catalystName(w) ? ` + ${catalystName(w)}` : ''} → ${w.evolveName}: ${w.evolveDescription || ''}`.trim()
             : `No evolution: tops out at Lv ${SIM.WEAPON_MAX_LEVEL}.`,
         evolves: !!w.evolveName
     };
 }
+
+const catalystName = (w) => Object.values(PASSIVES).find((p) => p.id === w.evolveWith)?.name;
+
+/** The Evolutions tab: what a weapon (or passive) becomes and its recipe. */
+function evolutionEntry(d) {
+    const isWeapon = Object.values(WEAPONS).includes(d);
+    const who = d.character ? `${CHARACTERS[d.character]?.name || d.character} only` : null;
+    const recipe = isWeapon
+        ? `${d.name} Lv ${d.evolveLevel}${catalystName(d) ? ` + ${catalystName(d)}` : ''}`
+        : `${d.name} ×${SIM.PASSIVE_MAX_STACK}`;
+    return {
+        id: d.id,
+        name: d.evolveName,
+        art: isWeapon ? `evo_${d.id}` : d.icon,
+        tags: who ? [who] : [],
+        text: d.evolveDescription || '',
+        stats: `Recipe: ${recipe}`,
+        evolves: true
+    };
+}
+
+/** A collectible not met yet: its hint tags stay, the rest is hidden and its art is a silhouette. */
+function locked(e, hint) {
+    return {
+        ...e,
+        name: '???',
+        text: hint,
+        // an evolution keeps its recipe: that's how you find it
+        stats: e.stats?.startsWith('Recipe:') ? e.stats : null,
+        extra: null,
+        evolves: false,
+        locked: true,
+        silhouette: true
+    };
+}
+
+/** Lock what `seen[kind]` doesn't have yet; `seen` null = the plain guide, all open. */
+function collect(entries, kind, seen, hint) {
+    if (!seen) return entries;
+    const have = new Set(seen[kind] || []);
+    return entries.map((e) => (have.has(e.id) ? e : locked(e, hint)));
+}
+
+const counted = (section, seen) => {
+    if (!seen) return section;
+    const found = section.entries.filter((e) => !e.locked).length;
+    const total = section.entries.length;
+    return {
+        ...section,
+        count: `${found}/${total}`,
+        intro: `Found ${found} of ${total}. ${section.intro}`
+    };
+};
 
 function passiveEntry(p) {
     return {
@@ -221,33 +274,87 @@ function lootEntries() {
     return entries;
 }
 
-/** The guide's tabs, in order. Every weapon, passive, bear, boss and pickup in content.js appears exactly once. */
-export function guideSections() {
+/**
+ * The guide's tabs, in order. Every weapon, passive, bear, boss and pickup in content.js appears exactly once, and
+ * every evolution once more on its own tab. With `seen` (profile.seen, collection.js) it's the Collection: what the
+ * player hasn't met yet is locked, and each collected tab counts found/total.
+ */
+export function guideSections(seen = null) {
+    const evolutions = [
+        ...Object.values(WEAPONS).filter((w) => w.evolveName),
+        ...Object.values(PASSIVES).filter((p) => p.evolveName)
+    ];
     return [
-        {
-            id: 'weapons',
-            label: 'Weapons',
-            intro: `Up to ${SIM.MAX_WEAPONS} at once. Every level up to ${SIM.WEAPON_MAX_LEVEL}: +20% damage, 8% faster, 10% more reach. ${Object.values(WEAPONS).every((w) => w.evolveName) ? 'Every one evolves' : 'Most evolve'} at Lv ${SIM.WEAPON_MAX_LEVEL}.`,
-            entries: Object.values(WEAPONS).map(weaponEntry)
-        },
-        {
-            id: 'passives',
-            label: 'Passives',
-            intro: `Up to ${SIM.MAX_PASSIVES} at once. Pick one again to stack it.${Object.values(PASSIVES).some((p) => p.evolveName) ? ` Some evolve at ${SIM.PASSIVE_MAX_STACK}×.` : ''}`,
-            entries: Object.values(PASSIVES).map(passiveEntry)
-        },
-        {
-            id: 'bears',
-            label: 'Bears',
-            intro: 'Times are for the plain market. The Daily stage changes the mix, and its twist changes the numbers.',
-            entries: Object.values(ENEMIES).map(enemyEntry)
-        },
-        {
-            id: 'bosses',
-            label: 'Bosses',
-            intro: `A boss kill pays its jackpot in score and rains gold candles. Beat ${Object.values(BOSSES).find((b) => b.final)?.name || 'the final boss'} to win.`,
-            entries: Object.values(BOSSES).map(bossEntry)
-        },
+        counted(
+            {
+                id: 'weapons',
+                label: 'Weapons',
+                intro: `Up to ${SIM.MAX_WEAPONS} at once. Every level up to ${SIM.WEAPON_MAX_LEVEL}: +20% damage, 8% faster, 10% more reach. ${Object.values(WEAPONS).every((w) => w.evolveName) ? 'Every one evolves' : 'Most evolve'} at Lv ${SIM.WEAPON_MAX_LEVEL} with its catalyst passive.`,
+                entries: collect(
+                    Object.values(WEAPONS).map(weaponEntry),
+                    'weapons',
+                    seen,
+                    'Not found yet. Take it from a level-up card.'
+                )
+            },
+            seen
+        ),
+        counted(
+            {
+                id: 'evolutions',
+                label: 'Evolved',
+                intro: `A weapon evolves at Lv ${SIM.WEAPON_MAX_LEVEL} once you also hold its catalyst passive, in either order. The level-up card tells you.`,
+                entries: collect(
+                    evolutions.map(evolutionEntry),
+                    'evolutions',
+                    seen,
+                    'Not evolved yet. Follow the recipe.'
+                )
+            },
+            seen
+        ),
+        counted(
+            {
+                id: 'passives',
+                label: 'Passives',
+                intro: `Up to ${SIM.MAX_PASSIVES} at once. Pick one again to stack it.${Object.values(PASSIVES).some((p) => p.evolveName) ? ` Some evolve at ${SIM.PASSIVE_MAX_STACK}×.` : ''}`,
+                entries: collect(
+                    Object.values(PASSIVES).map(passiveEntry),
+                    'passives',
+                    seen,
+                    'Not found yet. Take it from a level-up card.'
+                )
+            },
+            seen
+        ),
+        counted(
+            {
+                id: 'bears',
+                label: 'Bears',
+                intro: 'Times are for the plain market. The Daily stage changes the mix, and its twist changes the numbers.',
+                entries: collect(
+                    Object.values(ENEMIES).map(enemyEntry),
+                    'bears',
+                    seen,
+                    'Not met yet. Survive longer, or try another map.'
+                )
+            },
+            seen
+        ),
+        counted(
+            {
+                id: 'bosses',
+                label: 'Bosses',
+                intro: `A boss kill pays its jackpot in score and rains gold candles. Beat ${Object.values(BOSSES).find((b) => b.final)?.name || 'the final boss'} to win.`,
+                entries: collect(
+                    Object.values(BOSSES).map(bossEntry),
+                    'bosses',
+                    seen,
+                    'Not met yet.'
+                )
+            },
+            seen
+        ),
         {
             id: 'loot',
             label: 'Loot',

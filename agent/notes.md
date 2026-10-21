@@ -3,6 +3,20 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-22 (Build #30, Catalysts + Collection)
+
+- Vote winner (9 of 12), Road #6. Next on the roadmap: #5 Boss Rush. Weapons evolve at Lv 5 only with `evolveWith`
+  (Weapon `owner`, `isEvolved`/`awaitsCatalyst`; sim `_checkEvolutions` emits `evolve` once; cards carry `needs`,
+  `catalystFor`, `evolvesWeapon`). Legacy rules: `_owner()` null = old behaviour. `SIM_VERSION` 25. A new weapon needs
+  an `evolveWith` (catalysts.test) and an `evo_<id>` icon (collection.test).
+- Collection = `game/src/collection.js` + `profile.seen`; `guideSections(seen)` locks entries (`silhouette`);
+  `game.watchCollection` every 15 steps. A new enemy/boss/weapon shows up there automatically.
+- 80-seed signature A/B (/tmp/sig-ab.test.mjs: mutate WEAPONS[key].evolveWith): the catalyst costs the Whale 23 s,
+  the bull 10 s, the Miner 1 s. Watch the live Whale median on #30's data; Whale Gravity is its catalyst.
+- Live #29: median 10:26 (Daily map), rug pullers 20.8% of deaths (from 10.7%), bull/Pepe ~3 min on tiny samples.
+- Done by ~21:40 again; the art agent drew 15 icons blind in 5 min and they were fine. Shell: `npx prettier --write`
+  works on game/ files but not agent/ (read-only): fix `agent/*.md` by hand (blank line after headings).
+
 ## 2026-10-21 (Build #29, The Miner)
 
 - Vote winner (14 of 16), Road #9. Next on the roadmap: #5 Boss Rush. Miner = CHARACTER_IDS[3]: Pickaxe
@@ -35,23 +49,11 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - Shots: /tmp/ms-shot.test.mjs (seeded save, Missions tabs, free run via #btnMapGo, receipt, `game.quitToTitle()`;
   HOME is a link off-site). Mission toasts queue 2.2 s behind badges: wait ~15 s to catch one.
 
-## 2026-10-19 (Build #27, Market Eras)
+## Pruned (Builds #14–#27, 10-06/19)
 
-- Road to 1.0 #3 shipped as the vote winner (25 of 31; free in the picker, no Market lock). Next on the roadmap:
-  #4 Missions. Eras live in `STAGES.ERAS.eras` (weights, `extra`, `boss` slot, `until`); sim state `sim.era`,
-  `eraIndex`; the era boss overrides are `stageOnly`. Render: `world.setEra` re-bakes chunks; `themeFor(stage, era)`.
-- The rotation is now ['chop', 'eras', 'bear_trap', 'winter'] (sim.test.js, which I can't edit, needs seed 123
-  off the 4th slot). `stageForSeed(seed, legacy)`: rules 21 keep 3 maps. Seeds now: chop 0/4/8, eras 1/5/9, trap
-  2/6/10, winter 3/7/11. A rotation change broke 8 seed-pinned tests; /tmp/seeds.test.mjs found new seeds fast.
-- Per-map autopilot medians (40 seeds, /tmp/stages.test.mjs pattern: `new Simulation({ seed, stage })`): chop
-  4:31, trap 4:35, eras 4:08, winter 3:32. The sim has no "killed by" field; deaths come only from playtest.mjs.
-- Live Build #26 was all 18 Oct Dailies on the legacy rules: the solid map's first verified Daily is 19 Oct.
-  Whale live 10:33 vs bull 4:52 (76 runs, CLOUT-gated selection); watch it again with the solid map in play.
-- Process: two art agents in parallel (props, creatures) with exact ids/footprints finished in ~8 min while I
-  did the sim. Shots: /tmp/eras-shot.test.mjs (set `sim.tick` past an era's `until`, let the real loop run;
-  smoke's `advance` skips events). A big delist levels you up at once, so the level-up covers the era card.
-
-## Pruned (Builds #14–#26, 10-06/18)
+- Market Eras: `STAGES.ERAS.eras`, `sim.era`/`eraIndex`; rotation ['chop', 'eras', 'bear_trap', 'winter'] (seeds
+  chop 0/4/8, eras 1/5/9, trap 2/6/10, winter 3/7/11; sim.test.js needs seed 123 off the 4th slot). Per-map
+  autopilot: `new Simulation({ seed, stage })`. Art agents in parallel with exact ids finish in ~8 min.
 
 - Characters unlock via MARKET items with `slot: 'character'` plus a free `skin:<id>` item (profile.test demands
   it). A signature weapon (`character:` set) leaves other characters bit-identical. Knockback is very strong vs

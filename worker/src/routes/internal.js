@@ -8,7 +8,7 @@
  * Only `verified` runs can win prizes.
  */
 
-import { all } from '../lib/db.js';
+import { all, first } from '../lib/db.js';
 import { cleanStats } from '../lib/insights.js';
 import { REPLY_VERDICTS, checkReply } from '../lib/requests.js';
 import { error, json, readJson } from '../lib/http.js';
@@ -69,6 +69,42 @@ export async function pendingRuns(request, env) {
     });
 }
 
+/**
+ * A Daily run of a minute or more that another player already sent (D83): the same input log, or the same score,
+ * time, kills and level. Two idle runs of a few seconds can end alike, so shorter runs are left alone. Run logs are never public, so a second copy means accounts sharing replays (19 Oct: ten
+ * accounts resent each other's runs, 16 Oct copies verified). The earliest submission keeps the run; a later copy by
+ * another player is rejected, whichever of the two the verifier reaches first. Returns the earlier run's id, or null.
+ */
+export async function earlierCopy(env, id) {
+    const run = await first(
+        env,
+        `SELECT challenge_date, mode, player_id, claimed_score, claimed_time_ms, claimed_kills, claimed_level,
+                input_log_bytes, created_at FROM runs WHERE id = ?`,
+        id
+    );
+    if (!run || run.mode !== 'daily' || !run.challenge_date || run.claimed_time_ms < 60000)
+        return null;
+    const twin = await first(
+        env,
+        `SELECT id FROM runs
+          WHERE challenge_date = ?1 AND claimed_score = ?2 AND mode = 'daily' AND player_id != ?3 AND id != ?4
+            AND status != 'rejected' AND (created_at < ?5 OR (created_at = ?5 AND id < ?4))
+            AND ((input_log_bytes = ?6 AND input_log = (SELECT input_log FROM runs WHERE id = ?4))
+                 OR (claimed_time_ms = ?7 AND claimed_kills = ?8 AND claimed_level = ?9))
+          ORDER BY created_at, id LIMIT 1`,
+        run.challenge_date,
+        run.claimed_score,
+        run.player_id,
+        id,
+        run.created_at,
+        run.input_log_bytes,
+        run.claimed_time_ms,
+        run.claimed_kills,
+        run.claimed_level
+    );
+    return twin ? twin.id : null;
+}
+
 export async function verdict(request, env, id) {
     if (!authorized(request, env)) return error(401, 'unauthorized', 'Bearer token required.');
     if (!RUN_ID.test(id)) return error(400, 'invalid_field', 'Bad run id.', { field: 'id' });
@@ -77,16 +113,29 @@ export async function verdict(request, env, id) {
     if (!STATUSES.has(data?.status))
         return error(400, 'invalid_field', 'Bad status.', { field: 'status' });
     const score = Number.isSafeInteger(data.verifiedScore) ? data.verifiedScore : null;
-    const reason = typeof data.reason === 'string' ? data.reason.slice(0, 300) : null;
-    const stats = data.status === 'verified' ? cleanStats(data.stats) : null;
+    let status = data.status;
+    let reason = typeof data.reason === 'string' ? data.reason.slice(0, 300) : null;
+    try {
+        if (status === 'verified') {
+            const twin = await earlierCopy(env, id);
+            if (twin) {
+                status = 'rejected';
+                reason = `same run as ${twin}, sent earlier by another player`;
+            }
+        }
+    } catch (err) {
+        console.warn('[verdict] copy check', err?.message || err);
+        return error(503, 'db_unavailable', 'Storage is unavailable.');
+    }
+    const stats = status === 'verified' ? cleanStats(data.stats) : null;
     try {
         const res = await env.DB.prepare(
             `UPDATE runs SET status = ?1, verified_score = ?2, verified_at = ?3, reject_reason = ?4, stats = ?6
               WHERE id = ?5 AND status = 'pending'`
         )
-            .bind(data.status, score, Date.now(), reason, id, stats ? JSON.stringify(stats) : null)
+            .bind(status, score, Date.now(), reason, id, stats ? JSON.stringify(stats) : null)
             .run();
-        return json({ ok: true, updated: res.meta?.changes ?? 0 });
+        return json({ ok: true, updated: res.meta?.changes ?? 0, status });
     } catch (err) {
         console.warn('[verdict]', err?.message || err);
         return error(503, 'db_unavailable', 'Storage is unavailable.');

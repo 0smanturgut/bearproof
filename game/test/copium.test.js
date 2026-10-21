@@ -40,7 +40,7 @@ test('copium: the data says Lv 5, 35%, and the guide shows it', () => {
     assert.equal(HOPIUM.evolveSlowPct, 0.35);
     const weapons = guideSections().find((s) => s.id === 'weapons');
     const e = weapons.entries.find((x) => x.id === 'hopium');
-    assert.equal(e.extra, 'Lv 5 → Copium: Bears in the cloud move 35% slower.');
+    assert.equal(e.extra, 'Lv 5 + DCA → Copium: Bears in the cloud move 35% slower.');
     assert.ok(e.evolves);
     assert.match(weapons.intro, /Every one evolves/);
 });

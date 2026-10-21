@@ -49,7 +49,7 @@ test('bear spray: a weapon for every character, with an icon and a guide entry',
     const e = guideSections()
         .find((s) => s.id === 'weapons')
         .entries.find((x) => x.id === 'bear_spray');
-    assert.equal(e.extra, `Lv 5 → Max Pain: ${SPRAY.evolveDescription}`);
+    assert.equal(e.extra, `Lv 5 + Hedge → Max Pain: ${SPRAY.evolveDescription}`);
 });
 
 test('bear spray: hits the bears in the cone, misses the ones beside, behind and out of reach', () => {

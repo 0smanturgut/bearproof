@@ -174,6 +174,20 @@ export class AudioEngine {
         setTimeout(() => this.tone({ freq: 990, dur: 0.12, type: 'triangle', volume: 0.22 }), 90);
         setTimeout(() => this.tone({ freq: 1320, dur: 0.18, type: 'triangle', volume: 0.24 }), 200);
     }
+    /** A weapon evolves: a low swell, then a rising major chord that rings out over a shimmer. */
+    evolve() {
+        this.tone({ freq: 110, dur: 0.35, type: 'sawtooth', volume: 0.1, sweep: 220 });
+        [523, 659, 784, 1047, 1319].forEach((freq, i) =>
+            setTimeout(
+                () => this.tone({ freq, dur: 0.32 - i * 0.03, type: 'triangle', volume: 0.16 }),
+                120 + i * 60
+            )
+        );
+        setTimeout(
+            () => this.tone({ freq: 2093, dur: 0.4, type: 'sine', volume: 0.1, sweep: 600 }),
+            430
+        );
+    }
     /** The receipt counts CLOUT up: a short bright tick, a little higher each call. */
     cloutTick() {
         this._tickN = ((this._tickN || 0) + 1) % 12;

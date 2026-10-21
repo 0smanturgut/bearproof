@@ -23,6 +23,8 @@ import { createBot } from './sim/bot.js';
 import { Fx } from './fx.js';
 import { KILL_COLORS, Renderer } from './render.js';
 
+const WEAPONS_BY_ID = Object.fromEntries(Object.values(WEAPONS).map((w) => [w.id, w]));
+
 // enemy id -> sprite id, for the shatter effect on death
 const ENEMY_SPRITE = Object.fromEntries(
     [...Object.values(ENEMIES), ...Object.values(BOSSES)].map((d) => [d.id, d.sprite || d.id])
@@ -42,6 +44,7 @@ import { turnstileToken } from './turnstile.js';
 import { bountyProgress, bountyText, clearsBounty } from './bounty.js';
 import { createTracker } from './achievements.js';
 import { completeMissions, createMissionTracker, mergeBest } from './missions.js';
+import { createCollector, mergeSeen } from './collection.js';
 import { musicMood } from './music.js';
 import { applyRun, equippedItem, normalizeProfile, skinSprite } from './profile.js';
 import { buildSheet, createDamageReport } from './report.js';
@@ -141,6 +144,7 @@ export class Game {
         this.startedAt = performance.now();
         this.submitted = false;
         this._bossIntro = null;
+        this._evolveIntros = [];
         this._eraIntro = null; // Market Eras: a new era's card waits for a level-up to close, like a boss's
         this._chestCall = null; // a boss chest dropped: its toast waits for the boss's REKT toast
         this._bountyDone = false;
@@ -159,6 +163,11 @@ export class Game {
                   this.sim.stageId
               );
         this._missionsNew = [];
+        // The Collection: what this player has met, saved the moment something new shows up
+        this.collector = this.attract
+            ? null
+            : createCollector(normalizeProfile(this.prefs.profile).seen);
+        this._collectN = 0;
         // The damage report on the receipt: a player's own runs only (never the autopilot's)
         this.report = this.attract ? null : createDamageReport();
         this.report?.observe(this.sim);
@@ -396,11 +405,23 @@ export class Game {
                             this._bossIntro.id
                         );
                         this._bossIntro = null;
+                        this._bossShown = true;
                     } else if (this._eraIntro) {
                         const er = this._eraIntro;
                         this.ui.eraIntro(er.name, er.year, er.n);
                     }
+                    // evolutions picked meanwhile: right away, or once a boss or era card has had its turn
+                    const evos = this._evolveIntros || [];
+                    const wait = this._bossShown || this._eraIntro ? 2500 : 0;
+                    this._bossShown = false;
+                    const runId = this._runId;
+                    if (evos.length)
+                        setTimeout(() => {
+                            if (this._runId !== runId) return;
+                            for (const id of evos) this.ui.evolveIntro(id);
+                        }, wait);
                     this._eraIntro = null;
+                    this._evolveIntros = [];
                 }
             },
             {
@@ -425,6 +446,18 @@ export class Game {
         this.report?.observe(this.sim, events);
         this.watchBadges(events);
         this.watchMissions(events);
+        this.watchCollection(events);
+    }
+
+    /** A few times a second (and on every evolution), add what's new on the field to the Collection and save it. */
+    watchCollection(events) {
+        if (!this.collector) return;
+        if (++this._collectN % 15 && !events.some((e) => e.t === 'evolve')) return;
+        if (!this.collector.observe(this.sim).length) return;
+        const profile = normalizeProfile(this.prefs.profile);
+        profile.seen = mergeSeen(profile.seen, this.collector.seen());
+        this.prefs.profile = profile;
+        savePrefs(this.prefs);
     }
 
     /** Feed a step's events to the badge watcher; a new badge is saved at once and queued for a toast. */
@@ -568,13 +601,28 @@ export class Game {
                     const name = [...Object.values(WEAPONS), ...Object.values(PASSIVES)].find(
                         (w) => w.id === e.id
                     )?.evolveName;
-                    if (!this.attract && !chestOpened)
+                    const weapon = WEAPONS_BY_ID[e.id];
+                    if (this.attract || chestOpened) {
+                        // the chest banner already names it
+                    } else if (weapon) {
+                        // a weapon gets the full card; it waits for any level-up still to pick
+                        if (this.sim.choices) (this._evolveIntros ||= []).push(e.id);
+                        else this.ui.evolveIntro(e.id);
+                    } else {
                         this.ui.toast(
                             name ? `EVOLVED: ${name.toUpperCase()}` : 'EVOLVED',
                             'gold',
                             1400
                         );
+                    }
+                    fx.ring(p.x, p.y, 12, 230, 0.6, '111,216,255', 8, true);
+                    fx.ring(p.x, p.y, 8, 150, 0.45, '255,197,61', 5, true);
+                    fx.burst(p.x, p.y, '#9FE6FF', 26, 340, 3, 'spark');
+                    fx.burst(p.x, p.y - 10, '#FFE08A', 16, 220, 3, 'ember');
                     fx.addFlash('255,197,61', 0.3, 2);
+                    fx.addShake(0.5);
+                    this._sfx('evolve', 0);
+                    if (!this.attract) this.haptics.levelUp();
                     break;
                 }
                 case 'bossWarn':
@@ -1112,6 +1160,13 @@ export class Game {
         this.lastRun.bountyCleared = !!bounty?.done;
         const badges = this._badgesNew;
         const report = this.report ? this.report.rows(this.sim) : null;
+        // The Collection's last look at the field, so nothing met in the final moments is lost
+        if (this.collector) {
+            this.collector.observe(this.sim);
+            const p = normalizeProfile(this.prefs.profile);
+            p.seen = mergeSeen(p.seen, this.collector.seen());
+            this.prefs.profile = p;
+        }
         // Bank the run: lifetime stats, bests, CLOUT, the player level and the Eternal Bear (profile.js)
         const banked = applyRun(this.prefs.profile, summary, {
             bountyCleared: this.lastRun.bountyCleared,

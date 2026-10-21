@@ -205,7 +205,9 @@ async function boot() {
     $('btnSettingsBack').addEventListener('click', () => ui.show(back));
     $('btnGuide').addEventListener('click', () => {
         back = 'screenTitle';
-        ui.showGuide([...guideSections(), badgeSection(prefs.achievements)]);
+        // the Collection: what this player has met is open, the rest is locked
+        const seen = normalizeProfile(prefs.profile).seen;
+        ui.showGuide([...guideSections(seen), badgeSection(prefs.achievements)]);
     });
     $('btnGuideBack').addEventListener('click', () => ui.show(back));
 
@@ -446,6 +448,7 @@ function installDebugHooks(game) {
             const watch = (events) => {
                 game.watchBadges(events);
                 game.watchMissions(events);
+                game.watchCollection(events);
             };
             for (let i = 0; i < seconds * 60 && !game.sim.over; i++) {
                 if (game.sim.choices) {

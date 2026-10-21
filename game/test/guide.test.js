@@ -20,10 +20,10 @@ const sections = guideSections();
 const tab = (id) => sections.find((s) => s.id === id);
 const entry = (tabId, id) => tab(tabId).entries.find((e) => e.id === id);
 
-test('guide: five tabs, and every content entry appears exactly once in its tab', () => {
+test('guide: six tabs, and every content entry appears exactly once in its tab', () => {
     assert.deepEqual(
         sections.map((s) => s.id),
-        ['weapons', 'passives', 'bears', 'bosses', 'loot']
+        ['weapons', 'evolutions', 'passives', 'bears', 'bosses', 'loot']
     );
     const want = {
         weapons: Object.values(WEAPONS),
@@ -58,14 +58,17 @@ test('guide: weapons show their evolution, their numbers, and who owns them', ()
         if (w.evolveName) {
             assert.ok(e.evolves);
             assert.ok(e.extra.includes(w.evolveName), `${w.id} names ${w.evolveName}`);
-            assert.ok(e.extra.startsWith(`Lv ${SIM.WEAPON_MAX_LEVEL} →`), e.extra);
+            assert.ok(e.extra.startsWith(`Lv ${SIM.WEAPON_MAX_LEVEL} + `), e.extra);
         } else {
             assert.ok(!e.evolves);
             assert.match(e.extra, /No evolution/);
         }
         assert.ok(e.stats.startsWith(`${w.baseDamage} dmg · every ${w.baseCooldown} s`), e.stats);
     }
-    assert.equal(entry('weapons', 'horns').extra, 'Lv 5 → Stampede: A full-circle sweep.');
+    assert.equal(
+        entry('weapons', 'horns').extra,
+        'Lv 5 + Momentum → Stampede: A full-circle sweep.'
+    );
     assert.deepEqual(entry('weapons', 'tongue').tags, ['Pepe only', "Pepe's starter"]);
     assert.deepEqual(entry('weapons', 'horns').tags, ["Bull's starter"]);
     assert.deepEqual(entry('weapons', 'laser_eyes').tags, []);

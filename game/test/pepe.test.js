@@ -6,7 +6,7 @@ import { Simulation } from '../src/sim/sim.js';
 import { Enemy } from '../src/sim/entities.js';
 import { RunRecorder, decodeRunLog, replay } from '../src/sim/runlog.js';
 import { createBot } from '../src/sim/bot.js';
-import { CHARACTERS, CHARACTER_IDS, SIM, enemyDef } from '../src/sim/content.js';
+import { CHARACTERS, CHARACTER_IDS, PASSIVES, SIM, enemyDef } from '../src/sim/content.js';
 
 /** A Pepe sim with hand-placed bag holders and nothing else on the field. */
 function field(positions, { level = 1 } = {}) {
@@ -16,6 +16,8 @@ function field(positions, { level = 1 } = {}) {
     sim.spatial.rebuild(sim.enemies);
     const tongue = sim.player.weapons[0];
     tongue.level = level;
+    // Liquidity Grab needs its catalyst (SIM_VERSION 25)
+    if (level >= tongue.def.evolveLevel) sim.player.addPassive(PASSIVES.LIQUIDITY);
     return { sim, tongue, hit: () => sim.enemies.map((e) => e.hp < e.maxHp) };
 }
 

@@ -240,9 +240,16 @@ test('build sheet: passives, evolutions and the real multipliers', () => {
     add(PASSIVES.COLD_WALLET, 1);
     add(PASSIVES.HEDGE, 1);
     const sheet = buildSheet(sim);
-    assert.equal(sheet.weapons[0].name, 'Stampede');
-    assert.equal(sheet.weapons[0].base, 'Horns');
-    assert.equal(sheet.weapons[0].evolved, true);
+    // Lv 5 without its catalyst (Momentum) is still the Horns (SIM_VERSION 25)
+    assert.equal(sheet.weapons[0].name, 'Horns');
+    assert.equal(sheet.weapons[0].evolved, false);
+    const s2 = new Simulation({ seed: 1 });
+    s2.player.weapons[0].level = 5;
+    s2.player.addPassive(PASSIVES.MOMENTUM);
+    const evolved = buildSheet(s2).weapons[0];
+    assert.equal(evolved.name, 'Stampede');
+    assert.equal(evolved.base, 'Horns');
+    assert.equal(evolved.evolved, true);
     assert.deepEqual(
         sheet.passives.map((x) => [x.id, x.name, x.count, x.evolved]),
         [

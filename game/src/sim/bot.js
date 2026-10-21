@@ -127,17 +127,19 @@ export function createBot({ style = 'survive', phase = 0 } = {}) {
             [ux, uy] = steer(sim, ux, uy, () => turn);
             return encodeMove(ux, uy);
         },
-        /** Card to pick: prefer evolutions, then new weapons, then weapon levels, then passives. */
+        /** Card to pick: prefer evolutions, then new weapons, then weapon levels, then catalysts, then passives. */
         pick(sim) {
             const score = (c) =>
-                c.evolves
+                c.evolves || c.evolvesWeapon
                     ? 5
                     : c.kind === 'weapon'
                       ? c.isNew
                           ? 4
                           : 3
                       : c.kind === 'passive'
-                        ? 2
+                        ? c.catalystFor
+                            ? 2.5
+                            : 2
                         : 0;
             let best = 0;
             sim.choices.forEach((c, i) => {

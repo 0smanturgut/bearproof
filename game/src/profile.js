@@ -10,6 +10,7 @@
  */
 
 import { MISSION_BY_ID, defaultMissions, mergeBest, normalizeMissions } from './missions.js';
+import { defaultSeen, normalizeSeen } from './collection.js';
 
 export const CURRENCY = 'CLOUT';
 
@@ -226,7 +227,8 @@ export function defaultProfile() {
         owned: [...FREE],
         equipped: { ...DEFAULTS },
         bear: { tier: 1, damage: 0, felled: 0 },
-        missions: defaultMissions() // missions.js: done, best progress, done but not paid yet
+        missions: defaultMissions(), // missions.js: done, best progress, done but not paid yet
+        seen: defaultSeen() // collection.js: every weapon, evolution, passive, bear and boss met
     };
 }
 
@@ -276,6 +278,7 @@ export function normalizeProfile(raw) {
     };
     p.bear.damage = Math.min(p.bear.damage, bearHp(p.bear.tier) - 1);
     p.missions = normalizeMissions(raw.missions);
+    p.seen = normalizeSeen(raw.seen);
     return p;
 }
 

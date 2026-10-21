@@ -7,7 +7,7 @@ import { Simulation } from '../src/sim/sim.js';
 import { Enemy } from '../src/sim/entities.js';
 import { RunRecorder, decodeRunLog, replay } from '../src/sim/runlog.js';
 import { createBot } from '../src/sim/bot.js';
-import { CHARACTERS, CHARACTER_IDS, SIM, WEAPONS, enemyDef } from '../src/sim/content.js';
+import { CHARACTERS, CHARACTER_IDS, PASSIVES, SIM, WEAPONS, enemyDef } from '../src/sim/content.js';
 
 const PICK = WEAPONS.PICKAXE;
 const MINER = CHARACTERS.miner;
@@ -23,6 +23,8 @@ function field(positions, { level = 1, id = 'bag_holder', hp = 1000 } = {}) {
     sim.spatial.rebuild(sim.enemies); // the pick aims through the spatial hash
     const pick = sim.player.weapons[0];
     pick.level = level;
+    // Diamond Pickaxe needs its catalyst (SIM_VERSION 25)
+    if (level >= PICK.evolveLevel) sim.player.addPassive(PASSIVES.HIGH_FREQUENCY);
     return { sim, pick };
 }
 

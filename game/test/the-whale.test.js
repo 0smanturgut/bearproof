@@ -7,7 +7,15 @@ import { Simulation } from '../src/sim/sim.js';
 import { Enemy, XpOrb } from '../src/sim/entities.js';
 import { RunRecorder, decodeRunLog, replay } from '../src/sim/runlog.js';
 import { createBot } from '../src/sim/bot.js';
-import { BOSSES, CHARACTERS, CHARACTER_IDS, SIM, WEAPONS, enemyDef } from '../src/sim/content.js';
+import {
+    BOSSES,
+    CHARACTERS,
+    CHARACTER_IDS,
+    PASSIVES,
+    SIM,
+    WEAPONS,
+    enemyDef
+} from '../src/sim/content.js';
 
 /** A Whale sim with hand-placed bears (bag holders unless `id` says otherwise) and nothing else on the field. */
 function field(positions, { level = 1, def = enemyDef('bag_holder') } = {}) {
@@ -16,6 +24,8 @@ function field(positions, { level = 1, def = enemyDef('bag_holder') } = {}) {
     for (const e of sim.enemies) e.speed = 0; // stand still: only the wall moves them
     const wall = sim.player.weapons[0];
     wall.level = level;
+    // Tsunami Bid needs its catalyst (SIM_VERSION 25)
+    if (level >= wall.def.evolveLevel) sim.player.addPassive(PASSIVES.WHALE_GRAVITY);
     return { sim, wall };
 }
 

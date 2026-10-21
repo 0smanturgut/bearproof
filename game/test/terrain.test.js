@@ -10,6 +10,7 @@ import {
     BOSSES,
     CHOICE_REROLL,
     CHOICE_SKIP,
+    PASSIVES,
     PICKUPS,
     SIM,
     STAGE_ROTATION,
@@ -206,6 +207,8 @@ test('chest: every boss drops one; it levels up what the bull owns (an evolution
     assert.ok(chest && chest.maxLife === SIM.CHEST_LIFE);
     const horns = s2.player.weapons[0];
     horns.level = horns.def.evolveLevel - 1;
+    // Stampede's catalyst, maxed so the chest can't spend itself on it (SIM_VERSION 25)
+    for (let k = 0; k < SIM.PASSIVE_MAX_STACK; k++) s2.player.addPassive(PASSIVES.MOMENTUM);
     s2.player.x = chest.x;
     s2.player.y = chest.y;
     s2.step(0);

@@ -14,6 +14,7 @@ import {
     WEAPONS
 } from './sim/content.js';
 import { fmtNum, fmtTime } from './format.js';
+import { collectionTotals } from './collection.js';
 import { ETERNAL_BEAR, MARKET, bearHp, characterUnlocked, levelForXp } from './profile.js';
 import {
     MISSIONS,
@@ -42,8 +43,8 @@ function esc(s) {
     );
 }
 
-/** Draw an icon (or sprite) into a canvas element at an integer scale. */
-export function paintIcon(canvas, id, scale = 4) {
+/** Draw an icon (or sprite) into a canvas element at an integer scale. `locked`: a dark silhouette only. */
+export function paintIcon(canvas, id, scale = 4, { locked = false } = {}) {
     let frames = null;
     try {
         frames = ICONS && ICONS[id] ? bakeIcon(id, scale) : bakeSprite(id, scale);
@@ -63,6 +64,12 @@ export function paintIcon(canvas, id, scale = 4) {
     canvas.height = img.height;
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(img, 0, 0);
+    if (locked) {
+        ctx.globalCompositeOperation = 'source-in';
+        ctx.fillStyle = '#2A3442';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'source-over';
+    }
 }
 
 export class UI {
@@ -210,8 +217,12 @@ export class UI {
         if (key !== this._loadoutKey) {
             this._loadoutKey = key;
             this.hud.loadout.innerHTML = '';
-            for (const w of p.weapons)
-                this._slot(w.def.icon, w.level >= 5 ? '★' : w.level, false, w.level >= 5);
+            // evolved: its evolved icon and a star; Lv 5 still waiting on its catalyst shows a plain 5
+            for (const w of p.weapons) {
+                const evolved = w.isEvolved();
+                const icon = evolved && ICONS[`evo_${w.id}`] ? `evo_${w.id}` : w.def.icon;
+                this._slot(icon, evolved ? '★' : w.level, false, evolved);
+            }
             if (p.passiveOrder.length) {
                 const br = document.createElement('div');
                 br.className = 'slot-break';
@@ -283,9 +294,43 @@ export class UI {
         card.style.animation = '';
         clearTimeout(this._bossTimer);
         this._bossTimer = setTimeout(() => (card.hidden = true), 2400);
-        card.classList.remove('era');
+        card.classList.remove('era', 'evo');
         $('bossWarn').textContent = '⚠ BOSS HAS ENTERED THE CHAT';
         this.announce(`Boss incoming: ${name}`);
+    }
+
+    /** A weapon evolves: queued, so two evolving on one pick show one after the other. */
+    evolveIntro(weaponId) {
+        if (!WEAPON_BY_ID[weaponId]) return;
+        (this._evoQueue ||= []).push(weaponId);
+        if (!this._evoBusy) this._nextEvolve();
+    }
+
+    _nextEvolve() {
+        const id = this._evoQueue?.shift();
+        this._evoBusy = !!id;
+        if (!id) return;
+        this._showEvolve(id);
+        setTimeout(() => this._nextEvolve(), 2000);
+    }
+
+    /** The boss card in cyan and gold, with the evolved icon and its recipe. */
+    _showEvolve(weaponId) {
+        const w = WEAPON_BY_ID[weaponId];
+        const cat = PASSIVE_BY_ID[w.evolveWith];
+        this.bossIntro(
+            w.evolveName,
+            `${w.name}${cat ? ` + ${cat.name}` : ''} · ${w.evolveDescription}`,
+            ICONS[`evo_${w.id}`] ? `evo_${w.id}` : w.icon
+        );
+        const card = $('bossCard');
+        card.classList.add('evo');
+        clearTimeout(this._bossTimer);
+        this._bossTimer = setTimeout(() => (card.hidden = true), 1900);
+        $('bossWarn').textContent = '★ WEAPON EVOLVED';
+        const item = `${w.name.toUpperCase()} EVOLVED INTO ${w.evolveName.toUpperCase()}  ★  NEW COLLECTION ENTRY  ★  BEARS NGMI`;
+        $('bossTicker').textContent = `${item}  ·  ${item}`;
+        this.announce(`${w.name} evolved into ${w.evolveName}`);
     }
 
     /** Market Eras: a new era begins. The boss card in the era's colours, with its year and how many bears went. */
@@ -353,7 +398,12 @@ export class UI {
                 <span class="cr-ic"><canvas aria-hidden="true"></canvas></span>
                 <b class="cr-name">${esc(name)}</b>
                 <span class="cr-tag">${esc(tag)}</span>`;
-            paintIcon(li.querySelector('canvas'), def?.icon || 'dca', big ? 4 : 3);
+            const evoIcon = it.kind === 'weapon' && it.evolves && ICONS[`evo_${it.id}`];
+            paintIcon(
+                li.querySelector('canvas'),
+                evoIcon ? `evo_${it.id}` : def?.icon || 'dca',
+                big ? 4 : 3
+            );
             list.appendChild(li);
             said.push(`${name} ${tag}`);
         });
@@ -611,29 +661,41 @@ export class UI {
                       ? PASSIVE_BY_ID[c.id]
                       : null;
             const btn = document.createElement('button');
+            // a catalyst card evolves (or will evolve) a weapon the bull holds
+            const target = WEAPON_BY_ID[c.evolvesWeapon || c.catalystFor];
+            const evolving = c.evolves || !!c.evolvesWeapon;
             btn.className =
                 'card' +
                 (c.kind === 'passive' ? ' kind-passive' : ' kind-weapon') +
-                (c.evolves ? ' evo' : '') +
+                (evolving ? ' evo' : '') +
                 (c.kind === 'heal' ? ' heal' : '');
             btn.setAttribute('role', 'menuitem');
             const name = def ? def.name : 'Take Profit';
             const tag =
                 c.kind === 'heal'
                     ? 'HEAL'
-                    : c.evolves
+                    : evolving
                       ? 'EVOLVES'
-                      : c.isNew
-                        ? 'NEW'
-                        : `LV ${c.level - 1} → ${c.level}`;
-            const tagCls = c.evolves ? 'evo' : c.isNew ? 'new' : '';
+                      : c.needs
+                        ? 'LV 5'
+                        : c.isNew
+                          ? c.catalystFor
+                              ? 'CATALYST'
+                              : 'NEW'
+                          : `LV ${c.level - 1} → ${c.level}`;
+            const tagCls = evolving ? 'evo' : c.catalystFor ? 'cat' : c.isNew ? 'new' : '';
             const desc = def
                 ? def.description
                 : `Everything is maxed. Bank it: heal ${c.amount} HP.`;
-            const evo =
-                c.evolves && def?.evolveName
-                    ? `→ ${def.evolveName}: ${def.evolveDescription || ''}`
-                    : '';
+            const evo = c.evolvesWeapon
+                ? `Evolves ${target.name} → ${target.evolveName}: ${target.evolveDescription}`
+                : c.catalystFor
+                  ? `Catalyst: ${target.name} at Lv ${target.evolveLevel} → ${target.evolveName}`
+                  : c.needs
+                    ? `Needs ${PASSIVE_BY_ID[c.needs]?.name} to evolve → ${def.evolveName}`
+                    : c.evolves && def?.evolveName
+                      ? `→ ${def.evolveName}: ${def.evolveDescription || ''}`
+                      : '';
             const kind =
                 c.kind === 'heal' ? 'CASH OUT' : c.kind === 'passive' ? 'PASSIVE' : 'WEAPON';
             const pips =
@@ -650,7 +712,14 @@ export class UI {
                     ${pips}
                 </div>
                 <kbd>${i + 1}</kbd>`;
-            paintIcon(btn.querySelector('canvas'), def?.icon || 'dca', 4);
+            // an evolving weapon card shows what it becomes
+            paintIcon(
+                btn.querySelector('canvas'),
+                c.kind === 'weapon' && c.evolves && ICONS[`evo_${c.id}`]
+                    ? `evo_${c.id}`
+                    : def?.icon || 'dca',
+                4
+            );
             btn.addEventListener('click', () => pick(i));
             btn.setAttribute('aria-label', `${name}, ${tag}. ${desc} ${evo}`);
             wrap.appendChild(btn);
@@ -759,6 +828,10 @@ export class UI {
         $('psBar').style.width = `${Math.round((lv.into / lv.need) * 100)}%`;
         $('psClout').textContent = fmtNum(profile.clout);
         $('miMarket').textContent = `${fmtNum(profile.clout)} CLOUT to spend`;
+        const col = collectionTotals(profile.seen);
+        $('miGuide').textContent = col.found
+            ? `${col.found}/${col.total} found`
+            : 'Weapons, evolutions & bears';
         $('btnProfile').setAttribute(
             'aria-label',
             `Player level ${lv.level}, ${profile.clout} CLOUT. Open the Market.`
@@ -1219,8 +1292,12 @@ export class UI {
             b.className = 'guide-tab';
             b.setAttribute('role', 'tab');
             b.setAttribute('aria-selected', String(s.id === current.id));
-            b.innerHTML = `<span>${esc(s.label.toUpperCase())}</span><small>${s.entries.length}</small>`;
-            b.setAttribute('aria-label', `${s.label}, ${s.entries.length}`);
+            const count = s.count || String(s.entries.length);
+            b.innerHTML = `<span>${esc(s.label.toUpperCase())}</span><small>${esc(count)}</small>`;
+            b.setAttribute(
+                'aria-label',
+                `${s.label}, ${s.count ? `${count.replace('/', ' of ')} found` : count}`
+            );
             b.addEventListener('click', () => {
                 this.showGuide(sections, s.id);
                 $('guideTabs').querySelector('[aria-selected="true"]')?.focus();
@@ -1247,7 +1324,10 @@ export class UI {
             paintIcon(
                 li.querySelector('canvas'),
                 e.art,
-                e.scale || (current.id === 'bosses' ? 1 : 2)
+                e.scale || (current.id === 'bosses' ? 1 : 2),
+                {
+                    locked: !!e.silhouette
+                }
             );
             list.appendChild(li);
         }

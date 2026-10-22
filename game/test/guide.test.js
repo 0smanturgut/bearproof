@@ -102,7 +102,11 @@ test('guide: bears say when they show up, where they come from, and what to do',
 test('guide: bosses show when they arrive on each Daily stage and what they pay', () => {
     assert.equal(bossArrival('rug_lord'), '5:00 (4:00 in Bear Trap), not in Market Eras');
     assert.equal(bossArrival('capitulation'), '7:30 (7:00 in Bear Trap), not in Market Eras');
-    assert.equal(bossArrival('liquidation'), '10:00, not in Market Eras, not in Crypto Winter');
+    assert.equal(
+        bossArrival('liquidation'),
+        '10:00, not in Market Eras, not in Crypto Winter, not in The Liquidity Pool'
+    );
+    assert.equal(bossArrival('exit_liquidity'), '10:00, The Liquidity Pool only');
     assert.equal(bossArrival('hacked_exchange'), '4:00, Market Eras only');
     assert.equal(bossArrival('peak_euphoria'), '9:30, Market Eras only');
     assert.equal(bossArrival('long_winter'), '10:00, Crypto Winter only');

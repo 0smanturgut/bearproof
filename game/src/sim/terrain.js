@@ -17,7 +17,7 @@ export const CHUNK = 256; // world units per chunk side
 const CELL = 64; // collision grid
 const PAD = 40; // a collider is filed in every cell it reaches, plus this margin (the widest body that asks)
 const BREAK_CELL = 360; // at most one piggy bank per square this size (about two on a screen)
-const TERRAINS = new Set(['chop', 'bear_trap', 'winter', 'eras']);
+const TERRAINS = new Set(['chop', 'bear_trap', 'winter', 'eras', 'pool']);
 
 /**
  * Every prop a map places. `w`: its sprite's width in art px (spacing between props); `tall`: tall enough to hide
@@ -98,7 +98,19 @@ export const PROPS = {
     eras_lambo: { w: 60, solid: { box: [-56, -24, 56, 2] } },
     eras_block: { w: 44, tall: true, solid: { box: [-40, -30, 40, 2] } },
     eras_pizza: { w: 18 },
-    eras_floppy: { w: 16 }
+    eras_floppy: { w: 16 },
+    // The Liquidity Pool: a drowned trading floor; what floats, you wade through
+    pool_desk: { w: 44, solid: { box: [-40, -18, 40, 2] } },
+    pool_pillar: { w: 20, tall: true, solid: [0, -8, 15] },
+    pool_lifeguard: { w: 30, tall: true, solid: { box: [-24, -12, 24, 2] } },
+    pool_ticker: { w: 56, solid: { box: [-52, -14, 52, 2] } },
+    pool_cooler: { w: 16, tall: true, solid: [0, -4, 7] },
+    pool_plant: { w: 20, tall: true, solid: [0, -4, 8] },
+    pool_vault: { w: 30, solid: [0, -8, 16] },
+    pool_buoy: { w: 18 },
+    pool_duck: { w: 12 },
+    pool_chair: { w: 18 },
+    pool_ladder: { w: 18 }
 };
 
 /** Each prop's footprint as a list of shapes: circles { x, y, r } and boxes { x0, y0, x1, y1 }, from its foot. */
@@ -267,6 +279,10 @@ export class Terrain {
                 if (h < 0.35) set = { kind: 'farm', x, y, r: 200 };
                 else if (h < 0.65) set = { kind: 'launch', x, y, r: 220 };
                 else if (h < 0.9) set = { kind: 'datacenter', x, y, r: 200 };
+            } else if (st === 'pool') {
+                if (h < 0.45) set = { kind: 'desks', x, y, r: 210 };
+                else if (h < 0.7) set = { kind: 'lifeguard', x, y, r: 150 };
+                else if (h < 0.9) set = { kind: 'vault', x, y, r: 150 };
             }
             // the city's set pieces are its blocks
         }
@@ -332,6 +348,18 @@ export class Terrain {
                     P('eras_pizza', -96, 70),
                     P('eras_floppy', 120, 60),
                     P('eras_floppy', -40, -200, true)
+                ];
+            else if (st === 'pool')
+                // the shallow end: a lifeguard on duty over what's left of the trading desk
+                list = [
+                    P('pool_lifeguard', -150, -110),
+                    P('pool_desk', 120, -130),
+                    P('pool_chair', 70, -80, true),
+                    P('pool_buoy', -90, 80),
+                    P('pool_duck', 60, 110),
+                    P('pool_ladder', -210, 20),
+                    P('pool_cooler', 200, -40),
+                    P('pool_ticker', 0, -210)
                 ];
             else
                 list = [
@@ -404,6 +432,34 @@ export class Terrain {
                 P('eras_rig', -40, 60),
                 P('eras_floppy', 50, 50)
             ];
+        } else if (set.kind === 'desks') {
+            // a trading desk row gone under, its chairs floating off
+            list = [
+                P('pool_desk', -60, -40),
+                P('pool_desk', 60, -40, true),
+                P('pool_desk', 0, 50),
+                P('pool_chair', -110, 20),
+                P('pool_chair', 110, 60, true),
+                P('pool_cooler', 140, -60),
+                P('pool_plant', -150, -60),
+                P('pool_ticker', 0, -130)
+            ];
+        } else if (set.kind === 'lifeguard') {
+            list = [
+                P('pool_lifeguard', 0, 0),
+                P('pool_buoy', -60, 40),
+                P('pool_ladder', 70, 30, true),
+                P('pool_duck', 30, 80),
+                P('pool_duck', -30, 96, true)
+            ];
+        } else if (set.kind === 'vault') {
+            // the vault, opened: nothing left inside
+            list = [
+                P('pool_vault', 0, 0),
+                P('pool_pillar', -80, -30),
+                P('pool_pillar', 80, -30),
+                P('pool_chair', 50, 60, true)
+            ];
         } else if (set.kind === 'crystals') {
             list = [
                 P('winter_crystal', 0, 0),
@@ -474,6 +530,22 @@ export class Terrain {
                             ? 'eras_rig'
                             : 'eras_rocket';
             else if (r < 0.08) id = q < 0.4 ? 'eras_lambo' : q < 0.7 ? 'eras_rig' : 'eras_silo';
+        } else if (st === 'pool') {
+            if (this.trail(x, y) < 80) return null; // the deep end: open water, nothing standing
+            const g = this.grove(x, y);
+            if (g > 0.6 && r < 0.55)
+                id =
+                    q < 0.35
+                        ? 'pool_desk'
+                        : q < 0.6
+                          ? 'pool_pillar'
+                          : q < 0.78
+                            ? 'pool_plant'
+                            : q < 0.9
+                              ? 'pool_cooler'
+                              : 'pool_ticker';
+            else if (r < 0.08)
+                id = q < 0.4 ? 'pool_pillar' : q < 0.65 ? 'pool_lifeguard' : 'pool_vault';
         } else {
             if (this.trail(x, y) < 86) return null; // the frozen river
             const g = this.grove(x, y);
@@ -585,6 +657,17 @@ export class Terrain {
             }
         } else if (st === 'eras') {
             if (this.trail(x, y) > 40 && r < 0.05) id = q < 0.5 ? 'eras_pizza' : 'eras_floppy';
+        } else if (st === 'pool') {
+            // flotsam: it drifts into the deep end too
+            if (r < 0.07)
+                id =
+                    q < 0.3
+                        ? 'pool_duck'
+                        : q < 0.55
+                          ? 'pool_buoy'
+                          : q < 0.8
+                            ? 'pool_chair'
+                            : 'pool_ladder';
         } else {
             const g = this.grove(x, y);
             if (this.trail(x, y) < 70) {

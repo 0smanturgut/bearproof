@@ -56,6 +56,7 @@ const SPRITE_GENS = {
     pump_dump: make(creatures.pumpDump, 4, { fps: 4 }), // frames are swell stages; render.js picks by e.pump
     exit_scam: make(creatures.exitScam, 4, { fps: 10 }),
     flash_loan: make(creatures.flashLoan, 4, { fps: 12 }),
+    mev_bot: make(creatures.mevBot, 4, { fps: 12 }),
     // bosses
     rug_lord: make(bosses.rugLord, 4, { fps: 5 }),
     capitulation: make(bosses.capitulation, 4, { fps: 8 }),
@@ -67,6 +68,8 @@ const SPRITE_GENS = {
     hacked_exchange: make(bosses.hackedExchange, 4, { fps: 5 }),
     yield_farm: make(bosses.yieldFarm, 4, { fps: 5 }),
     peak_euphoria: make(bosses.peakEuphoria, 4, { fps: 8 }),
+    // The Liquidity Pool's boss
+    exit_liquidity: make(bosses.exitLiquidity, 4, { fps: 5 }),
     // pickups and projectiles
     xp_candle: make(items.xpCandle, 2, { fps: 3 }),
     xp_candle_big: make(items.xpCandleBig, 2, { fps: 3 }),
@@ -186,7 +189,8 @@ export const SPRITE_GROUPS = {
         'sybil',
         'pump_dump',
         'exit_scam',
-        'flash_loan'
+        'flash_loan',
+        'mev_bot'
     ],
     bosses: [
         'rug_lord',
@@ -197,7 +201,8 @@ export const SPRITE_GROUPS = {
         'withdrawal_freeze',
         'hacked_exchange',
         'yield_farm',
-        'peak_euphoria'
+        'peak_euphoria',
+        'exit_liquidity'
     ],
     pickups: [
         'xp_candle',

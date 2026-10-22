@@ -863,6 +863,25 @@ export const ENEMIES = {
         damage: 16,
         exp: 24,
         size: 14
+    },
+    // The Liquidity Pool's bear (the stage's `extraEnemies`, and Exit Liquidity's summons). It front-runs: it
+    // chases where the bull will be in `frontrun` s at his current velocity (at most `frontrunMax` ahead), and goes
+    // straight for him once within `frontrunNear`.
+    MEV_BOT: {
+        id: 'mev_bot',
+        name: 'MEV Bot',
+        sprite: 'mev_bot',
+        description:
+            'The Liquidity Pool. It saw your transaction first: it runs at where you’re going, not where you are.',
+        tip: 'Running in a straight line runs you into it. Turn, and it overshoots.',
+        frontrun: 0.75,
+        frontrunMax: 200,
+        frontrunNear: 70,
+        hp: 26,
+        speed: 112,
+        damage: 12,
+        exp: 20,
+        size: 13
     }
 };
 
@@ -1060,6 +1079,38 @@ export const BOSSES = {
         abilityCooldown: 4,
         spawnAt: 570,
         stageOnly: true
+    },
+    // The Liquidity Pool's boss, in Liquidation's slot. Summons like the Rug Lord, and `drain`: every `every` s it
+    // opens a whirlpool under itself (sim._openWhirlpool) that follows it: `warn` s of warning, then `life` s of pull.
+    EXIT_LIQUIDITY: {
+        id: 'exit_liquidity',
+        name: 'Exit Liquidity',
+        sprite: 'exit_liquidity',
+        tagline: 'You are the exit liquidity.',
+        description:
+            'Takes Liquidation’s place in The Liquidity Pool, at 10:00. Calls in 3 MEV Bots every 6 s, and every 7 s opens a drain under itself that drags you and the bears in. Get out of the ring before it spins.',
+        hp: 6000,
+        speed: 55,
+        damage: 60,
+        exp: 1250,
+        size: 56,
+        boss: true,
+        ability: 'summon',
+        summon: 'mev_bot',
+        summonCount: 3,
+        abilityCooldown: 6,
+        spawnAt: 600,
+        stageOnly: true,
+        drain: {
+            every: 7,
+            warn: 1.2,
+            life: 3.5,
+            radius: 230,
+            core: 40,
+            pull: 95,
+            drown: 0.06,
+            coreDps: 6
+        }
     }
 };
 
@@ -1296,11 +1347,55 @@ export const STAGES = {
                 extra: []
             }
         ]
+    },
+    // A flooded trading floor. `whirlpools` (sim._whirlpoolTick): from `first` s, one opens every `every` s,
+    // `minDist`..`maxDist` from the bull (at most `max` at once). `warn` s of ripples, then `life` s of pull:
+    // the bull and every bear but bosses and fliers within `radius` drift to the centre at up to `pull` px/s
+    // (with a `swirl` of that sideways). In the `core`, bears lose `drown` of their max HP a second; the bull
+    // loses `coreDps` HP a second, never below 1.
+    POOL: {
+        id: 'pool',
+        name: 'The Liquidity Pool',
+        description:
+            'A flooded trading floor, with waterlogged bears (+15% HP). Whirlpools open around you and drag you and the bears in; bears in the middle drown. MEV Bots front-run you, and Exit Liquidity drains the pool at 10:00.',
+        palette: { bg: '#04090B', grid: '#0B1C21', gridMajor: '#11272E', terrain: '#0A1A1E' },
+        poolWeights: {
+            mev_bot: 1.5,
+            sybil: 1.4,
+            ponzi: 1.3,
+            pump_dump: 1.3,
+            margin_call: 1.2,
+            grizzly: 0.9,
+            rug_puller: 1.0
+        },
+        extraEnemies: ['mev_bot'],
+        extraFrom: 60,
+        bossOffsets: {},
+        bossOverrides: { liquidation: 'exit_liquidity' },
+        // the whirlpools are on your side as often as not: the bears are thicker to make up for it
+        modifiers: { enemyHpMult: 1.15 },
+        whirlpools: {
+            first: 40,
+            every: 15,
+            max: 2,
+            minDist: 150,
+            maxDist: 260,
+            warn: 1.5,
+            life: 8,
+            radius: 130,
+            core: 28,
+            pull: 80,
+            swirl: 0.6,
+            drown: 0.06,
+            coreDps: 6
+        }
     }
 };
 
-// Market Eras is second, not last: on four maps, seed 123 must still land on one of the first three.
-export const STAGE_ROTATION = ['chop', 'eras', 'bear_trap', 'winter'];
+// Market Eras is second, not last: seed 123 must land on one of the three old maps. With The Liquidity Pool,
+// Bear Trap moves to fourth: 123 % 5 = 3, and the 19 Oct Daily's seed (worker/test/twists.test.js, which reads this
+// table as Build #27's) also lands on 3 and must still say Bear Trap.
+export const STAGE_ROTATION = ['chop', 'eras', 'winter', 'bear_trap', 'pool'];
 // The rotation before Market Eras: runs under the legacy rules (sim.js LEGACY_SIM_VERSION) keep it.
 export const LEGACY_STAGE_ROTATION = ['chop', 'bear_trap', 'winter'];
 export const DEFAULT_STAGE = 'chop';
@@ -1503,6 +1598,11 @@ export function erasFor(id) {
 /** pickWeighted's weights during an era: the era's own over the stage's. */
 export function eraWeights(stageId, era) {
     return era ? { ...getStage(stageId).poolWeights, ...era.poolWeights } : null;
+}
+
+/** A stage's whirlpool rule (The Liquidity Pool), or null. */
+export function whirlpoolsFor(id) {
+    return getStage(id).whirlpools || null;
 }
 
 export function stageModifiers(id) {

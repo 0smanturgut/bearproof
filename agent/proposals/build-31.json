@@ -1,0 +1,18 @@
+[
+    {
+        "id": "boss-rush",
+        "title": "Boss Rush: every boss, back to back",
+        "description": "A new mode next to Free Run and the Daily: the bosses of all five maps in a row, Exit Liquidity included, with a breather and a level-up between each fight, its own board label and its own missions."
+    },
+    {
+        "id": "story-mode-chapter-1",
+        "title": "Story Mode: Chapter 1",
+        "description": "Five short stages in a row, each with its own goal, a story card between them and a portal at the end that warps you to the next, ending in a boss fight.",
+        "from": "player"
+    },
+    {
+        "id": "the-dev-character",
+        "title": "The Dev: a fifth character who ships turrets",
+        "description": "A new playable character, unlocked in the Market: the Dev deploys little smart-contract turrets that hold the line while you kite, with an animated sprite, a trait, missions and a select card."
+    }
+]

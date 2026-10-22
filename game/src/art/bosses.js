@@ -926,3 +926,178 @@ export function peakEuphoria(f) {
     });
     return s.render();
 }
+
+// ---------------------------------------------------------------- The Liquidity Pool
+
+// deep water, darker and bluer than the pool's teal floor so the boss stands off it; foam on the crests
+const DEEP = mat(['#020814', '#05142A', '#0A2546', '#103A66', '#1A5A8E', '#3E8EC2'], {
+    line: '#01040A'
+});
+const DRAIN = mat(['#10161E', '#26303A', '#44525E', '#6E808C', '#A6B6C0', '#E6F0F4'], {
+    line: '#06090D'
+});
+const FOAM = '#BFF4FF';
+const SURF = '#5EC8E6';
+const EXIT = '#3CFF7A';
+
+// the 3×5 letters of the sign
+const EXIT_GLYPHS = {
+    E: ['XXX', 'X..', 'XX.', 'X..', 'XXX'],
+    X: ['X.X', 'X.X', '.X.', 'X.X', 'X.X'],
+    I: ['XXX', '.X.', '.X.', '.X.', 'XXX'],
+    T: ['XXX', '.X.', '.X.', '.X.', '.X.']
+};
+
+/**
+ * 62×64 Exit Liquidity: a huge bear made of deep, dark water, foam on its crests and drips running off its paws.
+ * A round pool-drain grate sits in its belly, a vortex spinning behind the bars; a small green EXIT sign floats
+ * over its head (there is one, and it is not for you). Frames 0-3: the vortex turns, the body sloshes.
+ */
+export function exitLiquidity(f) {
+    const s = new PixelSprite(62, 64, { dither: 0.4 });
+    const ph = (f / 4) * TAU;
+    const br = Math.sin(ph);
+    const b = Math.round(br);
+    s.auto('body', { R: 6, grad: 0.4 });
+    s.auto('head', { R: 5, grad: 0.34 });
+    s.auto('arms', { R: 3.2, grad: 0.3 });
+    s.auto('legs', { R: 3, grad: 0.25 });
+    // legs, sloshing into a splash at the feet
+    s.capsule(20, 50, 19, 60, 5.5, 5.2, DEEP, { g: 'legs', bias: -0.08 });
+    s.capsule(42, 50, 43, 60, 5.5, 5.2, DEEP, { g: 'legs', bias: -0.08 });
+    // the body and its arms, reaching out and down
+    s.ellipse(31, 41 + br * 0.5, 19, 16, DEEP, { g: 'body' });
+    s.capsule(14, 32 + b, 6, 46 + b, 5, 4.4, DEEP, { g: 'arms' });
+    s.capsule(48, 32 + b, 56, 46 + b, 5, 4.4, DEEP, { g: 'arms' });
+    // the head: round ears, a broad skull, a muzzle
+    const hy = 21 + b;
+    s.circle(19, hy - 9, 4, DEEP, { g: 'head' });
+    s.circle(43, hy - 9, 4, DEEP, { g: 'head' });
+    s.ellipse(31, hy, 13, 10.5, DEEP, { g: 'head' });
+    s.ellipse(31, hy + 5, 6.2, 4.2, DEEP, { g: 'snout', bias: 0.12 });
+    s.auto('snout', { R: 2.4, grad: 0.25 });
+    // foam riding the crests: the tops of the ears, the head, the shoulders and the arms
+    for (let x = 0; x < s.w; x++)
+        for (let y = 0; y < s.h; y++) {
+            const i = y * s.w + x;
+            if (!s.mat[i] || s.color[i]) continue;
+            if (y > 0 && s.mat[i - s.w]) continue;
+            if (y > 44) break;
+            const wob = (x + f) % 5;
+            s.px(x, y, wob === 0 ? '#FFFFFF' : FOAM);
+            if (wob !== 2 && y + 1 < s.h && s.mat[i + s.w]) s.px(x, y + 1, SURF);
+            break;
+        }
+    // ripple lines sliding across the body
+    for (const [y0, x0, x1] of [
+        [30, 18, 26],
+        [36, 40, 47],
+        [52, 22, 28],
+        [50, 36, 42],
+        [44, 13, 18]
+    ]) {
+        const dx = (f % 4) - 1;
+        for (let x = x0 + dx; x <= x1 + dx; x++) {
+            const y = y0 + b + Math.round(Math.sin(x * 0.8 + ph) * 0.6);
+            const i = y * s.w + x;
+            if (s.mat[i] && !s.color[i]) s.px(x, y, x === x0 + dx ? FOAM : SURF);
+        }
+    }
+    // the drain in its belly: a chrome rim, the vortex spinning behind, a grate over it
+    const cx = 31;
+    const cy = 42 + Math.round(br * 0.5);
+    s.circle(cx, cy, 9.4, DRAIN, { bias: 0.05 });
+    s.circle(cx, cy, 7.6, DRAIN, { shade: 'flat', lum: 0.15 });
+    const turn = (f / 4) * (TAU / 3);
+    for (let y = cy - 8; y <= cy + 8; y++)
+        for (let x = cx - 8; x <= cx + 8; x++) {
+            const dx = x + 0.5 - cx;
+            const dy = y + 0.5 - cy;
+            const r = Math.hypot(dx, dy);
+            if (r > 7) continue;
+            const a = Math.atan2(dy, dx);
+            const v = Math.sin(a * 3 - r * 0.85 + turn * 3);
+            let c;
+            if (r < 1.6) c = '#01040A';
+            else if (v > 0.6) c = r > 4 ? FOAM : SURF;
+            else if (v > 0.05) c = '#1A6A9A';
+            else c = r < 3.5 ? '#020814' : '#06203C';
+            s.px(x, y, c, v > 0.6 && r >= 1.6 ? { glow: '#46C8F0' } : {});
+        }
+    // the grate: an inner ring and a broken outer ring of slots, chrome, lit from the top left
+    for (let k = 0; k < 40; k++) {
+        const a = (k / 40) * TAU;
+        const lit = Math.cos(a + 2.3) > 0;
+        s.px(
+            Math.floor(cx + Math.cos(a) * 3.4),
+            Math.floor(cy + Math.sin(a) * 3.4),
+            lit ? '#C8D6DE' : '#6E808C'
+        );
+        if (k % 5 !== 0) continue;
+        s.px(
+            Math.floor(cx + Math.cos(a) * 6.2),
+            Math.floor(cy + Math.sin(a) * 6.2),
+            lit ? '#C8D6DE' : '#6E808C'
+        );
+    }
+    for (const [x, y] of [
+        [cx - 7, cy - 4],
+        [cx + 6, cy - 4],
+        [cx - 7, cy + 3],
+        [cx + 6, cy + 3]
+    ])
+        s.px(x, y, '#E6F0F4');
+    // drips running off the paws, falling
+    for (const [x, y] of [
+        [5, 50],
+        [8, 51],
+        [55, 50],
+        [58, 51]
+    ]) {
+        const fall = (f + x) % 4;
+        s.px(x, y + b + fall, fall === 3 ? SURF : FOAM, { bare: true });
+    }
+    // a splash ring at each foot
+    for (const fx of [19, 43]) {
+        const w = 6 + (f % 2);
+        for (let x = fx - w; x <= fx + w; x++)
+            if ((x + f) % 3 !== 0) s.px(x, 62, Math.abs(x - fx) > w - 2 ? SURF : FOAM);
+    }
+    // the face: a dark nose, a mouth like a drain slot with pale fangs, brows, glowing eyes
+    s.patch(29, hy + 2, ['XXXXX', '.XXX.'], { X: '#01040A' });
+    s.patch(26, hy + 7, ['W.........W', 'XXXXXXXXXXX', '.XXXXXXXXX.'], {
+        X: '#01040A',
+        W: '#E6F8FF'
+    });
+    const ey = hy - 2;
+    s.patch(21, ey - 2, ['XXX..........XXX.', '.XXXX......XXXX..'], { X: '#01040A' });
+    glowEyes(s, [
+        [23, ey + 1],
+        [24, ey + 1],
+        [25, ey + 1],
+        [37, ey + 1],
+        [38, ey + 1],
+        [39, ey + 1],
+        [24, ey + 2],
+        [25, ey + 2],
+        [37, ey + 2],
+        [38, ey + 2]
+    ]);
+    s.px(24, ey + 1, '#FFC9BF', { glow: C.red }).px(38, ey + 1, '#FFC9BF', { glow: C.red });
+    // the EXIT sign floating over its head, bobbing out of step with it
+    const sy = 1 + [0, 0, 1, 1][f % 4];
+    s.box(22, sy, 19, 9, DRAIN, { r: 1, bevel: 1, bias: -0.25 });
+    s.box(23, sy + 1, 17, 7, DRAIN, { shade: 'flat', lum: 0 });
+    let lx = 24;
+    for (const ch of 'EXIT') {
+        EXIT_GLYPHS[ch].forEach((row, ry) => {
+            for (let rx = 0; rx < 3; rx++)
+                if (row[rx] === 'X')
+                    s.px(lx + rx, sy + 2 + ry, f % 4 === 3 && ch === 'I' ? '#B8FFD0' : EXIT, {
+                        glow: EXIT
+                    });
+        });
+        lx += 4;
+    }
+    return s.render();
+}

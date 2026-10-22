@@ -47,6 +47,9 @@ export class Player {
         this.printerMult = 1;
         this.rocketTimer = 0; // Moon Rocket: seconds left on the ride
         this.rocketMult = 1;
+        // the velocity of his own last step (px/s), for bears that read it (the MEV Bot front-runs it)
+        this.vx = 0;
+        this.vy = 0;
     }
 
     get invincible() {
@@ -66,6 +69,8 @@ export class Player {
             (this.rocketTimer > 0 ? this.rocketMult : 1);
         this.x += mx * speed * dt;
         this.y += my * speed * dt;
+        this.vx = mx * speed;
+        this.vy = my * speed;
         // the map's solid scenery stops the bull (not on a Moon Rocket: it flies)
         if (sim.solid && this.rocketTimer <= 0) sim.collidePlayer();
         this.moving = mx !== 0 || my !== 0;
@@ -253,6 +258,8 @@ export class Enemy {
         this.rugWarn = 0;
         this.rugPull = 0;
         this.rugAngle = 0;
+        // Exit Liquidity: seconds to its next drain (a whirlpool under itself)
+        this.drainTimer = def.drain ? def.drain.every * 0.5 : 0;
         this.windup = 0; // ranged: seconds of typing left before the shot goes out
         this.pump = 0; // pumper: 0 → 1 as it swells
         // Charge bosses: seconds of crouching left before the jump, the marked landing spot and its hit radius.
@@ -361,6 +368,29 @@ export class Enemy {
             return [0, 0];
         }
         return [tx * this.speed * slow, ty * this.speed * slow];
+    }
+
+    /**
+     * MEV Bot: runs at where the bull will be in `frontrun` s at his current velocity (at most `frontrunMax`
+     * ahead), and straight at him once within `frontrunNear`. Returns the velocity.
+     */
+    _frontrun(sim, tx, ty, d, slow) {
+        const def = this.def;
+        const p = sim.player;
+        const v = this.speed * slow;
+        if (d < def.frontrunNear) return [tx * v, ty * v];
+        let lx = p.vx * def.frontrun;
+        let ly = p.vy * def.frontrun;
+        const lead = hypot(lx, ly);
+        if (lead > def.frontrunMax) {
+            lx *= def.frontrunMax / lead;
+            ly *= def.frontrunMax / lead;
+        }
+        const ax = p.x + lx - this.x;
+        const ay = p.y + ly - this.y;
+        const ad = hypot(ax, ay);
+        if (ad < 0.01) return [tx * v, ty * v];
+        return [(ax / ad) * v, (ay / ad) * v];
     }
 
     _run(sim) {
@@ -490,6 +520,8 @@ export class Enemy {
                 [vx, vy] = v;
             } else if (def.blinker) {
                 [vx, vy] = this._blink(dt, sim, tx, ty, d, slow);
+            } else if (def.frontrun) {
+                [vx, vy] = this._frontrun(sim, tx, ty, d, slow);
             } else if (def.dasher) {
                 this.dashTimer -= dt;
                 if (this.dashActive > 0) {
@@ -541,6 +573,13 @@ export class Enemy {
             }
             if (def.phase2) this._rugPhase(dt, sim);
             if (def.freezeRadius) sim.freezeCandles(this);
+            if (def.drain) {
+                this.drainTimer -= dt;
+                if (this.drainTimer <= 0) {
+                    this.drainTimer = def.drain.every;
+                    sim.openWhirlpool(this.x, this.y, def.drain, this);
+                }
+            }
         }
     }
 

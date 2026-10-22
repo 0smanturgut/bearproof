@@ -1419,6 +1419,109 @@ export function flashLoan(f) {
     return s.render();
 }
 
+// gunmetal plating with a violet sheen, a darker violet for joints and the far side, the shark fin's steel
+const GUN = mat(['#0E0A1A', '#1E1832', '#342C50', '#50467A', '#7A70A8', '#B8B0E0'], {
+    line: '#06040E'
+});
+const GUN_DARK = mat(['#08060F', '#141022', '#221C36', '#332A4E', '#4A3F6C', '#665A8C'], {
+    line: '#040308'
+});
+const FIN = mat(['#101622', '#1E2838', '#344458', '#526678', '#7E94A6', '#C4D4E0'], {
+    line: '#060A10'
+});
+const VISOR = '#FFB020';
+const VISOR_HOT = '#FFF0B8';
+const JET = '#FF5A8A';
+
+/**
+ * 24×20 MEV Bot: a small robot bear in gunmetal-violet plating, a shark's dorsal fin bolted to its back and one
+ * wide amber visor across its face (it saw your transaction first). It skims along on two little hover jets,
+ * stubby legs paddling under it. Frames 0-3: a run cycle, the jets flaring.
+ */
+export function mevBot(f) {
+    const s = new PixelSprite(24, 20, { dither: 0.15 });
+    const run = (f / 4) * TAU;
+    const b = [0, -1, 0, -1][f % 4];
+    s.auto('body', { R: 2.4, grad: 0.32 });
+    s.auto('head', { R: 2, grad: 0.3 });
+    // the jet wash under it: two pink flares, no outline
+    const fl = [2, 3, 2, 4][f % 4];
+    for (const x of [8, 14]) {
+        s.capsule(x, 16 + b, x - 1, 16 + b + fl * 0.6, 1.1, 0.4, M.bear, {
+            shade: 'flat',
+            lum: 0.8,
+            glow: JET,
+            bare: true
+        });
+        s.px(x, 16 + b, '#FFC9D8', { glow: JET, bare: true });
+    }
+    // paddling legs, the far one darker
+    const fx = Math.sin(run) * 2.2;
+    s.capsule(9, 13 + b, 8.5 + fx, 16.5 + b, 1.3, 1.1, GUN_DARK, { g: 'legB' });
+    s.capsule(14, 13 + b, 14.5 - fx, 16.5 + b, 1.3, 1.1, GUN, { g: 'legF', bias: -0.05 });
+    s.auto('legB', { R: 1, grad: 0.1 });
+    s.auto('legF', { R: 1, grad: 0.1 });
+    // jet pods on the feet
+    s.box(6.6 + fx, 15.4 + b, 4, 2, M.metal, { r: 0.6, bevel: 0.8, bias: -0.2 });
+    s.box(12.6 - fx, 15.4 + b, 4, 2, M.metal, { r: 0.6, bevel: 0.8, bias: -0.05 });
+    // the shark fin, swept back over the shoulders
+    s.poly(
+        [
+            [6, 9 + b],
+            [12, 7.5 + b],
+            [7.5, 0.5 + b],
+            [5.5, 1.5 + b],
+            [5, 5 + b]
+        ],
+        FIN,
+        { g: 'fin', bias: 0.05 }
+    );
+    s.auto('fin', { R: 1.2, grad: 0.4 });
+    // the body: a round plated torso, leaning forward
+    s.ellipse(11, 11 + b, 5.6, 4.6, GUN, { g: 'body' });
+    // a little tail stub
+    s.circle(5.2, 11 + b, 1.3, GUN, { g: 'body' });
+    // a panel seam and a rivet down the side, an enemy-red status light on the belly
+    s.line(9, 8.5 + b, 9, 14 + b, GUN, { lum: 0.2 });
+    s.px(13, 13 + b, C.red, { glow: C.red });
+    // the head: round ears (antenna nubs), a squarish robot skull, a short muzzle
+    s.circle(14.4, 2.6 + b, 2.1, GUN, { g: 'head' });
+    s.circle(20.6, 2.4 + b, 2.1, GUN, { g: 'head' });
+    s.ellipse(17.8, 6.6 + b, 4.8, 4.1, GUN, { g: 'head' });
+    s.ellipse(21.4, 8.4 + b, 1.9, 1.5, GUN_DARK, { g: 'snout', bias: 0.15 });
+    s.auto('snout', { R: 1, grad: 0.2 });
+    s.px(14.4, 2.4 + b, '#FF7E9C', { glow: C.red }).px(20.6, 2.2 + b, '#FF7E9C', { glow: C.red });
+    // the visor: one wide glowing band with a scanning highlight
+    const vy = Math.round(5.4 + b);
+    s.box(14, vy - 0.5, 9.6, 2.6, GUN_DARK, { shade: 'flat', lum: 0.05, r: 0.8 });
+    for (let x = 15; x <= 22; x++)
+        s.px(x, vy, x === 15 + ((f * 2) % 8) ? VISOR_HOT : VISOR, { glow: VISOR });
+    s.px(15, vy + 1, '#C8761E', { glow: VISOR }).px(22, vy + 1, '#C8761E', { glow: VISOR });
+    for (let x = 16; x <= 21; x++) s.px(x, vy + 1, '#FF8C1A', { glow: VISOR });
+    // a nose and a grinning slot of a mouth with fangs
+    s.px(22, Math.round(8 + b), '#06040E');
+    s.px(19, Math.round(10 + b), '#FFFBEA')
+        .px(20, Math.round(10 + b), '#06040E')
+        .px(21, Math.round(10 + b), '#FFFBEA');
+    // the near arm reaching forward, claws out (front-running your order)
+    s.capsule(13.5, 10 + b, 17.5 + fx * 0.3, 12 + b, 1.1, 1, GUN, { g: 'arm', bias: 0.05 });
+    s.auto('arm', { R: 0.8, grad: 0.2 });
+    s.px(Math.round(18.5 + fx * 0.3), 12 + b, '#E3E8EE').px(
+        Math.round(18.5 + fx * 0.3),
+        13 + b,
+        '#E3E8EE'
+    );
+    // speed ticks off the back
+    for (const [y, len] of [
+        [6, 2],
+        [12, 3]
+    ]) {
+        const o = (f + y) % 2;
+        for (let k = 0; k < len; k++) s.px(o + k, y + b, VISOR, { glow: VISOR, bare: true });
+    }
+    return s.render();
+}
+
 // ---------------------------------------------------------------- brand
 
 /**

@@ -1,40 +1,52 @@
-# Build #30 plan: Evolve everything + a Collection
+# Build #31 plan: The Liquidity Pool, a fifth map
 
 ## Why today
 
-Vote winner (12 voters, 9 of them), Road to 1.0 #6. Every weapon already "evolves" at Lv 5 on its own, so there's no
-choice in it. Tonight evolutions become the build's goal: each weapon needs its own catalyst passive, the card tells
-you, and a Collection screen shows what you've found.
+Vote winner (13 voters, 53.8%), and Road to 1.0 #9 says a map comes after last week's character (The Miner). A
+flooded trading floor: the whirlpools are the rule only this map has, the MEV Bot is its new bear, and Exit
+Liquidity is its boss. Free in the map picker (the vote picked it, so everyone gets it, like Market Eras), and fifth
+in the Daily rotation.
+
+Data: grizzlies ended 42.4% of Build #30's verified runs (28 of 66 with a cause), up from 30.8%. The pool's mix
+leans on the bears that are not grizzlies (MEV Bots, sybils, ponzis, pump and dumps) and runs grizzlies at 0.6x,
+and the whirlpools can drown bears, grizzlies included.
+
+## Regression check (done first)
+
+- `playtest --compare build-29`: 4:09 → 3:57, same as last night's measurement (catalysts). No surprise.
+- Live: median 10:28 → 8:34, but the mix moved (bull 13.5% → 31.2% of runs). Per character: bull 4:55 → 8:33,
+  Miner 9:26 → 10:01, Pepe 5:18 → 6:24, Whale 12:29 → 10:06 (the catalyst tax I predicted). Replays 0 rejected.
+  Nothing to fix; note the Whale.
 
 ## Parts
 
-1. **Catalysts (sim).** Each weapon gets an `evolveWith` passive id. A weapon evolves at Lv 5 only if the bull owns
-   that passive (any stack). Order doesn't matter: Lv 5 first, then the passive, evolves it on that pick (or chest).
-   One `_checkEvolutions()` pass after every card or chest emits `evolve` for each newly evolved weapon. Weapons get
-   an `owner` so `isEvolved()` can check. Weak evolutions get a real effect (Double Bounce: two cats).
-   SIM_VERSION 25. Autopilot learns catalysts.
-   Pairs: horns+momentum, green_candle+leverage, laser_eyes+alpha, diamond_hands+conviction, airdrop+compounding,
-   limit_order+cold_wallet, hopium+dca, circuit_breaker+high_frequency, buyback+thick_skin, dead_cat+slippage,
-   bear_spray+hedge, honey_trap+whale_gravity; signatures: tongue+liquidity, buy_wall+whale_gravity,
-   pickaxe+high_frequency.
-2. **Cards (UI).** Weapon card at Lv 4→5: "EVOLVES → X" if you own the catalyst, else "NEEDS <passive>". Passive
-   card: "EVOLVES <weapon> → X" when it would, or "CATALYST: <weapon>" when it helps an owned weapon.
-3. **Evolution moment.** A banner with the evolved icon, a ring and sparks, a new rising synth chord.
-4. **Art.** 15 evolved icons `evo_<weaponId>` (icons.js style, 16×16), used on cards, the banner, HUD slots and the
-   Collection.
-5. **Collection.** The Field Guide becomes the Collection: weapons, evolutions (recipe shown, art and name locked
-   until you evolve it), passives, bears, bosses lock until seen; counters per tab and a total. Seen ids live in
-   `profile.seen` (pure `collection.js`, saved during the run). Loot and badges tabs stay.
-6. **Tests.** catalyst rules (both orders, chest, no catalyst = no evolution), card fields, collection tracker and
-   normalize, existing evolution tests updated to own the catalyst.
+1. **Sim: the map** (`content.js`): `STAGES.POOL` id `pool`, name "The Liquidity Pool", appended to
+   `STAGE_ROTATION` (seed 123 % 5 = 3 stays on winter). Pool weights, `extraEnemies: ['mev_bot']` from 1:00,
+   boss override `liquidation → exit_liquidity`, `whirlpools` rule block. `SIM_VERSION` 26.
+2. **Sim: whirlpools** (`sim.js` `_whirlpoolTick`): from 0:40, every 15 s one opens 150–260 from the bull (rng
+   angle + distance), at most 2. 1.5 s warning (ripples, no pull), then 8 s of pull: everything inside radius 130
+   (the bull and every bear but bosses and fliers) is dragged to the centre with a swirl. Bears in the core
+   (r 28) lose 18% of their max HP per second ("drowned", counts as a kill, XP drops). The bull in the core loses
+   3 HP/s but never below 1 (like the cold). Events: `poolWarn`, `poolOpen`, `poolClose`, `drown`.
+3. **Sim: MEV Bot** (`content.js` + `entities.js`): `frontrun: 0.75` — it chases where the bull will be in 0.75 s
+   (the Player now keeps `vx, vy`), so running in a straight line runs into it. Fast, fragile. "It saw your
+   transaction first."
+4. **Sim: Exit Liquidity** (boss, liquidation's slot at 10:00 on this map): summons 3 MEV Bots every 6 s, and every
+   7 s opens a drain under itself (1.2 s warning, 3.5 s of pull, radius 230) that follows it. "You are the exit
+   liquidity."
+5. **Terrain** (`terrain.js`): `pool` layout: office desks, pillars, lifeguard towers, coolers, plants, vaults,
+   tickers solid; buoys, ducks, chairs, ladders walk-over. Set pieces: trading desk cluster, lifeguard post, vault.
+6. **Art** (art agent, in parallel): `art/biomes/pool.js` props + decals, `mev_bot` creature (4 frames),
+   `exit_liquidity` boss (4 frames). Registered in props.js / sprites.js.
+7. **Render**: ground in `world.js` (aqua tiles under shallow water, a deep-end lane, caustics), `BIOMES.pool`,
+   `THEMES.pool`, whirlpool drawing (warning ripples, spinning spiral), drown pops, ambient life if cheap.
+8. **Sound/music**: whirlpool open (low swirl), drown (bloop); the calm track gets a pool voice (watery sines).
+9. **Pick it**: Free Run picker card. Collection picks up the bear and boss automatically.
+10. **Tests**: `game/test/liquidity-pool.test.js`: rotation, boss plan, whirlpool schedule/pull/drown/core floor,
+    MEV Bot leads the bull, Exit Liquidity drain follows it, other maps unchanged by the rule, terrain props all
+    have art. Update twist.test SIM_VERSION, liquidation-warning list if needed.
 
-## Files
+## Order (each step leaves a complete game)
 
-sim/content.js, sim/weapons.js, sim/sim.js, sim/entities.js (maybe), sim/bot.js, art/icons.js, art/sprites.js,
-ui.js, guide.js, collection.js (new), profile.js, game.js, main.js, audio.js, index.html, styles.css, report.js,
-tests.
-
-## Order
-
-1 → 2 → 6 (sim tests) → 4 (parallel, agent) → 3 → 5 → playtest/tune → gates → devlog.
-If time runs short, 1+2+4 is already a complete update; the Collection is the part that waits.
+content + sim + tests → terrain → art (parallel) → world/theme/render → sound → picker → playtest/tune → smoke
+shots → review → devlog, proposals, X draft, notes.

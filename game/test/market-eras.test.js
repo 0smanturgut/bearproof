@@ -38,7 +38,7 @@ const bossDef = (slot) => bossesFor('eras').find((b) => b.slot === slot);
 const events = (sim, t) => sim.drainEvents().filter((e) => e.t === t);
 
 test('market eras: second in the rotation, four eras in order, and the legacy rules keep three maps', () => {
-    assert.deepEqual(STAGE_ROTATION, ['chop', 'eras', 'bear_trap', 'winter']);
+    assert.deepEqual(STAGE_ROTATION, ['chop', 'eras', 'winter', 'bear_trap', 'pool']);
     assert.deepEqual(LEGACY_STAGE_ROTATION, ['chop', 'bear_trap', 'winter']);
     assert.deepEqual(
         ERAS.map((e) => e.id),
@@ -57,7 +57,7 @@ test('market eras: second in the rotation, four eras in order, and the legacy ru
         assert.equal(new Simulation({ seed }).stageId, stageForSeed(seed));
         assert.equal(dailyTwistForSeed(seed * 977, true), dailyTwistForSeed(seed * 977, true));
     }
-    assert.deepEqual([...seen].sort(), ['bear_trap', 'chop', 'eras', 'winter']);
+    assert.deepEqual([...seen].sort(), ['bear_trap', 'chop', 'eras', 'pool', 'winter']);
     assert.equal(stageForSeed(1), 'eras');
 });
 

@@ -50,6 +50,8 @@ export const KILL_COLORS = {
 
 // Things that hover: their shadow sits lower and smaller.
 const FLOATERS = new Set(['fud_cloud', 'liquidation', 'capitulation']);
+// Front-facing art with words on it: never mirrored (Exit Liquidity's EXIT sign would read TIXE)
+const NO_MIRROR = new Set(['exit_liquidity']);
 
 // The glow of each pickup on the floor (and of its light on the ground around it).
 const PICKUP_GLOW = {
@@ -65,7 +67,8 @@ const PICKUP_GLOW = {
 const DUST = {
     chop: 'rgba(118,104,84,',
     bear_trap: 'rgba(140,142,152,',
-    winter: 'rgba(232,240,252,'
+    winter: 'rgba(232,240,252,',
+    pool: 'rgba(170,236,244,' // a splash
 };
 
 // How a prop's light moves (art/props.js `light.flicker`), 0..1 of its strength.
@@ -180,8 +183,13 @@ export class Renderer {
         if (this._warmKey !== key) {
             this._warmKey = key;
             const prefix =
-                { chop: 'chop_', bear_trap: 'trap_', winter: 'winter_', eras: 'eras_' }[stage] ||
-                'chop_';
+                {
+                    chop: 'chop_',
+                    bear_trap: 'trap_',
+                    winter: 'winter_',
+                    eras: 'eras_',
+                    pool: 'pool_'
+                }[stage] || 'chop_';
             this._warmList = Object.keys(PROP_DEFS).filter((id) => id.startsWith(prefix));
             this._warmList.push('crow', 'pigeon', 'rat', 'hare');
             for (const id of Object.keys(DECAL_DEFS))
@@ -379,6 +387,12 @@ export class Renderer {
         for (const w of sim.walls || []) this._drawBuyWall(w, X(w.x), Y(w.y));
         if (sim.sweepIn != null) this._drawSweepMeter(sim, X(p.x), Y(p.y), t, fx.calm);
         if (sim.blockProgress != null) this._drawHashMeter(sim, X(p.x), Y(p.y), t, fx.calm);
+
+        // --- The Liquidity Pool: whirlpools on the water, under the candles they drown bears onto
+        for (const w of sim.whirlpools || []) {
+            if (!visible(w.x, w.y, w.r + 20)) continue;
+            this._drawWhirlpool(w, X(w.x), Y(w.y), t, fx.calm);
+        }
 
         // --- XP candles (with a soft light under each)
         ctx.globalCompositeOperation = 'lighter';
@@ -1004,7 +1018,7 @@ export class Renderer {
             sys *= 1 - 0.14 * k;
             if (k > 0.66 && !tint && Math.floor(t * 14) % 2 === 0) tint = '#FF3B5C';
         }
-        const flip = e.facing > 0 ? false : true;
+        const flip = e.facing > 0 || NO_MIRROR.has(id) ? false : true;
         // Side-view art faces right; enemies walk toward the bull, so mirror when they head left.
         const alpha = (e.isClone ? 0.55 : 1) * Math.min(1, k0 * 1.4);
         if (e.boss) {
@@ -1014,7 +1028,9 @@ export class Renderer {
             ctx.globalAlpha = 0.35 + 0.1 * Math.sin(t * 3);
             ctx.drawImage(
                 this._blob(
-                    id === 'long_winter' || id === 'withdrawal_freeze' ? '70,184,240' : '255,59,92'
+                    id === 'long_winter' || id === 'withdrawal_freeze' || id === 'exit_liquidity'
+                        ? '70,184,240'
+                        : '255,59,92'
                 ),
                 sx - r,
                 sy - r * 0.6,
@@ -1199,6 +1215,103 @@ export class Renderer {
         });
         this._blit('supply_crate', x, y, { frame: Math.floor(t * 4), rot: sway });
         glows.push(['supply_crate', x, y, Math.floor(t * 4), false, 0.8]);
+    }
+
+    /**
+     * The Liquidity Pool: while it warns, ripples run out from the centre to a dashed edge ring (the pull's reach);
+     * once open, a dark core (where bears drown and the bull stings), foam arms spiralling in, and a foam rim.
+     * Exit Liquidity's drain is violet. Reduced motion: the arms turn slowly and the ripples stand still.
+     */
+    _drawWhirlpool(w, sx, sy, t, calm) {
+        const ctx = this.ctx;
+        const s = this.s;
+        const r = w.r * s;
+        const rgb = w.owner ? '190,110,255' : '127,240,255';
+        if (w.warn > 0) {
+            const k = 1 - w.warn / (w.warnFor || 1); // 0 = just marked, 1 = opening now
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = `rgba(${rgb},${0.04 + 0.08 * k})`;
+            ctx.beginPath();
+            ctx.arc(sx, sy, r, 0, TAU);
+            ctx.fill();
+            ctx.lineWidth = Math.max(1, s * 2);
+            for (let i = 0; i < 3; i++) {
+                const f = calm ? (i + 1) / 3.5 : (t * 0.9 + i / 3) % 1;
+                ctx.strokeStyle = `rgba(${rgb},${0.45 * (1 - f) * (0.4 + 0.6 * k)})`;
+                ctx.beginPath();
+                ctx.arc(sx, sy, r * f, 0, TAU);
+                ctx.stroke();
+            }
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.setLineDash([8 * s, 6 * s]);
+            ctx.lineDashOffset = calm ? 0 : t * 30 * s;
+            ctx.strokeStyle = `rgba(${rgb},${0.4 + 0.5 * k})`;
+            ctx.lineWidth = Math.max(1.5, s * 2.5);
+            ctx.beginPath();
+            ctx.arc(sx, sy, r, 0, TAU);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.lineDashOffset = 0;
+            return;
+        }
+        const age = (w.lifeFor || w.life) - w.life;
+        const grow = Math.min(1, age / 0.35); // it opens out over a third of a second
+        const fade = Math.min(1, w.life / 0.6); // and calms down over its last
+        const a = grow * fade;
+        const rr = r * (0.4 + 0.6 * grow);
+        // the funnel: dark in the middle, clear at the edge
+        const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, rr);
+        g.addColorStop(0, `rgba(2,10,16,${0.75 * a})`);
+        g.addColorStop(Math.min(0.9, (w.core * s) / Math.max(1, rr)), `rgba(4,24,34,${0.55 * a})`);
+        g.addColorStop(1, 'rgba(6,40,50,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(sx, sy, rr, 0, TAU);
+        ctx.fill();
+        // foam arms spiralling in, faster near the middle
+        const spin = (calm ? 0.6 : 3.2) * t;
+        const arms = 4;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineCap = 'round';
+        for (let arm = 0; arm < arms; arm++) {
+            const base = (arm / arms) * TAU - spin;
+            let px = 0;
+            let py = 0;
+            for (let j = 0; j <= 18; j++) {
+                const u = j / 18; // 0 = the core, 1 = the rim
+                const rad = w.core * s * 0.5 + (rr - w.core * s * 0.5) * u;
+                const ang = base + (1 - u) * 3.4;
+                const x = sx + Math.cos(ang) * rad;
+                const y = sy + Math.sin(ang) * rad * 0.92;
+                if (j > 0) {
+                    ctx.strokeStyle = `rgba(${rgb},${0.55 * a * (1 - u * 0.75)})`;
+                    ctx.lineWidth = Math.max(1, s * (3.2 - u * 2));
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                }
+                px = x;
+                py = y;
+            }
+        }
+        ctx.lineCap = 'butt';
+        // the core's lip, and the foam rim at the edge of the pull
+        ctx.strokeStyle = `rgba(${rgb},${0.6 * a})`;
+        ctx.lineWidth = Math.max(1.5, s * 2.5);
+        ctx.beginPath();
+        ctx.arc(sx, sy, w.core * s, 0, TAU);
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.setLineDash([5 * s, 7 * s]);
+        ctx.lineDashOffset = -spin * 12 * s;
+        ctx.strokeStyle = `rgba(220,250,255,${0.35 * a})`;
+        ctx.lineWidth = Math.max(1, s * 2);
+        ctx.beginPath();
+        ctx.arc(sx, sy, rr, 0, TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
     }
 
     /** Withdrawal Freeze: a faint icy disc and a dashed frost ring at the freeze radius; the dashes creep round. */

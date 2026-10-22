@@ -393,6 +393,41 @@ export const MISSIONS = Object.freeze([
         unit: 'era',
         target: 3,
         value: (s) => s.eraIndex || 0
+    },
+    {
+        id: 'pool_drown',
+        name: 'Impermanent Loss',
+        text: 'Drown 30 bears in whirlpools in one run on The Liquidity Pool.',
+        art: 'mev_bot',
+        scale: 2,
+        reward: 150,
+        stage: 'pool',
+        unit: 'count',
+        target: 30,
+        value: (s) => s.stats.drowned || 0
+    },
+    {
+        id: 'pool_8min',
+        name: 'Deep End',
+        text: 'Survive 8:00 on The Liquidity Pool.',
+        art: 'pool_buoy',
+        scale: 2,
+        reward: 200,
+        stage: 'pool',
+        unit: 'time',
+        target: 480,
+        value: time
+    },
+    {
+        id: 'pool_exit',
+        name: 'Not Your Exit',
+        text: 'Take down Exit Liquidity on The Liquidity Pool.',
+        art: 'exit_liquidity',
+        reward: 300,
+        stage: 'pool',
+        unit: 'once',
+        target: 1,
+        value: boss('exit_liquidity')
     }
 ]);
 

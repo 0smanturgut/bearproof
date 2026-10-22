@@ -92,6 +92,14 @@ const SNOW = ramp([
 ]);
 const ICE = ramp(['#4F7C9E', '#5A89AB', '#6696B8', '#73A4C4', '#82B2D0']);
 
+// The Liquidity Pool: aqua tiles under shallow water, the deep end, the white coping between them
+const POOL_TILE = ramp(['#0E3A44', '#114550', '#14505B', '#185C66', '#1C6872', '#21747E']);
+const POOL_GROUT = ramp(['#0A2C34', '#0C333C']);
+const POOL_DEEP = ramp(['#06202A', '#082631', '#0A2C38', '#0D3440', '#103C48']);
+const POOL_LANE = ramp(['#04151C', '#061A22']);
+const POOL_COPING = ramp(['#6E8C94', '#7E9CA3', '#8FACB2']);
+const POOL_CAUSTIC = ramp(['#22787F', '#2C8A90', '#3A9EA2']);
+
 // Market Eras: one floor per era, laid on the same 64-unit blocks. [base, block lines, the chain (its trail)]
 const ERA_GROUND = {
     // 2009: a black terminal, a dim phosphor grid, scanlines
@@ -154,6 +162,13 @@ export const BIOMES = {
         ambientLow: [206, 226, 212],
         cloud: 0.08,
         base: ERA_BASE.genesis
+    },
+    // underwater light: cool and teal, a little brighter than the night maps
+    pool: {
+        ambient: [120, 168, 176],
+        ambientLow: [206, 230, 234],
+        cloud: 0.1,
+        base: '#14505B'
     }
 };
 
@@ -251,6 +266,22 @@ export class Layout extends Terrain {
             // the era's own marks: glyphs, sprouts, confetti, cracks
             const tag = this.era === 'altseason' ? 'alt' : this.era; // the art calls it eras_alt_*
             if (r < 0.11) id = `eras_${tag}_${q < 0.55 ? 'a' : 'b'}`;
+        } else if (st === 'pool') {
+            const deep = this.trail(x, y) < 70;
+            if (deep) id = r < 0.04 ? 'pool_grate' : null;
+            else if (r < 0.16)
+                id =
+                    q < 0.22
+                        ? 'pool_lily_a'
+                        : q < 0.4
+                          ? 'pool_lily_b'
+                          : q < 0.6
+                            ? 'pool_slip'
+                            : q < 0.78
+                              ? 'pool_algae'
+                              : q < 0.92
+                                ? 'pool_crack'
+                                : 'pool_grate';
         } else {
             if (this.trail(x, y) < 56) id = r < 0.12 ? 'winter_crack' : null;
             else if (r < 0.2)
@@ -283,7 +314,8 @@ export class Layout extends Terrain {
         const y = gy * G + 64 + (hash3(gx, gy, s + 52) - 0.5) * 80;
         const r = hash3(gx, gy, s + 53);
         const st = this.stage;
-        if (this.nearSpawn(x, y, 90) || st === 'eras') return null;
+        // Market Eras has no puddles; on The Liquidity Pool the whole floor is water
+        if (this.nearSpawn(x, y, 90) || st === 'eras' || st === 'pool') return null;
         let id = null;
         if (st === 'chop') {
             const w = this.wet(x, y);
@@ -319,8 +351,40 @@ export class Layout extends Terrain {
             this.grove(wx, wy),
             this.trail(wx, wy),
             fbm(wx, wy, st === 'chop' ? 150 : 170, this.seed + 61),
-            st === 'chop' || st === 'eras' ? fbm(wx, wy, 70, this.seed + 63) : 0
+            st === 'chop' || st === 'eras' || st === 'pool' ? fbm(wx, wy, 70, this.seed + 63) : 0
         ];
+    }
+
+    /**
+     * The Liquidity Pool: square tiles under shallow water with caustics baked in, darker where the trading floor's
+     * clutter stands (the grove); the deep end (the trail) is dark water with a lane stripe, edged in white coping.
+     */
+    _poolGround(wx, wy, px, py, F) {
+        const [g, t, n, m] = F;
+        const grain = hash3(wx >> 1, wy >> 1, this.seed + 62);
+        const T = 64 + (grain - 0.5) * 3;
+        if (t < T) {
+            const k = 1 - t / T;
+            if (k > 0.9) return tone(POOL_LANE, grain, px, py); // the lane stripe down the middle
+            const glint = Math.sin((wx + wy * 0.6) / 9 + n * 11) > 0.96 ? 0.25 : 0;
+            return tone(POOL_DEEP, 0.25 + k * 0.45 + (n - 0.5) * 0.5 + glint, px, py);
+        }
+        if (t < T + 7) return tone(POOL_COPING, 0.3 + grain * 0.5, px, py, 1.2);
+        if (t < T + 10) return POOL_GROUT[0];
+        const lx = mod(wx, 32);
+        const ly = mod(wy, 32);
+        if (lx < 2 || ly < 2) return tone(POOL_GROUT, n, px, py);
+        // caustics: two crossed wobbling wave bands where the light comes through the water
+        const c1 = Math.sin(wx / 23 + Math.sin(wy / 31 + n * 6) * 2.2);
+        const c2 = Math.sin(wy / 19 + Math.sin(wx / 27 + m * 6) * 2.2);
+        if (c1 * c2 > 0.9) return tone(POOL_CAUSTIC, (c1 * c2 - 0.9) * 5 + grain * 0.2, px, py);
+        const tile = hash3(Math.floor(wx / 32), Math.floor(wy / 32), this.seed + 66);
+        return tone(
+            POOL_TILE,
+            0.55 + (n - 0.5) * 0.9 + (tile - 0.5) * 0.25 - Math.max(0, g - 0.55) * 2,
+            px,
+            py
+        );
     }
 
     /** Market Eras: the current era's floor on 64-unit blocks, with the chain (the trail) running through it. */
@@ -377,6 +441,7 @@ export class Layout extends Terrain {
     ground(wx, wy, px, py, F = this.fields(wx, wy)) {
         const st = this.stage;
         if (st === 'eras') return this._erasGround(wx, wy, px, py, F);
+        if (st === 'pool') return this._poolGround(wx, wy, px, py, F);
         if (st === 'chop') {
             const [g, t, n, m0] = F;
             const grain = hash3(wx >> 1, wy >> 1, this.seed + 62);

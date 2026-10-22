@@ -511,7 +511,13 @@ export function setupMapPicker({ prefs, persist, audio, onPreview, onStart }) {
 }
 
 // Where each map's card looks: a corner of its starting scene (world.js lays it out the same for any seed).
-const PREVIEW_AT = { chop: [-60, 20], bear_trap: [10, -120], winter: [0, -20], eras: [-30, -90] };
+const PREVIEW_AT = {
+    chop: [-60, 20],
+    bear_trap: [10, -120],
+    winter: [0, -20],
+    eras: [-30, -90],
+    pool: [-20, -90]
+};
 
 /**
  * A map's card art: a still of the map itself at night (world.js: its ground, scenery and lights), with the

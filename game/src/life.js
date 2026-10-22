@@ -15,7 +15,8 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 const STAIN = {
     chop: '18,14,10',
     bear_trap: '8,8,12',
-    winter: '62,74,100'
+    winter: '62,74,100',
+    pool: '6,30,38'
 };
 
 export class Life {
@@ -79,7 +80,7 @@ export class Life {
         const moving = moved > 0.5;
 
         // --- birds: a flock pecks just off screen; whatever comes near sends it up
-        if (st !== 'winter') {
+        if (st !== 'winter' && st !== 'pool') {
             if (t > this.spawnAt && this.birds.filter((b) => !b.fly).length < (rich ? 7 : 4)) {
                 this.spawnAt = t + rnd(1.5, 4);
                 const a = moving && Math.random() < 0.7 ? dir + rnd(-0.6, 0.6) : rnd(0, TAU);

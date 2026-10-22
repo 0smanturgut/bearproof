@@ -93,6 +93,22 @@ export const THEMES = {
         vignette: 'rgba(5,1,8,0.84)',
         weather: null
     },
+    // The Liquidity Pool: deep teal water, a cyan chart
+    pool: {
+        bg: '#030A0D',
+        glow: 'rgba(90,230,240,0.06)',
+        grid: '#0A1C22',
+        gridMajor: '#10272F',
+        cross: '#1A3E4A',
+        label: '#24525F',
+        up: '#0B2A2C',
+        upWick: '#0E3A3D',
+        down: '#1E1420',
+        downWick: '#2A1A2C',
+        ma: 'rgba(110,235,245,0.24)',
+        vignette: 'rgba(0,5,8,0.84)',
+        weather: null
+    },
     eras_bear: {
         bg: '#0A0405',
         glow: 'rgba(255,50,60,0.07)',

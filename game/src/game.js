@@ -285,7 +285,11 @@ export class Game {
             if (steps === MAX_STEPS_PER_FRAME) this.acc = 0;
             // The boss track while a boss lives, faster as it loses HP.
             if (this.state === 'playing')
-                this.audio.setMood({ ...musicMood(this.sim.enemies), era: this.sim.era?.id });
+                this.audio.setMood({
+                    ...musicMood(this.sim.enemies),
+                    // Market Eras' era, or The Liquidity Pool's own voice
+                    era: this.sim.era?.id || (this.sim.stageId === 'pool' ? 'pool' : undefined)
+                });
             if (this.sim.choices) this._openLevelUp();
             if (this.sim.over && (this.state === 'playing' || this.state === 'attract'))
                 this._endRun();
@@ -974,6 +978,38 @@ export class Game {
                     fx.burst(e.x, e.y, '#7FF0FF', 10, 180, 3, 'spark');
                     fx.ring(e.x, e.y, 6, 44, 0.25, '160,110,255', 4);
                     this._sfx('blink', 0.08);
+                    break;
+                case 'poolWarn':
+                    // The Liquidity Pool: the ripples and the spiral are drawn from sim.whirlpools (render.js)
+                    fx.ring(e.x, e.y, 10, e.r, 0.6, e.boss ? '190,90,255' : '127,240,255', 3);
+                    this._sfx('poolWarn', 0.2);
+                    if (e.boss) fx.number(e.x, e.y - 70, 'DRAIN!', 'hurt');
+                    if (!this.attract && e.id === 1)
+                        this.ui.toast('WHIRLPOOL: STAY OUT OF THE MIDDLE', 'whale', 2200);
+                    break;
+                case 'poolOpen':
+                    // a ring that closes in: the water starts to go round
+                    fx.ring(
+                        e.x,
+                        e.y,
+                        e.r * 1.15,
+                        16,
+                        0.5,
+                        e.boss ? '190,90,255' : '127,240,255',
+                        5,
+                        true
+                    );
+                    fx.burst(e.x, e.y, '#9BE2FF', 14, e.r * 1.4, 3, 'spark');
+                    fx.addShake(e.boss ? 0.35 : 0.12);
+                    this._sfx('whirl', 0.2);
+                    break;
+                case 'poolClose':
+                    fx.burst(e.x, e.y, 'rgba(155,226,255,', 6, 80, 8, 'smoke');
+                    break;
+                case 'drown':
+                    fx.burst(e.x, e.y, '#7FF0FF', 8, 150, 3, 'spark');
+                    fx.ring(e.x, e.y, 4, 30, 0.3, '127,240,255', 3);
+                    this._sfx('drown', 0.06);
                     break;
                 case 'wave':
                     if (!this.attract && this.sim.tick > 60)

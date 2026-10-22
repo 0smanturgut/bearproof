@@ -351,6 +351,30 @@ export class AudioEngine {
         this.tone({ freq: 1800, dur: 0.08, type: 'sawtooth', volume: 0.06, sweep: -1500 });
         this.tone({ noise: true, dur: 0.04, volume: 0.07, release: 0.03 });
     }
+    /** The Liquidity Pool: the water starts to turn. Two soft bubbles, the second lower. */
+    poolWarn() {
+        this.tone({ freq: 520, dur: 0.08, type: 'sine', volume: 0.07, sweep: 380 });
+        setTimeout(
+            () => this.tone({ freq: 360, dur: 0.1, type: 'sine', volume: 0.07, sweep: 300 }),
+            110
+        );
+    }
+    /** A whirlpool opens: a low swirl that drops away, with a wash of water noise on top. */
+    whirl() {
+        this.tone({ freq: 240, dur: 0.7, type: 'triangle', volume: 0.12, sweep: -170 });
+        this.tone({ freq: 180, dur: 0.6, type: 'sine', volume: 0.1, sweep: 80 });
+        this.tone({ noise: true, dur: 0.45, volume: 0.1, release: 0.35 });
+    }
+    /** A bear goes under: a quick bloop that falls. */
+    drown() {
+        this.tone({
+            freq: 420 + Math.random() * 80,
+            dur: 0.09,
+            type: 'sine',
+            volume: 0.1,
+            sweep: -260
+        });
+    }
     /** Market Eras: a new era. A low swell, then a rising four-note fanfare, like a chart breaking out. */
     era() {
         this.tone({ freq: 110, dur: 0.9, type: 'sine', volume: 0.22, sweep: 110 });

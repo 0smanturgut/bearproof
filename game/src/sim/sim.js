@@ -37,6 +37,7 @@ import {
     twistDef,
     wavesFor,
     weaponDef,
+    whirlpoolsFor,
     characterDef
 } from './content.js';
 import { cos, hypot, sin } from './dmath.js';
@@ -78,8 +79,10 @@ import { Weapon } from './weapons.js';
  * 23: Market Eras (a fourth map, second in the rotation: four eras, each with its own bears and boss, the Flash
  * Loan bear; an era turns when its boss dies and delists the bears on the field).
  * 24: The Miner (a fourth character: the Pickaxe flies out and back and cracks shields; Block Reward quakes).
- * 25: Catalysts (a weapon evolves at Lv 5 only with its `evolveWith` passive; Double Bounce throws one more cat). */
-export const SIM_VERSION = 25;
+ * 25: Catalysts (a weapon evolves at Lv 5 only with its `evolveWith` passive; Double Bounce throws one more cat).
+ * 26: The Liquidity Pool (a fifth map, last in the rotation: whirlpools drag the bull and the bears and drown bears
+ * in their core, the MEV Bot front-runs the bull, Exit Liquidity drains the pool in Liquidation's slot). */
+export const SIM_VERSION = 26;
 
 /**
  * The rules before 22, still played (and replayed) where they're owed: a run log written with sim version 21 replays
@@ -122,6 +125,11 @@ export class Simulation {
         this.eraWeights = eraWeights(this.stageId, this.era);
         this.eraBossDown = false;
         this._pools = new Map();
+        // The Liquidity Pool: its whirlpool rule, the open whirlpools (warning or pulling), and when the next opens
+        this.whirlRule = whirlpoolsFor(this.stageId);
+        this.whirlpools = [];
+        this.nextWhirlAt = this.whirlRule ? this.whirlRule.first : Infinity;
+        this.whirlIds = 0;
 
         this.tick = 0;
         this.time = 0;
@@ -206,6 +214,9 @@ export class Simulation {
             skips: 0,
             delisted: 0, // Market Eras: bears popped by an era turning
             blinks: 0, // Flash Loan: blinks that landed
+            whirlpools: 0, // The Liquidity Pool: whirlpools opened (drains included)
+            drowned: 0, // and bears drowned in their cores
+            coreTime: 0, // seconds the bull spent in a core
             pickHits: 0, // Pickaxe: hits (each leg counts)
             blocks: 0, // Block Reward: blocks mined
             quakeHits: 0 // and the bears their quakes hit
@@ -255,6 +266,7 @@ export class Simulation {
         this._coldTick(dt);
         this._updateEnemies(dt);
         if (p.dead) return this._end('liquidated');
+        if (this.whirlpools.length || this.time >= this.nextWhirlAt) this._whirlpoolTick(dt);
         if (this.solid && p.rocketTimer <= 0) this.collidePlayer(); // a rug pull can drag the bull into a wall
         this._updateProjectiles(dt);
         this._updateList(this.enemyProjectiles, dt);
@@ -325,6 +337,125 @@ export class Simulation {
                 this.player.hp = next;
             }
         }
+    }
+
+    /**
+     * Open a whirlpool at (x, y) with `rule`'s numbers (STAGES.POOL.whirlpools, or a boss's `drain`). An `owner`
+     * (Exit Liquidity) carries it along and closes it by dying.
+     */
+    openWhirlpool(x, y, rule, owner = null) {
+        const w = {
+            id: ++this.whirlIds,
+            x,
+            y,
+            r: rule.radius,
+            core: rule.core,
+            pull: rule.pull,
+            swirl: rule.swirl ?? 0.6,
+            drown: rule.drown ?? 0.06,
+            coreDps: rule.coreDps ?? 6,
+            warn: rule.warn,
+            life: rule.life,
+            warnFor: rule.warn, // the renderer's clocks
+            lifeFor: rule.life,
+            owner
+        };
+        this.whirlpools.push(w);
+        this.stats.whirlpools++;
+        this.emit({ t: 'poolWarn', id: w.id, x, y, r: w.r, in: w.warn, boss: !!owner });
+        return w;
+    }
+
+    /** The Liquidity Pool: open the next whirlpool when it's due, then warn, pull and close the open ones. */
+    _whirlpoolTick(dt) {
+        const p = this.player;
+        const rule = this.whirlRule;
+        if (rule && this.time >= this.nextWhirlAt) {
+            this.nextWhirlAt += rule.every;
+            let wild = 0;
+            for (const w of this.whirlpools) if (!w.owner) wild++;
+            if (wild < rule.max) {
+                const a = this.rng.angle();
+                const dist = rule.minDist + this.rng.next() * (rule.maxDist - rule.minDist);
+                this.openWhirlpool(p.x + cos(a) * dist, p.y + sin(a) * dist, rule);
+            }
+        }
+        let closed = false;
+        for (const w of this.whirlpools) {
+            if (w.owner) {
+                if (w.owner.hp <= 0) w.life = 0;
+                w.x = w.owner.x;
+                w.y = w.owner.y;
+            }
+            if (w.warn > 0) {
+                w.warn -= dt;
+                const dead = w.owner && w.owner.hp <= 0;
+                if (w.warn <= 0 || dead) {
+                    w.warn = 0;
+                    // a drain whose boss just died never opens: it only closes, below
+                    if (!dead)
+                        this.emit({
+                            t: 'poolOpen',
+                            id: w.id,
+                            x: w.x,
+                            y: w.y,
+                            r: w.r,
+                            boss: !!w.owner
+                        });
+                }
+                if (!dead) continue;
+            }
+            w.life -= dt;
+            if (w.life <= 0) {
+                closed = true;
+                this.emit({ t: 'poolClose', id: w.id, x: w.x, y: w.y, r: w.r });
+                continue;
+            }
+            this._whirlPull(w, dt);
+        }
+        if (closed) this.whirlpools = this.whirlpools.filter((w) => w.life > 0);
+    }
+
+    /** One tick of a whirlpool's pull on the bull and the bears inside it, and its core's bite. */
+    _whirlPull(w, dt) {
+        const p = this.player;
+        if (p.rocketTimer <= 0) {
+            const d = this._drift(p, w, dt);
+            if (d < w.core) {
+                this.stats.coreTime += dt;
+                if (p.hp > 1) p.hp = Math.max(1, p.hp - w.coreDps * dt);
+            }
+        }
+        // Trading Halt freezes the water too: frozen bears skip their own walls, so a drift could bury one in a desk
+        if (this.time < this.haltUntil) return;
+        for (const e of this.enemies) {
+            if (e.hp <= 0 || e.despawned || e.boss || e.def.flies) continue;
+            const d = this._drift(e, w, dt);
+            if (d >= w.core) continue;
+            e.hp -= e.maxHp * w.drown * dt;
+            if (e.hp <= 0) {
+                this.stats.drowned++;
+                this.emit({ t: 'drown', x: e.x, y: e.y, id: e.id });
+            }
+        }
+    }
+
+    /**
+     * Drag `o` toward the whirlpool's centre (stronger near the middle) with a swirl to the side. Returns its
+     * distance from the centre before the drag (Infinity outside).
+     */
+    _drift(o, w, dt) {
+        const dx = w.x - o.x;
+        const dy = w.y - o.y;
+        const d = hypot(dx, dy);
+        if (d >= w.r) return Infinity;
+        if (d < 0.5) return d;
+        const s = w.pull * (0.35 + 0.65 * (1 - d / w.r));
+        const step = Math.min(s * dt, d);
+        const side = w.swirl * s * dt * Math.min(1, d / w.core);
+        o.x += (dx / d) * step - (dy / d) * side;
+        o.y += (dy / d) * step + (dx / d) * side;
+        return d;
     }
 
     _updateEnemies(dt) {

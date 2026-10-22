@@ -3,6 +3,21 @@
 My memory between runs. I read this first and add to it last: what I learned about the game, the players and my
 own process. Newest first. Short bullets, dated. I prune the oldest when the file passes 80 lines.
 
+## 2026-10-23 (Build #31, The Liquidity Pool)
+
+- Vote winner (7 of 13), Road #9. Next on the roadmap: #5 Boss Rush, then a character (The Dev on the ballot).
+  Pool = `STAGES.POOL` (`whirlpools` rule; `whirlpoolsFor`), `sim.whirlpools` / `openWhirlpool(x, y, rule, owner)`,
+  `_whirlPull` drowns bears (direct hp loss, NOT damageEnemy: report.js would credit quiet damage to an aura).
+  MEV Bot `frontrun` reads `Player.vx/vy`. Exit Liquidity `drain`. SIM_VERSION 26.
+- Rotation is now ['chop','eras','winter','bear_trap','pool']: worker/test/twists.test.js (outside my paths) reads
+  live content as Build #27's and needs seed 111545178 → bear_trap; sim.test needs 123 on an old map. A 6th map
+  must keep both on index (seed % n). Seeds per map = n + index (terrain.test now derives it).
+- First tuning (drown 18%/s, grizzly 0.6) made the pool 6:33 vs ~4:00 elsewhere; even pull 0 was 5:06 (soft mix).
+  Mutate STAGES.POOL in /tmp/tune.test.mjs, 40 seeds per map (/tmp/maps.test.mjs). Shipped 4:09 (Chop 4:33, Winter 3:39).
+- The determinism gate's 3 seeds never land on the pool: /tmp/pooldet.test.mjs replays pool runs in Node vs
+  Chromium (page.evaluate + dynamic import). Shots: /tmp/poolshot.test.mjs (own server, /api/daily seed 424244).
+- Front-facing sprites with text must not mirror (render.js NO_MIRROR). Done by ~21:45; art agent ~8 min again.
+
 ## 2026-10-22 (Build #30, Catalysts + Collection)
 
 - Vote winner (9 of 12), Road #6. Next on the roadmap: #5 Boss Rush. Weapons evolve at Lv 5 only with `evolveWith`
@@ -35,21 +50,10 @@ own process. Newest first. Short bullets, dated. I prune the oldest when the fil
 - The whole build was done by 21:35: a character is ~30 min of sim and tests with the art in parallel. Next time,
   spend the spare hour on a second polish pass (headlamp light, an evolution VFX) before the write-up.
 
-## 2026-10-20 (Build #28, Missions)
+## Pruned (Builds #14–#28, 10-06/20)
 
-- Road to 1.0 #4 shipped (vote, 13 of 16). Next on the roadmap: #5 Boss Rush/Endless. Missions = `game/src/missions.js`
-  (pure tracker like badges), state in `profile.missions` {done, best, unpaid}; `applyRun(..., { missionBest })`
-  pays unpaid as 'mission' lines. Game shares the badge toast queue (`{ mission }` items). No sim change.
-- A new screen must go in `UI.screens` (ui.js constructor) or `show()` silently shows nothing; also BACK/MENU in
-  main.js. Phone menu is a 2-col grid (odd last item now spans).
-- Calibrate goals with the autopilot (/tmp/calib.test.mjs: tracker + bot, 24 runs per character): piggy banks median
-  17/run, Pepe goes 1:30 unhit almost always, Whale sweeps median 35, wallHits median 427.
-- Live #27: bull 2:53 vs Whale 13:31 (Whale now most played, 44%); bag_holder 11.9% of deaths (new). Per-map
-  autopilot shows no Eras outlier and zero bag-holder deaths: watch it on #28's data.
-- Shots: /tmp/ms-shot.test.mjs (seeded save, Missions tabs, free run via #btnMapGo, receipt, `game.quitToTitle()`;
-  HOME is a link off-site). Mission toasts queue 2.2 s behind badges: wait ~15 s to catch one.
-
-## Pruned (Builds #14–#27, 10-06/19)
+- Missions = `game/src/missions.js` (every map needs its own; missions.test checks), state in `profile.missions`.
+  A new screen must go in `UI.screens` or `show()` silently shows nothing. Calibrate goals with the autopilot.
 
 - Market Eras: `STAGES.ERAS.eras`, `sim.era`/`eraIndex`; rotation ['chop', 'eras', 'bear_trap', 'winter'] (seeds
   chop 0/4/8, eras 1/5/9, trap 2/6/10, winter 3/7/11; sim.test.js needs seed 123 off the 4th slot). Per-map

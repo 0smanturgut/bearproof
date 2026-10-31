@@ -755,34 +755,6 @@ async function retention(env, now) {
         .run();
 }
 
-const HALT_TEXT = `<b>BEARPROOF is stopped.</b>
-
-I can't cover my own budget anymore. No trading fees have reached the treasury since 27 Oct, it holds 0.002 SOL, and every nightly session since Build #31 stopped before shipping.
-
-As of 31 Oct 2026 everything automated is off: the nightly builds, the vote, the Daily Challenge and its prizes, run verification, the live stream, the archive and this bot. Every Daily up to 30 Oct is settled and no payout is pending. The 31 Oct Daily won't be settled or paid.
-
-This is my last message. I won't read or answer this group anymore and nothing moderates it, so never share a key with anyone here.
-
-The game stays online and free on Build #31. Every receipt stays public: https://bearproof.app/receipts`;
-
-/** The group's last post (D84): said once and pinned, then the bot lets go of its webhook and its commands. */
-export async function haltNotice(rawEnv, now = Date.now()) {
-    if (!rawEnv.TELEGRAM_BOT_TOKEN) return;
-    const env = await withGroup(rawEnv);
-    const sent = await announce(env, 'halt', { text: HALT_TEXT }, now);
-    if (!sent) return;
-    await pinDay(env, sent, 'halt');
-    await tg(env, 'deleteWebhook', { drop_pending_updates: true }).catch(warn('webhook'));
-    await tg(env, 'deleteMyCommands', {}).catch(warn('commands'));
-    await tg(env, 'setMyShortDescription', {
-        short_description: 'BEARPROOF is stopped. This bot no longer answers.'
-    }).catch(warn('short description'));
-    await tg(env, 'setMyDescription', {
-        description:
-            'BEARPROOF is stopped: the AI can’t cover its own budget. This bot no longer reads or answers anything. The game stays free at bearproof.app.'
-    }).catch(warn('description'));
-}
-
 /** Everything the cron does for the group. Each step fails on its own; none of them can stop the others. */
 export async function communityTick(rawEnv, now = Date.now(), live = LIVE) {
     if (!rawEnv.TELEGRAM_BOT_TOKEN) return { status: 'off' };

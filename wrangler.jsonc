@@ -16,8 +16,9 @@
     ],
     "preview_urls": false,
     "observability": { "enabled": true },
-    // Every 15 minutes: fee snapshot, settle yesterday's Daily Challenge, resume a half-finished payout.
-    "triggers": { "crons": ["*/15 * * * *"] },
+    // Empty while the project is stopped (D84). Running, it is ["*/15 * * * *"]: fee snapshot, settle yesterday's
+    // Daily Challenge, resume a half-finished payout.
+    "triggers": { "crons": [] },
 
     // Static assets are assembled by `npm run build` (scripts/build.mjs) into ./dist.
     // Only these paths run Worker code. Every other request is a free static hit.

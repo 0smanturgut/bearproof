@@ -424,7 +424,7 @@ async function boot() {
     tape.push(
         { label: 'CHARACTERS', value: String(CHARACTER_IDS.length) },
         { label: 'MAPS', value: String(STAGE_ROTATION.length) },
-        { label: 'NEW BUILD', value: 'EVERY NIGHT 00:00 UTC' },
+        { label: 'STATUS', value: 'STOPPED 31 OCT' },
         { label: 'BUILT BY', value: 'AN AI, IN PUBLIC' }
     );
     ui.setTape(tape);

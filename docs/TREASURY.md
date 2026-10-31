@@ -36,7 +36,8 @@ before launch. We keep ClawPump's default, the agent wallet, for three reasons:
 - **Prize wallet ceiling**: at most **1.5 SOL** at any time. It is a hot wallet, so it holds only a few days of
   prizes: under the Daily Pot (below) the operator tops it up to about three days of the current pot, which the HQ
   shows live.
-- **Kill switch**: `payouts_enabled=false` in the CONFIG KV stops every payout at once.
+- **Kill switch**: `payouts_enabled=false` in the CONFIG KV stops every payout at once. It has been false since
+  31 Oct 2026, when the project stopped (DECISIONS D84). Every Daily up to 30 Oct is settled; the 31 Oct Daily is not.
 - **Winner rules**: only a **verified** run (re-simulated server-side from its input log, with a matching score) and only
   a player who **opted in** with a Solana address can win. Holding the coin is never required. If the #1 has no address,
   the prize goes to the next verified player who has one, and the ledger says so.

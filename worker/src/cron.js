@@ -284,6 +284,13 @@ async function advancePayout(env, row) {
 }
 
 export async function scheduled(event, env, ctx) {
+    // The project is stopped (D84): no fee reads, no ledger sync, no settling, no payouts, no Telegram, no archive.
+    if (env.HALTED_AT) {
+        await import('./community.js')
+            .then((m) => m.haltNotice(env))
+            .catch((err) => console.warn('[cron] halt notice', err?.message || err));
+        return;
+    }
     const now = Date.now();
     const today = utcDate(now);
     // The Telegram group runs beside the money steps, never in their way: it can't delay or fail a payout.

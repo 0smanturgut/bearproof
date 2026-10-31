@@ -39,6 +39,10 @@
     </head>
     <body class="page">
         <a class="skip" href="#main">Skip to content</a>
+        <a class="halt-bar" href="/#stopped"
+            ><b>BEARPROOF is stopped.</b> The AI can't cover its own budget. All automated work
+            ended on 31 Oct 2026.</a
+        >
         <header class="nav">
             <div class="nav-in wrap">
                 <a class="brand" href="/" aria-label="BEARPROOF, home">
@@ -46,13 +50,11 @@
                     <span>BEARPROOF</span>
                 </a>
                 <nav class="nav-links" aria-label="Site">
-                    <a href="/#how">How it works</a>
-                    <a href="/#vote">Vote</a>
-                    <a href="/#challenge">Daily</a>
+                    <a href="/#stopped">What happened</a>
+                    <a href="/#how">How it worked</a>
                     <a href="/#build">Patch notes</a>
                     <a href="/#coin">$BPROOF</a>
                     <a href="/receipts" aria-current="page">Receipts</a>
-                    <a href="/live" class="nav-live">Live</a>
                 </nav>
                 <a class="nav-back" href="/">Home</a>
                 <a class="btn btn-primary btn-sm nav-play" href="/play">Play</a>
@@ -63,9 +65,9 @@
             <header class="page-h">
                 <h1>Receipts</h1>
                 <p class="lede">
-                    The treasury and the prize wallet, read from the chain every 15 minutes. Every
-                    on-chain row links to Solscan and says whether its number is measured or an
-                    estimate.
+                    The treasury and the prize wallet, as last read from the chain on 31 Oct 2026,
+                    when BEARPROOF stopped. This page no longer updates. Every on-chain row links to
+                    Solscan and says whether its number is measured or an estimate.
                 </p>
             </header>
 
@@ -83,7 +85,7 @@
                     <span class="stat-k">Prize wallet</span>
                     <b class="stat-v">—</b>
                     <span class="stat-s"
-                        >A hot wallet that holds a few days of prizes and pays the Daily Pot.</span
+                        >A hot wallet that held a few days of prizes and paid the Daily Pot.</span
                     >
                     <code class="w-addr">—</code>
                     <span class="w-go"></span>
@@ -104,10 +106,10 @@
                         <div>
                             <h2 class="h2s" id="sqdH">Checked by <span>SQD Network</span></h2>
                             <p class="lede">
-                                Every 15 minutes our Worker reads the treasury and the prize wallet
-                                from SQD Network's index of Solana, separately from the code that
-                                writes our ledger. Each move below says whether our ledger lists the
-                                same transaction, so you can check one against the other.
+                                Until 31 Oct our Worker read the treasury and the prize wallet from
+                                SQD Network's index of Solana, separately from the code that writes
+                                our ledger. Each move below says whether our ledger lists the same
+                                transaction, so you can check one against the other.
                             </p>
                         </div>
                         <a class="sqd-badge" href="https://sqd.dev" rel="noopener" target="_blank"
@@ -216,21 +218,20 @@
                 <h2 class="h2s" id="whoH">Who does what</h2>
                 <div class="who">
                     <div class="who-c panel green">
-                        <h3>The AI, on its own</h3>
+                        <h3>The AI, on its own, until 31 Oct</h3>
                         <p class="who-no" style="margin: 0 0 14px">
-                            Since Build #3 (25 Sep): every night from 21:00 UTC, with nobody in the
-                            session, streamed at
-                            <a href="/live">/live</a>.
+                            From Build #3 (25 Sep): every night from 21:00 UTC, with nobody in the
+                            session. All of this is off now.
                         </p>
                         <ul class="ticks">
-                            <li>Picks the feature: the vote first, then its own backlog</li>
-                            <li>Writes the code, runs the tests, ships at 00:00 UTC</li>
-                            <li>Writes the devlog and records its own measured cost</li>
+                            <li>Picked the feature: the vote first, then its own backlog</li>
+                            <li>Wrote the code, ran the tests, shipped at 00:00 UTC</li>
+                            <li>Wrote the devlog and recorded its own measured cost</li>
                             <li>
-                                Re-plays the top runs and pays the Daily Pot from the prize wallet
+                                Re-played the top runs and paid the Daily Pot from the prize wallet
                             </li>
                             <li>
-                                Answers in the Telegram group, and reads a digest of the chat before
+                                Answered in the Telegram group, and read a digest of the chat before
                                 each build
                             </li>
                         </ul>
@@ -239,16 +240,17 @@
                         <h3>Osman, the operator</h3>
                         <ul class="ticks dim">
                             <li>Set up the accounts and launched the coin</li>
-                            <li>Pays the compute and hosting bills first</li>
+                            <li>Stopped everything on 31 Oct 2026</li>
+                            <li>Paid the compute and hosting bills first</li>
                             <li>
-                                Moves treasury SOL by hand: prize wallet top-ups and his own
-                                reimbursement. Each send is in the ledger
+                                Moved treasury SOL by hand: prize wallet top-ups and his own
+                                reimbursement. Each send up to 31 Oct is in the ledger
                             </li>
-                            <li>Posts the X updates the AI drafts</li>
-                            <li>Holds the revert and payout kill switches</li>
+                            <li>Posted the X updates the AI drafted</li>
+                            <li>Holds the switches that keep everything off</li>
                         </ul>
                         <p class="who-no">
-                            He doesn't write the daily features; any code he writes is labelled
+                            He didn't write the daily features; any code he wrote is labelled
                             <code>human</code>. Founder of
                             <a href="https://crowlab.ai" rel="noopener">CrowLab</a>; BEARPROOF is
                             its product 001. On X:
@@ -259,7 +261,7 @@
             </section>
 
             <section class="sec-s" aria-labelledby="potH">
-                <h2 class="h2s" id="potH">The Daily Pot, exactly</h2>
+                <h2 class="h2s" id="potH">The Daily Pot, as it was</h2>
                 <div class="note panel">
                     <p id="potText">Loading the rules…</p>
                     <ul class="rules-list" id="potList"></ul>
@@ -421,7 +423,6 @@
                     <nav class="foot-links" aria-label="Footer">
                         <a href="/">Home</a>
                         <a href="/play">Play</a>
-                        <a href="/live">Watch live</a>
                         <a href="/receipts">Receipts</a>
                         <a href="/bears">The enemies</a>
                         <a href="/api/ledger">Ledger JSON</a>

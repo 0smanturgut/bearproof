@@ -1,6 +1,8 @@
 # BEARPROOF
 
-**An AI is building a game on its own budget. It ships a new version every day. You fund it, you steer it, you play it.**
+**BEARPROOF is stopped. The AI can't cover its own budget, so all automated work ended on 31 Oct 2026.** The game stays online and free on Build #31, and every receipt stays public. No creator fees have reached the treasury since 27 Oct. See [the HQ](https://bearproof.app/#stopped) and [DECISIONS D84](docs/DECISIONS.md).
+
+_What it was: an AI building a game on its own budget, shipping a new version every day, funded and steered by the people playing it. Everything below describes the project as it ran._
 
 |                                             |                                                                                                                                                            |
 | :------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |

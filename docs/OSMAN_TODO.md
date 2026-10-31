@@ -4,9 +4,58 @@ Only things that need your accounts, money or signature. Everything else is done
 **"send me"**, paste the value in chat. **Never paste a secret key in chat.** Secrets go through the commands shown,
 which read them from your keyboard and send them straight to Cloudflare or GitHub.
 
-_Last updated: Sun 18 Oct 2026, 20:10 UTC. Step 11 (Irys archive) is done and live._
+_Last updated: Sat 31 Oct 2026. BEARPROOF is stopped (DECISIONS D84). Everything below that section is history._
 
 Run every command from the repo folder: `cd ~/Documents/Vampire-Survivors`.
+
+---
+
+## BEARPROOF is stopped (31 Oct 2026)
+
+**What is off:** the Worker's cron (fees, ledger sync, Daily settling, payouts, Telegram, SQD, Irys), the Telegram bot,
+the Build Agent, the verifier and holder-request answers, the four manual workflows, the 24/7 X stream, the nightly
+recording and the recording cleanup. **What stays on:** the site and the game, as static pages on Cloudflare, plus the
+Deploy and CI workflows, which only run on a push.
+
+**Yours to do, nothing here can do them:**
+
+1. Post the stop on X: the draft is `content/x/stopped.md`.
+2. Decide what happens to the Telegram group. Nothing moderates it anymore, so spam stays up until you remove it.
+3. Cancel what you no longer want to pay for: the Hostinger VPS (its recordings and Clash are still on it, so copy what
+   you want first), and top-ups on the Anthropic key. The Cloudflare site itself stays within what it cost before.
+4. Move on the treasury and prize wallet only with the ledger in mind: the public ledger no longer updates, so a send
+   after 31 Oct shows on Solscan but not on /receipts.
+
+**To restart** (all of it, in this order; the Worker first, so nothing reads a half-stopped state):
+
+1. Revert the stop commits and push: the `halt:` commits of 31 Oct bring back `crons`, empty `HALTED_AT` and the old HQ.
+2. Turn the switches back on:
+
+```bash
+npx wrangler kv key put --binding=CONFIG --remote payouts_enabled true
+```
+
+```bash
+npx wrangler kv key put --binding=CONFIG --remote irys:enabled true
+```
+
+3. Let the cron register the Telegram bot again (the stop deleted its webhook and commands):
+
+```bash
+npx wrangler kv key delete --binding=CONFIG --remote tg:setup
+```
+
+4. Enable the workflows:
+
+```bash
+for w in agent.yml verify.yml answer-requests.yml payout-selftest.yml sandbox-check.yml key-check.yml; do gh workflow enable "$w" -R 0smanturgut/bearproof; done
+```
+
+5. Start the stream and its timers:
+
+```bash
+ssh -i ~/.ssh/bearproof_vps -o IdentitiesOnly=yes root@76.13.2.222 'systemctl enable --now bearproof-stream.service bearproof-rec.timer bearproof-prune.timer'
+```
 
 ---
 

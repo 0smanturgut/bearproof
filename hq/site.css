@@ -2968,3 +2968,60 @@ body.page main {
         transition: none !important;
     }
 }
+
+/* The project is stopped (docs/DECISIONS.md D84). */
+.halt-bar {
+    position: absolute;
+    inset: var(--nav-h) 0 auto;
+    z-index: 5;
+    display: block;
+    padding: 10px var(--gut);
+    background: var(--bear);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    text-decoration: none;
+}
+.halt-bar:hover,
+.halt-bar:focus-visible {
+    color: var(--ink);
+    text-decoration: underline;
+}
+.hud-live.stopped i {
+    background: var(--bear);
+    box-shadow: none;
+    animation: none;
+}
+.stat-s a {
+    color: inherit;
+    text-decoration: underline;
+}
+.halt-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+.halt-col {
+    padding: 20px;
+}
+.halt-col h3 {
+    margin: 0 0 10px;
+}
+.halt-col ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-2);
+    line-height: 1.6;
+}
+.halt-page {
+    padding-block: 4vh;
+    max-width: 640px;
+}
+.halt-page .btn {
+    margin: 10px 10px 0 0;
+}
+.halt-bar ~ main {
+    margin-top: 52px;
+}

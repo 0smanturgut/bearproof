@@ -59,6 +59,16 @@ function withCacheReset(request, res) {
     return out;
 }
 
+// While the project is stopped (D84) nothing reads these, so nothing takes them.
+const CLOSED_WHEN_HALTED = new Set([
+    '/api/runs',
+    '/api/vote',
+    '/api/vote/request',
+    '/api/ideas',
+    '/api/payout-address'
+]);
+const STOPPED = 'BEARPROOF is stopped. See https://bearproof.app/#stopped';
+
 // --- Routes ----------------------------------------------------------------
 
 async function play(request, env) {
@@ -73,6 +83,8 @@ async function play(request, env) {
 }
 
 async function daily(request, env) {
+    // Without a Daily the game falls back to a free run: no board, no prize address, no countdown to a next build.
+    if (env.HALTED_AT) return error(503, 'halted', STOPPED);
     const url = new URL(request.url);
     const now = Date.now();
     const date = isDateKey(url.searchParams.get('date'))
@@ -134,7 +146,9 @@ async function treasuryStats(env) {
         feesUnclaimed: bal && typeof bal.creatorVault === 'number' ? bal.creatorVault : null,
         // The treasury's estimated share of those fees (ClawPump keeps the rest).
         feeShare: Number(env.CREATOR_FEE_SHARE) || null,
-        note: 'On-chain SOL balances, read every 15 minutes.'
+        note: env.HALTED_AT
+            ? 'On-chain SOL balances as last read before the project stopped. They no longer update.'
+            : 'On-chain SOL balances, read every 15 minutes.'
     };
 }
 
@@ -165,7 +179,8 @@ async function stats(env) {
             day: dayNumber(env.PROJECT_START_DATE, now),
             buildsShipped: shippedCount(BUILDS, now),
             liveBuild: publicBuild(live),
-            nextBuildAt: new Date(nextUtcMidnight(now)).toISOString(),
+            halted: env.HALTED_AT || null,
+            nextBuildAt: env.HALTED_AT ? null : new Date(nextUtcMidnight(now)).toISOString(),
             treasury: env.TREASURY_WALLET ? await treasuryStats(env) : null,
             token: env.TOKEN_MINT ? { mint: env.TOKEN_MINT } : null,
             computeSpentUsd: spent
@@ -268,6 +283,8 @@ export default {
                     return unansweredRequests(request, env);
             }
             if (request.method === 'POST') {
+                if (env.HALTED_AT && CLOSED_WHEN_HALTED.has(pathname))
+                    return error(403, 'halted', STOPPED);
                 if (pathname === '/api/session') return session(request, env);
                 if (pathname === '/api/runs') return submitRun(request, env);
                 if (pathname === '/api/player') return setPlayerName(request, env);

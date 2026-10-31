@@ -158,6 +158,9 @@ const setText = (sel, text) => {
     if (el) el.textContent = text;
 };
 
+// The project is stopped (D84): the page says so in its <html>, and nothing here counts down to a next build.
+const HALTED = 'halted' in document.documentElement.dataset;
+
 // ------------------------------------------------------------------------------------------- state
 
 const state = {
@@ -240,12 +243,19 @@ async function loadStats() {
 }
 
 function renderStats(s) {
-    countTo($('#nDay'), s.day);
     countTo($('#nBuilds'), s.buildsShipped);
-    countTo($('#nPlayers'), s.playersToday);
-    const top = s.topScoreToday;
-    if (top && isNum(top.score)) countTo($('#nTop'), top.score, fmtInt, 1300);
-    else setText('#nTop', '—');
+    if (HALTED) {
+        if (s.treasury && isNum(s.treasury.balance))
+            setText('#nTreasury', `${s.treasury.balance.toFixed(3)} SOL`);
+        if (s.computeSpentUsd && isNum(s.computeSpentUsd.measured))
+            setText('#nSpent', usd(s.computeSpentUsd.measured));
+    } else {
+        countTo($('#nDay'), s.day);
+        countTo($('#nPlayers'), s.playersToday);
+        const top = s.topScoreToday;
+        if (top && isNum(top.score)) countTo($('#nTop'), top.score, fmtInt, 1300);
+        else setText('#nTop', '—');
+    }
     renderLoop(s);
     if (s.token && B58.test(s.token.mint || '')) renderCa(s.token.mint);
     renderScreen(s);
@@ -269,6 +279,15 @@ function renderPill() {
     const live = s && s.liveBuild;
     text.textContent = '';
     pill.classList.remove('building');
+    if (HALTED) {
+        pill.classList.add('stopped');
+        text.append(
+            'Stopped · ',
+            h('b', null, `Build #${live ? live.n : '—'}`),
+            ' is the last build'
+        );
+        return;
+    }
     if (a && a.status === 'running') {
         pill.classList.add('building');
         text.append(
@@ -463,18 +482,21 @@ async function loadTape() {
     ]);
     const items = [];
     const add = (k, v, gold = false) => v && items.push({ k, v, gold });
-    if (s && s.liveBuild) add('Build', `#${s.liveBuild.n} is live`);
-    if (s && isNum(s.day)) add('Day', fmtInt(s.day));
-    if (daily) add("Today's map", daily.stageName || daily.stage);
-    if (daily && daily.twist) add('Twist', daily.twist.name, true);
-    if (pot && pot.bounty && pot.bounty.text) add('AI bounty', pot.bounty.text, true);
-    if (pot && pot.status === 'on' && isNum(pot.potSol))
-        add("Today's pot", `${pot.potSol.toFixed(3)} SOL`, true);
-    const top = lb && Array.isArray(lb.rows) ? lb.rows[0] : null;
-    if (top && isNum(top.score))
-        add("Today's #1", `${top.name || 'anon'} · ${fmtInt(top.score)}`, true);
-    if (s && isNum(s.playersToday) && s.playersToday > 0)
-        add('Players today', fmtInt(s.playersToday));
+    if (HALTED) add('BEARPROOF', 'stopped', true);
+    if (s && s.liveBuild) add('Build', `#${s.liveBuild.n} is ${HALTED ? 'the last' : 'live'}`);
+    if (!HALTED) {
+        if (s && isNum(s.day)) add('Day', fmtInt(s.day));
+        if (daily) add("Today's map", daily.stageName || daily.stage);
+        if (daily && daily.twist) add('Twist', daily.twist.name, true);
+        if (pot && pot.bounty && pot.bounty.text) add('AI bounty', pot.bounty.text, true);
+        if (pot && pot.status === 'on' && isNum(pot.potSol))
+            add("Today's pot", `${pot.potSol.toFixed(3)} SOL`, true);
+        const top = lb && Array.isArray(lb.rows) ? lb.rows[0] : null;
+        if (top && isNum(top.score))
+            add("Today's #1", `${top.name || 'anon'} · ${fmtInt(top.score)}`, true);
+        if (s && isNum(s.playersToday) && s.playersToday > 0)
+            add('Players today', fmtInt(s.playersToday));
+    }
     if (s && s.treasury && isNum(s.treasury.balance))
         add("The AI's wallet", `${s.treasury.balance.toFixed(3)} SOL`);
     if (s && s.computeSpentUsd && isNum(s.computeSpentUsd.measured))
@@ -485,14 +507,15 @@ async function loadTape() {
     for (let pass = 0; pass < 2; pass++) {
         for (const it of items)
             run.append(h('span', null, `${it.k} `, h('b', { class: it.gold ? 'g' : null }, it.v)));
-        run.append(
-            h(
-                'span',
-                null,
-                'Next build in ',
-                h('b', { 'data-countdown': '' }, hms(state.nextBuildAt - Date.now()))
-            )
-        );
+        if (!HALTED)
+            run.append(
+                h(
+                    'span',
+                    null,
+                    'Next build in ',
+                    h('b', { 'data-countdown': '' }, hms(state.nextBuildAt - Date.now()))
+                )
+            );
     }
     run.style.animationDuration = `${Math.max(40, items.length * 8)}s`;
 }
@@ -605,7 +628,7 @@ async function loadAgent(first = false) {
     }
     state.agent = { status: d.status, build: d.build };
     renderPill();
-    $('#navLive').classList.toggle('on', d.status === 'running');
+    $('#navLive')?.classList.toggle('on', d.status === 'running');
     const events = pickEvents(Array.isArray(d.events) ? d.events : []);
     const running = d.status === 'running';
     const started = toMs(d.startedAt);
@@ -617,7 +640,9 @@ async function loadAgent(first = false) {
             : '');
     const sub = $('#buildSub');
     sub.textContent = '';
-    if (running)
+    if (HALTED)
+        sub.append('Every build is still playable. The last build session is replayed below.');
+    else if (running)
         sub.append(
             `Every build is still playable. Right now the AI is writing Build #${d.build || ''}, live; it ships at 00:00 UTC if its tests pass. Full view at `,
             h('a', { href: '/live' }, '/live'),
@@ -664,6 +689,7 @@ function agentLoop() {
     let first = true;
     const run = async () => {
         await loadAgent(first);
+        if (HALTED) return;
         first = false;
         // Around the nightly session check often; otherwise now and then.
         const hr = new Date().getUTCHours();
@@ -855,8 +881,10 @@ async function loadBuilds() {
     items.sort((a, b) => b.at - a.at || b.n - a.n);
     tl.textContent = '';
     const maxN = builds.reduce((m, b) => Math.max(m, b.n), 0);
-    if (scheduled.length) for (const b of scheduled.reverse()) tl.append(nextRow(b.n, b));
-    else tl.append(nextRow(maxN + 1, null, vote));
+    if (!HALTED) {
+        if (scheduled.length) for (const b of scheduled.reverse()) tl.append(nextRow(b.n, b));
+        else tl.append(nextRow(maxN + 1, null, vote));
+    }
     // The live build has the big card above; the list is everything before it.
     const rest = items.filter((it) => !(live && it.b && it.b.n === live.n));
     rest.forEach((it, i) => {
@@ -891,7 +919,7 @@ function renderWall(shipped, byBuild, maxN) {
         h(
             'span',
             null,
-            `${fmtInt(span)} days. `,
+            `${fmtInt(HALTED ? days : span)} ${HALTED ? 'nights' : 'days'}. `,
             h('b', null, `${fmtInt(list.length)} builds.`),
             days === span ? ' Not one day missed.' : ''
         ),
@@ -940,7 +968,7 @@ function renderWall(shipped, byBuild, maxN) {
         )
     );
     tonight.style.setProperty('--i', String(list.length));
-    ol.append(tonight);
+    if (!HALTED) ol.append(tonight);
     box.hidden = false;
     if (!reduced.matches) onSeen(box, () => box.classList.add('go'));
 }
@@ -1356,12 +1384,14 @@ function boot() {
     });
     tick();
     agentLoop();
-    prizeAddress();
-    whenNear($('#challenge'), () => {
-        loadChallenge();
-        loadWinners();
-        setInterval(() => document.visibilityState === 'visible' && loadChallenge(), 60000);
-    });
+    if (!HALTED) {
+        prizeAddress();
+        whenNear($('#challenge'), () => {
+            loadChallenge();
+            loadWinners();
+            setInterval(() => document.visibilityState === 'visible' && loadChallenge(), 60000);
+        });
+    }
     whenNear($('#build'), loadBuilds);
     whenNear($('#receipts'), loadSqdStrip);
     // The game's pixel art, when the browser is idle, so it never delays the first paint.

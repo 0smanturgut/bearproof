@@ -143,6 +143,7 @@ async function page(env) {
         })
         .join('');
     const open = v?.status === 'open';
+    const halted = !!d.stats?.halted; // the project is stopped (docs/DECISIONS.md D84)
     const milestones = [
         ['23 SEP', 'Build #1: an AI takes a free open-source game and turns it into BEARPROOF.'],
         ['24 SEP', 'The first Daily Challenge, with a prize paid on-chain to the winner.'],
@@ -161,10 +162,12 @@ async function page(env) {
             '17 OCT',
             'The Market: player levels, CLOUT and skins. From here, every build is a major update on the road to 1.0.'
         ],
-        [
-            'NEXT',
-            'A new character, a new map and missions. Then the App Store, Google Play and Steam.'
-        ]
+        halted
+            ? ['31 OCT', 'Stopped: the AI can’t cover its own budget. All automated work ended.']
+            : [
+                  'NEXT',
+                  'A new character, a new map and missions. Then the App Store, Google Play and Steam.'
+              ]
     ].filter(Boolean);
     const cards = builds
         .map((e) => {
@@ -176,7 +179,7 @@ async function page(env) {
             return `<article class="b${e.build === n ? ' live' : ''}" id="build-${e.build}">
   <div class="n"><span>NIGHT</span>${e.build}</div>
   <div class="body">
-    <div class="meta"><span>${day(e.date)}</span><span class="who ${esc(e.mode)}">${who}</span>${e.build === n ? '<span class="now">LIVE NOW</span>' : ''}${e.chosenBy === 'holders' ? '<span class="voted">PICKED BY HOLDERS</span>' : ''}</div>
+    <div class="meta"><span>${day(e.date)}</span><span class="who ${esc(e.mode)}">${who}</span>${e.build === n ? `<span class="now">${halted ? 'THE LAST BUILD' : 'LIVE NOW'}</span>` : ''}${e.chosenBy === 'holders' ? '<span class="voted">PICKED BY HOLDERS</span>' : ''}</div>
     <h3>${esc(e.title)}</h3>
     <p>${esc(lead(e))}</p>
     <div class="links"><a href="${SITE}/b/${e.build}/">Play this build →</a><a href="${REPO}/blob/main/devlog/build-${e.build}.md">Devlog</a>${cost ? `<span>${esc(cost)}</span>` : ''}</div>
@@ -184,7 +187,9 @@ async function page(env) {
 </article>`;
         })
         .join('\n');
-    const desc = `${n} builds in ${n} nights, none skipped. Every BEARPROOF build so far, tonight's vote and what comes next.`;
+    const desc = halted
+        ? `BEARPROOF is stopped: the AI can't cover its own budget. All ${n} builds, each still playable.`
+        : `${n} builds in ${n} nights, none skipped. Every BEARPROOF build so far, tonight's vote and what comes next.`;
     return `<!doctype html>
 <html lang="en">
 <head>
@@ -264,7 +269,7 @@ footer { margin: 60px 0 0; padding: 26px 0 40px; border-top: 1px solid var(--lin
 </header>
 <section class="hero">
   <h1>${n} NIGHTS.<br /><span>${n} BUILDS.</span></h1>
-  <p>An AI builds this game in public. Every night it ships a new version, tests it and writes a devlog. Not one night skipped since 23 Sep.</p>
+  <p>${halted ? 'BEARPROOF is stopped. The AI can’t cover its own budget, so all automated work ended on 31 Oct 2026. Build #' + n + ' was the last. Every build stays playable.' : 'An AI builds this game in public. Every night it ships a new version, tests it and writes a devlog. Not one night skipped since 23 Sep.'}</p>
   ${next ? `<div class="clock" id="clock" data-at="${esc(next)}">NEXT BUILD AT 00:00 UTC</div>` : ''}
 </section>
 <div class="stats">
@@ -274,11 +279,15 @@ footer { margin: 60px 0 0; padding: 26px 0 40px; border-top: 1px solid var(--lin
   <div><b>${num(d.ansem)}</b><span>ANSEM paid to players</span></div>
 </div>
 
-<h2>Tonight<small>${open ? `Build #${esc(v.forBuild)} · holders are voting · closes 21:00 UTC` : v ? `Build #${esc(v.forBuild)} · the vote is closed, the AI is building` : 'The next build ships at 00:00 UTC'}</small></h2>
+${
+    halted
+        ? ''
+        : `<h2>Tonight<small>${open ? `Build #${esc(v.forBuild)} · holders are voting · closes 21:00 UTC` : v ? `Build #${esc(v.forBuild)} · the vote is closed, the AI is building` : 'The next build ships at 00:00 UTC'}</small></h2>
 <div class="tonight">
   <p>Every evening the AI proposes three features and holders vote with a free wallet signature. Overnight it builds the winner, or its own pick when nobody votes.</p>
   ${ballot ? `<ul>${ballot}</ul>` : ''}
-</div>
+</div>`
+}
 
 <h2>Milestones</h2>
 <ul class="miles">
@@ -291,7 +300,7 @@ ${cards}
 <footer>
   BEARPROOF started from canvas-vampire-survivors by ricardo-foundry (MIT licence), kept as Build #0 so anyone can see what the AI added: <a href="${SITE}/b/0/">play the original</a>.<br />
   Builds #1 and #2 were setup builds made with the founder; every build from #3 on was written by the Build Agent. Numbers on this page are read live from bearproof.app.<br />
-  <a href="${SITE}">bearproof.app</a> · <a href="https://t.me/bearproofapp">Telegram</a> · <a href="${REPO}">Source</a>
+  <a href="${SITE}">bearproof.app</a> · <a href="${REPO}">Source</a>
 </footer>
 </div>
 <script>

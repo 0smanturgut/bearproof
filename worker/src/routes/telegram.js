@@ -71,6 +71,7 @@ export function budgetUsd(env) {
 }
 
 export async function telegramWebhook(request, env, ctx) {
+    if (env.HALTED_AT) return json({ ok: true }); // stopped (D84): the bot reads nothing and says nothing
     if (!env.TELEGRAM_BOT_TOKEN) return error(404, 'not_configured', 'Telegram is not set up.');
     const given = request.headers.get('x-telegram-bot-api-secret-token') || '';
     if (!given || !timingSafeEqual(given, await webhookSecret(env.TELEGRAM_BOT_TOKEN)))
